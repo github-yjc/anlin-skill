@@ -1,0 +1,130 @@
+# Anlin Skill
+
+> A writing discipline disguised as a skill. Reverse-engineered from 38 original articles through systematic corpus analysis, blind audits, and iterative refinement.
+
+This skill enables AI agents to write in the voice of **Anlin** — the Zhihu writer whose daily chronicles of unemployment, food delivery, gout, and class anxiety became a literary phenomenon. The output is characterized by defensive humor layered over genuine pain, fragment-montage structure, and the signature **Bathos** technique: retreating from completeness at the last possible moment.
+
+## Why This Exists
+
+Most agent writing reads like an agent wrote it. Complete. Polished. Emotionally safe. Anlin's writing is none of these things — it halts unexpectedly, undermines its own seriousness, and leaves the reader to fill the silence.
+
+This skill doesn't teach the agent to "sound like Anlin" — it constrains the agent away from its natural tendencies toward completeness, explanation, and emotional resolution. The result is not Anlin, but it is closer to Anlin than anything an unconstrained agent produces.
+
+## Quick Setup
+
+1. Copy the `Anlin` directory to your skills folder:
+   - **OpenCode**: `C:\Users\<user>\.config\opencode\skills\Anlin\`
+   - **Claude Code**: `~/.claude/skills/Anlin/`
+
+2. Restart your agent. The skill will auto-load when triggered.
+
+3. Trigger: ask for "Anlin" / "日寄" / "像Anlin那样写" / "模仿日寄" / "知乎摆烂写手风格".
+
+## How It Works
+
+```
+┌───────────────────────────────────────────────┐
+│                  SKILL.md                     │
+│         12-step orchestration pipeline        │
+│      Identity confirmation → Texture →        │
+│      Spine → Scene → Weave → Cognitive path   │
+└─────────────────────┬─────────────────────────┘
+                      │
+    ┌─────────────────┼─────────────────┐
+    ▼                 ▼                  ▼
+┌─────────┐  ┌──────────────┐  ┌──────────────┐
+│ voice-  │  │  structure-  │  │   writing-   │
+│ model   │  │  patterns    │  │  checklist   │
+│ (269L)  │  │  (204L)      │  │  (29 rules)  │
+└─────────┘  └──────────────┘  └──────────────┘
+    │              │                  │
+    └──────┬───────┴────────┬─────────┘
+           ▼                ▼
+    ┌────────────┐  ┌──────────────┐
+    │  era-state │  │  vocabulary- │
+    │  (86L)     │  │  rules (162L)│
+    └────────────┘  └──────────────┘
+           │                │
+           ▼                ▼
+    ┌────────────────────────────┐
+    │  13 reference files +      │
+    │  3 verification scripts    │
+    │  = 1,500+ lines of         │
+    │  constrained writing rules │
+    └────────────────────────────┘
+```
+
+## What Makes This Different
+
+Unlike prompt-based imitation, this skill operates at the **architecture level**. Every rule lives in a reference file the agent reads at decision time — not in a prompt that gets compressed, forgotten, or worked around.
+
+### Core Techniques
+
+| Technique | Description |
+|---|---|
+| **Voice Model** | 12-dimension character operating system: perception, emotion, humor, social position, dialogue, thought patterns, reader relationship, auto-ethnographic stance |
+| **Bathos (撤退)** | The signature move — escalate toward profundity, then retreat into the body or the absurd. Five retreat forms catalogued. |
+| **Fragment Montage** | 5-12 scenes per article, connected by associative leaps, not logic. Each scene: setup → punchline → (optional) tag. |
+| **Pseudo-Academic Concepts** | Create → define → apply to 3+ scenes → destroy. "应届生廉价定理", "湿气重诊断体系", "A3.1". |
+| **Cognitive Path** | Five-step mental sequence embedded in the writing step: concrete detail → deliberate misinterpretation → self-sabotage → defense → land and leave. |
+| **Corpus-verified** | All frequency claims audited against 38 original articles. Deletion of fabricated quotes. Recalibration of character appearances, vocabulary counts, and structural patterns. |
+
+### What the Agent Learns NOT to Do
+
+- Don't summarize or conclude
+- Don't explain why something is funny
+- Don't resolve emotional tension
+- Don't use "然后...然后..." sequencing
+- Don't write complete sentences where fragments work better
+- Don't write "金句" that belongs on a motivational poster
+- Don't let sincerity exceed 5 lines without a joke
+
+## Directory Structure
+
+```
+Anlin/
+├── SKILL.md                      # Entry point (146 lines)
+├── README.md                     # This file
+├── references/
+│   ├── voice-model.md            # Core: who Anlin is (269 lines)
+│   ├── writing-checklist.md      # 29 rules: identity + dialogue + text
+│   ├── structure-patterns.md     # Structure, spine, Bathos, endings (204 lines)
+│   ├── vocabulary-rules.md       # Negative space: what Anlin never writes (162 lines)
+│   ├── era-state.md              # Four-phase evolution model (86 lines)
+│   ├── anlin-characters.md       # Character system with deployment rules (92 lines)
+│   ├── anlin-reference-library.md # 11-dimension reference samples
+│   ├── samples-index.md          # 8-10 original text samples for calibration
+│   ├── self-check.md             # Post-writing self-audit
+│   ├── evals.md                  # Multi-agent blind evaluation protocol
+│   ├── validation-protocol.md    # Blind test workflow
+│   ├── portable-corpus.md        # Corpus fragments for offline use
+│   └── subagent-prompts.md       # Agent delegation templates
+├── scripts/
+│   ├── check_anlin_violations.py # Automated rule violation scanner
+│   ├── compare_anlin_corpus.py   # Corpus frequency comparison
+│   └── prepare_blind_test.py     # Blind test preparation
+├── evals/
+│   ├── evals.json
+│   └── README.md
+└── audits/
+    └── checker-smoke-draft.md
+```
+
+## Quality Assurance
+
+This skill was developed through an adversarial refinement loop:
+
+1. **Corpus Analysis**: 38 articles → structural patterns, character frequencies, vocabulary domain
+2. **Blind Testing**: Human readers judge generated vs. original; agent self-identification tests
+3. **Reverse Audits**: Systematic cross-checking of every claim in the skill against the original corpus
+4. **Iterative Fixes**: Each audit round surfaces gaps → fix → re-test
+
+The skill does not claim indistinguishability from the original. It claims methodological rigor in the attempt.
+
+## Author
+
+Maintained as part of the [github-yjc](https://github.com/github-yjc) skill collection.
+
+## License
+
+MIT

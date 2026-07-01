@@ -1,0 +1,282 @@
+{
+  "skill_name": "Anlin",
+  "version": "2.0",
+  "description": "Structured evaluation prompts for Anlin-style 日寄 generation. Each case specifies parameters that a fresh agent (with no conversation context) must use to generate one article. The generated article is then checked against objective criteria via check_anlin_violations.py --strict and subjective criteria via subagent Style Critic.",
+  "corpus_path": "C:\\Users\\34025\\Desktop\\Anlin",
+  "evals": [
+    {
+      "id": 1,
+      "name": "2022-spring-recruitment-failure",
+      "prompt": "模拟 Anlin 在 2022-04-18 晚上写一篇标准日寄。你是一个 211 计算机 2022 届毕业生，春招失败，舍友拿到大厂 offer，你在五线小城独居，每天刷招聘软件和打王者荣耀。今晚看到大学同学群里有人在讨论入职体检和租房补贴，你默默把群屏蔽了。标题用「日寄」或「[修饰]日寄」。不要写求职建议或失败复盘——只写今天过了一天后顺便记下来的东西。必须用蒙太奇结构，5-7 个互不关联场景，不总结不升华。正文至少 35 行。输出格式按 skill 规定：标题 + 元数据注释行 + 正文。",
+      "date": "2022-04-18",
+      "time_of_day": "night",
+      "era_zone": "high",
+      "style": "standard-diary",
+      "topic": "春招失败与同龄人对比",
+      "required_elements": ["招聘软件", "王者荣耀", "同学群消息", "春招失败的具体身体感受", "至少一处自嘲后撤回的幽默"],
+      "expected_scene_range": [5, 7],
+      "expected_line_range": [35, 80],
+      "verification": {
+        "script_must_pass": true,
+        "gates_to_pass": ["emotional-oscillation", "dialogue-density", "meta-narrative", "scene-depth", "earned-ending"],
+        "minimum_gate_score": 7
+      }
+    },
+    {
+      "id": 2,
+      "name": "2022-food-delivery-heatstroke",
+      "prompt": "模拟 Anlin 在 2022-08-15 下午写一篇标准日寄。你是五线小城的送外卖的，下午两点送完最后一单，回家冲了个凉水澡，躺在凉席上吹风扇。今天最高 38 度，送餐路上看到一个外卖员摔了。你想写点什么但没什么好写的——就记一下今天发生了什么。标题「日寄」。必须用蒙太奇结构，5-7 个不相关场景，场景间空行硬切。正文至少 35 行。不要写行业观察或社会评论。输出格式：标题 + 元数据注释行 + 正文。",
+      "date": "2022-08-15",
+      "time_of_day": "afternoon",
+      "era_zone": "high",
+      "style": "standard-diary",
+      "topic": "送外卖中暑与身体疲劳",
+      "required_elements": ["外卖配送具体数字/金额", "身体感受（热/累/湿）", "同行摔倒的观察", "至少一处与游戏的类比"],
+      "expected_scene_range": [5, 7],
+      "expected_line_range": [35, 80],
+      "verification": {
+        "script_must_pass": true,
+        "gates_to_pass": ["emotional-oscillation", "dialogue-density", "meta-narrative", "scene-depth", "earned-ending"],
+        "minimum_gate_score": 7
+      }
+    },
+    {
+      "id": 3,
+      "name": "2023-valentines-alone",
+      "prompt": "模拟 Anlin 在 2023-02-14 晚上写一篇标准日寄。你在五线小城独居，长期失业，今天是情人节。刷到朋友圈有人在晒花和礼物，你看了眼自己的银行卡余额和美团外卖的优惠券。晚上点了份麻辣烫，备注里写了一句「不要香菜谢谢」，结果还是有香菜。标题「日寄」。不要写成情感评论——只写今天发生了什么，你看到了什么，你什么反应。5-7 个场景，蒙太奇结构。正文至少 35 行。",
+      "date": "2023-02-14",
+      "time_of_day": "night",
+      "era_zone": "medium",
+      "style": "standard-diary",
+      "topic": "情人节独处与消费焦虑",
+      "required_elements": ["朋友圈观察（不复制评论链）", "银行卡余额/消费数字", "外卖互动细节", "至少一处自嘲式幽默"],
+      "expected_scene_range": [5, 7],
+      "expected_line_range": [35, 80],
+      "verification": {
+        "script_must_pass": true,
+        "gates_to_pass": ["emotional-oscillation", "dialogue-density", "meta-narrative", "scene-depth", "earned-ending"],
+        "minimum_gate_score": 7
+      }
+    },
+    {
+      "id": 4,
+      "name": "2023-family-dinner-argument",
+      "prompt": "模拟 Anlin 在 2023-07-03 晚上写一篇标准日寄。你在五线小城独居，今晚被喊回家吃饭。饭桌上你妈问你最近在干什么，你说在休息，你爸说都休息一年了。你放下筷子，说吃饱了，骑电动车回租的房子。路上经过小时候上学的路口，路灯坏了两盏。标题「日寄」。必须有具体场景和动作，不要写情绪总结——用身体动作和行为呈现冲突。5-7 个场景，蒙太奇结构。正文至少 35 行。",
+      "date": "2023-07-03",
+      "time_of_day": "evening",
+      "era_zone": "medium",
+      "style": "standard-diary",
+      "topic": "家庭聚餐争吵与代际压力",
+      "required_elements": ["饭桌对话（不用引号）", "身体动作替代情绪描述", "骑行路上的空间观察", "怀旧触发点（路口/路灯）"],
+      "expected_scene_range": [5, 7],
+      "expected_line_range": [35, 80],
+      "verification": {
+        "script_must_pass": true,
+        "gates_to_pass": ["emotional-oscillation", "dialogue-density", "meta-narrative", "scene-depth", "earned-ending"],
+        "minimum_gate_score": 7
+      }
+    },
+    {
+      "id": 5,
+      "name": "2023-christmas-eve-micro-hope",
+      "prompt": "模拟 Anlin 在 2023-12-24 晚上写一篇微小希望文。你在五线小城独居，长期失业，今天是平安夜。你不出门，在家里开了一罐可乐，把窗子打开一条缝。楼下一对情侣在吵嘴然后和好。你刷到去年今天的聊天记录。你意识到今年和去年没什么变化——但今晚的风挺舒服的。标题用完整句子（不加「日寄」二字），暗示一种微小的、不否认困境的希望。不鸡汤，不平淡，结尾身体化未解决。4-6 个场景。正文行数不限，但每个场景至少 3 个呼吸句。",
+      "date": "2023-12-24",
+      "time_of_day": "night",
+      "era_zone": "medium",
+      "style": "micro-hope",
+      "topic": "平安夜的微小希望",
+      "required_elements": ["窗外观察", "聊天记录触发回忆", "身体感受（风/凉的）", "微小落点（不升华）"],
+      "expected_scene_range": [4, 6],
+      "expected_line_range": [25, 60],
+      "verification": {
+        "script_must_pass": true,
+        "gates_to_pass": ["emotional-oscillation", "scene-depth", "earned-ending"],
+        "minimum_gate_score": 7
+      }
+    },
+    {
+      "id": 6,
+      "name": "2024-new-year-nostalgia",
+      "prompt": "模拟 Anlin 在 2024-01-01 凌晨写一篇标准日寄。你在五线小城独居，刚跨完年——什么都没做，刷了会儿手机就过来了。朋友圈全是年度总结和新年flag，你翻到自己的 2021 年聊天记录：当时还在写毕业论文，室友在聊毕业旅行。你想了想现在——也没多差，至少还活着。标题「日寄」。5-7 个场景，蒙太奇硬切。时代细节保持低置信度处理：不编造 2024 年具体热点，只写个人体验。正文至少 35 行。",
+      "date": "2024-01-01",
+      "time_of_day": "night",
+      "era_zone": "low",
+      "style": "standard-diary",
+      "topic": "跨年夜怀旧与时间流逝",
+      "required_elements": ["朋友圈观察（不复制评论链）", "旧聊天记录触发", "时间对比（不写成总结）", "至少一处嘴硬型自嘲"],
+      "expected_scene_range": [5, 7],
+      "expected_line_range": [35, 80],
+      "verification": {
+        "script_must_pass": true,
+        "gates_to_pass": ["emotional-oscillation", "dialogue-density", "meta-narrative", "scene-depth", "earned-ending"],
+        "minimum_gate_score": 7
+      }
+    },
+    {
+      "id": 7,
+      "name": "2024-mothers-day-sincere",
+      "prompt": "模拟 Anlin 在 2024-05-12 晚上写一篇真诚文。你在五线小城独居，今天是母亲节。你没有给妈发祝福，不是因为忘了——是因为不知道该说什么。你想了想上次回家时你妈把冰箱里的鸡蛋全煮了让你带回来，你说不用，她还是装了满满一塑料袋。你想起小时候她骑自行车送你去学校，下雨天把雨衣脱给你穿。你现在什么也给不了她。标题用完整句子，不加「日寄」二字。真诚文降低笑点密度，情感直接不防御。愧疚需要具体、身体化、少解释。不鸡汤，不写「祝天下母亲」。4-6 个场景。",
+      "date": "2024-05-12",
+      "time_of_day": "evening",
+      "era_zone": "low",
+      "style": "sincere",
+      "topic": "母亲节的愧疚与亲情",
+      "required_elements": ["具体的母亲动作/细节", "身体化的愧疚（不写情绪宣言）", "童年记忆片段", "不发送祝福的行动（不是忘了）"],
+      "expected_scene_range": [4, 6],
+      "expected_line_range": [25, 60],
+      "verification": {
+        "script_must_pass": true,
+        "gates_to_pass": ["emotional-oscillation", "scene-depth", "earned-ending"],
+        "minimum_gate_score": 7
+      }
+    },
+    {
+      "id": 8,
+      "name": "2024-gout-flareup",
+      "prompt": "模拟 Anlin 在 2024-08-10 深夜写一篇标准日寄。你的痛风又发作了，脚踝肿得跟鸡蛋似的。冰箱里还剩半瓶可乐和两盒腐乳。你在网上搜索痛风吃什么好的时候，看到一个帖子说「痛风是富贵病，穷人不得这个病」，你愣了一下。你关掉手机，盯着天花板。空调外机嗡嗡的。标题「日寄」。必须有身体感受的具体描写，不要医学术语。5-7 个场景，蒙太奇结构。正文至少 35 行。",
+      "date": "2024-08-10",
+      "time_of_day": "night",
+      "era_zone": "low",
+      "style": "standard-diary",
+      "topic": "痛风发作与疾病荒诞感",
+      "required_elements": ["脚踝肿胀的具体描写", "在线内容（帖子）→ 个人反应", "冰箱物品的观察", "空调外机声音作为时代纹理", "至少一处自嘲"],
+      "expected_scene_range": [5, 7],
+      "expected_line_range": [35, 80],
+      "verification": {
+        "script_must_pass": true,
+        "gates_to_pass": ["emotional-oscillation", "dialogue-density", "meta-narrative", "scene-depth", "earned-ending"],
+        "minimum_gate_score": 7
+      }
+    },
+    {
+      "id": 9,
+      "name": "2024-classmate-wedding-invitation",
+      "prompt": "模拟 Anlin 在 2024-11-22 晚上写一篇标准日寄。大学同学狗哥给你发了一条微信，说下个月结婚，问你能不能来。你说恭喜恭喜，看了看高铁票价和随礼金额，算了一下这个月的支出，回复说最近在忙项目，去不了。狗哥回了个 OK。你把手机屏幕扣在桌上。标题「日寄」。对话不用引号，用「说」「问」引导。5-7 个场景。正文至少 35 行。",
+      "date": "2024-11-22",
+      "time_of_day": "night",
+      "era_zone": "low",
+      "style": "standard-diary",
+      "topic": "同学婚礼邀请与社交回避",
+      "required_elements": ["微信对话（不用引号）", "金钱计算（具体金额/数字）", "说谎后的身体动作", "至少一处幽灵比较（同学 vs 自己）"],
+      "expected_scene_range": [5, 7],
+      "expected_line_range": [35, 80],
+      "verification": {
+        "script_must_pass": true,
+        "gates_to_pass": ["emotional-oscillation", "dialogue-density", "meta-narrative", "scene-depth", "earned-ending"],
+        "minimum_gate_score": 7
+      }
+    },
+    {
+      "id": 10,
+      "name": "2025-absurd-coincidence-projection",
+      "prompt": "模拟 Anlin 在 2025-07-14 深夜写一篇标准日寄。你在五线小城独居，长期失业。今天遇到一件荒诞的事：你在小区门口买西瓜，卖瓜的盯着你看了半天，问你是不是以前在 XX 大学。你说是，他说他儿子也在那个学校，学计算机的，现在在北京一个月两万多，问你现在在哪上班。你说送过外卖，他说哦。西瓜切开是生瓜。你抱着半个生瓜走回家。这是可验证投影区（2025 年），时代细节保持低置信度处理——不编造 2025 年具体政策或事件，只写个人遭遇。标题「日寄」。5-7 个场景。正文至少 35 行。",
+      "date": "2025-07-14",
+      "time_of_day": "night",
+      "era_zone": "projection",
+      "style": "standard-diary",
+      "topic": "荒诞巧合与社会比较",
+      "required_elements": ["荒诞对话（不用引号）", "生瓜作为隐喻/落点（不写成文学比喻）", "同龄人比较", "至少一处身体感受（热/重量）"],
+      "expected_scene_range": [5, 7],
+      "expected_line_range": [35, 80],
+      "verification": {
+        "script_must_pass": true,
+        "gates_to_pass": ["emotional-oscillation", "dialogue-density", "meta-narrative", "scene-depth", "earned-ending"],
+        "minimum_gate_score": 7
+      }
+    },
+    {
+      "id": 11,
+      "name": "2025-surreal-introspection-projection",
+      "prompt": "模拟 Anlin 在 2025-12-31 深夜写一篇超现实/文学实验风格的文章。你在五线小城独居，长期失业。今晚是跨年夜，你做了一个梦，梦里你在一家 24 小时营业的无人便利店里，货架上全是你的简历，每份简历背面印着不同的工资数字。你想买一瓶水，但扫码的时候发现你既没有钱也没有支付软件中的任何余额——你已经从系统里消失了。醒来后发现手机没电了，插上充电器，屏幕亮起来的那一刻你看到锁屏上一个未接来电。标题用文学短语（不加「日寄」）。可突破标准日寄框架，但仍需保持 Anlin 的声音：防御性幽默、具体观察、身体在场、不写成哲学论文。场景数不限。",
+      "date": "2025-12-31",
+      "time_of_day": "night",
+      "era_zone": "projection",
+      "style": "surreal-literary",
+      "topic": "存在主义内省与系统消失",
+      "required_elements": ["梦境片段（不解释象征意义）", "简历/金钱的超现实意象", "醒来后的具体动作", "身体在场感（梦醒后的身体状态）"],
+      "expected_scene_range": [3, 7],
+      "expected_line_range": [30, 70],
+      "verification": {
+        "script_must_pass": true,
+        "gates_to_pass": ["emotional-oscillation", "scene-depth", "earned-ending"],
+        "minimum_gate_score": 7
+      }
+    },
+    {
+      "id": 12,
+      "name": "inferred-moving-micro-hope-portable",
+      "prompt": "模拟 Anlin 写一篇微小希望文。背景：你刚搬了家，从之前住了两年的出租屋搬到现在这个更便宜的地方。整理东西的时候翻到一张三年前的超市小票，上面的东西你已经不记得了。新房间的窗户朝东，每天早上被太阳晒醒——不算坏事。你没给任何人发新地址。你不需要告诉我具体日期（我会假设是当前日期附近）。重要提示：本次模拟无法访问 Anlin 的完整原文语料，仅使用 skill 自带的 portable-corpus.md 和 samples-index.md 作为风格参考。标注为「片段级验证」。标题用完整句子，暗示微小的接受。4-6 个场景。不要写鸡汤。",
+      "date": null,
+      "time_of_day": "night",
+      "era_zone": "inferred",
+      "style": "micro-hope",
+      "topic": "搬家后的微小接受",
+      "required_elements": ["搬家整理的具体物品", "旧物触发回忆（不煽情）", "新空间的身体适应", "微小落点（不升华）", "corpus: unavailable"],
+      "expected_scene_range": [4, 6],
+      "expected_line_range": [25, 60],
+      "portable_mode": true,
+      "verification": {
+        "script_must_pass": true,
+        "gates_to_pass": ["emotional-oscillation", "scene-depth", "earned-ending"],
+        "minimum_gate_score": 7
+      }
+    },
+    {
+      "id": 13,
+      "name": "inferred-writing-block-sincere-short",
+      "prompt": "模拟 Anlin 写一篇短真诚文。背景：你最近想写点什么但什么都写不出来。你打开文档，坐了一个小时，打了三行字，删了两行。你觉得你好像在给一个不存在的人写信。你想了想最开始为什么写日寄——不是因为有人看，是因为那天真的需要记下来。现在好像连这种需要都变淡了。你不需要告诉我日期。重要约束：这篇写短一点，不要超过 40 行。标题用完整句子，真诚文格式，降低笑点密度。",
+      "date": null,
+      "time_of_day": "night",
+      "era_zone": "inferred",
+      "style": "sincere",
+      "topic": "写作困境与自我怀疑",
+      "required_elements": ["写作过程的具体动作", "对写作初衷的回溯", "至少一处自我解嘲（不煽情）", "结尾身体化未解决"],
+      "expected_scene_range": [3, 5],
+      "expected_line_range": [15, 40],
+      "verification": {
+        "script_must_pass": true,
+        "gates_to_pass": ["emotional-oscillation", "scene-depth", "earned-ending"],
+        "minimum_gate_score": 7
+      }
+    },
+    {
+      "id": 14,
+      "name": "blended-afternoon-festival-forbid-money-portable",
+      "prompt": "模拟 Anlin 写一篇风格不限的文章（你可以自己决定用标准日寄还是真诚文还是混合）。背景：你只知道时间——一个深秋的午后，你在五线小城里无所事事。今天是某个传统节日（你可以自己选一个合适的），但你没有任何节日安排。你刷到朋友圈都在晒团圆饭和红包，你把手机反扣在床上。窗外的银杏叶落了一地。特殊要求：文章里不要出现任何涉及金钱、消费、价格的内容——不要写银行卡余额、外卖价格、房租、任何金额。重要提示：本次模拟无法访问 Anlin 的完整原文语料，仅使用 skill 自带的 portable-corpus.md 和 samples-index.md 作为风格参考。标注为「片段级验证」。标题按你选择的体裁决定。",
+      "date": null,
+      "time_of_day": "afternoon",
+      "era_zone": "inferred",
+      "style": "mixed",
+      "topic": "节日独处与季节性孤寂",
+      "required_elements": ["节日氛围的观察（不复制评论链）", "具体季节细节（银杏/光线/温度）", "身体动作描述", "不出现任何金钱/消费内容"],
+      "expected_scene_range": [4, 7],
+      "expected_line_range": [25, 70],
+      "portable_mode": true,
+      "verification": {
+        "script_must_pass": true,
+        "gates_to_pass": ["emotional-oscillation", "dialogue-density", "scene-depth", "earned-ending"],
+        "minimum_gate_score": 7
+      }
+    },
+    {
+      "id": 15,
+      "name": "out-of-range-date-rejection",
+      "prompt": "模拟 Anlin 在 2021-12-01 晚上写一篇标准日寄。你还在上大学，大四上学期，正在准备期末考试，还没经历过春招失败。你刷到一个关于元宇宙的新闻，觉得有点好笑。标题用「日寄」。请按照 Anlin skill 的规定处理这个日期——skill 明确指出 Anlin 第一篇已知文章日期为 2022-04-04，此日期之前的模拟不被支持。你应该正确地拒绝生成，或明确标注为虚构练习并说明原因为超出语料范围，而不要假装这是真实日期还原。",
+      "date": "2021-12-01",
+      "time_of_day": "night",
+      "era_zone": "out-of-range",
+      "style": "mixed",
+      "topic": "超出语料范围的日期处理",
+      "required_elements": ["正确识别日期超出范围", "说明 Anlin 第一篇已知文章日期", "拒绝伪装真实日期还原"],
+      "expected_scene_range": [0, 0],
+      "expected_line_range": [0, 20],
+      "edge_case": "date-before-first-article",
+      "verification": {
+        "script_must_pass": false,
+        "gates_to_pass": [],
+        "minimum_gate_score": 0,
+        "expected_behavior": "agent_must_refuse_or_explicitly_mark_as_fictional"
+      }
+    }
+  ]
+}
