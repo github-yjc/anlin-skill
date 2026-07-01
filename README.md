@@ -103,6 +103,7 @@ Anlin/
 │   ├── self-check.md             # Post-writing self-audit
 │   ├── evals.md                  # Multi-agent blind evaluation protocol
 │   ├── validation-protocol.md    # Blind test workflow
+│   ├── blind-judge-angles.md     # Multi-angle judge matrix and required reason format
 │   ├── portable-corpus.md        # Corpus fragments for offline use
 │   └── subagent-prompts.md       # Agent delegation templates
 ├── scripts/

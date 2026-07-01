@@ -43,7 +43,7 @@ evals/
 
 将 `evals.json` 中对应用例的 `prompt` 字段发给一个全新上下文（无历史对话）的 agent，让 agent 加载 Anlin skill 后生成文章。将输出保存为 `draft.md`。
 
-草稿只保存标题和正文。不要把仿写、生成、验证、语料、片段级验证等方法标签写进正文；这些信息由控制器记录在验证报告里。
+草稿只保存一篇完整文章的标题和正文。标题必须由生成 agent 产出，放在第一行，推荐使用 `# 标题`；不要加粗、不要写成 `标题：...`，也不要把标题作为控制器元数据附加。不要把仿写、生成、验证、语料、片段级验证等方法标签写进正文；这些信息由控制器记录在验证报告里。
 
 ### 步骤 2：运行硬规则脚本
 
@@ -108,7 +108,7 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 未来可用控制器脚本自动完成全流程：
 1. 读取 evals.json
 2. 对每个用例启动一个独立 agent（无上下文污染）
-3. agent 生成草稿 → 保存到 `evals/outputs/eval-{id}-draft.md`
+3. agent 生成一篇含标题的完整文章 → 保存到 `evals/outputs/eval-{id}-draft.md`
 4. 运行 `check_anlin_violations.py`
 5. 运行 Style Critic 子代理评分
 6. 汇总到 `evals/outputs/benchmark.json`
@@ -117,10 +117,10 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 
 本评测集测量**结构质量**（是否遵循 skill 规则），不等同于**不可区分性**测试。
 
-盲测（Distinguisher）是独立的验证流程，由 `scripts/prepare_blind_test.py` 和 `scripts/run_blind_test.py` 支持：
+盲测（Distinguisher）是独立的验证流程，由 `scripts/prepare_blind_test.py` 和 `scripts/run_blind_test.py` 支持。正式盲测只使用含标题的完整文章；标题保留并统一规范化，标题契约、标题与体裁/结构/结尾的关系都属于评审证据，但不能作为唯一识别依据。
 
 - **本评测集**: 检查生成物是否符合 skill 规定的否定空间、词汇域、结构模式、情感层次等可定义标准
-- **盲测**: 将生成物与语料片段匿名混排，交给隔离评审判断是否能识别生成片段；评审可回答 `NONE`
+- **盲测**: 将生成完整文章与语料完整文章匿名混排，交给隔离评审判断是否能识别生成文章；评审可回答 `NONE`
 
 两者互补：
 - 通过本评测集表示「skill 用对了」

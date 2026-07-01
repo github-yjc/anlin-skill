@@ -9,13 +9,14 @@ which sample is the draft so the controller can later check the verdict.
 
 Example:
     python prepare_blind_test.py regenerated-draft.md C:/Users/34025/Desktop/Anlin \
-        --num-samples 5 --fragment-chars 700 --output-dir blind-test
+        --num-samples 5 --output-dir blind-test
 """
 
 import argparse
 import json
 import random
 import re
+import statistics
 import sys
 import tempfile
 from datetime import datetime
@@ -27,29 +28,107 @@ from typing import Dict, List, Optional, Tuple
 # Metadata stripping
 # ---------------------------------------------------------------------------
 
-def strip_corpus(text: str) -> str:
-    """Remove everything before and including the '---' separator line.
+def normalize_title_text(title: str) -> str:
+    """Remove formatting noise while preserving the generated title text."""
+    title = title.strip()
+    title = re.sub(r"^#+\s*", "", title).strip()
+    title = re.sub(r"^(标题|题目)\s*[:：]\s*", "", title).strip()
+    for marker in ("**", "__", "*", "_"):
+        if title.startswith(marker) and title.endswith(marker) and len(title) > len(marker) * 2:
+            title = title[len(marker):-len(marker)].strip()
+    return title
+
+
+def split_title_body(text: str) -> Tuple[str, str, bool]:
+    """Split a complete article into normalized title and body."""
+    lines = text.splitlines()
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    if not lines:
+        return "", "", False
+
+    first = lines[0].strip()
+    title = ""
+    had_title = False
+    if first.startswith("# "):
+        title = normalize_title_text(first)
+        lines = lines[1:]
+        had_title = True
+    elif not re.search(r"[。！？!?，,：:；;]", first) and chinese_len(first) <= 24:
+        title = normalize_title_text(first)
+        had_title = True
+        if len(lines) > 1 and not lines[1].strip():
+            lines = lines[2:]
+        else:
+            lines = lines[1:]
+    return title, "\n".join(lines).strip(), had_title
+
+
+def normalize_article(title: str, body: str, include_title: bool) -> str:
+    """Return a normalized complete article for blind review."""
+    body = body.strip()
+    title = normalize_title_text(title)
+    if include_title and title:
+        return f"# {title}\n\n{body}".strip()
+    return body
+
+
+def sample_title(text: str) -> str:
+    """Read the normalized sample title, if one is present."""
+    title, _, had_title = split_title_body(text)
+    return title if had_title else ""
+
+
+def strip_corpus(text: str, include_title: bool = True) -> str:
+    """Remove corpus metadata while preserving a normalized title by default.
 
     Corpus files have a YAML-like header terminated by '---' on its own line.
     """
     lines = text.splitlines()
     for i, line in enumerate(lines):
         if line.strip() == '---':
+            title = ""
+            for before in lines[:i]:
+                candidate = before.strip()
+                if candidate.startswith("# "):
+                    title = normalize_title_text(candidate)
+                    break
             body = '\n'.join(lines[i + 1:])
-            return body.strip()
-    # No separator found — return original text stripped
-    return text.strip()
+            if not title:
+                title, body, _ = split_title_body(body)
+            return normalize_article(title, body, include_title)
+    title, body, _ = split_title_body(text.strip())
+    return normalize_article(title, body, include_title)
 
 
-def strip_draft(text: str) -> str:
-    """Remove '<!-- Anlin-style ... -->' metadata comment line from a draft."""
+def strip_draft(text: str, include_title: bool = True, require_title: bool = True) -> str:
+    """Remove controller metadata while preserving the generated title."""
     text = re.sub(r'<!--\s*Anlin-style[^>]*-->\s*\n?', '', text)
-    return text.strip()
+    if re.search(r"(?m)^---\s*$", text):
+        return strip_corpus(text, include_title=include_title)
+    title, body, had_title = split_title_body(text.strip())
+    if require_title and not had_title:
+        raise ValueError("Draft must be a complete article with a title.")
+    return normalize_article(title, body, include_title)
 
 
 def chinese_len(text: str) -> int:
     """Count Chinese characters for rough fragment length matching."""
     return len(re.findall(r'[\u4e00-\u9fff]', text))
+
+
+def line_stats(text: str) -> Dict[str, float]:
+    """Return simple line-length stats for controller diagnostics."""
+    lengths = [chinese_len(line) for line in text.splitlines() if line.strip()]
+    if not lengths:
+        return {'lines': 0, 'mean': 0.0, 'stdev': 0.0, 'min': 0, 'max': 0}
+    return {
+        'lines': len(lengths),
+        'mean': round(statistics.mean(lengths), 2),
+        'stdev': round(statistics.pstdev(lengths), 2),
+        'min': min(lengths),
+        'max': max(lengths),
+    }
 
 
 def extract_fragment(text: str, target_chars: int) -> str:
@@ -89,6 +168,11 @@ def pick_corpus_files(
     corpus_dir: Path,
     num_samples: int,
     draft_path: Path,
+    fragment_chars: int = 0,
+    min_fragment_chars: int = 0,
+    include_titles: bool = True,
+    target_chars: int = 0,
+    length_tolerance: float = 0.0,
 ) -> List[Path]:
     """Randomly select *num_samples* .md/.txt files from *corpus_dir*.
 
@@ -102,6 +186,27 @@ def pick_corpus_files(
     # Exclude the draft if it is inside corpus_dir.
     draft_resolved = draft_path.resolve()
     candidates = [p for p in candidates if p.resolve() != draft_resolved]
+    if min_fragment_chars > 0:
+        eligible: List[Path] = []
+        for path in candidates:
+            raw = path.read_text(encoding='utf-8')
+            stripped = strip_corpus(raw, include_title=include_titles)
+            fragment = extract_fragment(stripped, fragment_chars)
+            if chinese_len(fragment) >= min_fragment_chars:
+                eligible.append(path)
+        candidates = eligible
+    if target_chars > 0 and length_tolerance > 0:
+        eligible = []
+        lower = max(0, int(target_chars * (1 - length_tolerance)))
+        upper = int(target_chars * (1 + length_tolerance))
+        for path in candidates:
+            raw = path.read_text(encoding='utf-8')
+            stripped = strip_corpus(raw, include_title=include_titles)
+            fragment = extract_fragment(stripped, fragment_chars)
+            current_chars = chinese_len(fragment)
+            if lower <= current_chars <= upper:
+                eligible.append(path)
+        candidates = eligible
 
     if len(candidates) < num_samples:
         raise ValueError(
@@ -125,7 +230,8 @@ def build_subagent_prompt(output_dir: Path, num_total: int) -> str:
 
     lines = [
         f"You are a blind literary style analyst.  You will read {num_total}",
-        "anonymized Chinese prose samples. They are similar-length fragments.",
+        "anonymized complete Chinese prose articles. Metadata was removed,",
+        "titles were retained and normalized, and impostor rounds are length-matched.",
         "ZERO OR ONE sample may be generated. The rest are human-written by the",
         "same author. You may answer NONE if no sample is clearly generated.",
         "",
@@ -135,30 +241,63 @@ def build_subagent_prompt(output_dir: Path, num_total: int) -> str:
         "   not the original corpus, not skill references, not mapping.json.",
         f"   Only the {num_total} sample files in the output directory.",
         "",
-        "2. Identify which sample is generated, or answer NONE if you cannot",
-        "   identify a generated sample with enough confidence.",
+        "2. Identify which sample is generated, or answer NONE if the evidence",
+        "   is not strong enough. Evaluate the title as part of the article,",
+        "   but do not use title, filename, order, topic, or length as the sole",
+        "   basis for identification.",
+        "",
+        "   Treat this as open-set verification, not forced choice. A stable",
+        "   identification requires at least three independent evidence families,",
+        "   at least one family that is not title/topic/length, and confidence >= 75%.",
+        "   If the strongest case depends mainly on title neatness, prompt-topic",
+        "   compliance, length, order, or one polished ending, answer NONE or set",
+        "   confidence below the stable-identification threshold.",
+        "",
+        "   Before identifying a sample, test alternative explanations: topic,",
+        "   genre, phase, short-form article, sincere mode, surreal mode, unusual",
+        "   editorial polish, or ordinary authorial variation. Prompt-shape leakage",
+        "   is strong only when title, scene order, required elements, and ending",
+        "   all reveal the likely prompt; a topic match alone is not evidence.",
         "",
         "3. Report your findings in this exact format:",
         "",
+        "   PROFILE: holistic-reader",
         "   IDENTIFIED: sample-NN.txt | NONE",
         "   CONFIDENCE: XX%",
-        "   TOP 3 TELLS:",
-        '     1. [tell description] — quote: "..."',
-        '     2. [tell description] — quote: "..."',
-        '     3. [tell description] — quote: "..."',
+        "   PRIMARY_EVIDENCE_FAMILIES: family-1, family-2, family-3",
+        "   DETAILED_REASONS:",
+        '     1. [specific reason] | evidence: "..."',
+        '     2. [specific reason] | evidence: "..."',
+        '     3. [specific reason] | evidence: "..."',
+        '     4. [specific reason] | evidence: "..."',
+        '     5. [specific reason] | evidence: "..."',
+        "   MOST_ANLIN_LIKE:",
+        '     1. [feature] | deep-or-surface: deep | evidence: "..."',
+        '     2. [feature] | deep-or-surface: surface | evidence: "..."',
+        "   LEAST_ANLIN_LIKE:",
+        '     1. [feature] | possible alternative explanation: topic/genre/phase/fragment/editorial/none | evidence: "..."',
+        '     2. [feature] | possible alternative explanation: topic/genre/phase/fragment/editorial/none | evidence: "..."',
+        "   AI_OR_IMITATOR_RISK:",
+        "     [distinguish AI smoothness, human imitation, and natural variation]",
+        "   PLACEBO_CHECK:",
+        "     [why NONE remains plausible or implausible]",
+        "   FINAL_REASONING:",
+        "     [why this identification is or is not stable]",
         "",
-        "   Each tell MUST include a verbatim line or phrase from the identified",
-        "   sample enclosed in double-quotes.  Your tells should reference specific",
-        "   stylistic features (rhythm, vocabulary, sentence structure, emotional",
-        "   tone, scene transitions, or structural patterns) rather than vague",
-        "   impressions.",
+        "   Each detailed reason MUST include a short verbatim line or phrase",
+        "   from a sample enclosed in double-quotes. Use at least three evidence",
+        "   families: title contract, lexical field, phrase texture, sentence rhythm, syntax,",
+        "   associative movement, narrative distance, hidden spine, ending, humor,",
+        "   Bathos, emotional masking, reality texture, dialogue/social noise,",
+        "   body/material pressure, cognitive path, title/phase/genre fit, AI risk,",
+        "   prompt-shape leakage, imitator risk, or alternative explanations.",
         "",
         "SAMPLE FILES TO READ:",
         file_list,
         "",
         "Remember: there may be zero or one generated sample. Do your best to",
-        "distinguish based on the text alone, and use NONE if the evidence is not",
-        "strong enough.",
+        "distinguish based on the text alone. Use NONE when the evidence is not",
+        "strong enough or would likely also accuse an original in a placebo round.",
     ]
     return '\n'.join(lines)
 
@@ -173,8 +312,12 @@ def prepare_blind_test(
     output_dir: Path,
     num_samples: int = 5,
     fragment_chars: int = 0,
+    min_fragment_chars: int = 0,
+    length_tolerance: float = 0.65,
     include_draft: bool = True,
     include_skill_context: bool = False,
+    include_titles: bool = True,
+    require_title: bool = True,
 ) -> Dict[str, dict]:
     """Create anonymized samples and return the mapping.
 
@@ -198,24 +341,51 @@ def prepare_blind_test(
             )
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # --- Prepare draft first so corpus selection can be length-matched. ---
+    draft_sample: Optional[Tuple[str, str, bool]] = None
+    target_chars = 0
+    if include_draft:
+        draft_raw = draft_path.read_text(encoding='utf-8')
+        draft_stripped = strip_draft(
+            draft_raw,
+            include_title=include_titles,
+            require_title=require_title,
+        )
+        draft_stripped = extract_fragment(draft_stripped, fragment_chars)
+        draft_chars = chinese_len(draft_stripped)
+        if min_fragment_chars > 0 and draft_chars < min_fragment_chars:
+            raise ValueError(
+                f"Draft sample has {draft_chars} Chinese characters, "
+                f"below --min-fragment-chars={min_fragment_chars}. Expand the draft or "
+                "use a matched short-genre evaluation."
+            )
+        target_chars = draft_chars
+        draft_sample = (draft_path.name, draft_stripped, True)
+
     # --- Select corpus files ---
     originals_needed = num_samples if include_draft else num_samples + 1
-    originals = pick_corpus_files(corpus_dir, originals_needed, draft_path)
+    originals = pick_corpus_files(
+        corpus_dir,
+        originals_needed,
+        draft_path,
+        fragment_chars=fragment_chars,
+        min_fragment_chars=min_fragment_chars,
+        include_titles=include_titles,
+        target_chars=target_chars,
+        length_tolerance=length_tolerance if include_draft else 0.0,
+    )
 
     # --- Strip and collect all samples ---
     samples: List[Tuple[str, str, bool]] = []  # (source_label, text, is_draft)
 
     for path in originals:
         raw = path.read_text(encoding='utf-8')
-        stripped = strip_corpus(raw)
+        stripped = strip_corpus(raw, include_title=include_titles)
         stripped = extract_fragment(stripped, fragment_chars)
         samples.append((path.name, stripped, False))
 
-    if include_draft:
-        draft_raw = draft_path.read_text(encoding='utf-8')
-        draft_stripped = strip_draft(draft_raw)
-        draft_stripped = extract_fragment(draft_stripped, fragment_chars)
-        samples.append((draft_path.name, draft_stripped, True))
+    if draft_sample:
+        samples.append(draft_sample)
 
     # --- Shuffle and write with random filenames ---
     random.shuffle(samples)
@@ -229,6 +399,9 @@ def prepare_blind_test(
         mapping[filename] = {
             'source': source,
             'is_draft': is_draft,
+            'title': sample_title(text),
+            'chars': chinese_len(text),
+            'line_stats': line_stats(text),
         }
 
     # --- Write mapping.json (for the controller only) ---
@@ -281,7 +454,24 @@ def main(argv: Optional[List[str]] = None) -> int:
         '--fragment-chars',
         type=int,
         default=0,
-        help='Approximate Chinese-character fragment length; 0 keeps full texts.',
+        help='Legacy diagnostic mode: approximate Chinese-character fragment length; 0 keeps complete articles.',
+    )
+    parser.add_argument(
+        '--min-fragment-chars',
+        type=int,
+        default=0,
+        help='Minimum Chinese characters required for the draft fragment; 0 disables.',
+    )
+    parser.add_argument(
+        '--length-tolerance',
+        type=float,
+        default=0.65,
+        help='Allowed relative length difference for complete-article impostor rounds.',
+    )
+    parser.add_argument(
+        '--strip-titles',
+        action='store_true',
+        help='Diagnostic ablation only. Default keeps titles because titles are part of the article.',
     )
     parser.add_argument(
         '--placebo',
@@ -331,8 +521,11 @@ def main(argv: Optional[List[str]] = None) -> int:
             output_dir=output_dir,
             num_samples=args.num_samples,
             fragment_chars=args.fragment_chars,
+            min_fragment_chars=args.min_fragment_chars,
+            length_tolerance=args.length_tolerance,
             include_draft=not args.placebo,
             include_skill_context=args.include_skill_context,
+            include_titles=not args.strip_titles,
         )
     except (FileNotFoundError, NotADirectoryError, FileExistsError, ValueError) as exc:
         print(f"Error: {exc}", file=sys.stderr)

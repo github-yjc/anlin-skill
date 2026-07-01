@@ -95,12 +95,83 @@ After listing candidates, choose by non-redundancy:
 
 If the piece feels like a style checklist, remove one iconic Anlin feature and add one plain daily observation.
 
+## Prompt-Compliance Trap
+
+Recent blind failures mostly came from drafts that answered the prompt too well. Treat the user prompt as background pressure, not as the article's visible outline.
+
+Before drafting, mark each prompt noun as one of:
+
+- **driver**: one item may start the piece.
+- **pressure**: one or two items may appear as consequences.
+- **background**: most items should be displaced into phone screens, other people's words, receipts, unfinished replies, or objects.
+- **discard**: anything that would make the piece feel like a complete response to the prompt.
+
+Do not march through all prompt items in order. If the prompt says Valentine's Day, the article may start from a wrong condiment, a delivery note, a family message, or a game loss. If the prompt says moving, the article may start from tape stuck to a slipper. If the prompt says mother, the article may start from an unanswered delivery call. The theme should become visible late and partially, not on the first page.
+
+## Title Selection
+
+Choose the title after the body has a lived shape.
+
+Rules:
+
+- Standard diary usually uses `日寄` or a rough modified `日寄`. Do not make the title a diagnosis of the prompt.
+- Sincere or micro-hope titles may be complete sentences, but the title should come from a side action or wrong object, not from the final meaning.
+- Avoid titles that contain the full emotional contract: `不算坏事`, `没发出去那条消息`, `给不存在的人写信`, and similar prompt-summary phrases are high-risk.
+- If the body already has a strong motif, use a weaker title.
+- If the title is specific, the ending must not mirror it.
+
+Bad pattern:
+
+```text
+Title says the lesson.
+Body proves the lesson.
+Ending restates the lesson.
+```
+
+Better pattern:
+
+```text
+Title is a small handle.
+Body wanders through pressure.
+Ending leaves on an action that does not explain the handle.
+```
+
 ## Anti-Detection Pass
 
 Before finalizing, remove the most "written" surface:
 
 - If most lines are 4-12 Chinese characters, merge several into rougher longer lines.
+- If the draft has fewer than 650 Chinese characters and is headed for full blind evaluation, expand with lived material rather than adjectives: one dialogue/social residue, one body or money action, and one unrelated daily detail.
 - If the ending neatly echoes the opening, break the echo with a bodily action, social interruption, or plain unfinished fact.
 - If every object is symbolic, add one object that is just there.
 - If there is no dialogue or quoted social texture in a standard diary, add one plausible line from a real person or app surface.
 - If the piece can be summarized by one theme sentence, insert or replace a scene with unrelated daily noise.
+- If every transition is legible on first read, remove one connective explanation and leave only the object, app line, sound, or body sensation that triggered the jump.
+- If a sincere/micro-hope/surreal draft reads like a polished prose poem, add rough logistics and delete the line that tells the reader what the feeling means.
+- If the draft uses repeated typing/deleting as the main emotional engine, replace at least one repetition with a physical delay, bad reply, family interruption, or app surface. Repeated deletion is now a high-risk generated tell.
+- If the final line is `哦`, `算了`, `睡了`, `屏幕暗了`, or a neat sound effect, keep it only when the preceding scene forces it. These are not default ending buttons.
+- If a detail appears because it is in the prompt, bury it: have another person mention it, make it half-visible on screen, or let it produce a practical problem rather than a theme.
+- If three consecutive scenes all point to the same wound, replace the middle one with a useless scene that still belongs to the day.
+- If a sentence sounds like a portable aphorism, delete it or convert it into a bad practical claim someone could argue with.
+
+Run this pass from the judge's point of view:
+
+- What would a judge identify in five seconds: shortness, title, symmetry, lyric lineation, or obvious motif?
+- Which scene exists only because the prompt asked for the topic?
+- Which ordinary detail would survive if the title were removed?
+- Which turn is too well designed to feel accidental?
+
+## Failure Repair Map
+
+Use this map when a blind judge identifies a draft.
+
+| judge reason | repair |
+|---|---|
+| title too diagnostic | weaken the title or switch to plain `日寄`; move the strong phrase into an ordinary line, if at all |
+| scenes all serve one theme | add two useless-but-real residues and cut one prompt-obvious scene |
+| low-temperature realism | add one crooked joke, one social interruption, or one person who misunderstands the situation |
+| polished micro-hope | add logistics, bad timing, and an unresolved body action; remove the final hopeful sentence |
+| sincere piece too clean | keep one ugly practical detail and one awkward reply; do not let memory prove love too neatly |
+| surreal piece too symbolic | add a dumb object, a payment/log-in problem, or an ordinary bodily action that breaks the symbol chain |
+| short-line fragment poem | merge lines into uneven spoken syntax and add a longer clumsy clause |
+| ending uses a learned button | end on a consequence: unread reply, cold food, wrong object, body pain, route, payment, or interrupted chore |

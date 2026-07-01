@@ -36,7 +36,7 @@ Then load only the branch-specific files:
 | Concrete examples by topic | `references/anlin-reference-library.md`, `references/samples-index.md` |
 | Post-draft critique | `references/review-rubric.md`, `references/writing-checklist.md`, `references/self-check.md` |
 | Anti-copying and overlap checks | `references/anti-pastiche.md` |
-| Full validation and blind review | `references/validation-protocol.md` |
+| Full validation and blind review | `references/validation-protocol.md`, `references/blind-judge-angles.md` |
 
 Do not read every reference before drafting. The generation pass uses a small state model; the critique pass uses the rule library.
 
@@ -67,6 +67,7 @@ Before scene generation, write an internal state card using `runtime-brief.md`:
 - what is being avoided
 - what hurts
 - what detail is accidental and not theme-serving
+- target length and rhythm constraints for the chosen validation mode
 - feature budget
 
 This state card is internal unless the user asks to see process notes.
@@ -91,13 +92,15 @@ List 8-12 candidate fragments. Each fragment must come from one of:
 - memory triggered by current sensory detail
 - accidental observation
 
-Mark each candidate by function: laugh, sting, tenderness, deflection, absurdity, analysis, body, money, social collision, or memory. At least 30% should not directly serve the main theme.
+Mark each candidate by function: laugh, sting, tenderness, deflection, absurdity, analysis, body, money, social collision, memory, or noise. At least 30% should not directly serve the main theme. Keep at least two boring or accidental details available for the anti-detection pass.
 
 ### 5. Draft With Scene Modes
 
 Use `generation-modes.md`. Do not force every scene through one template.
 
 Select the smallest set of scenes that can carry the piece. Standard diary usually uses several fragments; sincere and micro-hope pieces can be short. The five-step cognitive path is a strong mode for misread/self-sabotage scenes, not a global obligation.
+
+For blind-evaluation drafts, always produce a complete article with a title. Put the generated title on the first line as plain text or `# Title`; do not bold it, label it as `标题：`, or wrap it in controller notes. Serious blind review keeps and normalizes titles for all samples, then length-matches complete articles. A standard diary should normally be long enough to compare against full original articles. Short sincere or micro-hope pieces require short-original matched evaluation; otherwise expand with concrete actions, dialogue, and non-theme residue before blind testing.
 
 ### 6. Separate Review From Generation
 
@@ -117,7 +120,7 @@ Only report quality claims after validation. Use `validation-protocol.md`.
 
 Required wording:
 
-- acceptable: "In 3 anonymous rounds, judges identified the generated fragment in 1/3 rounds under these conditions..."
+- acceptable: "In 8 anonymous rounds, judges identified the generated article in 1/8 rounds under these conditions..."
 - unacceptable: "This is indistinguishable", "Anlin本人会这么写", "无法被看出来"
 
 ## Output Rules
@@ -133,7 +136,7 @@ Required wording:
 ```powershell
 python scripts/check_anlin_violations.py draft.md
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
-python scripts/prepare_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --fragment-chars 700 --seed 1
-python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 3 --fragment-chars 700
+python scripts/prepare_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --min-fragment-chars 550 --seed 1
+python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --include-placebo
 python -m unittest discover -s test
 ```

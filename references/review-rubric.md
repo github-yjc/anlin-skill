@@ -17,6 +17,10 @@ Rewrite or refuse the relevant part if any appears:
 - no concrete daily material
 - uniformly short-line "fragment poem" surface in a standard diary
 - clean symbolic closure where opening, central object, and ending all point to one obvious interpretation
+- blind-evaluation draft is missing a title or is a length outlier under the selected complete-article protocol
+- title format is the only sample-level difference, because originals and generated drafts were not normalized consistently
+- title, scene order, and ending reveal the user's prompt as an outline
+- the ending uses `哦`, `算了`, `睡了`, a dark screen, or a lone sound effect as a decorative style marker rather than a forced consequence
 
 ## Structural Gates
 
@@ -60,6 +64,30 @@ Registers include laugh, sting, tenderness, deflection, absurdity, analysis, bod
 - 1: generally plausible but a few scenes feel designed for the prompt
 - 0: over-tidy, theme-first, uniformly short-lined, or visibly engineered to close a motif
 
+### Prompt Displacement
+
+- 2: prompt material is partially buried in side actions, other people's lines, app surfaces, or practical consequences; at least one prompt item is ignored or displaced
+- 1: the article includes prompt material directly but interrupts it with non-theme residue
+- 0: the article proceeds through the prompt items in visible order
+
+### Blind-Test Robustness
+
+- 2: complete article with title matches the selected length band; title is plausible for the genre and period; no title, length, ordering, or topic cue dominates; at least three evidence families would be needed to accuse it
+- 1: some robustness issues remain, but none can identify the sample alone
+- 0: title/length/genre/structure makes the sample easy to identify before close reading
+
+### Title Contract
+
+- 2: title fits genre, phase, defense level, and body relation without over-explaining the piece
+- 1: title is plausible but generic, too informative, or slightly overdesigned
+- 0: missing title, wrong genre signal, or title-to-body contract gives away artificial construction
+
+### Ending Consequence
+
+- 2: final movement follows from an action, interruption, physical consequence, reply, route, payment, object, or unfinished chore
+- 1: ending is tonally plausible but uses a familiar short retreat
+- 0: ending behaves like a learned style button or completes the emotional argument
+
 ## Genre Adjustments
 
 Sincere pieces may score lower on jokes and dialogue without failing. They must score high on concrete cost, restraint, and ending.
@@ -69,6 +97,8 @@ Micro-hope pieces may be short. They must avoid universal encouragement.
 Surreal pieces may loosen causality. They must keep body/social/money coordinates.
 
 Short, sincere, micro-hope, and surreal pieces are especially vulnerable to looking generated because models overuse polished minimalism. For these genres, require at least one rough ordinary detail that does not behave like a symbol.
+
+If a short genre is intentionally short, do not evaluate it against full-length standard diary articles. Use matched short originals or report the setup as invalid for the recognition-rate target.
 
 ## Script Outputs
 
@@ -99,6 +129,8 @@ The checker must not be calibrated so tightly that original corpus files fail as
 - corpus overlap:
 - structural gates:
 - blind identification rate:
+- false accusation rate:
+- invalid rounds:
 
 ## Decision
 

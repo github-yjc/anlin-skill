@@ -71,8 +71,142 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(all(not item["is_draft"] for item in mapping.values()))
             prompt = (output_dir / "prompt.txt").read_text(encoding="utf-8")
             self.assertIn("NONE", prompt)
+            self.assertIn("DETAILED_REASONS", prompt)
+            self.assertIn("MOST_ANLIN_LIKE", prompt)
+            self.assertIn("title", prompt.lower())
             self.assertFalse((output_dir / "portable-corpus.md").exists())
             self.assertFalse((output_dir / "vocabulary-rules.md").exists())
+
+    def test_blind_prep_keeps_titles_and_rejects_short_draft(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            temp_path = Path(temp)
+            draft = temp_path / "draft.md"
+            draft.write_text("# 日寄\n\n太短了。", encoding="utf-8")
+
+            output_dir = temp_path / "short-round"
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(BLIND_PREP),
+                    str(draft),
+                    str(CORPUS),
+                    "--output-dir",
+                    str(output_dir),
+                    "--num-samples",
+                    "2",
+                    "--fragment-chars",
+                    "120",
+                    "--min-fragment-chars",
+                    "80",
+                    "--seed",
+                    "12",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("below --min-fragment-chars", result.stderr)
+
+            long_draft = temp_path / "long.md"
+            long_draft.write_text("# 日寄\n\n" + "今天有点热。" * 40, encoding="utf-8")
+            output_dir = temp_path / "ok-round"
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(BLIND_PREP),
+                    str(long_draft),
+                    str(CORPUS),
+                    "--output-dir",
+                    str(output_dir),
+                    "--num-samples",
+                    "2",
+                    "--min-fragment-chars",
+                    "80",
+                    "--length-tolerance",
+                    "1.0",
+                    "--seed",
+                    "13",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            mapping = json.loads((output_dir / "mapping.json").read_text(encoding="utf-8"))
+            draft_sample = next(name for name, item in mapping.items() if item["is_draft"])
+            sample_text = (output_dir / draft_sample).read_text(encoding="utf-8")
+            self.assertTrue(sample_text.startswith("# 日寄"))
+            self.assertEqual(mapping[draft_sample]["title"], "日寄")
+
+            bold_title_draft = temp_path / "bold-title.md"
+            bold_title_draft.write_text("**日寄**\n\n" + "今天有点热。" * 40, encoding="utf-8")
+            output_dir = temp_path / "bold-title-round"
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(BLIND_PREP),
+                    str(bold_title_draft),
+                    str(CORPUS),
+                    "--output-dir",
+                    str(output_dir),
+                    "--num-samples",
+                    "2",
+                    "--min-fragment-chars",
+                    "80",
+                    "--length-tolerance",
+                    "1.0",
+                    "--seed",
+                    "15",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            mapping = json.loads((output_dir / "mapping.json").read_text(encoding="utf-8"))
+            draft_sample = next(name for name, item in mapping.items() if item["is_draft"])
+            sample_text = (output_dir / draft_sample).read_text(encoding="utf-8")
+            self.assertTrue(sample_text.startswith("# 日寄\n\n"))
+            self.assertNotIn("**日寄**", sample_text)
+            self.assertEqual(mapping[draft_sample]["title"], "日寄")
+
+    def test_blind_prep_removes_metadata_from_draft(self) -> None:
+        draft = next(iter(sorted(CORPUS.glob("*.md"))))
+        with tempfile.TemporaryDirectory() as temp:
+            output_dir = Path(temp) / "round"
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(BLIND_PREP),
+                    str(draft),
+                    str(CORPUS),
+                    "--output-dir",
+                    str(output_dir),
+                    "--num-samples",
+                    "2",
+                    "--min-fragment-chars",
+                    "200",
+                    "--length-tolerance",
+                    "1.0",
+                    "--seed",
+                    "14",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            mapping = json.loads((output_dir / "mapping.json").read_text(encoding="utf-8"))
+            draft_sample = next(name for name, item in mapping.items() if item["is_draft"])
+            sample_text = (output_dir / draft_sample).read_text(encoding="utf-8")
+            self.assertTrue(sample_text.startswith("# "))
+            self.assertNotIn("**作者**", sample_text)
+            self.assertNotIn("原链接", sample_text)
 
     def test_corpus_cards_exist(self) -> None:
         result = subprocess.run(
