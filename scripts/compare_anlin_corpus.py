@@ -119,8 +119,12 @@ def compare(draft_path: Path, corpus_dir: Path) -> ComparisonReport:
     if forbidden:
         notes.append("Forbidden or high-risk hints found; run check_anlin_violations.py for line-level details.")
     blocks = scene_blocks(draft)
-    if blocks < 4 or blocks > 8:
-        notes.append("Scene block count is outside the expected range; inspect montage structure manually.")
+    average_blocks = average(corpus_scene_counts)
+    if average_blocks is not None:
+        if blocks < average_blocks * 0.35 or blocks > average_blocks * 1.8:
+            notes.append("Paragraph-block count is far from the corpus baseline; inspect montage rhythm manually.")
+    elif blocks < 4:
+        notes.append("Paragraph-block count is low; inspect montage rhythm manually.")
 
     return ComparisonReport(
         corpus_file_count=len(corpus),
@@ -130,7 +134,7 @@ def compare(draft_path: Path, corpus_dir: Path) -> ComparisonReport:
         high_frequency_terms_present=draft_terms,
         forbidden_hints_present=forbidden,
         comma_ending_ratio_first_20=comma_ratio(draft.splitlines()),
-        corpus_average_scene_blocks=average(corpus_scene_counts),
+        corpus_average_scene_blocks=average_blocks,
         corpus_average_comma_ratio=average(corpus_comma_ratios),
         nearest_files=nearest,
         notes=notes,

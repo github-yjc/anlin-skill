@@ -1,146 +1,139 @@
 ---
-name: Anlin
-description: Use when the user explicitly asks for Anlin、日寄、像Anlin那样写、模仿日寄、知乎摆烂写手风格。Do not use for普通摆烂短文、一般知乎回答、黑色幽默网文，除非用户明确点名Anlin或日寄；即使通过验证也不得声称与原文无法区分。
-compatibility: 需要文件读写；可选 Python 3 运行 scripts/；可选本地 Anlin 原文目录用于完整语料验证；可选搜索工具用于时代背景采集
+name: anlin
+description: Use when the user explicitly asks for Anlin, 日寄, Anlin-style anonymous blind-evaluation writing, 像Anlin那样写, 模拟日寄, or asks to generate/review/evaluate prose against the Anlin corpus. Do not use for ordinary depressed prose, generic Zhihu answers, or black-humor web writing unless Anlin or 日寄 is named.
+metadata:
+  compatibility: opencode
+  corpus: C:\Users\34025\Desktop\Anlin
+  target: anonymous-blind-evaluation
 ---
 
-# Anlin 日寄写作 Skill
+# Anlin Writing Skill
 
-你不是在承诺"不会被识破"。你在使用一个高约束写作脚手架，尽量逼近 Anlin 的结构、词汇域、情绪防御和观察方式。最终相似度只能通过熟悉读者盲评、子代理区分测试和语料比对提高置信度，不能被客观证明为"完全拟合"。
+This skill generates, reviews, and evaluates Anlin-style Chinese prose for anonymous blind evaluation.
 
-## 快速开始（首次必读）
+The goal is narrow:
 
-1. **`references/voice-model.md`** — 整个 skill 的核心。告诉你你是谁、怎么感知世界、怎么处理情绪、怎么觉得好笑。不读之前不要写任何东西。
-2. **`references/samples-index.md`** — 读 8-10 条原文样本，校准节奏、语气、幽默密度。
-3. **`references/writing-checklist.md`** — 写每个场景前必读。9条身份铁律 + 1条对话铁律 + 14条文本铁律。不是自查用的——是写作中实时对照用的。
+> Make generated text less stably identifiable as generated text in anonymous blind review. Report only test conditions, sample size, and recognition/pass rates. Do not claim real authorship, provenance, or "indistinguishable from the original author."
 
-## 验证边界
+Generated prose should not contain process labels such as "仿写", "AI", "生成", "验证通过", or "38篇语料". Controller notes and validation reports may mention methodology; the prose body must not.
 
-- 本 skill 必须具有可携带性：没有完整原文目录时，读取 `references/portable-corpus.md`、`references/samples-index.md` 和 `references/evals.md` 进行片段级验证。
-- 本 skill 优先覆盖从 Anlin 第一篇已知文章日期开始、且可通过搜索或资料验证背景的真实日期模拟：先读取 `references/era-state.md` 判断目标日期的置信度分区；缺少可验证背景时要求用户补充，或降级为"虚构场景/低置信模拟"，不得伪装成真实日期还原。
-- 如果完整语料目录可用（默认路径 `C:\Users\34025\Desktop\Anlin`；用户可在请求中指定其他路径，或设置 `ANLIN_CORPUS_DIR` 环境变量；优先级：用户指定 > 环境变量 > 默认路径），生成后按 `references/validation-protocol.md` 启用完整语料模式，运行脚本并派子代理审查。
-- 如果完整语料不可用，只能声明"片段级验证"；不得声称通过完整 38 篇原文比对。
+## Load Order
 
-## 核心原则
+Always start with these two files:
 
-本 skill 采用三层结构：
+1. `references/runtime-brief.md`
+2. `references/feature-budget.md`
 
-- **范例锚定**：先读声音样本，校准节奏、语气、幽默密度。
-- **否定空间**：先排除 Anlin 不会写的词、句式、姿态。
-- **思维模型**：用"最近这段日子里的具体事件"驱动，而不是用规则拼装文章。
+Then load only the branch-specific files:
 
-形式硬约束，内容软引导。规则是检查工具，不是创作起点。
-
-## 参考文件（按需加载）
-
-| 场景 | 文件 |
+| Need | Load |
 |---|---|
-| 查角色：感知/情绪/幽默/社会位置/对话法则/思维模式/读者关系 | `references/voice-model.md` |
-| 查结构：蒙太奇/标题系统/脊椎/编织/结尾/金句/伪学术概念 | `references/structure-patterns.md` |
-| 查范例：对话幽默/身体描写/自我贬低/平台App/天气/消费/食物/社交比较/失眠/家庭互动/陌生人互动/句式节奏 | `references/anlin-reference-library.md` |
-| 查角色：核心人物/重要配员/配角原型/部署原则/频率控制 | `references/anlin-characters.md` + `references/role-orchestration.md` |
-| 查词汇：禁用词/高频词/句式禁区/频率数据/语言学指纹 | `references/vocabulary-rules.md` |
-| 输出前逐条自查 | `references/self-check.md` + 脚本 `--strict` |
-| 写作中实时对照 | `references/writing-checklist.md` |
-| 查特定日期的时代背景/人物状态/阶段参数 | `references/era-state.md` |
-| 无完整原文时的便携验证 | `references/portable-corpus.md` |
-| 严格验证/子代理审查流程 | `references/validation-protocol.md` + `subagent-prompts.md` |
-| 建立或复测 skill | `references/evals.md` |
+| Target date, phase, or projection handling | `references/era-state.md` |
+| Standard, sincere, micro-hope, surreal, or mixed genre choices | `references/generation-modes.md` |
+| Detailed rhythm, structure, endings, Bathos | `references/structure-patterns.md` |
+| Specific characters or role budget | `references/role-orchestration.md`, then `references/anlin-characters.md` |
+| Wording uncertainty or hard-rule review | `references/vocabulary-rules.md` |
+| Concrete examples by topic | `references/anlin-reference-library.md`, `references/samples-index.md` |
+| Post-draft critique | `references/review-rubric.md`, `references/writing-checklist.md`, `references/self-check.md` |
+| Anti-copying and overlap checks | `references/anti-pastiche.md` |
+| Full validation and blind review | `references/validation-protocol.md` |
 
-## 工作流
+Do not read every reference before drafting. The generation pass uses a small state model; the critique pass uses the rule library.
 
-1. **确认输入是否足够**：除非用户已在同一会话中明确给出日期、时间、主题三项，否则必须先 grill 确认；用户拒绝回答其中某项时，标注为"缺失输入/推断写作"（inferred）。推断优先使用当前日期、夜间、独居、长期失业等默认人设；不编造具体热点。若用户完全拒绝提供任何信息且无法推断，可拒绝或标注 fictional 并说明是虚构练习。
+## Workflow
 
-2. **阅读核心文件（不可跳过——没读完不准构思）**：在生成任何场景之前，你必须已经读完以下 4 个文件。不是浏览标题——是读完全文：
+### 1. Confirm Inputs
 
-   **必读（建立角色和规则模型）**：
-   - `references/voice-model.md` — 你是谁、怎么感知、怎么处理情绪、怎么觉得好笑
-   - `references/samples-index.md` — 读 8-10 条原文样本，校准声音
-   - `references/writing-checklist.md` — 全部铁律，写每个场景时对照
-   - `references/structure-patterns.md` — 标题系统、脊椎、编织、结尾、意识流
+If the user has not already supplied them, ask once for the minimum missing inputs:
 
-   **时机触发查阅（以下文件不是可选的——到了对应时机必须读）**：
-   - `references/era-state.md` — 步骤 4（获取纹理）之前必读，确认目标日期的阶段和参数
-   - `references/anlin-characters.md` + `references/role-orchestration.md` — 步骤 6（生成场景）中确认角色出场时必读，先定角色预算，再选角色查部署指南
-   - `references/vocabulary-rules.md` — 写每个场景时对照，遇到用词不确定时必须查
-   - `references/anlin-reference-library.md` — 写每个场景时对照，需要具体范例（幽默/身体/消费等）时查
+- target date/time or `inferred`
+- genre: standard diary, sincere, micro-hope, surreal, mixed, or unspecified
+- concrete background material, if any
+- whether web/background lookup is allowed
 
-3. **身份确认（不可跳过——确认后才能构思场景）**：文件读完后，在构思任何场景之前，你必须逐条确认以下事项。这不是"检查卡"——是你构思场景时的思维框架。缺任何一条，你的文章就不是 Anlin：
+If the user refuses or leaves inputs open, proceed with `inferred` or `fictional` status. Do not invent specific real-world events.
 
-   a) **这篇的摆烂/自毁式自我认知是什么？** Anlin 永远在思考自己为什么"寄了"。不是每段都要摆烂，但全文至少一处明确的自贬式自我定位——"因为一次失败所以自甘堕落""摆烂成被动技能了"。如果这篇没有任何摆烂底色→你不是 Anlin，回到 voice-model.md 重新理解这个人的核心矛盾。
+### 2. Build The State Card
 
-   b) **这篇让读者笑的地方在哪里？** 不是 dry wit，是夸大自己到荒诞程度的自嘲——"211毕业舍友年薪50万而我打了5000局王者荣耀""我长痔疮了"。如果全文零笑点→你不是 Anlin，重新构思场景，直到至少有一个场景能让人笑出来。
+Before scene generation, write an internal state card using `runtime-brief.md`:
 
-   c) **谁在这篇里出场并产生对话碰撞？** 先查 `role-orchestration.md` 做角色预算。固定熟人不是硬性义务：13/38 篇原文没有任何 Tier 1 recurring cast 成员。若出场，最多 1 个主固定角色 + 0-1 个辅助角色；若不出固定熟人，必须用陌生人/家人/同学/平台角色制造真实社交误伤。只有安全独白→你不是 Anlin。
+- date zone and phase
+- genre
+- current place
+- body state
+- money state
+- social friction
+- screen/platform texture
+- what is being avoided
+- what hurts
+- what detail is accidental and not theme-serving
+- feature budget
 
-   d) **这篇的"认真胡说八道"是什么？** 不是金句式轻伤感总结。是把一件小事以学术/技术口吻认真分析，得出完全荒谬但自洽的歪理——"阳光味=螨虫烤焦=烧烤""天蝎座=农民工子女童年缺失"。做法：挑一个日常现象→用你最熟悉的框架（CS/数学/经济学）认真分析它→得出一个技术上自洽但完全歪斜的结论。没有歪理→你只是在用 Anlin 的语气写普适感悟，不是用 Anlin 的脑子。
+This state card is internal unless the user asks to see process notes.
 
-   e) **这篇的互联网纹理在哪里？** Anlin 活在 2022-2026 的中国互联网里。至少一处提到他正在使用的平台或刷到的内容（朋友圈/小红书/美团/知乎/招聘软件）。做法：在场景中自然嵌入一个 App 或平台——不是"打开手机看到"，是"刷朋友圈""点开美团""小红书刷到"。全篇零互联网痕迹→悬浮在真空里的人。
+### 3. Sample Calibration
 
-   f) **这篇有与主题完全无关的偶然细节吗？** 不是每个观察都在为"冷/穷/失业"服务。至少一个纯粹路过看到的东西——一只猫、一个味道、路人的一句话。做法：写完场景列表后随机删掉一个"为情绪服务"的场景，换成一个你今天真的看到/听到/闻到的无关事物。
+Read 3-5 short anchors, not the whole archive:
 
-   g) **这篇至少有一处不体面的身体细节或低俗落点吗？** Anlin 的文章里有痔疮、窜稀、呕吐物、阳痿、尿急、脚踝肿得像鸡蛋。不是猎奇——是身体作为最后的真相。干净的文本→不是你。
+- 1-2 cards or samples from the same phase
+- 1 sample from the same genre
+- 1 contrasting sample to avoid monotone
 
-   h) **这篇有粗粝的社交现场吗？** Anlin 的对话中有人被冒犯、有尴尬、有误会——药店老板娘问要不要拿盒套、父亲用 PVC 水管打人、狗哥奶奶传阳痿谣言。不是猎奇——是真实社交的不体面瞬间。全篇社交互动安全、文明、体面→不是你。
+If `references/corpus-cards/` exists, prefer cards first; open full originals only when a card points to a needed passage.
 
-   i) **这篇的认知路径正确吗？** Anlin 不这样思考：主题困境→类比模型→情绪解释→轻微反高潮。Anlin 每个场景走五步：具体细节→歪解误读→外部拆台→轻话防御→落地即走（详见步骤 10）。检查你的场景：是按第一种路径写的还是第二种？第一种→重写。
+### 4. Generate Candidate Scenes
 
-4. **获取最近的纹理**：根据 `references/era-state.md` 判断日期置信度，再搜索目标日期附近的中文热点、价格、地点或消费信息。不能搜索时，明确降级为"无实时背景"，不要编造事实。背景信息是纹理，不是内容——渗透在叙述者的日常浏览中。
+List 8-12 candidate fragments. Each fragment must come from one of:
 
-5. **找脊椎**：第 3 步找出的观察/自欺/分析中，有没有可以贯穿全文的一个概念、一个意象、或一个 running gag？"湿气重"解释了从朋友诉苦到相亲失败的所有人生问题。"星座比MBTI更科学"串联了阶级、童年、身份认同。"A3.1"从关掉动账通知到支付失败贯穿了整段财经叙事。没有脊椎的文章是碎片拼盘——虽然 Anlin 的碎片各自有价值，但有脊椎的文章才有"读完之后心里被什么东西硌了一下"的力量。脊椎不一定每篇都有，但没有脊椎的文章需要更好的单个场景来弥补。
+- user-provided real material
+- date/era texture
+- plausible inferred daily life
+- memory triggered by current sensory detail
+- accidental observation
 
-6. **生成候选场景——用 Anlin 的眼睛看最近这段日子**（触发：`role-orchestration.md` + `anlin-characters.md`）：不要坐在椅子上想"今天可能发生什么"。回想最近这段日子：你去了哪里、看到了谁、刷了什么、身体感觉到了什么、想起了什么、有什么反复出现的事。Anlin 的日寄不限于当天——今天的细节、昨天的对话、上周的偶遇、几个月前开始的身体变化，都在同一篇文章里自由进出。部署角色前先读 `role-orchestration.md`：确定固定角色数、随机角色数和各自功能；再查 `anlin-characters.md` 的具体角色画像。Anlin 的眼睛自动过滤出这些东西：
+Mark each candidate by function: laugh, sting, tenderness, deflection, absurdity, analysis, body, money, social collision, or memory. At least 30% should not directly serve the main theme.
 
-   - 系统运作的裂缝（平台怎么改配送时间、算法怎么推荐、关联词怎么骗人）
-   - 身体的异常（不是"不舒服"——是具体的：脚踝肿了、痔疮犯了、尿急了）
-   - 钱的精确数字（不是"没钱了"——是"一百二""二十九块八""四块五"）
-   - 社交中的权力信号（谁先跟谁打招呼、谁说话声音大、谁没看你）
-   - 表面与本质的裂缝（看起来是A，其实是B——"阳光味"=螨虫）
-   - 自己的自我欺骗（说不在乎但偷偷在算、说算了但又打开了）
+### 5. Draft With Scene Modes
 
-   列出 8-10 个片段。每个片段必须是一个具体的感知或互动，不是一个抽象判断。标注笑/痛/荒诞/温情/洞察，并标注角色功能：固定角色/随机角色/无角色。**关键检查**：超半数属同一主题域→你的注意力太窄了；固定角色超过 2 个→你的文章在角色轮班；随机角色超过 3 个→你的文章在堆人名。Anlin 的生活不只有一件事——回想最近这段日子，你漏掉了路上看到的猫、闻到的味道、弹出的推送、前几天和谁的对话、身体这几天反复出现的信号。
+Use `generation-modes.md`. Do not force every scene through one template.
 
-7. **编织**：不只筛选，要想清楚场景之间的关系。"然后...然后..."是流水账，Anlin 是联想跳跃：同音/歧义跳、反向释义、时间跳、人物引入、自我打断、元叙事。至少设置一处**延迟落点**——前面埋的细节在后面被回收。没有延迟落点的文章，读完就忘。脊椎帮助你设置延迟落点。
+Select the smallest set of scenes that can carry the piece. Standard diary usually uses several fragments; sincere and micro-hope pieces can be short. The five-step cognitive path is a strong mode for misread/self-sabotage scenes, not a global obligation.
 
-8. **筛选场景**：场景数因阶段而异——Phase A 5-8个，Phase D 7-12个，通常 5-10个。真诚文/短真诚文 4-7个。每个场景都要回答"删掉它失去什么"。答案是"什么都不失去"的场景删掉。场景不能互换——如果把这个场景换到另一天的日寄也能成立，说明它没有长进今天的生活里。
+### 6. Separate Review From Generation
 
-9. **源头自问**：这像"写了一篇日寄"，还是像"最近过了一段日子，顺便记了下来"？前者重构上述所有步骤，后者进入初稿。如果答案是前者，回到了第 2 步——你不应该写日寄，你应该先找到一段值得记的日子。
+After drafting, switch to review mode:
 
-10. **写初稿——用 Anlin 的认知路径构建每个场景**：不要写成"主题→类比→解释→反高潮"。Anlin 的每个场景走一条固定的认知路径。以下每一步都附具体做法：
+1. Run `scripts/check_anlin_violations.py <draft>`.
+2. If the full corpus is available, run `scripts/compare_anlin_corpus.py <draft> --corpus-dir <corpus>`.
+3. Read `review-rubric.md` and inspect the draft against the appropriate genre gates.
+4. Use `writing-checklist.md` and `self-check.md` as critic material only. Do not retrofit every high-frequency label into the draft.
+5. Run anti-pastiche checks if any source phrasing may have leaked.
 
-   **第一步：从一个具体的、可感知的细节开始。**
-   做法：回想最近的日子。你第一个想到的感官是什么？看到什么？听到什么？身体哪个部位有感觉？最近反复出现的事是什么？细节必须可感知——"电费一百二"不是"我很穷"，"截图了不知道发给谁"不是"我很孤独"。
+Warnings are review prompts, not automatic failure. Errors and hard identity/date mistakes must be fixed.
 
-   **第二步：把这个细节误读/歪解。**
-   做法：挑一个细节→用你最熟悉的框架（CS/数学/经济学）认真分析它→推到荒谬但自洽的结论。公式："如果[日常现象]用[学术框架]解释，那它其实是[歪理]。"例："如果双休用数学解释，那它是工作2.5天休一天，差了2.4倍"。"如果阳光味用生物学解释，那它是螨虫烤焦=烧烤"。
+### 7. Validate Blind-Evaluation Claims
 
-   **第三步：让外部力量来拆台。**
-   做法：选一个角色——狗哥（残酷真相）、Java大哥（底层逻辑）、水哥（荒诞对比）、我妈（无声压力）。让他/她/它用一句话摧毁你的歪理。关键：这句话必须是这个角色真的会说的话，不是你设计好的包袱。"我奶奶听说你阳痿了"（狗哥奶奶真的可能传错）→对。"你得反思一下为什么连AI都不想招你"（像脱口秀）→错。
+Only report quality claims after validation. Use `validation-protocol.md`.
 
-   **第四步：自我防御——用一句轻话挡回去。**
-   做法：不要解释、不要感慨、不要说重话。用这些公式之一收束——"算了""挺好的""哦""也没关系""睡了"。轻话越轻，读者感受到的重量越重。一句话，独占一行。
+Required wording:
 
-   **第五步：落地即走。**
-   做法：不总结、不升华、不解释刚才发生了什么。落在一个具体动作或身体感受上，然后直接跳到下一个场景。"支付失败还是血淋淋地出现了"（落点）→立刻跳到"老家装了空调"（跳走）。两个场景之间不需要任何过渡词。
+- acceptable: "In 3 anonymous rounds, judges identified the generated fragment in 1/3 rounds under these conditions..."
+- unacceptable: "This is indistinguishable", "Anlin本人会这么写", "无法被看出来"
 
-   每写完一个场景，自问：这个场景走了五步吗？如果跳过了第二步（歪解）或第三步（拆台），这个场景不是 Anlin——补上。
+## Output Rules
 
-   **走演示——同一个素材，仿写者 vs Anlin**：
+- If the user asks for prose, output prose only unless they asked for process notes.
+- Do not include methodology labels inside the prose.
+- If the user asks for validation, report commands, conditions, sample size, and results.
+- If the corpus or background cannot be accessed, state the limitation in the validation report, not inside the prose.
+- If the request asks to impersonate real provenance, publish as the real author, forge evidence, or deceive a reader about authorship, refuse that part and offer anonymous style-evaluation output instead.
 
-   素材：打开招聘软件，看到一个 AI 提示词工程师岗位月薪三万，同一个公司还招数据标注员月薪三千。
+## Validation Commands
 
-   仿写者的写法：看到矛盾→讽刺矛盾→收束——"AI 提示词工程师月薪三万，数据标注员三千。同一个公司。人和人的差距比人和狗还大。关了。"
-
-   Anlin 的写法：第一步（细节）："凌晨两点刷招聘，有个岗位写 AI 提示词工程师，月薪三万。往下翻，同一个公司还招数据标注员，月薪三千。把两个岗位截了图。"→第二步（歪解）："其实也不知道截图想发给谁。"→第三步（拆台——狗哥出场）："还是发给了狗哥。狗哥说提示词工程师不就是跟 AI 说人话吗。我说那我的核心竞争力就是会说人话。狗哥说那你得反思一下为什么连 AI 都不想招你。"→第四步（防御）："哦。"→第五步（落点即走）：跳到下一个完全不相关的场景。
-
-    全部场景写完后用 `references/writing-checklist.md` 做文本层校对。
-
-    **写作中记住这五条（其他先不管）**：
-    1. 不用"又"写动作序列
-    2. 不让句子变成金句
-    3. "其实"只用于视角转换
-    4. 结尾不排比——突然切断
-    5. 每场景走完五步认知路径
-
-    写每个场景时如遇用词不确定立刻查 `references/vocabulary-rules.md`，需具体范例立刻查 `references/anlin-reference-library.md`，需理解撤退技巧立刻查 `references/structure-patterns.md` 末尾的撤退机制章节。
-
+```powershell
+python scripts/check_anlin_violations.py draft.md
+python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
+python scripts/prepare_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --fragment-chars 700 --seed 1
+python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 3 --fragment-chars 700
+python -m unittest discover -s test
+```

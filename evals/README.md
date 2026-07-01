@@ -46,7 +46,7 @@ evals/
 ### 步骤 2：运行硬规则脚本
 
 ```powershell
-python C:\Users\34025\.config\opencode\skills\Anlin\scripts\check_anlin_violations.py draft.md --strict
+python C:\Users\34025\.config\opencode\skills\Anlin\scripts\check_anlin_violations.py draft.md
 ```
 
 - 退出码 0：没有检测到 error/warning 级别违规
@@ -107,7 +107,7 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 1. 读取 evals.json
 2. 对每个用例启动一个独立 agent（无上下文污染）
 3. agent 生成草稿 → 保存到 `evals/outputs/eval-{id}-draft.md`
-4. 运行 `check_anlin_violations.py --strict`
+4. 运行 `check_anlin_violations.py`
 5. 运行 Style Critic 子代理评分
 6. 汇总到 `evals/outputs/benchmark.json`
 
@@ -115,7 +115,7 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 
 本评测集测量**结构质量**（是否遵循 skill 规则），不等同于**不可区分性**测试。
 
-盲测（Distinguisher）是独立的验证流程，由 `scripts/prepare_distinguisher.py` 和 `scripts/run_distinguisher.py` 支持：
+盲测（Distinguisher）是独立的验证流程，由 `scripts/prepare_blind_test.py` 和 `scripts/run_blind_test.py` 支持：
 
 - **本评测集**: 检查生成物是否符合 skill 规定的否定空间、词汇域、结构模式、情感层次等可定义标准
 - **盲测**: 将生成物与真实原文匿名混排，交给独立子代理区分哪个是 AI 写的

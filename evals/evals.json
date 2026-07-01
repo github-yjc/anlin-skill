@@ -1,7 +1,7 @@
 {
   "skill_name": "Anlin",
   "version": "2.0",
-  "description": "Structured evaluation prompts for Anlin-style 日寄 generation. Each case specifies parameters that a fresh agent (with no conversation context) must use to generate one article. The generated article is then checked against objective criteria via check_anlin_violations.py --strict and subjective criteria via subagent Style Critic.",
+  "description": "Structured evaluation prompts for Anlin-style 日寄 generation. Each case specifies parameters that a fresh agent (with no conversation context) must use to generate one article. The generated article is then checked against objective review signals via check_anlin_violations.py and subjective criteria via a separate Style Critic.",
   "corpus_path": "C:\\Users\\34025\\Desktop\\Anlin",
   "evals": [
     {

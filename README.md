@@ -2,13 +2,13 @@
 
 > A writing discipline disguised as a skill. Reverse-engineered from 38 original articles through systematic corpus analysis, blind audits, and iterative refinement.
 
-This skill enables AI agents to write in the voice of **Anlin** — the Zhihu writer whose daily chronicles of unemployment, food delivery, gout, and class anxiety became a literary phenomenon. The output is characterized by defensive humor layered over genuine pain, fragment-montage structure, and the signature **Bathos** technique: retreating from completeness at the last possible moment.
+This skill helps agents generate, review, and blind-test Anlin-style Chinese prose for anonymous evaluation. It does not claim real authorship or objective indistinguishability. The output is characterized by defensive humor layered over genuine pain, fragment-montage structure, and the signature **Bathos** technique: retreating from completeness at the last possible moment.
 
 ## Why This Exists
 
 Most agent writing reads like an agent wrote it. Complete. Polished. Emotionally safe. Anlin's writing is none of these things — it halts unexpectedly, undermines its own seriousness, and leaves the reader to fill the silence.
 
-This skill doesn't teach the agent to "sound like Anlin" — it constrains the agent away from its natural tendencies toward completeness, explanation, and emotional resolution. The result is not Anlin, but it is closer to Anlin than anything an unconstrained agent produces.
+This skill doesn't teach the agent to "be Anlin" — it constrains the agent away from its natural tendencies toward completeness, explanation, and emotional resolution. Quality claims are reported only as blind-evaluation conditions, sample sizes, and recognition rates.
 
 ## Quick Setup
 
@@ -25,9 +25,9 @@ This skill doesn't teach the agent to "sound like Anlin" — it constrains the a
 ```
 ┌───────────────────────────────────────────────┐
 │                  SKILL.md                     │
-│         12-step orchestration pipeline        │
-│      Identity confirmation → Texture →        │
-│      Spine → Scene → Weave → Cognitive path   │
+│         runtime routing pipeline              │
+│      state card → feature budget →            │
+│      scene modes → separate review            │
 └─────────────────────┬─────────────────────────┘
                       │
     ┌─────────────────┼─────────────────┐
@@ -47,10 +47,9 @@ This skill doesn't teach the agent to "sound like Anlin" — it constrains the a
            │                │
            ▼                ▼
     ┌────────────────────────────┐
-    │  13 reference files +      │
-    │  3 verification scripts    │
-    │  = 1,500+ lines of         │
-    │  constrained writing rules │
+    │  reference files +         │
+    │  validation scripts        │
+│  = runtime + review layers │
     └────────────────────────────┘
 ```
 
@@ -83,10 +82,16 @@ Unlike prompt-based imitation, this skill operates at the **architecture level**
 
 ```
 Anlin/
-├── SKILL.md                      # Entry point (146 lines)
+├── SKILL.md                      # Entry point
 ├── README.md                     # This file
 ├── references/
-│   ├── voice-model.md             # Core: who Anlin is (269 lines)
+│   ├── runtime-brief.md           # Core generation runtime
+│   ├── feature-budget.md          # Hard requirements and genre budgets
+│   ├── generation-modes.md        # Scene mode library
+│   ├── review-rubric.md           # Separate critique gates
+│   ├── anti-pastiche.md           # Source overlap and copying guardrails
+│   ├── corpus-cards/              # Generated lightweight cards from 38 originals
+│   ├── voice-model.md             # Detailed role model
 │   ├── writing-checklist.md       # 30 rules: identity + dialogue + text + role budget
 │   ├── structure-patterns.md      # Structure, spine, Bathos, endings (204 lines)
 │   ├── vocabulary-rules.md        # Negative space: what Anlin never writes (162 lines)
@@ -102,9 +107,13 @@ Anlin/
 │   └── subagent-prompts.md       # Agent delegation templates
 ├── scripts/
 │   ├── check_anlin_violations.py  # Automated rule violation scanner
-│   ├── compare_anlin_corpus.py    # Corpus frequency comparison
+│   ├── compare_anlin_corpus.py    # Corpus surface-overlap comparison
 │   ├── analyze_anlin_roles.py     # Role frequency analysis (38-article corpus)
-│   └── prepare_blind_test.py      # Blind test preparation
+│   ├── build_corpus_cards.py      # Corpus-card generator
+│   ├── prepare_blind_test.py      # Single blind-test round preparation
+│   └── run_blind_test.py          # Multi-round blind-test preparation
+├── test/
+│   └── test_anlin_tooling.py
 ├── evals/
 │   ├── evals.json
 │   └── README.md
