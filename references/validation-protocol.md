@@ -84,6 +84,27 @@ Judge rules:
 - If the round is a placebo round, no sample is generated and the correct answer is `NONE`.
 - If the judge is forced to choose when there is no generated sample, that test design is invalid.
 
+## Multi-Angle Judge Set
+
+For serious evaluation, use at least three different impostor judge angles plus placebo:
+
+- holistic reader: ordinary reader sense of naturalness, over-polish, and closure
+- stylometry/rhythm: line length, punctuation, connector terms, phrase repetition, and vocabulary domain
+- narrative voice: scene drift, emotional mixing, body/money/social grounding, and theme-first construction
+- placebo-calibrated reader: all-original round; must be allowed and encouraged to answer `NONE`
+
+Treat invalid format, timeout, or contaminated access as invalid, not as a pass or failure. Re-run invalid rounds or report them separately.
+
+Common generated-text tells found in evaluation:
+
+- uniformly short lines with little sentence-length variance
+- every scene serving the prompt topic
+- clean opening/ending mirror
+- numbered or sectioned "small essay" structure
+- symbolic object chain where every object means the same thing
+- lack of ordinary social noise, dialogue, or boring non-symbolic detail
+- short sincere/micro-hope/surreal pieces becoming polished prose poems
+
 ## Blind Judge Output
 
 Require this exact format:

@@ -15,6 +15,8 @@ Rewrite or refuse the relevant part if any appears:
 - essay/advice/moral ending
 - all scenes serve one obvious theme
 - no concrete daily material
+- uniformly short-line "fragment poem" surface in a standard diary
+- clean symbolic closure where opening, central object, and ending all point to one obvious interpretation
 
 ## Structural Gates
 
@@ -52,6 +54,12 @@ Registers include laugh, sting, tenderness, deflection, absurdity, analysis, bod
 - 1: some label stuffing or missing one needed register
 - 0: feature checklist/pastiche
 
+### Detection Risk
+
+- 2: contains roughness, topic drift, uneven rhythm, and at least one non-symbolic daily detail
+- 1: generally plausible but a few scenes feel designed for the prompt
+- 0: over-tidy, theme-first, uniformly short-lined, or visibly engineered to close a motif
+
 ## Genre Adjustments
 
 Sincere pieces may score lower on jokes and dialogue without failing. They must score high on concrete cost, restraint, and ending.
@@ -59,6 +67,8 @@ Sincere pieces may score lower on jokes and dialogue without failing. They must 
 Micro-hope pieces may be short. They must avoid universal encouragement.
 
 Surreal pieces may loosen causality. They must keep body/social/money coordinates.
+
+Short, sincere, micro-hope, and surreal pieces are especially vulnerable to looking generated because models overuse polished minimalism. For these genres, require at least one rough ordinary detail that does not behave like a symbol.
 
 ## Script Outputs
 
@@ -99,4 +109,3 @@ accept | revise | rewrite | inconclusive
 - what was not tested:
 - why results do not prove authorship:
 ```
-

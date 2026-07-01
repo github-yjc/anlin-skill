@@ -90,6 +90,17 @@ After listing candidates, choose by non-redundancy:
 - Which scene is too clean and should be cut?
 - Which scene is only there to satisfy a label?
 - Which accidental detail makes the day feel lived rather than designed?
+- Which scene is only a mirror for the title, opening, or ending?
+- Which scene contains a real interruption: a clumsy phrase, unfinished reply, boring chore, wrong object, or social noise?
 
 If the piece feels like a style checklist, remove one iconic Anlin feature and add one plain daily observation.
 
+## Anti-Detection Pass
+
+Before finalizing, remove the most "written" surface:
+
+- If most lines are 4-12 Chinese characters, merge several into rougher longer lines.
+- If the ending neatly echoes the opening, break the echo with a bodily action, social interruption, or plain unfinished fact.
+- If every object is symbolic, add one object that is just there.
+- If there is no dialogue or quoted social texture in a standard diary, add one plausible line from a real person or app surface.
+- If the piece can be summarized by one theme sentence, insert or replace a scene with unrelated daily noise.

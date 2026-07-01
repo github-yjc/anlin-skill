@@ -15,6 +15,7 @@ These apply to all normal generation:
 5. No claim of real authorship or provenance.
 6. No clean moral, advice, motivational ending, or solved emotional arc.
 7. No direct copying of signature passages from the original corpus.
+8. No "polished fragment poem" default: avoid uniformly short lines, numbered sections, or clean cinematic closure unless a source anchor strongly supports that exact form.
 
 ## Strong Defaults
 
@@ -29,6 +30,7 @@ Use most of these, but not all:
 - associative jump rather than chronological transition
 - one moment of analysis or deliberate misreading
 - one short retreat line or hard cut
+- one piece of ordinary noise that does not help the central motif: a stray message, bad wording, boring object, repeated action, or minor social interruption
 
 ## Standard Diary
 
@@ -47,6 +49,8 @@ Avoid:
 - a role roster
 - a sequence of jokes without accumulated sting
 - a single-topic essay disguised as diary
+- a visible opening/ending mirror that makes the piece feel designed
+- static image chains where every object becomes a symbol
 
 ## Sincere Piece
 
@@ -70,6 +74,7 @@ Avoid:
 - greeting-card blessing
 - psychological explanation
 - full closure
+- writing every line as a finished emotional sentence
 
 ## Micro-Hope Piece
 
@@ -118,4 +123,3 @@ Avoid:
 
 - pretending a post-corpus date has original-level support
 - writing macro history
-
