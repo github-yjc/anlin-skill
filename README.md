@@ -86,12 +86,13 @@ Anlin/
 ├── SKILL.md                      # Entry point (146 lines)
 ├── README.md                     # This file
 ├── references/
-│   ├── voice-model.md            # Core: who Anlin is (269 lines)
-│   ├── writing-checklist.md      # 29 rules: identity + dialogue + text
-│   ├── structure-patterns.md     # Structure, spine, Bathos, endings (204 lines)
-│   ├── vocabulary-rules.md       # Negative space: what Anlin never writes (162 lines)
-│   ├── era-state.md              # Four-phase evolution model (86 lines)
-│   ├── anlin-characters.md       # Character system with deployment rules (92 lines)
+│   ├── voice-model.md             # Core: who Anlin is (269 lines)
+│   ├── writing-checklist.md       # 30 rules: identity + dialogue + text + role budget
+│   ├── structure-patterns.md      # Structure, spine, Bathos, endings (204 lines)
+│   ├── vocabulary-rules.md        # Negative space: what Anlin never writes (162 lines)
+│   ├── era-state.md               # Four-phase evolution model (86 lines)
+│   ├── anlin-characters.md        # Character system with deployment rules (96 lines)
+│   ├── role-orchestration.md      # Role budget, frequency, random-name rules
 │   ├── anlin-reference-library.md # 11-dimension reference samples
 │   ├── samples-index.md          # 8-10 original text samples for calibration
 │   ├── self-check.md             # Post-writing self-audit
@@ -100,9 +101,10 @@ Anlin/
 │   ├── portable-corpus.md        # Corpus fragments for offline use
 │   └── subagent-prompts.md       # Agent delegation templates
 ├── scripts/
-│   ├── check_anlin_violations.py # Automated rule violation scanner
-│   ├── compare_anlin_corpus.py   # Corpus frequency comparison
-│   └── prepare_blind_test.py     # Blind test preparation
+│   ├── check_anlin_violations.py  # Automated rule violation scanner
+│   ├── compare_anlin_corpus.py    # Corpus frequency comparison
+│   ├── analyze_anlin_roles.py     # Role frequency analysis (38-article corpus)
+│   └── prepare_blind_test.py      # Blind test preparation
 ├── evals/
 │   ├── evals.json
 │   └── README.md
