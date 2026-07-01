@@ -43,16 +43,18 @@ evals/
 
 将 `evals.json` 中对应用例的 `prompt` 字段发给一个全新上下文（无历史对话）的 agent，让 agent 加载 Anlin skill 后生成文章。将输出保存为 `draft.md`。
 
+草稿只保存标题和正文。不要把仿写、生成、验证、语料、片段级验证等方法标签写进正文；这些信息由控制器记录在验证报告里。
+
 ### 步骤 2：运行硬规则脚本
 
 ```powershell
 python C:\Users\34025\.config\opencode\skills\Anlin\scripts\check_anlin_violations.py draft.md
 ```
 
-- 退出码 0：没有检测到 error/warning 级别违规
-- 退出码非 0：存在硬规则违规，查看输出定位问题
+- 退出码 0：没有检测到 error 级违规；warning 仍需人工复核
+- 退出码非 0：存在 error 级硬规则违规，查看输出定位问题
 
-注意：退出码 0 只表示未触发可自动检测的违规，不保证风格匹配。脚本无法检测蒙太奇结构、情感层次、声音质量等主观维度。
+注意：退出码 0 只表示未触发可自动检测的阻断项，不保证风格匹配。脚本无法检测蒙太奇结构、情感层次、声音质量等主观维度。
 
 ### 步骤 3：运行 Style Critic 子代理审查
 
@@ -118,20 +120,21 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 盲测（Distinguisher）是独立的验证流程，由 `scripts/prepare_blind_test.py` 和 `scripts/run_blind_test.py` 支持：
 
 - **本评测集**: 检查生成物是否符合 skill 规定的否定空间、词汇域、结构模式、情感层次等可定义标准
-- **盲测**: 将生成物与真实原文匿名混排，交给独立子代理区分哪个是 AI 写的
+- **盲测**: 将生成物与语料片段匿名混排，交给隔离评审判断是否能识别生成片段；评审可回答 `NONE`
 
 两者互补：
 - 通过本评测集表示「skill 用对了」
-- 通过盲测表示「读者分不出」
+- 盲测结果只表示在特定条件、样本量、评审类型下的识别率和误报率
 
 ## 注意事项
 
 - 评测集不修改 skill 文件，只读取
 - 每个用例的 `prompt` 字段是自包含的——全新 agent 只读 prompt + skill 即可生成
 - 完整语料路径: `C:\Users\34025\Desktop\Anlin`
-- portable 模式用例（12、14）要求 agent 明确标注 `corpus: unavailable`
+- portable 模式用例（12、14）的 `corpus: unavailable` 或片段级验证状态只写入控制器验证报告，不写入正文
 - 用例 15 是「应拒绝」场景，其通过标准与其他用例不同
 
 ## 版本历史
 
+- v2.1: 移除正文元数据标注要求，对齐匿名盲评目标
 - v2.0: 初始结构化评测集，15 用例，替换原 `references/evals.md` 中的非结构化描述

@@ -14,10 +14,8 @@ Example:
 
 import argparse
 import json
-import os
 import random
 import re
-import shutil
 import sys
 import tempfile
 from datetime import datetime
@@ -240,19 +238,13 @@ def prepare_blind_test(
         encoding='utf-8',
     )
 
-    # --- Optionally copy skill context files ---
+    # --- Blind isolation guard ---
     if include_skill_context:
-        script_dir = Path(__file__).resolve().parent
-        references_dir = script_dir.parent / 'references'
-        for ref_name in ('portable-corpus.md', 'vocabulary-rules.md'):
-            src = references_dir / ref_name
-            if src.exists():
-                shutil.copy2(src, output_dir / ref_name)
-            else:
-                print(
-                    f"Warning: skill reference not found, skipping: {src}",
-                    file=sys.stderr,
-                )
+        print(
+            "Warning: --include-skill-context is deprecated and ignored; "
+            "blind-evaluation directories must contain only samples, mapping.json, and prompt.txt.",
+            file=sys.stderr,
+        )
 
     return mapping
 
@@ -309,8 +301,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         '--include-skill-context',
         action='store_true',
         help=(
-            'Copy portable-corpus.md and vocabulary-rules.md from the '
-            "skill's references/ into the output directory."
+            'Deprecated and ignored. Blind-evaluation output directories '
+            'must not include skill reference files.'
         ),
     )
     parser.add_argument(

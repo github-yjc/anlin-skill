@@ -55,6 +55,7 @@ class AnlinToolingTests(unittest.TestCase):
                     "--fragment-chars",
                     "120",
                     "--placebo",
+                    "--include-skill-context",
                     "--seed",
                     "11",
                 ],
@@ -70,6 +71,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(all(not item["is_draft"] for item in mapping.values()))
             prompt = (output_dir / "prompt.txt").read_text(encoding="utf-8")
             self.assertIn("NONE", prompt)
+            self.assertFalse((output_dir / "portable-corpus.md").exists())
+            self.assertFalse((output_dir / "vocabulary-rules.md").exists())
 
     def test_corpus_cards_exist(self) -> None:
         result = subprocess.run(
@@ -87,4 +90,3 @@ class AnlinToolingTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

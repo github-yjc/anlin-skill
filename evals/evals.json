@@ -1,13 +1,13 @@
 {
   "skill_name": "Anlin",
-  "version": "2.0",
-  "description": "Structured evaluation prompts for Anlin-style 日寄 generation. Each case specifies parameters that a fresh agent (with no conversation context) must use to generate one article. The generated article is then checked against objective review signals via check_anlin_violations.py and subjective criteria via a separate Style Critic.",
+  "version": "2.1",
+  "description": "Structured evaluation prompts for Anlin-style 日寄 generation. Each case specifies parameters that a fresh agent (with no conversation context) must use to generate one article. Generated prose must not contain methodology labels. The generated article is then checked against objective review signals via check_anlin_violations.py and subjective criteria via a separate Style Critic.",
   "corpus_path": "C:\\Users\\34025\\Desktop\\Anlin",
   "evals": [
     {
       "id": 1,
       "name": "2022-spring-recruitment-failure",
-      "prompt": "模拟 Anlin 在 2022-04-18 晚上写一篇标准日寄。你是一个 211 计算机 2022 届毕业生，春招失败，舍友拿到大厂 offer，你在五线小城独居，每天刷招聘软件和打王者荣耀。今晚看到大学同学群里有人在讨论入职体检和租房补贴，你默默把群屏蔽了。标题用「日寄」或「[修饰]日寄」。不要写求职建议或失败复盘——只写今天过了一天后顺便记下来的东西。必须用蒙太奇结构，5-7 个互不关联场景，不总结不升华。正文至少 35 行。输出格式按 skill 规定：标题 + 元数据注释行 + 正文。",
+      "prompt": "模拟 Anlin 在 2022-04-18 晚上写一篇标准日寄。你是一个 211 计算机 2022 届毕业生，春招失败，舍友拿到大厂 offer，你在五线小城独居，每天刷招聘软件和打王者荣耀。今晚看到大学同学群里有人在讨论入职体检和租房补贴，你默默把群屏蔽了。标题用「日寄」或「[修饰]日寄」。不要写求职建议或失败复盘——只写今天过了一天后顺便记下来的东西。必须用蒙太奇结构，5-7 个互不关联场景，不总结不升华。正文至少 35 行。输出标题和正文；不要在正文中加入仿写、生成、验证、语料等方法标签，验证条件由控制器另行记录。",
       "date": "2022-04-18",
       "time_of_day": "night",
       "era_zone": "high",
@@ -25,7 +25,7 @@
     {
       "id": 2,
       "name": "2022-food-delivery-heatstroke",
-      "prompt": "模拟 Anlin 在 2022-08-15 下午写一篇标准日寄。你是五线小城的送外卖的，下午两点送完最后一单，回家冲了个凉水澡，躺在凉席上吹风扇。今天最高 38 度，送餐路上看到一个外卖员摔了。你想写点什么但没什么好写的——就记一下今天发生了什么。标题「日寄」。必须用蒙太奇结构，5-7 个不相关场景，场景间空行硬切。正文至少 35 行。不要写行业观察或社会评论。输出格式：标题 + 元数据注释行 + 正文。",
+      "prompt": "模拟 Anlin 在 2022-08-15 下午写一篇标准日寄。你是五线小城的送外卖的，下午两点送完最后一单，回家冲了个凉水澡，躺在凉席上吹风扇。今天最高 38 度，送餐路上看到一个外卖员摔了。你想写点什么但没什么好写的——就记一下今天发生了什么。标题「日寄」。必须用蒙太奇结构，5-7 个不相关场景，场景间空行硬切。正文至少 35 行。不要写行业观察或社会评论。输出标题和正文；不要在正文中加入仿写、生成、验证、语料等方法标签。",
       "date": "2022-08-15",
       "time_of_day": "afternoon",
       "era_zone": "high",
@@ -205,13 +205,13 @@
     {
       "id": 12,
       "name": "inferred-moving-micro-hope-portable",
-      "prompt": "模拟 Anlin 写一篇微小希望文。背景：你刚搬了家，从之前住了两年的出租屋搬到现在这个更便宜的地方。整理东西的时候翻到一张三年前的超市小票，上面的东西你已经不记得了。新房间的窗户朝东，每天早上被太阳晒醒——不算坏事。你没给任何人发新地址。你不需要告诉我具体日期（我会假设是当前日期附近）。重要提示：本次模拟无法访问 Anlin 的完整原文语料，仅使用 skill 自带的 portable-corpus.md 和 samples-index.md 作为风格参考。标注为「片段级验证」。标题用完整句子，暗示微小的接受。4-6 个场景。不要写鸡汤。",
+      "prompt": "模拟 Anlin 写一篇微小希望文。背景：你刚搬了家，从之前住了两年的出租屋搬到现在这个更便宜的地方。整理东西的时候翻到一张三年前的超市小票，上面的东西你已经不记得了。新房间的窗户朝东，每天早上被太阳晒醒——不算坏事。你没给任何人发新地址。你不需要告诉我具体日期（我会假设是当前日期附近）。重要提示：若完整原文语料不可用，控制器会记录为片段级验证；正文不要标注验证方式。标题用完整句子，暗示微小的接受。4-6 个场景。不要写鸡汤。",
       "date": null,
       "time_of_day": "night",
       "era_zone": "inferred",
       "style": "micro-hope",
       "topic": "搬家后的微小接受",
-      "required_elements": ["搬家整理的具体物品", "旧物触发回忆（不煽情）", "新空间的身体适应", "微小落点（不升华）", "corpus: unavailable"],
+      "required_elements": ["搬家整理的具体物品", "旧物触发回忆（不煽情）", "新空间的身体适应", "微小落点（不升华）", "验证限制由控制器记录"],
       "expected_scene_range": [4, 6],
       "expected_line_range": [25, 60],
       "portable_mode": true,
@@ -242,7 +242,7 @@
     {
       "id": 14,
       "name": "blended-afternoon-festival-forbid-money-portable",
-      "prompt": "模拟 Anlin 写一篇风格不限的文章（你可以自己决定用标准日寄还是真诚文还是混合）。背景：你只知道时间——一个深秋的午后，你在五线小城里无所事事。今天是某个传统节日（你可以自己选一个合适的），但你没有任何节日安排。你刷到朋友圈都在晒团圆饭和红包，你把手机反扣在床上。窗外的银杏叶落了一地。特殊要求：文章里不要出现任何涉及金钱、消费、价格的内容——不要写银行卡余额、外卖价格、房租、任何金额。重要提示：本次模拟无法访问 Anlin 的完整原文语料，仅使用 skill 自带的 portable-corpus.md 和 samples-index.md 作为风格参考。标注为「片段级验证」。标题按你选择的体裁决定。",
+      "prompt": "模拟 Anlin 写一篇风格不限的文章（你可以自己决定用标准日寄还是真诚文还是混合）。背景：你只知道时间——一个深秋的午后，你在五线小城里无所事事。今天是某个传统节日（你可以自己选一个合适的），但你没有任何节日安排。你刷到朋友圈都在晒团圆饭和红包，你把手机反扣在床上。窗外的银杏叶落了一地。特殊要求：文章里不要出现任何涉及金钱、消费、价格的内容——不要写银行卡余额、外卖价格、房租、任何金额。重要提示：若完整原文语料不可用，控制器会记录为片段级验证；正文不要标注验证方式。标题按你选择的体裁决定。",
       "date": null,
       "time_of_day": "afternoon",
       "era_zone": "inferred",
