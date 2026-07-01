@@ -19,6 +19,7 @@ These apply to all normal generation:
 9. No blind-test length outlier: for serious anonymous evaluation, complete articles with titles must be comparable to complete corpus articles. If the draft is too short, expand or mark the evaluation as short-genre only.
 10. No prompt-shaped article: the title, scene order, and ending must not reveal the user's prompt as an outline.
 11. No learned ending button: `哦`, `算了`, `睡了`, a dark screen, or a lone sound effect cannot be used as default closure.
+12. No external-test scaffolding: formal evaluation drafts must be achievable from the skill and a realistic user prompt, not from extra controller hints, judge rubrics, or post-failure advice supplied to the generator.
 
 ## Strong Defaults
 
@@ -61,6 +62,7 @@ Avoid:
 - static image chains where every object becomes a symbol
 - title-to-ending closure that tells the judge the piece was designed around one idea
 - repeated typing/deleting as the main emotional engine
+- evaluation-prompt compliance: visible montage, unrelated details, anti-summary behavior, or title choice appearing only because the test prompt instructed them
 
 ## Sincere Piece
 

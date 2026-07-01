@@ -21,6 +21,7 @@ Rewrite or refuse the relevant part if any appears:
 - title format is the only sample-level difference, because originals and generated drafts were not normalized consistently
 - title, scene order, and ending reveal the user's prompt as an outline
 - the ending uses `哦`, `算了`, `睡了`, a dark screen, or a lone sound effect as a decorative style marker rather than a forced consequence
+- formal blind-evaluation draft depends on extra style hints outside the skill and realistic user prompt
 
 ## Structural Gates
 
@@ -69,6 +70,12 @@ Registers include laugh, sting, tenderness, deflection, absurdity, analysis, bod
 - 2: prompt material is partially buried in side actions, other people's lines, app surfaces, or practical consequences; at least one prompt item is ignored or displaced
 - 1: the article includes prompt material directly but interrupts it with non-theme residue
 - 0: the article proceeds through the prompt items in visible order
+
+### Evaluation Isolation
+
+- 2: the draft could plausibly be produced from a normal user request plus this skill alone
+- 1: the draft benefits from a detailed test prompt but does not rely on hidden judge feedback
+- 0: the draft relies on extra controller hints, prior blind-failure analysis, copied source excerpts, or judge rubric language given to the generator
 
 ### Blind-Test Robustness
 
@@ -129,7 +136,10 @@ The checker must not be calibrated so tightly that original corpus files fail as
 - corpus overlap:
 - structural gates:
 - blind identification rate:
+- raw accusation rate:
+- stable accusation rate:
 - false accusation rate:
+- placebo calibration notes:
 - invalid rounds:
 
 ## Decision

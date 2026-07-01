@@ -118,6 +118,8 @@ Warnings are review prompts, not automatic failure. Errors and hard identity/dat
 
 Only report quality claims after validation. Use `validation-protocol.md`.
 
+For formal skill evaluation, the generation agent must receive only the realistic user prompt plus normal access to this skill. Do not give the generator blind-judge rubrics, previous failure analysis, source excerpts, controller mappings, or manual style hints outside the skill; that contaminates the test.
+
 Required wording:
 
 - acceptable: "In 8 anonymous rounds, judges identified the generated article in 1/8 rounds under these conditions..."
@@ -137,6 +139,6 @@ Required wording:
 python scripts/check_anlin_violations.py draft.md
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
 python scripts/prepare_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --min-fragment-chars 550 --seed 1
-python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --include-placebo
+python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 python -m unittest discover -s test
 ```

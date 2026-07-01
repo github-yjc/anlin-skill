@@ -12,6 +12,7 @@ The evaluation target is anonymous blind review: generated complete articles sho
 - Do not use any single cue as decisive evidence. Require convergence across at least three evidence families.
 - Count a stable accusation only when confidence is at least 75 and at least one evidence family is not title/topic/length/order.
 - When placebo false accusations are high, first suspect the judge calibration rather than the generation target.
+- Use all-original placebo rounds as source-style calibration. If an evidence cue would also accuse original samples, downgrade that cue before using it against generated text.
 - Give detailed reasons even when answering `NONE`; non-identifications are useful only if they explain why the evidence stayed ambiguous.
 - Mark a round invalid if the judge saw mapping files, corpus filenames, skill files, previous analysis, or controller notes.
 
@@ -360,6 +361,9 @@ AI_OR_IMITATOR_RISK:
 
 PLACEBO_CHECK:
 <why NONE remains plausible or implausible>
+
+SOURCE_COHESION_CHECK:
+<which samples still plausibly belong to the same source style, and why>
 
 FINAL_REASONING:
 <one concise paragraph explaining why this identification is or is not stable>

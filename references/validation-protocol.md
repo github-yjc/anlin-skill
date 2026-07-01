@@ -46,7 +46,7 @@ Run:
 ```powershell
 python scripts/check_anlin_violations.py draft.md
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
-python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --include-placebo
+python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 ```
 
 `run_blind_test.py` prepares anonymous rounds and prints the judge prompts. If no LLM automation key is configured, the controller manually gives each prompt to an isolated judge and records verdicts.
@@ -61,14 +61,35 @@ Applicable when the full corpus is unavailable.
 4. Do not run full-corpus blind evaluation.
 5. Mark the result as portable review, not corpus validation.
 
+## Clean Generation Protocol
+
+Formal blind evaluation must measure the skill, not extra help from the controller.
+
+Generator setup:
+
+- Start a fresh agent context for each article.
+- Give the generator only the realistic user prompt, the target date/background contained in that prompt, and normal access to the Anlin skill.
+- Use `evals/evals.json` `realistic_prompt` for formal blind evaluation. The richer `prompt` field is a stress-test prompt and must not be used to claim blind-evaluation performance.
+- Do not provide previous blind-review failures, judge rubrics, source excerpts, corpus filenames, controller mappings, hidden expected elements, or manual advice such as "add montage", "add unrelated details", or "avoid prompt-shape leakage".
+- If the generator reads `outputs/`, blind-round folders, `mapping.json`, judge reports, or controller notes before writing, mark the generation contaminated.
+- Record the exact prompt, skill path, skill commit, model/surface, allowed tools, corpus availability, and whether web/background lookup was allowed.
+
+If a test draft only succeeds because the prompt itself supplied style rules, classify the run as diagnostic, not a clean skill evaluation.
+
 ## Blind Test Design
 
 Use `scripts/prepare_blind_test.py` or `scripts/run_blind_test.py`.
 
+Terms:
+
+- `impostor round`: an anonymous round where exactly one sample is the generated article and the rest are original corpus articles. It measures whether judges can find the inserted generated article.
+- `placebo round`: an anonymous all-original round with no generated article. The correct answer is `NONE`; it measures false accusations and calibrates whether judges are over-sensitive to original-text oddness.
+- `stable accusation`: a counted accusation that passes the confidence and evidence-family thresholds. Raw suspicion is recorded separately.
+
 Recommended command:
 
 ```powershell
-python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --include-placebo
+python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 ```
 
 Each round creates a clean directory containing only:
@@ -92,7 +113,9 @@ Judge rules:
 - If the round is an impostor round, exactly one sample is generated.
 - If the round is a placebo round, no sample is generated and the correct answer is `NONE`.
 - If the judge is forced to choose when there is no generated sample, that test design is invalid.
+- Use at least two placebo rounds for serious evaluation. They disguise original articles as ordinary test samples and measure whether the judge over-accuses real corpus articles.
 - If placebo false accusations exceed 20%, treat the judge setup as over-sensitive and revise calibration before using the rate as evidence against the generation workflow.
+- If the same evidence families appear in placebo accusations and generated-sample accusations, report that cue as uncalibrated and do not use it alone as a generator failure root cause.
 
 ## Multi-Angle Judge Set
 
@@ -106,7 +129,7 @@ For serious evaluation, read `blind-judge-angles.md` and use multiple profiles p
 - dialogue-social: dialogue plausibility, social collision, awkward residue
 - phase-genre: date-zone, genre fit, title/ending, phase leakage
 - ai-impostor-risk: AI smoothness, imitator over-display, surface/deep mismatch
-- placebo-calibrated reader: all-original round; must be allowed and encouraged to answer `NONE`
+- placebo-calibrated reader: at least two all-original rounds; must be allowed and encouraged to answer `NONE`
 
 Treat invalid format, timeout, or contaminated access as invalid, not as a pass or failure. Re-run invalid rounds or report them separately.
 
@@ -137,6 +160,7 @@ MOST_ANLIN_LIKE:
 LEAST_ANLIN_LIKE:
 AI_OR_IMITATOR_RISK:
 PLACEBO_CHECK:
+SOURCE_COHESION_CHECK:
 FINAL_REASONING:
 ```
 
@@ -158,7 +182,7 @@ Do not use pass/fail language without sample counts.
 Recommended wording:
 
 ```text
-Under 8 impostor rounds and 1 placebo round, judges produced raw accusations in 2/8 impostor rounds, stable accusations in 1/8 impostor rounds under confidence >=75 and 3-family threshold, and falsely accused an original in 0/1 placebo rounds. This supports revision status X under these conditions only.
+Under 8 impostor rounds and 2 placebo rounds, judges produced raw accusations in 2/8 impostor rounds, stable accusations in 1/8 impostor rounds under confidence >=75 and 3-family threshold, and falsely accused originals in 0/2 placebo rounds. This supports revision status X under these conditions only.
 ```
 
 If a judge sees `mapping.json`, original corpus filenames, skill files, or previous analysis, mark the round contaminated and exclude it.
@@ -176,6 +200,8 @@ If a judge sees `mapping.json`, original corpus filenames, skill files, or previ
 ## Controller Checklist
 
 - [ ] Draft body contains no process labels.
+- [ ] Formal generation used `realistic_prompt` or an equivalently natural prompt, not the diagnostic stress prompt.
+- [ ] Generator did not receive judge rubrics, source excerpts, prior failures, mappings, or manual style hints outside the skill.
 - [ ] Corpus path and date-zone recorded outside prose.
 - [ ] Checker output saved or summarized.
 - [ ] Corpus comparison inspected for overlap, not treated as style proof.
@@ -184,8 +210,18 @@ If a judge sees `mapping.json`, original corpus filenames, skill files, or previ
 - [ ] Draft is not a length outlier for the selected complete-article protocol.
 - [ ] Judge prompts require detailed quoted evidence and alternative explanations.
 - [ ] Controller records confidence, evidence-family count, raw accusations, stable accusations, and placebo false accusations separately.
-- [ ] Placebo rounds included for serious evaluation.
+- [ ] At least two placebo rounds included for serious evaluation.
 - [ ] Final claim reports conditions and rates only.
+
+## Date-Boundary Validation
+
+Date-boundary validation checks whether the skill refuses or downgrades requests outside supported evidence, rather than inventing unsupported author state.
+
+- `out-of-range`: target date is before the first known original date (`2022-04-04`) or otherwise outside the documented corpus support. Correct behavior is to refuse that provenance-sensitive date, ask for a supported date, or clearly mark the output as a fictional exercise if the user accepts that downgrade.
+- `projection`: target date is after the latest corpus-supported point but can be grounded by user-provided facts or verified background. Correct behavior is low-confidence projection with no claim of original-level support.
+- `inferred`: no concrete date is supplied. Correct behavior is to record uncertainty in the controller report and avoid specific real-world claims unless verified.
+
+Do not blind-test an out-of-range refusal as a prose article. Score it as a boundary-handling case.
 
 ## Method Notes
 

@@ -106,6 +106,7 @@ MUST DO:
 - Treat this as open-set verification, not forced choice. Do not identify a sample unless at least three independent evidence families converge, at least one of them is not title/topic/length, and your confidence is 75 or higher.
 - If the strongest case depends mainly on title neatness, prompt-topic compliance, article length, file order, or a single polished ending, answer NONE or lower confidence below the stable-identification threshold.
 - Actively test alternative explanations before accusing: topic, phase, genre, short-form article, sincere mode, surreal mode, unusually edited original, or ordinary authorial variation.
+- Some rounds are all-original calibration rounds. If the same cue would make you accuse several rough, sincere, short, or unusually structured articles, treat that cue as weak. A real reader can notice oddness without converting oddness into a generated-text accusation.
 - Use these concrete tells as clues:
   - Rhythm: paragraphs are usually short (often one sentence), end in comma or period, and use hard cuts between thoughts. Look for overly long compound sentences or smooth transitions that feel "written".
   - Title: title should fit genre and body without explaining the whole piece or creating a neat title-ending loop.
@@ -131,9 +132,23 @@ DETAILED_REASONS:
 3. [specific reason] | evidence: "..."
 4. [specific reason] | evidence: "..."
 5. [specific reason] | evidence: "..."
+MOST_ANLIN_LIKE:
+1. [feature] | deep-or-surface: deep | evidence: "..."
+2. [feature] | deep-or-surface: surface | evidence: "..."
+LEAST_ANLIN_LIKE:
+1. [feature] | possible alternative explanation: topic/genre/phase/fragment/editorial/none | evidence: "..."
+2. [feature] | possible alternative explanation: topic/genre/phase/fragment/editorial/none | evidence: "..."
+AI_OR_IMITATOR_RISK:
+[distinguish AI smoothness, human imitation, and natural variation]
+PLACEBO_CHECK:
+[why NONE remains plausible or implausible]
+SOURCE_COHESION_CHECK:
+[which samples still plausibly belong to the same source style, and why]
+FINAL_REASONING:
+[why this identification is or is not stable]
 ```
 
-Controller rule: run the Distinguisher for at least 8 impostor rounds and, for serious evaluation, at least 1 placebo round. After each round, compare `IDENTIFIED` to `mapping.json`. Report raw identification rate, stable-identification rate, placebo false-accusation rate, confidence threshold, evidence-family threshold, and invalid rounds under the exact conditions. Count an accusation as stable only when `IDENTIFIED` is not `NONE`, confidence is 75 or higher, and at least three independent evidence families are named, including one non-title/non-topic family. Do not use "indistinguishable" language; use `revise` if the generated article is stably identified in a majority of valid impostor rounds or if placebo false accusations exceed 20%. If the judge has access to mapping.json, the original corpus, or skill files, mark the round **contaminated** and exclude it.
+Controller rule: run the Distinguisher for at least 8 impostor rounds and, for serious evaluation, at least 2 placebo rounds. After each round, compare `IDENTIFIED` to `mapping.json`. Report raw identification rate, stable-identification rate, placebo false-accusation rate, confidence threshold, evidence-family threshold, and invalid rounds under the exact conditions. Count an accusation as stable only when `IDENTIFIED` is not `NONE`, confidence is 75 or higher, and at least three independent evidence families are named, including one non-title/non-topic family. Do not use "indistinguishable" language; use `revise` if the generated article is stably identified in a majority of valid impostor rounds or if placebo false accusations exceed 20%. If the judge has access to mapping.json, the original corpus, or skill files, mark the round **contaminated** and exclude it.
 
 ## Fragment-Level Style Critic Prompt
 

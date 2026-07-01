@@ -108,6 +108,8 @@ Before drafting, mark each prompt noun as one of:
 
 Do not march through all prompt items in order. If the prompt says Valentine's Day, the article may start from a wrong condiment, a delivery note, a family message, or a game loss. If the prompt says moving, the article may start from tape stuck to a slipper. If the prompt says mother, the article may start from an unanswered delivery call. The theme should become visible late and partially, not on the first page.
 
+In formal evaluation, assume the generator sees only the user prompt and this skill. Do not rely on extra controller hints, prior judge failures, or hidden explanations. If a draft only works because the evaluation prompt told it "use montage", "do not summarize", or "add unrelated scenes", the skill has not actually learned that behavior; revise the skill, not the test prompt.
+
 ## Title Selection
 
 Choose the title after the body has a lived shape.
@@ -153,6 +155,8 @@ Before finalizing, remove the most "written" surface:
 - If a detail appears because it is in the prompt, bury it: have another person mention it, make it half-visible on screen, or let it produce a practical problem rather than a theme.
 - If three consecutive scenes all point to the same wound, replace the middle one with a useless scene that still belongs to the day.
 - If a sentence sounds like a portable aphorism, delete it or convert it into a bad practical claim someone could argue with.
+- If the first scene, title, or final image would let a reader reconstruct the user's prompt, displace one required item into an offhand line, wrong object, or practical inconvenience.
+- If a scene feels like it was added because a rubric wanted "realistic texture", make it do something mundane: delay a reply, dirty an object, change a route, interrupt a body, or create a small cost.
 
 Run this pass from the judge's point of view:
 
@@ -175,3 +179,5 @@ Use this map when a blind judge identifies a draft.
 | surreal piece too symbolic | add a dumb object, a payment/log-in problem, or an ordinary bodily action that breaks the symbol chain |
 | short-line fragment poem | merge lines into uneven spoken syntax and add a longer clumsy clause |
 | ending uses a learned button | end on a consequence: unread reply, cold food, wrong object, body pain, route, payment, or interrupted chore |
+| test prompt over-compliance | remove one visible required item, weaken the title, and add one scene that could survive without the prompt |
+| judge could also accuse originals | preserve the rough cue but reduce polish around it; do not optimize toward a detector that fails placebo |

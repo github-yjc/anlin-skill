@@ -51,6 +51,7 @@ Expected:
 
 ## Suggested Assertions
 
+- 正式盲评生成入口：使用 `evals/evals.json` 的 `realistic_prompt`，不要使用包含结构提示的诊断 `prompt` 来声明 skill 单独能力。
 - 无评论链：不得出现“有人说A又有人说B”。
 - 无宏观新闻摘要：不得连续三句讲时代背景而无个人动作。
 - 场景数：因阶段而异（Phase A 5-8，Phase D 7-12，通常 5-10）；真诚文/短真诚文 4-7。

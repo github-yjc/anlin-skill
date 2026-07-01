@@ -96,6 +96,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--min-fragment-chars", type=int, default=0, help="Minimum Chinese characters required for generated samples")
     parser.add_argument("--length-tolerance", type=float, default=0.65, help="Allowed relative length difference for complete-article impostor rounds")
     parser.add_argument("--include-placebo", action="store_true", help="Add one placebo round containing originals only")
+    parser.add_argument("--placebo-rounds", type=int, default=0, help="Number of all-original placebo calibration rounds")
     parser.add_argument("--profiles", default=",".join(JUDGE_PROFILES), help="Comma-separated judge profiles to rotate across impostor rounds")
     parser.add_argument("--seed", type=int, default=1, help="Base random seed")
     parser.add_argument("--output-root", type=Path, default=None, help="Output root directory")
@@ -107,9 +108,14 @@ def main(argv: Optional[list[str]] = None) -> int:
         parser.error(f"Corpus directory not found: {args.corpus_dir}")
     if args.rounds < 1:
         parser.error("--rounds must be >= 1")
+    if args.placebo_rounds < 0:
+        parser.error("--placebo-rounds must be >= 0")
     profiles = [item.strip() for item in args.profiles.split(",") if item.strip()]
     if not profiles:
         parser.error("--profiles must contain at least one profile")
+    placebo_rounds = args.placebo_rounds
+    if args.include_placebo and placebo_rounds == 0:
+        placebo_rounds = 1
 
     if args.output_root is None:
         ts = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -135,14 +141,14 @@ def main(argv: Optional[list[str]] = None) -> int:
             )
         )
 
-    if args.include_placebo:
+    for placebo_index in range(placebo_rounds):
         rounds.append(
             create_round(
                 draft_path=args.draft_path.resolve(),
                 corpus_dir=args.corpus_dir.resolve(),
                 output_root=output_root,
                 round_id=len(rounds) + 1,
-                seed=args.seed + 10_000,
+                seed=args.seed + 10_000 + placebo_index,
                 num_samples=args.num_samples,
                 fragment_chars=args.fragment_chars,
                 min_fragment_chars=args.min_fragment_chars,
@@ -158,9 +164,10 @@ def main(argv: Optional[list[str]] = None) -> int:
         "fragment_chars": args.fragment_chars,
         "min_fragment_chars": args.min_fragment_chars,
         "length_tolerance": args.length_tolerance,
+        "placebo_rounds": placebo_rounds,
         "profiles": profiles,
         "rounds": [asdict(item) for item in rounds],
-        "controller_rule": "Give each prompt.txt to an isolated judge. Judges may read only sample-*.txt and may answer NONE. Titles are retained and normalized; title fit is evidence but cannot be the sole basis. Count a stable accusation only when IDENTIFIED is not NONE, confidence is >=75, and at least three independent evidence families are named, including one non-title/non-topic family. Report raw and stable rates plus placebo false accusations.",
+        "controller_rule": "Give each prompt.txt to an isolated judge. Judges may read only sample-*.txt and may answer NONE. Titles are retained and normalized; title fit is evidence but cannot be the sole basis. Count a stable accusation only when IDENTIFIED is not NONE, confidence is >=75, and at least three independent evidence families are named, including one non-title/non-topic family. Report raw and stable rates plus placebo false accusations. Treat placebo rounds as original-text calibration; if the same evidence families accuse originals, lower confidence in those cues before revising the generator.",
     }
     manifest_path = output_root / "controller-manifest.json"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")

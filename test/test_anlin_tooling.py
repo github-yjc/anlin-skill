@@ -12,8 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 CORPUS = Path(r"C:\Users\34025\Desktop\Anlin")
 CHECKER = ROOT / "scripts" / "check_anlin_violations.py"
 BLIND_PREP = ROOT / "scripts" / "prepare_blind_test.py"
+RUN_BLIND = ROOT / "scripts" / "run_blind_test.py"
 BUILD_CARDS = ROOT / "scripts" / "build_corpus_cards.py"
 CARDS = ROOT / "references" / "corpus-cards"
+EVALS = ROOT / "evals" / "evals.json"
 
 
 class AnlinToolingTests(unittest.TestCase):
@@ -73,6 +75,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("NONE", prompt)
             self.assertIn("DETAILED_REASONS", prompt)
             self.assertIn("MOST_ANLIN_LIKE", prompt)
+            self.assertIn("SOURCE_COHESION_CHECK", prompt)
             self.assertIn("title", prompt.lower())
             self.assertFalse((output_dir / "portable-corpus.md").exists())
             self.assertFalse((output_dir / "vocabulary-rules.md").exists())
@@ -220,6 +223,77 @@ class AnlinToolingTests(unittest.TestCase):
         cards = [path for path in CARDS.glob("*.md") if path.name != "INDEX.md"]
         self.assertEqual(len(cards), 38)
         self.assertTrue((CARDS / "INDEX.md").is_file())
+
+    def test_realistic_eval_prompts_do_not_carry_style_hints(self) -> None:
+        data = json.loads(EVALS.read_text(encoding="utf-8"))
+        self.assertEqual(data["version"], "2.2")
+        banned_helpers = (
+            "蒙太奇",
+            "不总结",
+            "不升华",
+            "场景",
+            "标题用",
+            "标题「",
+            "方法标签",
+            "验证条件",
+            "语料",
+            "片段级",
+            "judge",
+            "rubric",
+            "门禁",
+        )
+        self.assertEqual(len(data["evals"]), 15)
+        for item in data["evals"]:
+            self.assertIn("realistic_prompt", item, item["name"])
+            realistic_prompt = item["realistic_prompt"]
+            self.assertTrue(realistic_prompt.startswith("用 Anlin skill 写"), item["name"])
+            for banned in banned_helpers:
+                self.assertNotIn(banned, realistic_prompt, item["name"])
+
+    def test_run_blind_test_supports_multiple_placebo_rounds(self) -> None:
+        draft = next(iter(sorted(CORPUS.glob("*.md"))))
+        with tempfile.TemporaryDirectory() as temp:
+            output_root = Path(temp) / "blind-rounds"
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(RUN_BLIND),
+                    str(draft),
+                    str(CORPUS),
+                    "--rounds",
+                    "1",
+                    "--num-samples",
+                    "2",
+                    "--placebo-rounds",
+                    "2",
+                    "--min-fragment-chars",
+                    "100",
+                    "--length-tolerance",
+                    "1.0",
+                    "--output-root",
+                    str(output_root),
+                    "--seed",
+                    "21",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            manifest = json.loads((output_root / "controller-manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["placebo_rounds"], 2)
+            self.assertEqual(len(manifest["rounds"]), 3)
+            placebo_rounds = [item for item in manifest["rounds"] if item["kind"].startswith("placebo:")]
+            self.assertEqual(len(placebo_rounds), 2)
+            self.assertTrue(all(item["generated_sample"] == "NONE" for item in placebo_rounds))
+            self.assertIn("original-text calibration", manifest["controller_rule"])
+            for item in placebo_rounds:
+                round_dir = Path(item["directory"])
+                mapping = json.loads((round_dir / "mapping.json").read_text(encoding="utf-8"))
+                self.assertTrue(all(not sample["is_draft"] for sample in mapping.values()))
+                prompt = (round_dir / "prompt.txt").read_text(encoding="utf-8")
+                self.assertIn("SOURCE_COHESION_CHECK", prompt)
 
 
 if __name__ == "__main__":
