@@ -96,11 +96,139 @@ DRIFT_MESSAGES = {
     "睡吧": ("warning", "imperative goodnight closure — prefer 睡了/去睡了/不写了"),
     "招聘软件": ("info", "abstract noun — prefer 点开招聘/刷了刷招聘"),
 }
+TOPIC_DIAGNOSTIC_TITLE_TERMS = [
+    "春招",
+    "求职",
+    "面试",
+    "offer",
+    "入职",
+    "情人节",
+    "平安夜",
+    "母亲节",
+    "婚礼",
+    "痛风",
+    "跨年",
+    "搬家",
+    "写作",
+    "外卖",
+    "中暑",
+    "租房",
+]
+HIGH_SIGNAL_OPENING_TERMS = [
+    "春招",
+    "offer",
+    "入职体检",
+    "租房补贴",
+    "情人节",
+    "母亲节",
+    "婚礼",
+    "痛风",
+    "跨年",
+    "搬家",
+    "写不出来",
+    "无人便利店",
+    "简历",
+]
+LEARNED_ENDING_LINES = {
+    "哦。",
+    "算了。",
+    "睡了。",
+    "关屏。",
+    "屏幕暗了。",
+    "屏幕黑了。",
+    "嗡嗡嗡。",
+}
+THEME_DOMAINS = {
+    "job": [
+        "春招",
+        "求职",
+        "offer",
+        "入职",
+        "体检",
+        "租房补贴",
+        "大厂",
+        "boss",
+        "直聘",
+        "招聘",
+        "岗位",
+        "职位",
+        "简历",
+        "hr",
+        "工位",
+        "公积金",
+        "水杯",
+        "同学群",
+    ],
+    "romance": ["情人节", "礼物", "玫瑰", "情侣", "对象", "恋爱", "结婚", "婚礼", "随礼"],
+    "family": ["母亲节", "我妈", "妈妈", "我爸", "鸡蛋", "雨衣", "回家", "饭桌"],
+    "illness": ["痛风", "脚踝", "尿酸", "肿", "疼", "富贵病", "腐乳", "可乐"],
+}
+TASTEFUL_WITHHOLDING_ENDINGS = [
+    "没点开",
+    "没回",
+    "没看",
+    "没发",
+    "没说话",
+    "放下手机",
+    "扣在桌上",
+]
+QUIET_EXPLANATION_PATTERNS = [
+    r"大概是因为[^。！？\n]{1,35}",
+    r"可能是因为[^。！？\n]{1,35}",
+    r"突然觉得[^。！？\n]{1,35}",
+]
+ENGINE_SIGNAL_TERMS = [
+    "还以为",
+    "原来",
+    "算",
+    "尿",
+    "厕所",
+    "马桶",
+    "痔疮",
+    "阳痿",
+    "傻逼",
+    "滚",
+    "去你妈",
+    "像",
+    "算法",
+    "系统",
+    "ELO",
+    "血压",
+    "麻木",
+]
+SEALED_NIGHT_TERMS = ["失眠", "床", "枕", "闹钟", "睡", "手机", "通知", "群", "Boss", "直聘"]
+CLOSED_LOOP_TAIL_TERMS = ["到现在也没", "明天再", "还没请", "还没还", "又点开"]
 
 
 def clean_excerpt(line: str) -> str:
     stripped = line.strip()
     return stripped[:120] + ("..." if len(stripped) > 120 else "")
+
+
+def chinese_len(text: str) -> int:
+    return len(re.findall(r"[\u4e00-\u9fff]", text))
+
+
+def normalize_title_line(line: str) -> str:
+    title = line.strip()
+    title = re.sub(r"^#+\s*", "", title).strip()
+    title = re.sub(r"^(标题|题目)\s*[:：]\s*", "", title).strip()
+    for marker in ("**", "__", "*", "_"):
+        if title.startswith(marker) and title.endswith(marker) and len(title) > len(marker) * 2:
+            title = title[len(marker):-len(marker)].strip()
+    return title
+
+
+def split_title_and_content_lines(lines: list[str]) -> tuple[str, list[str]]:
+    nonempty = [(index, line.strip()) for index, line in enumerate(lines) if line.strip()]
+    if not nonempty:
+        return "", []
+    first_index, first = nonempty[0]
+    if first.startswith("# "):
+        return normalize_title_line(first), [line.strip() for line in lines[first_index + 1 :] if line.strip()]
+    if not re.search(r"[。！？!?，,：:；;]", first) and chinese_len(first) <= 24:
+        return normalize_title_line(first), [line.strip() for line in lines[first_index + 1 :] if line.strip()]
+    return "", [line.strip() for line in lines if line.strip()]
 
 
 def is_chinese_word_char(char: str) -> bool:
@@ -197,6 +325,169 @@ def check_high_frequency_coverage(findings: list[Finding], text: str) -> None:
         findings.append(Finding("warning", "高频词覆盖不足", 0, f"present={present}", "自然补入至少5个高频连接词，不要硬塞。"))
 
 
+def check_diagnostic_title(findings: list[Finding], lines: list[str]) -> None:
+    title, _ = split_title_and_content_lines(lines)
+    if not title:
+        return
+    if title != "日寄" and title.endswith("日寄"):
+        matched = [term for term in TOPIC_DIAGNOSTIC_TITLE_TERMS if term in title]
+        if matched:
+            findings.append(
+                Finding(
+                    "warning",
+                    "题面诊断型标题",
+                    1,
+                    title,
+                    f"标题含高信号主题词 {matched}；标准日寄盲评通常优先弱化为“日寄”，除非修饰词来自正文里的侧面把手。",
+                )
+            )
+
+
+def check_high_signal_opening(findings: list[Finding], lines: list[str]) -> None:
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [line for line in content_lines if not line.startswith("<!--")][:5]
+    if not visible_lines:
+        return
+    first_line_matches = [term for term in HIGH_SIGNAL_OPENING_TERMS if term in visible_lines[0]]
+    opening_text = "\n".join(visible_lines)
+    opening_matches = sorted({term for term in HIGH_SIGNAL_OPENING_TERMS if term in opening_text})
+    if first_line_matches or len(opening_matches) >= 2:
+        findings.append(
+            Finding(
+                "warning",
+                "题面高信号开头",
+                1,
+                " / ".join(visible_lines[:3]),
+                "开头过早暴露题面压力；标准日寄应从身体、物件、app残留或无用动作进入，再让主题晚一点漏出。",
+            )
+        )
+
+
+def check_standard_diary_length(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    style = detect_style(text)
+    if style != "standard" or "日寄" not in title:
+        return
+    body = "\n".join(line for line in content_lines if not line.startswith("<!--"))
+    chars = chinese_len(body)
+    if 0 < chars < 650:
+        findings.append(
+            Finding(
+                "warning",
+                "标准日寄完整文章篇幅偏短",
+                0,
+                f"body_chinese_chars={chars}",
+                "完整文章盲评建议约650-1200字；扩展具体动作、对话、身体/金钱后果和非主题残留，或改为短体裁匹配评估。",
+            )
+        )
+
+
+def check_learned_ending_button(findings: list[Finding], lines: list[str]) -> None:
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if not visible_lines:
+        return
+    tail = visible_lines[-3:]
+    normalized_tail = [re.sub(r"\s+", "", line) for line in tail]
+    matched = [line for line in normalized_tail if line in LEARNED_ENDING_LINES]
+    if matched:
+        findings.append(
+            Finding(
+                "warning",
+                "习得式结尾按钮",
+                len(lines),
+                " / ".join(tail),
+                "哦/算了/睡了/关屏/屏幕暗等只在被前文强迫时保留；否则换成未完成动作、回复、路线、物件、付款或身体中断。",
+            )
+        )
+
+
+def check_theme_density(findings: list[Finding], text: str) -> None:
+    lower_text = text.lower()
+    for domain, terms in THEME_DOMAINS.items():
+        matched_terms = [term for term in terms if term.lower() in lower_text]
+        hit_count = sum(lower_text.count(term.lower()) for term in terms)
+        if len(matched_terms) >= 7 or hit_count >= 12:
+            findings.append(
+                Finding(
+                    "warning",
+                    f"单主题词密度偏高: {domain}",
+                    0,
+                    f"terms={matched_terms}, hits={hit_count}",
+                    "盲评高风险：场景可能都在服务同一主轴。替换一段为由气味、身体、路线、无关社交或脏物件触发的旁逸分支。",
+                )
+            )
+
+
+def check_tasteful_withholding_ending(findings: list[Finding], lines: list[str]) -> None:
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if not visible_lines:
+        return
+    tail_text = "\n".join(visible_lines[-3:])
+    if any(term in tail_text for term in TASTEFUL_WITHHOLDING_ENDINGS):
+        findings.append(
+            Finding(
+                "warning",
+                "文艺悬停式结尾",
+                len(lines),
+                " / ".join(visible_lines[-3:]),
+                "没点开/没回/放下手机等结尾容易变成漂亮短篇收束；确认是否有低处后果，否则改成身体、付款、路线、冷饭、错物件或第二条消息。",
+            )
+        )
+
+
+def check_quiet_explanation(findings: list[Finding], lines: list[str]) -> None:
+    for line_number, line in enumerate(lines, start=1):
+        for pattern in QUIET_EXPLANATION_PATTERNS:
+            if re.search(pattern, line):
+                findings.append(
+                    Finding(
+                        "warning",
+                        "安静解释句",
+                        line_number,
+                        clean_excerpt(line),
+                        "这类句子容易把伤口解释干净；优先删除解释，让外部人物、app、身体或低处后果回答。",
+                    )
+                )
+                break
+
+
+def check_engine_signal_density(findings: list[Finding], text: str) -> None:
+    style = detect_style(text)
+    if style != "standard":
+        return
+    hits = [term for term in ENGINE_SIGNAL_TERMS if term in text]
+    if len(hits) < 3:
+        findings.append(
+            Finding(
+                "warning",
+                "段落发动机信号偏弱",
+                0,
+                f"present={hits}",
+                "标准日寄不能只是安静低落；至少需要误读、自毁、社交误伤、身体降格或荒谬系统解释中的几种。",
+            )
+        )
+
+
+def check_sealed_nocturne(findings: list[Finding], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(text.splitlines())
+    body = "\n".join(content_lines)
+    night_hits = [term for term in SEALED_NIGHT_TERMS if term in text]
+    tail = "\n".join(content_lines[-6:]) if content_lines else ""
+    tail_hits = [term for term in CLOSED_LOOP_TAIL_TERMS if term in tail]
+    if ("失眠" in title or "失眠" in body) and len(night_hits) >= 6 and tail_hits:
+        findings.append(
+            Finding(
+                "warning",
+                "封闭夜晚短篇结构",
+                0,
+                f"night_terms={night_hits}, tail={tail_hits}",
+                "标准日寄高风险：文章可能封闭在一夜、一房间、一串通知里，并用早期物件/旧债闭环。加入时间/空间横跳，或改掉整齐回收结尾。",
+            )
+        )
+
+
 def check_period_comma_ratio(findings: list[Finding], lines: list[str]) -> None:
     content_lines = [line.strip() for line in lines if line.strip() and not line.lstrip().startswith("#")]
     if not content_lines:
@@ -215,9 +506,10 @@ def check_period_comma_ratio(findings: list[Finding], lines: list[str]) -> None:
             )
         )
     elif ratio < 0.45 or ratio > 0.85:
+        severity = "warning" if ratio < 0.15 or ratio > 0.9 else "info"
         findings.append(
             Finding(
-                "info",
+                severity,
                 "行末逗号比例",
                 0,
                 f"first_{len(sample)}_lines_ratio={ratio:.2f}",
@@ -366,6 +658,15 @@ def collect_findings(text: str) -> list[Finding]:
     check_repeated_you(findings, lines)
     check_dialogue_quotes(findings, lines)
     check_high_frequency_coverage(findings, text)
+    check_diagnostic_title(findings, lines)
+    check_high_signal_opening(findings, lines)
+    check_standard_diary_length(findings, lines, text)
+    check_learned_ending_button(findings, lines)
+    check_theme_density(findings, text)
+    check_tasteful_withholding_ending(findings, lines)
+    check_quiet_explanation(findings, lines)
+    check_engine_signal_density(findings, text)
+    check_sealed_nocturne(findings, text)
     check_period_comma_ratio(findings, lines)
     check_scene_count(findings, lines, text)
     check_breathing_point(findings, lines, text)

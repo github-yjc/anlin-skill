@@ -112,7 +112,7 @@ After drafting, switch to review mode:
 4. Use `writing-checklist.md` and `self-check.md` as critic material only. Do not retrofit every high-frequency label into the draft.
 5. Run anti-pastiche checks if any source phrasing may have leaked.
 
-Warnings are review prompts, not automatic failure. Errors and hard identity/date mistakes must be fixed.
+Warnings are review prompts, not automatic failure. Errors and hard identity/date mistakes must be fixed. Do at most one targeted revision pass for ordinary warnings, but for formal standard-diary blind evaluation always prioritize prompt-shape leakage, single-theme density, sealed-night/story enclosure, quiet explanation, weak paragraph engine, missing title, copied source phrasing, diagnostic title, underbuilt length, and learned ending buttons. If one of these high-risk warnings remains after patching, rewrite from the scene slate instead of polishing the same draft. Do not loop until every ordinary warning disappears; some warnings are acceptable rhythm signals.
 
 ### 7. Validate Blind-Evaluation Claims
 
