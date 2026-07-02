@@ -219,6 +219,39 @@ ENGINE_SIGNAL_TERMS = [
 ]
 SEALED_NIGHT_TERMS = ["失眠", "床", "枕", "闹钟", "睡", "手机", "通知", "群", "Boss", "直聘"]
 CLOSED_LOOP_TAIL_TERMS = ["到现在也没", "明天再", "还没请", "还没还", "又点开"]
+ROUGH_SELF_DAMAGE_TERMS = [
+    "他妈",
+    "傻逼",
+    "嘴贱",
+    "破口大骂",
+    "滚蛋",
+    "滚回去",
+    "滚出去",
+    "屎",
+    "拉屎",
+    "尿",
+    "痔疮",
+    "阳痿",
+    "舔狗",
+    "社死",
+    "丢人",
+    "好家伙",
+    "工贼",
+]
+ROUGH_SELF_DAMAGE_PATTERNS = [
+    r"(?<![一二两三四五六七八九十百千万\d])滚(?![一二两三四五六七八九十百千万\d年月日天点分秒])",
+    r"我[^。！？\n]{0,12}(?:丢人|社死|嘴贱|像个傻逼|像傻逼)",
+    r"(?:拉屎|尿|痔疮|阳痿)[^。！？\n]{0,24}(?:我|自己|本人|室友|同学|群|厕所)?",
+]
+AMBIENT_ENDING_PATTERNS = [
+    r"(空调|外机|风扇|雨|灯|屏幕|手机|机器|冰箱)[^。！？\n]{0,16}(嗡|响|亮|暗|黑|震)[^。！？\n]{0,8}[。！？]?$",
+    r"^(嗡|嗡嗡|嗡嗡嗡|滴|滴滴|哗啦|呼呼)[。！？]?$",
+]
+MATERIAL_ECHO_TERMS = [
+    "奥美拉唑还剩最后一片",
+    "明天记得买",
+    "Type-C",
+]
 PROMPT_CHAIN_TERMS = sorted(
     {
         term
@@ -229,16 +262,12 @@ PROMPT_CHAIN_TERMS = sorted(
     reverse=True,
 )
 STRICT_ERROR_RULE_PREFIXES = (
-    "可能的评论链",
-    "题面诊断型标题",
     "题面高信号开头",
-    "标准日寄完整文章篇幅偏短",
     "习得式结尾按钮",
-    "单主题词密度偏高",
     "文艺悬停式结尾",
-    "安静解释句",
-    "段落发动机信号偏弱",
     "封闭夜晚短篇结构",
+    "纯环境音结尾",
+    "材料钩子重复过直",
 )
 STRICT_ERROR_RULE_NAMES: set[str] = set()
 
@@ -474,6 +503,24 @@ def check_learned_ending_button(findings: list[Finding], lines: list[str]) -> No
         )
 
 
+def check_ambient_ending(findings: list[Finding], lines: list[str]) -> None:
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if not visible_lines:
+        return
+    last_line = visible_lines[-1]
+    if any(re.search(pattern, last_line) for pattern in AMBIENT_ENDING_PATTERNS):
+        findings.append(
+            Finding(
+                "warning",
+                "纯环境音结尾",
+                len(lines),
+                last_line,
+                "纯声音/灯光/屏幕作为最后一行容易变成文学按钮；让声音造成具体身体、社交、付款、路线或回复后果，或改用该后果收束。",
+            )
+        )
+
+
 def check_theme_density(findings: list[Finding], text: str) -> None:
     lower_text = text.lower()
     for domain, terms in THEME_DOMAINS.items():
@@ -489,6 +536,41 @@ def check_theme_density(findings: list[Finding], text: str) -> None:
                     "盲评高风险：场景可能都在服务同一主轴。替换一段为由气味、身体、路线、无关社交或脏物件触发的旁逸分支。",
                 )
             )
+
+
+def check_rough_self_damage(findings: list[Finding], text: str) -> None:
+    style = detect_style(text)
+    if style != "standard" or chinese_len(text) < 650:
+        return
+    present = [term for term in ROUGH_SELF_DAMAGE_TERMS if term in text]
+    pattern_present = [pattern for pattern in ROUGH_SELF_DAMAGE_PATTERNS if re.search(pattern, text)]
+    if not present:
+        present = pattern_present
+    if not present:
+        findings.append(
+            Finding(
+                "warning",
+                "粗粝自毁信号不足",
+                0,
+                "present=[]",
+                "标准日寄不能只靠安静观察和物件真实感；加入一个粗粝自嘲、身体尴尬、社交误伤或不好看的笑点。",
+            )
+        )
+
+
+def check_material_echo(findings: list[Finding], text: str) -> None:
+    normalized = re.sub(r"[，,。！？；;\s]+", "", text)
+    present = [term for term in MATERIAL_ECHO_TERMS if normalized.count(term) >= 2]
+    if present:
+        findings.append(
+            Finding(
+                "warning",
+                "材料钩子重复过直",
+                0,
+                f"terms={present}",
+                "同一药、线、温度或app钩子重复得太工整；保留一次，或让第二次改变行动/社交/身体后果。",
+            )
+        )
 
 
 def check_prompt_chain_surface(findings: list[Finding], lines: list[str], text: str) -> None:
@@ -782,7 +864,10 @@ def collect_findings(text: str) -> list[Finding]:
     check_high_signal_opening(findings, lines)
     check_standard_diary_length(findings, lines, text)
     check_learned_ending_button(findings, lines)
+    check_ambient_ending(findings, lines)
     check_theme_density(findings, text)
+    check_rough_self_damage(findings, text)
+    check_material_echo(findings, text)
     check_prompt_chain_surface(findings, lines, text)
     check_tasteful_withholding_ending(findings, lines)
     check_quiet_explanation(findings, lines)

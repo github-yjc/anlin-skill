@@ -55,11 +55,11 @@ The state card is not part of the final prose.
 
 If the user asked for an article, the final answer must contain only the article title and body. Do not print the state card, prompt buckets, scene slate, validation summary, checker output, overlap score, or any line such as `草拟`, `校验通过`, `State Card`, or `Prompt item`.
 
-For formal standard diary blind evaluation, run the checker in strict mode before final output, but keep the loop bounded. If strict mode reports a blocking issue, rewrite from the scene slate or reduce prompt-surface coverage.
+For formal standard diary blind evaluation, run the checker in strict mode before final output, but keep the loop bounded. Strict mode is corpus-calibrated: original corpus files should not fail with hard errors. If strict mode reports a blocking issue, rewrite from the scene slate or reduce prompt-surface coverage.
 
 This applies even when the user asked only for the article. Use a temporary/local draft file for the check, keep the report internal, and output only the title and article body after the bounded gate.
 
-Blocking issues are process leakage, missing title, copied source phrasing, diagnostic title, high-signal opening, body under roughly 650 Chinese characters in standard diary mode, learned ending buttons, single-theme density, sealed-night/story enclosure, and obvious prompt-shape leakage. Soft issues such as connector coverage, comma ratio, breathing-point warnings, or rhythm hints are review prompts.
+Blocking issues are process leakage, missing title, copied source phrasing, high-signal opening, learned ending buttons, sealed-night/story enclosure, pure ambient endings, repeated material hooks, and obvious prompt-shape leakage. Diagnostic title, body length, single-theme density, quiet explanation, weak paragraph engine, missing coarse self-damage, connector coverage, comma ratio, breathing-point warnings, and rhythm hints are review prompts unless the current test protocol explicitly requires full-article length.
 
 Use at most one checker-driven repair loop. If the second draft still carries only soft style warnings, output the cleanest pure article rather than process notes; the external controller will validate it.
 
@@ -178,6 +178,10 @@ Use concrete behavior instead of emotional labels. Use actions, numbers, bad sle
 - Before final output, inspect the first five content lines, the title, and the last three content lines together. If a judge could reconstruct the user's prompt from those surfaces, displace one of them.
 - If the last line is `哦`, `算了`, `睡了`, `关屏`, a dark-screen action, or a lone sound effect, keep it only when the preceding scene forces that exact consequence. Otherwise end on a less iconic unfinished action, reply, route, object, payment, or bodily interruption.
 - If the ending is a poised refusal such as "I did not open it", check whether it behaves like a literary closing image. If yes, break it with a lower consequence: stomach, toilet, bad food, route, payment, a second notification, or a stupid practical problem.
+- Do not let a standard diary become clean observational minimalism. It needs at least one coarse social/body/self-humiliation turn that would feel a little ugly to quote, not only medicine, appliances, and quiet objects.
+- Do not end on pure ambient sound unless the sound is actively doing social or bodily damage. `空调外机嗡嗡嗡。`, fan noise, rain noise, light hum, or screen buzz as the final line is a high-risk literary button when it merely fades out.
+- Do not repeat the same material hook almost verbatim. If medicine, a charger, a temperature, or an app badge returns, the second return must change the social/body consequence rather than echo the first sentence.
+- Do not compress standard diary into evenly spaced prose paragraphs. Keep some broken line rhythm, comma-ended run-ons, blunt single-line drops, and one messy dialogue/action chain.
 
 ## Source Of Truth
 

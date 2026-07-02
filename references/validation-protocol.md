@@ -50,6 +50,8 @@ python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Des
 python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 ```
 
+`--strict` is a corpus-calibrated blocking gate. It should fail generated drafts only for deterministic contamination or high-risk structural buttons that do not hard-fail original corpus files. Other blind-review risks remain warnings and must be interpreted with placebo/original calibration.
+
 `run_blind_test.py` prepares anonymous rounds and prints the judge prompts. If no LLM automation key is configured, the controller manually gives each prompt to an isolated judge and records verdicts.
 
 ### Portable Mode
@@ -104,7 +106,9 @@ Each round creates a clean directory containing only:
 Judge rules:
 
 - The judge may read only `sample-*.txt`.
-- The judge must not read `mapping.json`, the original corpus, or skill files.
+- The judge prompt must be source-neutral: use `MOST_SOURCE_LIKE` / `LEAST_SOURCE_LIKE`, not author-name field labels that may trigger a style skill.
+- The judge must not read `mapping.json`, the original corpus, skill files, controller notes, previous verdicts, or web results.
+- The judge must not invoke or rely on any style skill, author-specific skill, corpus memory, previous analysis, or source-name prior knowledge. For opencode judge automation, run `opencode run --pure --dir <judge-round-dir> <prompt>` from a directory containing only `prompt.txt` and `sample-*.txt`.
 - Titles are retained and normalized for all samples; metadata is removed.
 - Generated drafts must include the title as article text on the first line. The preparation script normalizes `# 标题`, plain first-line titles, and simple emphasis wrappers to the same `# 标题` form so title formatting does not become a leakage cue.
 - Impostor rounds are length-matched by complete article length.
@@ -157,8 +161,8 @@ DETAILED_REASONS:
 1. ...
 2. ...
 3. ...
-MOST_ANLIN_LIKE:
-LEAST_ANLIN_LIKE:
+MOST_SOURCE_LIKE:
+LEAST_SOURCE_LIKE:
 AI_OR_IMITATOR_RISK:
 PLACEBO_CHECK:
 SOURCE_COHESION_CHECK:
@@ -186,7 +190,7 @@ Recommended wording:
 Under 8 impostor rounds and 2 placebo rounds, judges produced raw accusations in 2/8 impostor rounds, stable accusations in 1/8 impostor rounds under confidence >=75 and 3-family threshold, and falsely accused originals in 0/2 placebo rounds. This supports revision status X under these conditions only.
 ```
 
-If a judge sees `mapping.json`, original corpus filenames, skill files, or previous analysis, mark the round contaminated and exclude it.
+If a judge sees `mapping.json`, original corpus filenames, skill files, previous analysis, or invokes any style/author skill, mark the round contaminated and exclude it.
 
 ## Revision Priority
 

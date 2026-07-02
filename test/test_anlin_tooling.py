@@ -26,18 +26,19 @@ class AnlinToolingTests(unittest.TestCase):
 
         failures: list[str] = []
         for path in originals:
-            result = subprocess.run(
-                [sys.executable, str(CHECKER), str(path), "--json"],
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                check=False,
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
-            findings = json.loads(result.stdout)
-            errors = [item for item in findings if item["severity"] == "error"]
-            if errors:
-                failures.append(f"{path.name}: {errors}")
+            for mode in (["--json"], ["--json", "--strict"]):
+                result = subprocess.run(
+                    [sys.executable, str(CHECKER), str(path), *mode],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                findings = json.loads(result.stdout)
+                errors = [item for item in findings if item["severity"] == "error"]
+                if errors:
+                    failures.append(f"{path.name} {' '.join(mode)}: {errors}")
         self.assertEqual(failures, [])
 
     def test_checker_flags_prompt_shape_risks_without_hard_failure(self) -> None:
@@ -164,6 +165,62 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any("短行诗化表面" in item["rule"] for item in findings))
             self.assertFalse(any(item["rule"] == "strict: 短行诗化表面" for item in findings))
 
+    def test_checker_flags_clean_observation_and_ambient_ending(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "充电器的口松了，桌角有个拉环，抠了半天没抠出来。",
+                "室友还没回来，桌上那份邮件开头写着恭喜。",
+                "点开招聘刷了刷，角标99+，每条都显示已送达。",
+                "微信群在刷，有人发名单，有人回收到。",
+                "下楼买了份卤肉饭，微波炉转一分半，米饭还是硬。",
+                "胃有点疼，吃了一片奥美拉唑，还剩最后一片，明天记得买。",
+                "厕所灯坏了两天，第三次用扫把柄戳的，亮了。",
+                "空调师傅说不加氟也行，就是启动慢一点。",
+                "打开备忘录，某厂一面挂，某厂笔试挂，某厂没下文。",
+                "室友问要不要内推，我说到时候看看吧。",
+                "他打开空调调到24，我看了一眼，把我的调到26。",
+                "胃还是有点疼，奥美拉唑还剩最后一片，明天记得下楼买。",
+                "手机放枕头边，屏幕朝下。",
+                "我把校招群免打扰，又点开，像欠了它两百块。",
+                "桌上的塑料袋被风吹起来，我以为是室友回来了，抬头看了一眼，没有人。",
+                "我把杯子拿去洗，水龙头先咳了一下，喷到裤子上。",
+                "群里有人问体检报告要不要彩印，下面三个人回了不用。",
+                "我把那条消息看完，回到招聘页面，发现刚才投的岗位已经变灰。",
+                "老板直聘的头像排成一列，每个都像刚从会议室里出来。",
+                "我又看了一眼邮件，恭喜两个字还是很亮，亮得像不是写给人的。",
+                "室友回来时带了一袋水果，问我吃不吃，我说不吃，过了十分钟拿了一个最小的。",
+                "苹果有点酸，我咬了一口，牙齿被冻了一下。",
+                "我想起下午面试官问职业规划，我说希望在平台里成长。",
+                "说完自己也听见了，像把别人简历上的字偷出来贴在嘴上。",
+                "洗完澡出来，镜子起雾，我用手背擦了一条，脸在里面分成两半。",
+                "一半像刚睡醒，一半像刚从会议纪要里逃出来。",
+                "我把那条内推消息又看了一遍，输入框里打了谢谢，删掉，又打麻烦你了。",
+                "最后只发了一个表情，那个表情看起来比我本人有礼貌。",
+                "室友在阳台打电话，说下个月要先住公司附近，通勤别超过四十分钟。",
+                "我在屋里查从这里到那个园区要多久，地图给我三条路线，每条都像绕开我。",
+                "窗台上有一只死掉的小飞虫，我吹了一下，它没动。",
+                "我忽然想起来下午还有一份测评没做，链接过期了。",
+                "空调外机嗡嗡嗡。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertTrue(any("粗粝自毁信号不足" in rule for rule in rules))
+            self.assertTrue(any("纯环境音结尾" in rule for rule in rules))
+            self.assertTrue(any("材料钩子重复过直" in rule for rule in rules))
+
     def test_checker_strict_promotes_blind_eval_risks(self) -> None:
         body = "\n".join(
             [
@@ -280,7 +337,9 @@ class AnlinToolingTests(unittest.TestCase):
             prompt = (output_dir / "prompt.txt").read_text(encoding="utf-8")
             self.assertIn("NONE", prompt)
             self.assertIn("DETAILED_REASONS", prompt)
-            self.assertIn("MOST_ANLIN_LIKE", prompt)
+            self.assertIn("MOST_SOURCE_LIKE", prompt)
+            self.assertNotIn("MOST_ANLIN_LIKE", prompt)
+            self.assertIn("Do not use style skills", prompt)
             self.assertIn("SOURCE_COHESION_CHECK", prompt)
             self.assertIn("title", prompt.lower())
             self.assertFalse((output_dir / "portable-corpus.md").exists())
