@@ -35,6 +35,8 @@ For ordinary article generation, use the minimal generation pack:
 
 Do not read `anlin-reference-library.md`, `writing-checklist.md`, `self-check.md`, `review-rubric.md`, or `blind-judge-angles.md` before the first draft. Those are critique/reference materials and can cause the agent to stall or overfit. Use them only after the first checker pass fails or when the user explicitly asks for analysis/validation.
 
+Do not list the skill directory recursively during ordinary generation. The paths above are known. Do not read `references/corpus-cards/` before the first draft in clean generation; corpus cards are for failed-draft repair or explicit validation.
+
 Then load only the branch-specific files as needed:
 
 | Need | Load |
@@ -92,6 +94,8 @@ Read 3-5 short anchors, not the whole archive:
 - 1 contrasting sample to avoid monotone
 
 If `references/corpus-cards/` exists, prefer cards first; open full originals only when a card points to a needed passage.
+
+For formal clean generation, skip this step before the first draft. Draft from the minimal generation pack, run the checker, then read at most 1-2 cards only if repair is needed. The goal is to avoid long reference browsing and prompt-overfitting.
 
 ### 4. Generate Candidate Scenes
 
