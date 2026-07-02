@@ -268,6 +268,7 @@ STRICT_ERROR_RULE_PREFIXES = (
     "封闭夜晚短篇结构",
     "纯环境音结尾",
     "材料钩子重复过直",
+    "散文块压缩",
 )
 STRICT_ERROR_RULE_NAMES: set[str] = set()
 
@@ -693,6 +694,36 @@ def check_period_comma_ratio(findings: list[Finding], lines: list[str]) -> None:
         )
 
 
+def check_prose_block_compression(findings: list[Finding], lines: list[str], text: str) -> None:
+    style = detect_style(text)
+    if style != "standard":
+        return
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    lengths = [chinese_len(line) for line in visible_lines if chinese_len(line)]
+    body_chars = chinese_len("\n".join(visible_lines))
+    if body_chars < 550 or not lengths:
+        return
+    avg_len = sum(lengths) / len(lengths)
+    sorted_lengths = sorted(lengths)
+    mid = len(sorted_lengths) // 2
+    if len(sorted_lengths) % 2:
+        median_len = sorted_lengths[mid]
+    else:
+        median_len = (sorted_lengths[mid - 1] + sorted_lengths[mid]) / 2
+    long_lines = sum(1 for length in lengths if length >= 80)
+    if len(visible_lines) < 20 or avg_len >= 40 or median_len >= 35 or long_lines >= 3:
+        findings.append(
+            Finding(
+                "warning",
+                "散文块压缩",
+                0,
+                f"body_chars={body_chars}, content_lines={len(visible_lines)}, avg_line_chars={avg_len:.2f}, median_line_chars={median_len:.2f}, lines_ge80={long_lines}",
+                "完整标准日寄不能压成少数大散文段；拆成更接近原文的短行/碎段，让动作、对话、误读和低处后果逐行推进。",
+            )
+        )
+
+
 def check_short_line_poem_surface(findings: list[Finding], lines: list[str], text: str) -> None:
     style = detect_style(text)
     if style != "standard" or chinese_len(text) < 450:
@@ -874,6 +905,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_engine_signal_density(findings, text)
     check_sealed_nocturne(findings, text)
     check_period_comma_ratio(findings, lines)
+    check_prose_block_compression(findings, lines, text)
     check_short_line_poem_surface(findings, lines, text)
     check_scene_count(findings, lines, text)
     check_breathing_point(findings, lines, text)

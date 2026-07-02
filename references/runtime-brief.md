@@ -181,7 +181,7 @@ Use concrete behavior instead of emotional labels. Use actions, numbers, bad sle
 - Do not let a standard diary become clean observational minimalism. It needs at least one coarse social/body/self-humiliation turn that would feel a little ugly to quote, not only medicine, appliances, and quiet objects.
 - Do not end on pure ambient sound unless the sound is actively doing social or bodily damage. `空调外机嗡嗡嗡。`, fan noise, rain noise, light hum, or screen buzz as the final line is a high-risk literary button when it merely fades out.
 - Do not repeat the same material hook almost verbatim. If medicine, a charger, a temperature, or an app badge returns, the second return must change the social/body consequence rather than echo the first sentence.
-- Do not compress standard diary into evenly spaced prose paragraphs. Keep some broken line rhythm, comma-ended run-ons, blunt single-line drops, and one messy dialogue/action chain.
+- Do not compress standard diary into evenly spaced prose paragraphs. In corpus-calibrated full articles, 550+ Chinese characters usually need many short content lines rather than 8-12 large blocks. Keep broken line rhythm, blunt single-line drops, and one messy dialogue/action chain.
 
 ## Source Of Truth
 

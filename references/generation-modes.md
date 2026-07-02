@@ -263,7 +263,7 @@ Use this map when a blind judge identifies a draft.
 | clean observational minimalism | add one ugly self-own or body/social embarrassment; remove one tasteful object scene |
 | pure ambient sound ending | make the sound cause a concrete interruption, or end on the interruption rather than the sound |
 | repeated material hook | keep one occurrence; make the return change consequence, not wording |
-| evenly spaced prose paragraphs | break into rougher line rhythm, comma-ended run-ons, blunt drops, and one messy dialogue/action chain |
+| evenly spaced prose paragraphs | split large prose blocks into short corpus-like lines; let actions, replies, bad logic, and body consequences move one line at a time |
 | test prompt over-compliance | remove one visible required item, weaken the title, and add one scene that could survive without the prompt |
 | single-theme density remains | delete a high-signal prompt surface before adding anything; keep only two visible pressure items |
 | judge could also accuse originals | preserve the rough cue but reduce polish around it; do not optimize toward a detector that fails placebo |
