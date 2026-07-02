@@ -120,6 +120,7 @@ After drafting, switch to review mode:
 1. Run `scripts/check_anlin_violations.py <draft>`.
    - For formal standard-diary blind-evaluation drafts, run `scripts/check_anlin_violations.py <draft> --strict`; strict errors must be rewritten, not waived.
    - Even if the user only asked for prose, write the draft to a temporary/local file, run the checker, then output prose only after the checker pass. Do not print checker output unless the user asked for validation notes.
+   - If temporary-file creation, overwrite, or checker execution fails for tooling reasons, do not stop with process notes. Apply the strict checklist manually, rewrite once, and output the article only; the controller can run the checker externally.
 2. If the full corpus is available, run `scripts/compare_anlin_corpus.py <draft> --corpus-dir <corpus>`.
 3. Read `review-rubric.md` and inspect the draft against the appropriate genre gates.
 4. Use `writing-checklist.md` and `self-check.md` as critic material only. Do not retrofit every high-frequency label into the draft.

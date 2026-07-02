@@ -59,6 +59,8 @@ For formal standard diary blind evaluation, run the checker in strict mode befor
 
 This applies even when the user asked only for the article. Use a temporary/local draft file for the check, keep the report internal, and output only the title and article body after the strict gate passes.
 
+If the file/checker tool flow itself fails, do not end the response with logs or process text. Manually apply the strict gate, rewrite once, and output the article only. The external controller will validate afterward.
+
 ## Prompt Material Handling
 
 Before drafting, split the user's prompt nouns into four buckets:
