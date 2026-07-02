@@ -24,7 +24,18 @@ Always start with these two files:
 1. `references/runtime-brief.md`
 2. `references/feature-budget.md`
 
-Then load only the branch-specific files:
+For ordinary article generation, use the minimal generation pack:
+
+1. `references/runtime-brief.md`
+2. `references/feature-budget.md`
+3. `references/era-state.md` only if date/phase matters
+4. `references/generation-modes.md`
+5. `references/structure-patterns.md`
+6. `references/vocabulary-rules.md` only for review or uncertain wording
+
+Do not read `anlin-reference-library.md`, `writing-checklist.md`, `self-check.md`, `review-rubric.md`, or `blind-judge-angles.md` before the first draft. Those are critique/reference materials and can cause the agent to stall or overfit. Use them only after the first checker pass fails or when the user explicitly asks for analysis/validation.
+
+Then load only the branch-specific files as needed:
 
 | Need | Load |
 |---|---|
@@ -130,6 +141,7 @@ Required wording:
 ## Output Rules
 
 - If the user asks for prose, output prose only unless they asked for process notes. The first visible line must be the article title, usually `日寄` or `# 日寄`; never print `State Card`, prompt buckets, scene slate, validation notes, Jaccard scores, checker summaries, or `草拟`.
+- Do not narrate reference loading, file checks, or internal decisions to the user. Tool use and validation stay internal unless validation reporting was requested.
 - Do not include methodology labels inside the prose.
 - If the user asks for validation, report commands, conditions, sample size, and results.
 - If the corpus or background cannot be accessed, state the limitation in the validation report, not inside the prose.
