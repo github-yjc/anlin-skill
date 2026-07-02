@@ -138,8 +138,31 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings]
             self.assertTrue(any("单主题词密度偏高" in rule for rule in rules))
+            self.assertTrue(any("题面链条过于完整" in rule for rule in rules))
             self.assertTrue(any("文艺悬停式结尾" in rule for rule in rules))
             self.assertTrue(all(item["severity"] != "error" for item in findings))
+
+    def test_checker_flags_short_line_poem_surface_without_strict_failure(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                *("我坐着。", "灯亮了。", "风很小。", "饭冷了。", "群响了。", "我没动。") * 30,
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertTrue(any("短行诗化表面" in item["rule"] for item in findings))
+            self.assertFalse(any(item["rule"] == "strict: 短行诗化表面" for item in findings))
 
     def test_checker_strict_promotes_blind_eval_risks(self) -> None:
         body = "\n".join(

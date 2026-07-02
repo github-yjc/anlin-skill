@@ -122,15 +122,17 @@ For blind-evaluation drafts, always produce a complete article with a title. Put
 After drafting, switch to review mode:
 
 1. Run `scripts/check_anlin_violations.py <draft>`.
-   - For formal standard-diary blind-evaluation drafts, run `scripts/check_anlin_violations.py <draft> --strict`; strict errors must be rewritten, not waived.
-   - Even if the user only asked for prose, write the draft to a temporary/local file, run the checker, then output prose only after the checker pass. Do not print checker output unless the user asked for validation notes.
+   - For formal standard-diary blind-evaluation drafts, run `scripts/check_anlin_violations.py <draft> --strict` as a bounded gate.
+   - Even if the user only asked for prose, write the draft to a temporary/local file, run the checker, then output prose only after the bounded gate. Do not print checker output unless the user asked for validation notes.
+   - Fix hard errors, process leakage, missing title, copied source phrasing, diagnostic title, high-signal opening, underbuilt length, learned ending buttons, single-theme density, sealed-night/story enclosure, and prompt-shape leakage before output.
+   - Use at most one checker-driven repair loop inside the generation agent. If the second local draft still has soft rhythm warnings, connector warnings, comma-ratio warnings, breathing-point warnings, or other non-provenance style warnings, output the clean best article only. The external controller will validate it.
    - If temporary-file creation, overwrite, or checker execution fails for tooling reasons, do not stop with process notes. Apply the strict checklist manually, rewrite once, and output the article only; the controller can run the checker externally.
 2. If the full corpus is available, run `scripts/compare_anlin_corpus.py <draft> --corpus-dir <corpus>`.
 3. Read `review-rubric.md` and inspect the draft against the appropriate genre gates.
 4. Use `writing-checklist.md` and `self-check.md` as critic material only. Do not retrofit every high-frequency label into the draft.
 5. Run anti-pastiche checks if any source phrasing may have leaked.
 
-Warnings are review prompts, not automatic failure. Errors and hard identity/date mistakes must be fixed. Do at most one targeted revision pass for ordinary warnings, but for formal standard-diary blind evaluation always prioritize prompt-shape leakage, single-theme density, sealed-night/story enclosure, quiet explanation, weak paragraph engine, missing title, copied source phrasing, diagnostic title, underbuilt length, and learned ending buttons. If one of these high-risk warnings remains after patching, rewrite from the scene slate instead of polishing the same draft. Do not loop until every ordinary warning disappears; some warnings are acceptable rhythm signals.
+Warnings are review prompts, not automatic failure. Errors and hard identity/date mistakes must be fixed. Do at most one targeted revision pass for ordinary warnings. For formal standard-diary blind evaluation, prioritize prompt-shape leakage, single-theme density, sealed-night/story enclosure, quiet explanation, weak paragraph engine, missing title, copied source phrasing, diagnostic title, underbuilt length, and learned ending buttons. If one of these high-risk warnings remains after the first patch, rewrite once from the scene slate instead of polishing the same draft. After that rewrite, deliver the cleanest pure article rather than logs or analysis; do not loop until every ordinary warning disappears.
 
 ### 7. Validate Blind-Evaluation Claims
 

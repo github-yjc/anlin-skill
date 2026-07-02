@@ -55,9 +55,13 @@ The state card is not part of the final prose.
 
 If the user asked for an article, the final answer must contain only the article title and body. Do not print the state card, prompt buckets, scene slate, validation summary, checker output, overlap score, or any line such as `草拟`, `校验通过`, `State Card`, or `Prompt item`.
 
-For formal standard diary blind evaluation, run the checker in strict mode before final output. If strict mode reports an error, rewrite from the scene slate or reduce prompt-surface coverage; do not publish the failing draft as final prose.
+For formal standard diary blind evaluation, run the checker in strict mode before final output, but keep the loop bounded. If strict mode reports a blocking issue, rewrite from the scene slate or reduce prompt-surface coverage.
 
-This applies even when the user asked only for the article. Use a temporary/local draft file for the check, keep the report internal, and output only the title and article body after the strict gate passes.
+This applies even when the user asked only for the article. Use a temporary/local draft file for the check, keep the report internal, and output only the title and article body after the bounded gate.
+
+Blocking issues are process leakage, missing title, copied source phrasing, diagnostic title, high-signal opening, body under roughly 650 Chinese characters in standard diary mode, learned ending buttons, single-theme density, sealed-night/story enclosure, and obvious prompt-shape leakage. Soft issues such as connector coverage, comma ratio, breathing-point warnings, or rhythm hints are review prompts.
+
+Use at most one checker-driven repair loop. If the second draft still carries only soft style warnings, output the cleanest pure article rather than process notes; the external controller will validate it.
 
 If the file/checker tool flow itself fails, do not end the response with logs or process text. Manually apply the strict gate, rewrite once, and output the article only. The external controller will validate afterward.
 

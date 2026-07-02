@@ -219,6 +219,15 @@ ENGINE_SIGNAL_TERMS = [
 ]
 SEALED_NIGHT_TERMS = ["失眠", "床", "枕", "闹钟", "睡", "手机", "通知", "群", "Boss", "直聘"]
 CLOSED_LOOP_TAIL_TERMS = ["到现在也没", "明天再", "还没请", "还没还", "又点开"]
+PROMPT_CHAIN_TERMS = sorted(
+    {
+        term
+        for terms in THEME_DOMAINS.values()
+        for term in terms
+    },
+    key=len,
+    reverse=True,
+)
 STRICT_ERROR_RULE_PREFIXES = (
     "可能的评论链",
     "题面诊断型标题",
@@ -230,10 +239,8 @@ STRICT_ERROR_RULE_PREFIXES = (
     "安静解释句",
     "段落发动机信号偏弱",
     "封闭夜晚短篇结构",
-    "高频词覆盖不足",
-    "呼吸点缺失",
 )
-STRICT_ERROR_RULE_NAMES = {"行末逗号比例"}
+STRICT_ERROR_RULE_NAMES: set[str] = set()
 
 
 def clean_excerpt(line: str) -> str:
@@ -484,6 +491,27 @@ def check_theme_density(findings: list[Finding], text: str) -> None:
             )
 
 
+def check_prompt_chain_surface(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [line for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if not visible_lines:
+        return
+    opening = "\n".join(visible_lines[:6])
+    tail = "\n".join(visible_lines[-4:])
+    surface = "\n".join([title, opening, tail])
+    matched = [term for term in PROMPT_CHAIN_TERMS if term.lower() in surface.lower()]
+    if len(matched) >= 5:
+        findings.append(
+            Finding(
+                "warning",
+                "题面链条过于完整",
+                0,
+                f"title/opening/tail_terms={matched[:10]}",
+                "标题、开头和结尾暴露太多题面名词；删除或后移至少两个高信号元素，让文章先像一天，再像回答题目。",
+            )
+        )
+
+
 def check_tasteful_withholding_ending(findings: list[Finding], lines: list[str]) -> None:
     _, content_lines = split_title_and_content_lines(lines)
     visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
@@ -579,6 +607,32 @@ def check_period_comma_ratio(findings: list[Finding], lines: list[str]) -> None:
                 0,
                 f"first_{len(sample)}_lines_ratio={ratio:.2f}",
                 "参考区间约60-75%；偏离时人工检查节奏。",
+            )
+        )
+
+
+def check_short_line_poem_surface(findings: list[Finding], lines: list[str], text: str) -> None:
+    style = detect_style(text)
+    if style != "standard" or chinese_len(text) < 450:
+        return
+    content_lines = [
+        line.strip()
+        for line in split_title_and_content_lines(lines)[1]
+        if line.strip() and not line.startswith("<!--")
+    ]
+    if len(content_lines) < 12:
+        return
+    lengths = [chinese_len(line) for line in content_lines]
+    short_ratio = sum(1 for length in lengths if length <= 12) / len(lengths)
+    long_count = sum(1 for length in lengths if length >= 28)
+    if short_ratio >= 0.70 and long_count <= 1:
+        findings.append(
+            Finding(
+                "warning",
+                "短行诗化表面",
+                0,
+                f"short_line_ratio={short_ratio:.2f}, long_lines={long_count}",
+                "标准日寄不应全是漂亮短行；合并若干行，加入更粗糙的长口语句、对话或行动链。",
             )
         )
 
@@ -729,11 +783,13 @@ def collect_findings(text: str) -> list[Finding]:
     check_standard_diary_length(findings, lines, text)
     check_learned_ending_button(findings, lines)
     check_theme_density(findings, text)
+    check_prompt_chain_surface(findings, lines, text)
     check_tasteful_withholding_ending(findings, lines)
     check_quiet_explanation(findings, lines)
     check_engine_signal_density(findings, text)
     check_sealed_nocturne(findings, text)
     check_period_comma_ratio(findings, lines)
+    check_short_line_poem_surface(findings, lines, text)
     check_scene_count(findings, lines, text)
     check_breathing_point(findings, lines, text)
     check_metadata_comment(findings, text)

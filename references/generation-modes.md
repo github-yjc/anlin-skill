@@ -165,6 +165,20 @@ Opening preflight:
 
 In formal evaluation, assume the generator sees only the user prompt and this skill. Do not rely on extra controller hints, prior judge failures, or hidden explanations. If a draft only works because the evaluation prompt told it "use montage", "do not summarize", or "add unrelated scenes", the skill has not actually learned that behavior; revise the skill, not the test prompt.
 
+## Bounded Delivery
+
+The generation agent must deliver a finished article, not a validation transcript.
+
+For formal standard diary evaluation:
+
+- write the first complete article with title
+- run the local checker
+- perform one targeted repair or one full rewrite from the scene slate
+- run the checker again if the tool is available
+- output only the best pure article
+
+Do not keep repairing connector coverage, comma ratio, breathing-point hints, or line-rhythm warnings until the answer disappears. Those are controller diagnostics, not permission to stall. If a blocking issue remains after one rewrite, still output the cleanest pure article and let the external validation fail it; a visible process log is worse than a weak article for clean generation.
+
 ## Title Selection
 
 Choose the title after the body has a lived shape.
