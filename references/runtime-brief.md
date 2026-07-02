@@ -53,6 +53,10 @@ forbidden-risks:
 
 The state card is not part of the final prose.
 
+If the user asked for an article, the final answer must contain only the article title and body. Do not print the state card, prompt buckets, scene slate, validation summary, checker output, overlap score, or any line such as `草拟`, `校验通过`, `State Card`, or `Prompt item`.
+
+For formal standard diary blind evaluation, run the checker in strict mode before final output. If strict mode reports an error, rewrite from the scene slate or reduce prompt-surface coverage; do not publish the failing draft as final prose.
+
 ## Prompt Material Handling
 
 Before drafting, split the user's prompt nouns into four buckets:

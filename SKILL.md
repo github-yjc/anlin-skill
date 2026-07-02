@@ -107,6 +107,7 @@ For blind-evaluation drafts, always produce a complete article with a title. Put
 After drafting, switch to review mode:
 
 1. Run `scripts/check_anlin_violations.py <draft>`.
+   - For formal standard-diary blind-evaluation drafts, run `scripts/check_anlin_violations.py <draft> --strict`; strict errors must be rewritten, not waived.
 2. If the full corpus is available, run `scripts/compare_anlin_corpus.py <draft> --corpus-dir <corpus>`.
 3. Read `review-rubric.md` and inspect the draft against the appropriate genre gates.
 4. Use `writing-checklist.md` and `self-check.md` as critic material only. Do not retrofit every high-frequency label into the draft.
@@ -127,7 +128,7 @@ Required wording:
 
 ## Output Rules
 
-- If the user asks for prose, output prose only unless they asked for process notes.
+- If the user asks for prose, output prose only unless they asked for process notes. The first visible line must be the article title, usually `日寄` or `# 日寄`; never print `State Card`, prompt buckets, scene slate, validation notes, Jaccard scores, checker summaries, or `草拟`.
 - Do not include methodology labels inside the prose.
 - If the user asks for validation, report commands, conditions, sample size, and results.
 - If the corpus or background cannot be accessed, state the limitation in the validation report, not inside the prose.
@@ -137,6 +138,7 @@ Required wording:
 
 ```powershell
 python scripts/check_anlin_violations.py draft.md
+python scripts/check_anlin_violations.py draft.md --strict
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
 python scripts/prepare_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --min-fragment-chars 550 --seed 1
 python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2

@@ -78,6 +78,37 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any("行末逗号比例" in rule for rule in rules))
             self.assertTrue(all(severity != "error" for severity in severities.values()))
 
+    def test_checker_rejects_process_leakage(self) -> None:
+        body = "\n".join(
+            [
+                "# 草拟",
+                "",
+                "**State Card（内部）：**",
+                "- driver：春招失败",
+                "",
+                "日寄",
+                "",
+                "今天没什么事。",
+                "",
+                "---",
+                "校验通过：Jaccard 0.01。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            errors = [item for item in findings if item["severity"] == "error"]
+            self.assertTrue(any("过程说明泄漏" in item["rule"] for item in errors))
+
     def test_checker_flags_theme_density_and_tasteful_withholding(self) -> None:
         body = "\n".join(
             [
@@ -109,6 +140,32 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any("单主题词密度偏高" in rule for rule in rules))
             self.assertTrue(any("文艺悬停式结尾" in rule for rule in rules))
             self.assertTrue(all(item["severity"] != "error" for item in findings))
+
+    def test_checker_strict_promotes_blind_eval_risks(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "群里有人说入职体检要空腹。",
+                "offer 和招聘岗位都在刷屏。",
+                "简历、hr、boss直聘、公积金、租房补贴也都在。",
+                "屏幕暗了。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            errors = [item for item in findings if item["severity"] == "error"]
+            self.assertTrue(any(item["rule"].startswith("strict:") for item in errors))
 
     def test_checker_flags_quiet_explanation_and_weak_engine(self) -> None:
         body = "\n".join(

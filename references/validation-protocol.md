@@ -45,6 +45,7 @@ Run:
 
 ```powershell
 python scripts/check_anlin_violations.py draft.md
+python scripts/check_anlin_violations.py draft.md --strict
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
 python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 ```

@@ -96,6 +96,27 @@ DRIFT_MESSAGES = {
     "睡吧": ("warning", "imperative goodnight closure — prefer 睡了/去睡了/不写了"),
     "招聘软件": ("info", "abstract noun — prefer 点开招聘/刷了刷招聘"),
 }
+PROCESS_LEAK_TERMS = [
+    "State Card",
+    "Prompt item",
+    "prompt item",
+    "分桶",
+    "visible pressure",
+    "driver：",
+    "pressure #",
+    "preflight",
+    "首段 preflight",
+    "校验通过",
+    "Jaccard",
+    "jaccard",
+    "与 38 篇",
+    "内部）：",
+]
+PROCESS_LEAK_LINE_PATTERNS = [
+    r"^#\s*草拟\s*$",
+    r"^草拟\s*$",
+    r"^\*\*State Card",
+]
 TOPIC_DIAGNOSTIC_TITLE_TERMS = [
     "春招",
     "求职",
@@ -198,6 +219,20 @@ ENGINE_SIGNAL_TERMS = [
 ]
 SEALED_NIGHT_TERMS = ["失眠", "床", "枕", "闹钟", "睡", "手机", "通知", "群", "Boss", "直聘"]
 CLOSED_LOOP_TAIL_TERMS = ["到现在也没", "明天再", "还没请", "还没还", "又点开"]
+STRICT_ERROR_RULE_PREFIXES = (
+    "可能的评论链",
+    "题面诊断型标题",
+    "题面高信号开头",
+    "标准日寄完整文章篇幅偏短",
+    "习得式结尾按钮",
+    "单主题词密度偏高",
+    "文艺悬停式结尾",
+    "安静解释句",
+    "段落发动机信号偏弱",
+    "封闭夜晚短篇结构",
+    "呼吸点缺失",
+)
+STRICT_ERROR_RULE_NAMES = {"行末逗号比例"}
 
 
 def clean_excerpt(line: str) -> str:
@@ -262,6 +297,35 @@ def add_drift_term_findings(findings: list[Finding], lines: list[str]) -> None:
         for term, (severity, suggestion) in DRIFT_MESSAGES.items():
             if term in line:
                 findings.append(Finding(severity, f"词汇域漂移: {term}", line_number, clean_excerpt(line), suggestion))
+
+
+def check_process_leakage(findings: list[Finding], lines: list[str]) -> None:
+    for line_number, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        for pattern in PROCESS_LEAK_LINE_PATTERNS:
+            if re.search(pattern, stripped):
+                findings.append(
+                    Finding(
+                        "error",
+                        "过程说明泄漏",
+                        line_number,
+                        clean_excerpt(line),
+                        "用户要文章时最终输出只能包含标题和正文；删除草稿标记、分隔线、状态卡、校验说明和控制器说明。",
+                    )
+                )
+                break
+        for term in PROCESS_LEAK_TERMS:
+            if term in line:
+                findings.append(
+                    Finding(
+                        "error",
+                        f"过程说明泄漏: {term}",
+                        line_number,
+                        clean_excerpt(line),
+                        "用户要文章时最终输出只能包含标题和正文；内部状态卡、prompt分桶、校验结果和语料对比必须留在过程或报告中。",
+                    )
+                )
+                break
 
 
 def check_not_x_is_y(findings: list[Finding], lines: list[str]) -> None:
@@ -643,6 +707,7 @@ def check_news_name_drop(findings: list[Finding], lines: list[str]) -> None:
 def collect_findings(text: str) -> list[Finding]:
     lines = text.splitlines()
     findings: list[Finding] = []
+    check_process_leakage(findings, lines)
     add_term_findings(findings, lines, COMMENT_CHAIN_TERMS, "warning", "可能的评论链", "Anlin 在线内容入口是'我看到了什么，我什么反应'。检查上下文：如果这是评论链格式（热评→回复→又有人说）→删除。如果是一般观察或转述（'有人说当年我差点就买了'）→可能可接受，但需人工确认。")
     add_term_findings(findings, lines, FORBIDDEN_TERMS, "warning", "禁用/高风险词", "替换为 Anlin 词汇域内的具体动作或感官描述。")
     add_term_findings(findings, lines, LOW_FREQUENCY_TERMS, "info", "低频词", "优先替换为不过/所以/可能/好像/觉得/发现。")
@@ -674,6 +739,31 @@ def collect_findings(text: str) -> list[Finding]:
     return findings
 
 
+def apply_strict_mode(findings: list[Finding]) -> list[Finding]:
+    strict_findings: list[Finding] = []
+    for finding in findings:
+        should_promote = (
+            finding.severity == "warning"
+            and (
+                finding.rule in STRICT_ERROR_RULE_NAMES
+                or any(finding.rule.startswith(prefix) for prefix in STRICT_ERROR_RULE_PREFIXES)
+            )
+        )
+        if should_promote:
+            strict_findings.append(
+                Finding(
+                    "error",
+                    f"strict: {finding.rule}",
+                    finding.line,
+                    finding.excerpt,
+                    finding.suggestion,
+                )
+            )
+        else:
+            strict_findings.append(finding)
+    return strict_findings
+
+
 def format_text(findings: list[Finding]) -> str:
     if not findings:
         return "No deterministic violations found. Manual voice review is still required."
@@ -688,12 +778,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Check deterministic Anlin-style hard-rule violations.")
     parser.add_argument("file", type=Path, help="Draft markdown/text file to inspect")
     parser.add_argument("--json", action="store_true", help="Output JSON findings")
-    parser.add_argument("--strict", action="store_true", help="Reserved for stricter collection; exit code still fails only on errors")
+    parser.add_argument("--strict", action="store_true", help="Promote blind-evaluation high-risk warnings to errors")
     parser.add_argument("--fail-on-warning", action="store_true", help="Return nonzero for warnings as well as errors")
     args = parser.parse_args()
 
     text = args.file.read_text(encoding="utf-8")
     findings = collect_findings(text)
+    if args.strict:
+        findings = apply_strict_mode(findings)
     if args.json:
         print(json.dumps([asdict(finding) for finding in findings], ensure_ascii=False, indent=2))
     else:
