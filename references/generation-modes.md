@@ -172,12 +172,13 @@ The generation agent must deliver a finished article, not a validation transcrip
 For formal standard diary evaluation:
 
 - write the first complete article with title
-- run the local checker
+- save it as `draft.md` in the current working directory and run the local checker
 - perform one targeted repair or one full rewrite from the scene slate
 - run the checker again if the tool is available
-- output only the best pure article
+- if the second checker output has no `error`, output only the best pure article immediately
+- never run a third checker-driven repair for warnings
 
-Do not keep repairing connector coverage, comma ratio, breathing-point hints, or line-rhythm warnings until the answer disappears. Those are controller diagnostics, not permission to stall. If a blocking issue remains after one rewrite, still output the cleanest pure article and let the external validation fail it; a visible process log is worse than a weak article for clean generation.
+Do not keep repairing connector coverage, coarse self-damage, paragraph engine, comma ratio, breathing-point hints, scene count, metadata, or line-rhythm warnings until the answer disappears. Those are controller diagnostics, not permission to stall. If a blocking issue remains after one rewrite, still output the cleanest pure article and let the external validation fail it; a visible process log is worse than a weak article for clean generation.
 
 ## Title Selection
 

@@ -57,11 +57,11 @@ If the user asked for an article, the final answer must contain only the article
 
 For formal standard diary blind evaluation, run the checker in strict mode before final output, but keep the loop bounded. Strict mode is corpus-calibrated: original corpus files should not fail with hard errors. If strict mode reports a blocking issue, rewrite from the scene slate or reduce prompt-surface coverage.
 
-This applies even when the user asked only for the article. Use a temporary/local draft file for the check, keep the report internal, and output only the title and article body after the bounded gate.
+This applies even when the user asked only for the article. Use `draft.md` in the current working directory for the check, keep the report internal, and output only the title and article body after the bounded gate. Do not use OS temp files for formal evaluation drafts because timeout recovery needs the artifact.
 
 Blocking issues are process leakage, missing title, copied source phrasing, high-signal opening, learned ending buttons, sealed-night/story enclosure, pure ambient endings, repeated material hooks, and obvious prompt-shape leakage. Diagnostic title, body length, single-theme density, quiet explanation, weak paragraph engine, missing coarse self-damage, connector coverage, comma ratio, breathing-point warnings, and rhythm hints are review prompts unless the current test protocol explicitly requires full-article length.
 
-Use at most one checker-driven repair loop. If the second draft still carries only soft style warnings, output the cleanest pure article rather than process notes; the external controller will validate it.
+Use at most one checker-driven repair loop and call the checker at most twice. After the second checker call, if there are no `error` findings, output the cleanest pure article immediately. Soft style warnings are not permission to run a third repair.
 
 If the file/checker tool flow itself fails, do not end the response with logs or process text. Manually apply the strict gate, rewrite once, and output the article only. The external controller will validate afterward.
 
