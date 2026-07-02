@@ -57,6 +57,8 @@ If the user asked for an article, the final answer must contain only the article
 
 For formal standard diary blind evaluation, run the checker in strict mode before final output. If strict mode reports an error, rewrite from the scene slate or reduce prompt-surface coverage; do not publish the failing draft as final prose.
 
+This applies even when the user asked only for the article. Use a temporary/local draft file for the check, keep the report internal, and output only the title and article body after the strict gate passes.
+
 ## Prompt Material Handling
 
 Before drafting, split the user's prompt nouns into four buckets:

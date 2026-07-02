@@ -230,6 +230,7 @@ STRICT_ERROR_RULE_PREFIXES = (
     "安静解释句",
     "段落发动机信号偏弱",
     "封闭夜晚短篇结构",
+    "高频词覆盖不足",
     "呼吸点缺失",
 )
 STRICT_ERROR_RULE_NAMES = {"行末逗号比例"}
