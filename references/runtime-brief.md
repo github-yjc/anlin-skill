@@ -55,11 +55,11 @@ The state card is not part of the final prose.
 
 If the user asked for an article, the final answer must contain only the article title and body. Do not print the state card, prompt buckets, scene slate, validation summary, checker output, overlap score, or any line such as `草拟`, `校验通过`, `State Card`, or `Prompt item`.
 
-For formal standard diary blind evaluation, run the checker in strict mode before final output, but keep the loop bounded. Strict mode is corpus-calibrated: original corpus files should not fail with hard errors. If strict mode reports a blocking issue, rewrite from the scene slate or reduce prompt-surface coverage.
+For formal standard diary blind evaluation, run the checker with `--strict --draft-gate` before final output, but keep the loop bounded. `--strict` is corpus-calibrated; `--draft-gate` is generated-draft-only and promotes formal article length plus prompt-shape risks. Original corpus files should be calibrated with `--strict`, not `--draft-gate`.
 
 This applies even when the user asked only for the article. Use `draft.md` in the current working directory for the check, keep the report internal, and output only the title and article body after the bounded gate. Do not use OS temp files for formal evaluation drafts because timeout recovery needs the artifact.
 
-Blocking issues are process leakage, missing title, copied source phrasing, high-signal opening, learned ending buttons, sealed-night/story enclosure, pure ambient endings, repeated material hooks, and obvious prompt-shape leakage. Diagnostic title, body length, single-theme density, quiet explanation, weak paragraph engine, missing coarse self-damage, connector coverage, comma ratio, breathing-point warnings, and rhythm hints are review prompts unless the current test protocol explicitly requires full-article length.
+Blocking issues are process leakage, missing title, copied source phrasing, high-signal opening, learned ending buttons, sealed-night/story enclosure, pure ambient endings, repeated material hooks, obvious prompt-shape leakage, and any `--draft-gate` error. Quiet explanation, weak paragraph engine, missing coarse self-damage, connector coverage, comma ratio, breathing-point warnings, and rhythm hints are review prompts.
 
 Use at most one checker-driven repair loop and call the checker at most twice. After the second checker call, if there are no `error` findings, output the cleanest pure article immediately. Soft style warnings are not permission to run a third repair.
 

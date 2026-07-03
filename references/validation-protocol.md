@@ -45,12 +45,14 @@ Run:
 
 ```powershell
 python scripts/check_anlin_violations.py draft.md
-python scripts/check_anlin_violations.py draft.md --strict
+python scripts/check_anlin_violations.py draft.md --strict --draft-gate
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
 python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 ```
 
 `--strict` is a corpus-calibrated blocking gate. It should fail generated drafts only for deterministic contamination or high-risk structural buttons that do not hard-fail original corpus files. Other blind-review risks remain warnings and must be interpreted with placebo/original calibration.
+
+`--draft-gate` is generated-draft-only. It promotes formal article length and prompt-shape risks that may appear in some originals but should still block clean generated drafts for complete-article blind evaluation. Do not use `--draft-gate` when reporting original-corpus hard-error calibration.
 
 `run_blind_test.py` prepares anonymous rounds and prints the judge prompts. If no LLM automation key is configured, the controller manually gives each prompt to an isolated judge and records verdicts.
 

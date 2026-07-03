@@ -1,10 +1,6 @@
 ---
-name: anlin
-description: Use when the user explicitly asks for Anlin, 日寄, Anlin-style anonymous blind-evaluation writing, 像Anlin那样写, 模拟日寄, or asks to generate/review/evaluate prose against the Anlin corpus. Do not use for ordinary depressed prose, generic Zhihu answers, or black-humor web writing unless Anlin or 日寄 is named.
-metadata:
-  compatibility: opencode
-  corpus: C:\Users\34025\Desktop\Anlin
-  target: anonymous-blind-evaluation
+name: "anlin-writing"
+description: "Generate, review, or evaluate Anlin/日寄-style anonymous blind-evaluation prose against the Anlin corpus. Use ONLY when the user explicitly mentions Anlin, 日寄, Anlin-style, 像Anlin那样写, 模拟日寄, 盲评, or asks for Anlin corpus evaluation."
 ---
 
 # Anlin Writing Skill
@@ -122,10 +118,10 @@ For blind-evaluation drafts, always produce a complete article with a title. Put
 After drafting, switch to review mode:
 
 1. Run `scripts/check_anlin_violations.py <draft>`.
-   - For formal standard-diary blind-evaluation drafts, run `scripts/check_anlin_violations.py <draft> --strict` as a bounded gate.
+   - For formal standard-diary blind-evaluation drafts, run `scripts/check_anlin_violations.py <draft> --strict --draft-gate` as a bounded gate. `--draft-gate` is for generated drafts only; do not use it when calibrating originals.
    - Even if the user only asked for prose, write the draft to `draft.md` in the current working directory, run the checker, then output prose only after the bounded gate. Do not use OS temp paths for formal evaluation drafts; timeout recovery needs the local draft. Do not print checker output unless the user asked for validation notes.
    - Fix hard errors, process leakage, missing title, copied source phrasing, high-signal opening, learned ending buttons, sealed-night/story enclosure, pure ambient endings, repeated material hooks, and obvious prompt-shape leakage before output.
-   - Treat diagnostic title, underbuilt length, single-theme density, quiet explanation, weak paragraph engine, and missing coarse self-damage as serious review signals, not automatic hard failures: the original corpus contains some of these. For full-article blind tests, still revise short or overly prompt-shaped generated drafts when the test protocol requires complete articles.
+   - Treat quiet explanation, weak paragraph engine, and missing coarse self-damage as serious review signals, not automatic hard failures: the original corpus contains some of these. In generated full-article blind tests, `--draft-gate` promotes diagnostic title, underbuilt length, single-theme density, and prompt-chain over-compliance to blocking errors.
    - Use at most one checker-driven repair loop inside the generation agent. Call the checker at most twice. After the second checker call, if there are no `error` findings, immediately output the clean article even if warnings remain. Do not continue repairing high-frequency coverage, coarse self-damage, paragraph engine, comma-ratio, breathing-point, scene-count, metadata, or other corpus-calibrated warnings. The external controller will validate it.
    - If temporary-file creation, overwrite, or checker execution fails for tooling reasons, do not stop with process notes. Apply the strict checklist manually, rewrite once, and output the article only; the controller can run the checker externally.
 2. If the full corpus is available, run `scripts/compare_anlin_corpus.py <draft> --corpus-dir <corpus>`.
@@ -159,7 +155,7 @@ Required wording:
 
 ```powershell
 python scripts/check_anlin_violations.py draft.md
-python scripts/check_anlin_violations.py draft.md --strict
+python scripts/check_anlin_violations.py draft.md --strict --draft-gate
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
 python scripts/prepare_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --min-fragment-chars 550 --seed 1
 python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2

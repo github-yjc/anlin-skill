@@ -285,6 +285,43 @@ class AnlinToolingTests(unittest.TestCase):
             errors = [item for item in findings if item["severity"] == "error"]
             self.assertTrue(any(item["rule"].startswith("strict:") for item in errors))
 
+    def test_checker_draft_gate_promotes_generated_draft_only_risks(self) -> None:
+        body = "\n".join(
+            [
+                "# 春招日寄",
+                "",
+                "群里有人说入职体检要空腹。",
+                "offer 和招聘岗位都在刷屏。",
+                "简历、hr、boss直聘、公积金、租房补贴也都在。",
+                "我看着屏幕，觉得自己像一张被系统退回来的表。",
+                "屏幕亮着。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            strict_result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            draft_gate_result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            strict_findings = json.loads(strict_result.stdout)
+            draft_gate_findings = json.loads(draft_gate_result.stdout)
+            strict_rules = [item["rule"] for item in strict_findings if item["severity"] == "error"]
+            draft_gate_rules = [item["rule"] for item in draft_gate_findings if item["severity"] == "error"]
+            self.assertFalse(any("标准日寄完整文章篇幅偏短" in rule for rule in strict_rules))
+            self.assertTrue(any("标准日寄完整文章篇幅偏短" in rule for rule in draft_gate_rules))
+            self.assertTrue(any("题面诊断型标题" in rule for rule in draft_gate_rules))
+
     def test_checker_flags_quiet_explanation_and_weak_engine(self) -> None:
         body = "\n".join(
             [

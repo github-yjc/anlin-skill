@@ -271,6 +271,13 @@ STRICT_ERROR_RULE_PREFIXES = (
     "散文块压缩",
 )
 STRICT_ERROR_RULE_NAMES: set[str] = set()
+DRAFT_GATE_RULE_PREFIXES = (
+    "题面诊断型标题",
+    "标准日寄完整文章篇幅偏短",
+    "单主题词密度偏高",
+    "题面链条过于完整",
+)
+DRAFT_GATE_RULE_NAMES: set[str] = set()
 
 
 def clean_excerpt(line: str) -> str:
@@ -913,7 +920,7 @@ def collect_findings(text: str) -> list[Finding]:
     return findings
 
 
-def apply_strict_mode(findings: list[Finding]) -> list[Finding]:
+def apply_strict_mode(findings: list[Finding], *, draft_gate: bool = False) -> list[Finding]:
     strict_findings: list[Finding] = []
     for finding in findings:
         should_promote = (
@@ -921,6 +928,13 @@ def apply_strict_mode(findings: list[Finding]) -> list[Finding]:
             and (
                 finding.rule in STRICT_ERROR_RULE_NAMES
                 or any(finding.rule.startswith(prefix) for prefix in STRICT_ERROR_RULE_PREFIXES)
+                or (
+                    draft_gate
+                    and (
+                        finding.rule in DRAFT_GATE_RULE_NAMES
+                        or any(finding.rule.startswith(prefix) for prefix in DRAFT_GATE_RULE_PREFIXES)
+                    )
+                )
             )
         )
         if should_promote:
@@ -953,13 +967,14 @@ def main() -> int:
     parser.add_argument("file", type=Path, help="Draft markdown/text file to inspect")
     parser.add_argument("--json", action="store_true", help="Output JSON findings")
     parser.add_argument("--strict", action="store_true", help="Promote blind-evaluation high-risk warnings to errors")
+    parser.add_argument("--draft-gate", action="store_true", help="Promote generated-draft-only formal article gates; do not use for original-corpus calibration")
     parser.add_argument("--fail-on-warning", action="store_true", help="Return nonzero for warnings as well as errors")
     args = parser.parse_args()
 
     text = args.file.read_text(encoding="utf-8")
     findings = collect_findings(text)
-    if args.strict:
-        findings = apply_strict_mode(findings)
+    if args.strict or args.draft_gate:
+        findings = apply_strict_mode(findings, draft_gate=args.draft_gate)
     if args.json:
         print(json.dumps([asdict(finding) for finding in findings], ensure_ascii=False, indent=2))
     else:

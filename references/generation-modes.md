@@ -172,7 +172,7 @@ The generation agent must deliver a finished article, not a validation transcrip
 For formal standard diary evaluation:
 
 - write the first complete article with title
-- save it as `draft.md` in the current working directory and run the local checker
+- save it as `draft.md` in the current working directory and run the local checker with `--strict --draft-gate`
 - perform one targeted repair or one full rewrite from the scene slate
 - run the checker again if the tool is available
 - if the second checker output has no `error`, output only the best pure article immediately
