@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CHECKER = ROOT / "scripts" / "check_anlin_violations.py"
 SPLIT_LONG_LINES = ROOT / "scripts" / "split_long_lines.py"
 SOFTEN_LINE_ENDINGS = ROOT / "scripts" / "soften_line_endings.py"
+MERGE_SHORT_LINES = ROOT / "scripts" / "merge_short_lines.py"
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_anlin_violations import (  # noqa: E402
     ENGINE_SIGNAL_TERMS,
@@ -50,6 +51,29 @@ def normalize_before_final_check(draft: Path) -> None:
         encoding="utf-8",
         check=False,
     )
+    text = draft.read_text(encoding="utf-8")
+    _, content_lines = split_title_and_content_lines(text.splitlines())
+    visible = [line for line in content_lines if line.strip() and not line.strip().startswith("<!--")]
+    lengths = [chinese_len(line) for line in visible]
+    short_ratio = (sum(1 for length in lengths if length <= 12) / len(lengths)) if lengths else 0.0
+    if len(visible) > 75 or short_ratio >= 0.40:
+        subprocess.run(
+            [
+                sys.executable,
+                str(MERGE_SHORT_LINES),
+                str(draft),
+                "--in-place",
+                "--target-lines",
+                "68",
+                "--start-min-chars",
+                "12",
+                "--max-min-chars",
+                "22",
+            ],
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
     subprocess.run(
         [sys.executable, str(SOFTEN_LINE_ENDINGS), str(draft), "--in-place"],
         text=True,

@@ -424,6 +424,36 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertGreaterEqual(comma_ratio, 0.45)
             self.assertLessEqual(comma_ratio, 0.85)
 
+    def test_clean_run_checker_merges_short_grid_before_second_call(self) -> None:
+        fragments = [
+            "其实我觉得杯子脏了",
+            "突然发现厕所灯坏了",
+            "于是差点吐出来",
+            "因为这事有点丢人",
+            "好像还是没躲过去",
+        ]
+        body = "\n".join(["# 日寄", "", *(fragments * 24)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertIn("CLEAN_RUN_STOP: this was checker call 2/2", second.stdout)
+            lines = [line for line in draft.read_text(encoding="utf-8").splitlines() if line.strip()]
+            body_lines = [line for line in lines[1:] if not line.lstrip().startswith("#")]
+            self.assertLessEqual(len(body_lines), 75)
+            first_twenty = body_lines[:20]
+            comma_ratio = sum(1 for line in first_twenty if line.endswith("，")) / len(first_twenty)
+            self.assertGreaterEqual(comma_ratio, 0.45)
+            self.assertLessEqual(comma_ratio, 0.85)
+
     def test_checker_accepts_ugly_low_engine_terms_as_paragraph_engine(self) -> None:
         body = "\n".join(
             [
@@ -1972,6 +2002,44 @@ class AnlinToolingTests(unittest.TestCase):
             report = json.loads(result.stdout)
             self.assertGreater(report["before_ratio"], 0.85)
             self.assertLessEqual(report["after_ratio"], 0.85)
+            checker = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(checker.stdout)
+            self.assertFalse(any("行末逗号比例" in item["rule"] for item in findings))
+
+    def test_soften_line_endings_adds_commas_to_unpunctuated_early_lines(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                *(["我坐着看杯子又亮了"] * 30),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SOFTEN_LINE_ENDINGS),
+                    str(draft),
+                    "--in-place",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(result.stdout)
+            self.assertEqual(report["before_ratio"], 0.0)
+            self.assertGreaterEqual(report["after_ratio"], 0.55)
             checker = subprocess.run(
                 [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
                 capture_output=True,

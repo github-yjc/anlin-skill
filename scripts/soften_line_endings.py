@@ -55,7 +55,7 @@ def comma_ratio(lines: list[str], indices: list[int], sample_size: int) -> float
 
 def eligible_for_softening(lines: list[str], index: int, indices: list[int]) -> bool:
     stripped = lines[index].rstrip()
-    if not stripped.endswith("。"):
+    if not stripped.endswith("。") and stripped.endswith(("，", ",", "！", "？", "；", "：")):
         return False
     if chinese_len(stripped) < 8:
         return False
@@ -108,7 +108,10 @@ def soften_lines(lines: list[str], target_ratio: float, max_ratio: float, sample
                 break
             if not eligible_for_softening(lines, index, indices):
                 continue
-            lines[index] = re.sub(r"。\s*$", "，", lines[index])
+            if lines[index].rstrip().endswith("。"):
+                lines[index] = re.sub(r"。\s*$", "，", lines[index])
+            else:
+                lines[index] = lines[index].rstrip() + "，"
             changed.append(index + 1)
             current += 1
     elif before > max_ratio and indices:
