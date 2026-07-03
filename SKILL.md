@@ -54,11 +54,14 @@ Then load only the branch-specific files as needed:
 | Concrete examples by topic | `references/anlin-reference-library.md`, `references/samples-index.md` |
 | Post-draft critique | `references/review-rubric.md`, `references/writing-checklist.md`, `references/self-check.md` |
 | Anti-copying and overlap checks | `references/anti-pastiche.md` |
+| Corpus-prior ratio audit | `references/stylometric-ratio-protocol.md`, then `scripts/build_style_profile.py` / `scripts/check_style_profile.py` |
 | Full validation and blind review | `references/validation-protocol.md`, `references/blind-judge-angles.md` |
 
 Do not read every reference before drafting. The generation pass uses a small state model; the critique pass uses the rule library.
 
 Do not compensate for weak prose by loading another style or anti-AI skill. If the draft smells synthetic, revise through this skill's own lenses: scene-first causality, prompt displacement, background restraint, rhythm variance from action, and concrete body/social/material consequence.
+
+Do not use corpus ratio targets as a pre-draft recipe. `references/stylometric-ratio-protocol.md` and the style-profile scripts are for post-draft audit, controller validation, and targeted repair. If a ratio drifts, repair the underlying function: length through lived action, line rhythm through interruption/speech/body, connector drift through less explanatory glue, and title drift through a weaker title contract.
 
 For formal clean generation, checker call count is a hard protocol boundary. After the second checker call, the only allowed tool action is reading `draft.md` once to output it exactly. Do not edit, write, compare, or run another checker after it. A third checker call or any post-second write contaminates the test more severely than leaving draft errors unresolved. The external controller will decide pass/fail.
 
@@ -148,9 +151,10 @@ After drafting, switch to review mode:
    - Use at most one checker-driven repair loop inside the generation agent. Call the checker at most twice total, including failed/nonzero checker runs. A nonzero checker exit is normal when findings include `error`; it is not a tooling failure. If the first checker reports more than three `error` findings, or reports prompt-chain density, offer-specific fabrication, dialogue ladder, underbuilt length, or paragraph-block compression, do one full rewrite from a new scene slate. Do not patch the existing draft line by line. If the first checker reports only one or two local errors, repair by replacement, not deletion: removed prompt-chain, game, dash, or comment material must be replaced with concrete body/action/social/route residue before the second checker. Do not call the second checker on a visibly shortened draft. After the second checker call, stop all repair tool use: no edit, write, compare, or third checker command. You may read `draft.md` once only to output it exactly. Output the current `draft.md` content exactly, even if errors or warnings remain. Do not hand-repair a different final answer after the second checker. Do not continue repairing high-frequency coverage, coarse self-damage, paragraph engine, comma-ratio, breathing-point, scene-count, metadata, or other corpus-calibrated warnings. The external controller will validate it.
    - If temporary-file creation, overwrite, or checker execution fails for tooling reasons, do not stop with process notes. Apply the strict checklist manually, rewrite once, and output the article only; the controller can run the checker externally.
 2. If the full corpus is available, run `scripts/compare_anlin_corpus.py <draft> --corpus-dir <corpus>`.
-3. Read `review-rubric.md` and inspect the draft against the appropriate genre gates.
-4. Use `writing-checklist.md` and `self-check.md` as critic material only. Do not retrofit every high-frequency label into the draft.
-5. Run anti-pastiche checks if any source phrasing may have leaked.
+3. For controller validation or explicit style-ratio review, read `references/stylometric-ratio-protocol.md`, build or load `references/style-profile.json`, and run `scripts/check_style_profile.py <draft> --profile references/style-profile.json --draft-gate`. Treat profile drift as a repair signal, not authorship proof and not a reason to add rare tags.
+4. Read `review-rubric.md` and inspect the draft against the appropriate genre gates.
+5. Use `writing-checklist.md` and `self-check.md` as critic material only. Do not retrofit every high-frequency label into the draft.
+6. Run anti-pastiche checks if any source phrasing may have leaked.
 
 Warnings are review prompts, not automatic failure. Errors and hard identity/date mistakes must be fixed. Do at most one targeted revision pass for ordinary warnings. For formal standard-diary blind evaluation, prioritize prompt-shape leakage, AI-slop phrasing, unsupported background facts, single-theme density, sealed-night/story enclosure, quiet explanation, weak paragraph engine, missing title, copied source phrasing, diagnostic title, underbuilt length, formulaic comment-chain summaries, and learned ending buttons. If one of these high-risk warnings remains after the first patch, rewrite once from the scene slate instead of polishing the same draft. After that rewrite, deliver the cleanest pure article rather than logs or analysis; do not loop until every ordinary warning disappears.
 
@@ -182,6 +186,8 @@ Required wording:
 python scripts/check_anlin_violations.py draft.md
 python scripts/check_anlin_violations.py draft.md --strict --draft-gate
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
+python scripts/build_style_profile.py "C:\Users\34025\Desktop\Anlin" --output references/style-profile.json
+python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate
 python scripts/prepare_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --min-fragment-chars 550 --seed 1
 python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 python -m unittest discover -s test

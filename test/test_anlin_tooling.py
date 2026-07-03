@@ -14,7 +14,10 @@ CHECKER = ROOT / "scripts" / "check_anlin_violations.py"
 BLIND_PREP = ROOT / "scripts" / "prepare_blind_test.py"
 RUN_BLIND = ROOT / "scripts" / "run_blind_test.py"
 BUILD_CARDS = ROOT / "scripts" / "build_corpus_cards.py"
+BUILD_PROFILE = ROOT / "scripts" / "build_style_profile.py"
+CHECK_PROFILE = ROOT / "scripts" / "check_style_profile.py"
 CARDS = ROOT / "references" / "corpus-cards"
+STYLE_PROFILE = ROOT / "references" / "style-profile.json"
 EVALS = ROOT / "evals" / "evals.json"
 
 
@@ -1457,6 +1460,97 @@ class AnlinToolingTests(unittest.TestCase):
         cards = [path for path in CARDS.glob("*.md") if path.name != "INDEX.md"]
         self.assertEqual(len(cards), 38)
         self.assertTrue((CARDS / "INDEX.md").is_file())
+
+    def test_style_profile_builds_corpus_prior(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            profile_path = Path(temp) / "style-profile.json"
+            result = subprocess.run(
+                [sys.executable, str(BUILD_PROFILE), str(CORPUS), "--output", str(profile_path)],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            profile = json.loads(profile_path.read_text(encoding="utf-8"))
+            self.assertEqual(profile["corpus_file_count"], 38)
+            self.assertEqual(len(profile["documents"]), 38)
+            self.assertEqual(profile["profile_kind"], "corpus_prior_predictive_intervals")
+            self.assertIn("body_chars", profile["value_summary"])
+            self.assertIn("ai_binary_reframe", profile["count_summary"])
+            self.assertTrue(profile["count_summary"]["ai_binary_reframe"]["hard_generated"])
+            self.assertIn("Do not force rare features to appear.", profile["principles"])
+
+    def test_style_profile_has_no_hard_errors_on_original_corpus(self) -> None:
+        self.assertTrue(STYLE_PROFILE.is_file(), f"missing style profile: {STYLE_PROFILE}")
+        failures: list[str] = []
+        for path in sorted(CORPUS.glob("*.md")):
+            result = subprocess.run(
+                [sys.executable, str(CHECK_PROFILE), str(path), "--profile", str(STYLE_PROFILE), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(result.stdout)
+            if report["summary"]["error_count"]:
+                failures.append(f"{path.name}: {report['summary']['error_count']} errors")
+        self.assertEqual(failures, [])
+
+    def test_style_profile_draft_gate_rejects_ai_binary_reframe(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "不是包装袋漏，是电动车前面那个篮子。",
+                "酸梅汤顺着车篮子滴了一路。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            normal_result = subprocess.run(
+                [sys.executable, str(CHECK_PROFILE), str(draft), "--profile", str(STYLE_PROFILE), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(normal_result.returncode, 0, normal_result.stderr)
+            normal_report = json.loads(normal_result.stdout)
+            self.assertEqual(normal_report["summary"]["error_count"], 0)
+
+            draft_gate_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECK_PROFILE),
+                    str(draft),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--draft-gate",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(draft_gate_result.returncode, 0)
+            draft_gate_report = json.loads(draft_gate_result.stdout)
+            errors = [item for item in draft_gate_report["findings"] if item["severity"] == "error"]
+            self.assertTrue(any(item["metric"] == "ai_binary_reframe" for item in errors))
+            self.assertEqual(draft_gate_report["summary"]["status"], "revise")
+
+    def test_skill_links_style_profile_without_loading_as_generation_pack(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("references/stylometric-ratio-protocol.md", skill)
+        self.assertIn("scripts/check_style_profile.py", skill)
+        minimal_pack = skill.split("For ordinary article generation, use the minimal generation pack:", 1)[1].split(
+            "`references/anlin-background.md` is", 1
+        )[0]
+        self.assertNotIn("stylometric-ratio-protocol", minimal_pack)
+        self.assertIn("Do not use corpus ratio targets as a pre-draft recipe.", skill)
 
     def test_realistic_eval_prompts_do_not_carry_style_hints(self) -> None:
         data = json.loads(EVALS.read_text(encoding="utf-8"))

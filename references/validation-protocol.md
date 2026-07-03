@@ -34,8 +34,15 @@ python scripts/check_anlin_violations.py draft.md
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
 ```
 
-3. Review using `review-rubric.md`.
-4. Fix errors and identity/date mismatches. Warnings require manual inspection, not automatic failure.
+3. If a corpus profile exists or full corpus is available, run the stylometric ratio audit:
+
+```powershell
+python scripts/build_style_profile.py "C:\Users\34025\Desktop\Anlin" --output references/style-profile.json
+python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate
+```
+
+4. Review using `review-rubric.md`.
+5. Fix errors and identity/date mismatches. Warnings require manual inspection, not automatic failure.
 
 ### Full Corpus Mode
 
@@ -47,6 +54,8 @@ Run:
 python scripts/check_anlin_violations.py draft.md
 python scripts/check_anlin_violations.py draft.md --strict --draft-gate
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
+python scripts/build_style_profile.py "C:\Users\34025\Desktop\Anlin" --output references/style-profile.json
+python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate
 python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 ```
 
@@ -231,6 +240,8 @@ If a judge sees `mapping.json`, original corpus filenames, skill files, previous
 - [ ] Corpus path and date-zone recorded outside prose.
 - [ ] Checker output saved or summarized.
 - [ ] Corpus comparison inspected for overlap, not treated as style proof.
+- [ ] Style-profile audit recorded when corpus is available; profile drift is treated as revision evidence, not proof of generation or authorship.
+- [ ] Style-profile thresholds were calibrated against originals without `--draft-gate`; original warnings were not converted into hard failures.
 - [ ] Blind rounds use isolated neutral judge directories whose paths do not reveal impostor/placebo status.
 - [ ] Titles retained and normalized for generated and original samples.
 - [ ] Draft is not a length outlier for the selected complete-article protocol.
@@ -251,6 +262,6 @@ Do not blind-test an out-of-range refusal as a prose article. Score it as a boun
 
 ## Method Notes
 
-Authorship-verification research distinguishes closed-set and open-set setups; serious blind review should behave like open-set verification and allow uncertain/non-answer outcomes. Stylometry commonly inspects frequent words, word/character n-grams, punctuation, and other linguistic features, but topic, genre, discourse type, and text length can mislead. AI-detection research also reports false positives and false negatives, so `NONE` and placebo rounds are not optional.
+Authorship-verification research distinguishes closed-set and open-set setups; serious blind review should behave like open-set verification and allow uncertain/non-answer outcomes. Stylometry commonly inspects frequent words, word/character n-grams, punctuation, and other linguistic features, but topic, genre, discourse type, and text length can mislead. Ratio constraints must be predictive intervals for a new document, not narrow confidence intervals around the corpus mean. AI-detection research also reports false positives and false negatives, so `NONE` and placebo rounds are not optional.
 
 For literary structure, treat "意识流" as an associative method rather than random scene stacking: sensory observations, free association, looping repetition, unusual syntax, time/space montage, and inner psychological truth should leave observable textual traces. Local Anlin corpus evidence still outranks external theory.

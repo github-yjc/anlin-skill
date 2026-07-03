@@ -34,6 +34,7 @@ These apply to all normal generation:
 24. No runtime dependence on external style cleanup: anti-AI-writing behavior must come from this skill's own references and checker. Do not call another personal style or anti-slop skill to make the prose acceptable.
 25. No over-specific inference: corpus-supported inference may lower specificity, but it must not invent current city, current game rank, match tactics, employer, local policy, or platform fact.
 26. No helpful clarification sentence: if a line explains why the scene matters, helps the reader understand the theme, or repairs ambiguity, delete it unless a person/app in the scene literally produced that line.
+27. No ratio-matching as composition: corpus priors and predictive intervals are post-draft audit tools, not quotas. Do not add a connector, game cue, body symptom, dialogue line, comma, or short line merely to satisfy a measured ratio. If a measured feature drifts, repair the lived function that caused it.
 
 ## Strong Defaults
 
