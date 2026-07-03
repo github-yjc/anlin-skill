@@ -696,6 +696,13 @@ class AnlinToolingTests(unittest.TestCase):
                 self.assertTrue(all(not sample["is_draft"] for sample in mapping.values()))
                 prompt = (round_dir / "prompt.txt").read_text(encoding="utf-8")
                 self.assertIn("SOURCE_COHESION_CHECK", prompt)
+                judge_dir = Path(item["judge_directory"])
+                self.assertTrue(judge_dir.is_dir())
+                self.assertTrue((judge_dir / "prompt.txt").is_file())
+                self.assertFalse((judge_dir / "mapping.json").exists())
+                self.assertEqual(len(list(judge_dir.glob("sample-*.txt"))), 3)
+                self.assertNotIn("placebo", judge_dir.name)
+                self.assertNotIn("impostor", judge_dir.name)
 
 
 if __name__ == "__main__":

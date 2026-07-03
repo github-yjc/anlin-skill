@@ -105,12 +105,14 @@ Each round creates a clean directory containing only:
 - `mapping.json` for the controller only
 - `prompt.txt` for the judge
 
+`run_blind_test.py` also creates a neutral `judge-view-XX` directory for each round. Run automated judges from `judge-view-XX`, not from `round-XX-impostor` or `round-XX-placebo`, because round directory names leak the controller's answer key. A valid judge directory contains only `prompt.txt` and `sample-*.txt`.
+
 Judge rules:
 
-- The judge may read only `sample-*.txt`.
+- The judge may read only `prompt.txt` and `sample-*.txt` in the neutral judge directory.
 - The judge prompt must be source-neutral: use `MOST_SOURCE_LIKE` / `LEAST_SOURCE_LIKE`, not author-name field labels that may trigger a style skill.
-- The judge must not read `mapping.json`, the original corpus, skill files, controller notes, previous verdicts, or web results.
-- The judge must not invoke or rely on any style skill, author-specific skill, corpus memory, previous analysis, or source-name prior knowledge. For opencode judge automation, run `opencode run --pure --dir <judge-round-dir> <prompt>` from a directory containing only `prompt.txt` and `sample-*.txt`.
+- The judge must not read `mapping.json`, the original corpus, skill files, controller notes, previous verdicts, web results, or a directory path/name that exposes `impostor`, `placebo`, `generated`, or similar controller labels.
+- The judge must not invoke or rely on any style skill, author-specific skill, corpus memory, previous analysis, or source-name prior knowledge. For opencode judge automation, run `opencode run --pure --dir <neutral-judge-view-dir> <prompt>` from a directory containing only `prompt.txt` and `sample-*.txt`.
 - Titles are retained and normalized for all samples; metadata is removed.
 - Generated drafts must include the title as article text on the first line. The preparation script normalizes `# 标题`, plain first-line titles, and simple emphasis wrappers to the same `# 标题` form so title formatting does not become a leakage cue.
 - Impostor rounds are length-matched by complete article length.
@@ -213,7 +215,7 @@ If a judge sees `mapping.json`, original corpus filenames, skill files, previous
 - [ ] Corpus path and date-zone recorded outside prose.
 - [ ] Checker output saved or summarized.
 - [ ] Corpus comparison inspected for overlap, not treated as style proof.
-- [ ] Blind rounds use isolated directories.
+- [ ] Blind rounds use isolated neutral judge directories whose paths do not reveal impostor/placebo status.
 - [ ] Titles retained and normalized for generated and original samples.
 - [ ] Draft is not a length outlier for the selected complete-article protocol.
 - [ ] Judge prompts require detailed quoted evidence and alternative explanations.
