@@ -38,7 +38,7 @@ python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Des
 
 ```powershell
 python scripts/build_style_profile.py "C:\Users\34025\Desktop\Anlin" --output references/style-profile.json
-python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate
+python scripts/check_style_profile.py draft.md --profile references/style-profile.json --phase <A|B|C|D> --genre <standard|sincere|micro-hope|surreal> --draft-gate
 ```
 
 4. Review using `review-rubric.md`.
@@ -67,6 +67,8 @@ python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --round
 `--corpus-dir` on `check_anlin_violations.py` enables the deterministic copy-overlap gate. Use it for full-corpus formal validation; do not use it to calibrate an original against the same corpus unless the checker can skip the same source file.
 
 `calibrate_style_profile.py` runs the profile against originals without `--draft-gate` and reports warning-family frequencies. If a family often flags originals, treat that family as weak blind-review evidence unless a hard gate or placebo-stable cue supports it.
+
+`check_style_profile.py --phase/--genre` uses a phase+genre stratum when the corpus has enough originals, then falls back to phase, genre, or global priors. The JSON report records `profile_scope`. Do not hide a fallback; it is part of the test condition.
 
 `run_blind_test.py` prepares anonymous rounds and prints the judge prompts. If no LLM automation key is configured, the controller manually gives each prompt to an isolated judge and records verdicts.
 
@@ -247,6 +249,7 @@ If a judge sees `mapping.json`, original corpus filenames, skill files, previous
 - [ ] Corpus comparison inspected for overlap, not treated as style proof.
 - [ ] Deterministic copy-overlap gate run with `--corpus-dir` when full corpus is available.
 - [ ] Style-profile audit recorded when corpus is available; profile drift is treated as revision evidence, not proof of generation or authorship.
+- [ ] Style-profile report records `profile_scope` and `cognitive_audit`; fallback to global priors is reported when phase/genre sample size is too small.
 - [ ] Style-profile thresholds were calibrated against originals without `--draft-gate`; original warnings were not converted into hard failures.
 - [ ] Blind rounds use isolated neutral judge directories whose paths do not reveal impostor/placebo status.
 - [ ] Titles retained and normalized for generated and original samples.

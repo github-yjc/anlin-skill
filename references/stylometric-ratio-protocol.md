@@ -197,6 +197,23 @@ For strict reporting, keep the profile file, skill commit, corpus path, corpus f
 
 Do not use profile success as a claim of authorship. It only means the draft did not drift beyond selected measurable corpus priors under this profile.
 
+### Phase/Genre Strata
+
+`style-profile.json` stores global, phase, genre, and phase+genre summaries. Use the stratum only when the target has an explicit phase or genre and the stratum has enough originals; otherwise the checker falls back to global priors.
+
+Examples:
+
+```powershell
+python scripts/check_style_profile.py draft.md --profile references/style-profile.json --phase A --genre standard --draft-gate
+python scripts/check_style_profile.py draft.md --profile references/style-profile.json --genre sincere --draft-gate
+```
+
+The report records `profile_scope`, including whether it fell back. A stratum warning is still a drift cue, not proof of generation.
+
+### Cognitive Soft Audit
+
+The checker also reports a non-blocking `cognitive_audit` summary for concrete entry, crooked interpretation, reality puncture, defensive recovery, exit/retreat, associative hook, humor friction, and emotion displaced into logistics. This is a repair map, not an exact style score. Repair by changing how existing scenes think; do not insert labels to raise the score.
+
 ## Placebo Calibration
 
 Every profile threshold must be checked against originals.

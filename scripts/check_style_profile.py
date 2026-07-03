@@ -45,6 +45,18 @@ SUGGESTIONS = {
 TOPIC_SENSITIVE_SOFT_ONLY_FAMILIES = {"structure", "texture", "cognitive_mechanism", "title"}
 YELLOW_REVIEW_FAMILY_THRESHOLD = 5
 SOFT_REVISE_FAMILY_THRESHOLD = 10
+COGNITIVE_CORE_KEYS = [
+    "concrete_entry",
+    "crooked_interpretation",
+    "reality_puncture",
+    "defensive_recovery",
+    "exit_retreat",
+]
+COGNITIVE_SUPPORT_KEYS = [
+    "associative_hook",
+    "humor_friction",
+    "emotion_displaced_logistics",
+]
 
 
 def calibrate_level_for_family(family: str, level: str) -> str:
@@ -110,6 +122,53 @@ def robust_z(observed: float, summary: dict[str, float]) -> float:
     if mad <= 0:
         return 0.0
     return 0.6745 * (observed - summary.get("median", observed)) / mad
+
+
+def select_audit_profile(
+    profile: dict[str, Any],
+    phase: str | None,
+    genre: str | None,
+    min_stratum_docs: int,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    strata = profile.get("strata") or {}
+    candidates: list[tuple[str, dict[str, Any] | None]] = []
+    if phase and genre:
+        candidates.append((f"phase_genre:{phase}/{genre}", (strata.get("phase_genre") or {}).get(f"{phase}/{genre}")))
+    if phase:
+        candidates.append((f"phase:{phase}", (strata.get("phase") or {}).get(phase)))
+    if genre:
+        candidates.append((f"genre:{genre}", (strata.get("genre") or {}).get(genre)))
+
+    skipped: list[str] = []
+    for scope, candidate in candidates:
+        if not candidate:
+            skipped.append(f"{scope}: missing")
+            continue
+        count = int(candidate.get("document_count", 0))
+        if count < min_stratum_docs:
+            skipped.append(f"{scope}: document_count={count} < {min_stratum_docs}")
+            continue
+        selected = dict(profile)
+        selected["value_summary"] = candidate.get("value_summary", {})
+        selected["value_families"] = candidate.get("value_families", {})
+        selected["count_summary"] = candidate.get("count_summary", {})
+        return selected, {
+            "scope": scope,
+            "document_count": count,
+            "requested_phase": phase,
+            "requested_genre": genre,
+            "fallback": False,
+            "skipped": skipped,
+        }
+
+    return profile, {
+        "scope": "global",
+        "document_count": profile.get("corpus_file_count"),
+        "requested_phase": phase,
+        "requested_genre": genre,
+        "fallback": bool(candidates),
+        "skipped": skipped,
+    }
 
 
 def continuous_findings(document: Any, profile: dict[str, Any], include_info: bool) -> list[ProfileFinding]:
@@ -270,19 +329,57 @@ def summarize_status(findings: list[ProfileFinding]) -> dict[str, Any]:
     }
 
 
-def check_draft(draft_path: Path, profile: dict[str, Any], include_info: bool, draft_gate: bool) -> dict[str, Any]:
+def cognitive_audit(document: Any) -> dict[str, Any]:
+    core = {
+        key: int(document.counts.get(f"cognitive_{key}", 0))
+        for key in COGNITIVE_CORE_KEYS
+    }
+    support = {
+        key: int(document.counts.get(f"cognitive_{key}", 0))
+        for key in COGNITIVE_SUPPORT_KEYS
+    }
+    abstract_labels = int(document.counts.get("cognitive_abstract_emotion_label", 0))
+    core_present = [key for key, count in core.items() if count > 0]
+    support_present = [key for key, count in support.items() if count > 0]
+    score = len(core_present) + min(len(support_present), 2)
+    if abstract_labels >= 3:
+        score -= 1
+    status = "green" if score >= 5 and len(core_present) >= 4 else "yellow" if score >= 3 else "red"
+    return {
+        "status": status,
+        "score": max(score, 0),
+        "max_score": 7,
+        "core_counts": core,
+        "support_counts": support,
+        "abstract_emotion_label_count": abstract_labels,
+        "principle": "Soft cognitive audit only: repair by changing how existing scenes think, not by inserting labels.",
+    }
+
+
+def check_draft(
+    draft_path: Path,
+    profile: dict[str, Any],
+    include_info: bool,
+    draft_gate: bool,
+    phase: str | None = None,
+    genre: str | None = None,
+    min_stratum_docs: int = 4,
+) -> dict[str, Any]:
     document = extract_document(draft_path)
+    audit_profile, profile_scope = select_audit_profile(profile, phase, genre, min_stratum_docs)
     findings = []
-    findings.extend(continuous_findings(document, profile, include_info))
-    findings.extend(predictive_findings(document, profile, include_info, draft_gate))
+    findings.extend(continuous_findings(document, audit_profile, include_info))
+    findings.extend(predictive_findings(document, audit_profile, include_info, draft_gate))
     status = summarize_status(findings)
     return {
         "draft": str(draft_path),
         "profile_version": profile.get("version"),
         "corpus_file_count": profile.get("corpus_file_count"),
         "expected_corpus_count": profile.get("expected_corpus_count"),
+        "profile_scope": profile_scope,
         "draft_gate": draft_gate,
         "document": asdict(document),
+        "cognitive_audit": cognitive_audit(document),
         "findings": [asdict(finding) for finding in findings],
         "summary": status,
     }
@@ -294,12 +391,14 @@ def format_report(report: dict[str, Any]) -> str:
         f"draft: {report['draft']}",
         f"profile_version: {report['profile_version']}",
         f"corpus_file_count: {report['corpus_file_count']}",
+        f"profile_scope: {json.dumps(report['profile_scope'], ensure_ascii=False)}",
         f"draft_gate: {report['draft_gate']}",
         f"status: {report['summary']['status']}",
         f"errors: {report['summary']['error_count']}",
         f"warnings: {report['summary']['warning_count']}",
         f"red_families: {', '.join(report['summary']['red_families']) or '(none)'}",
         f"yellow_families: {', '.join(report['summary']['yellow_families']) or '(none)'}",
+        f"cognitive_audit: {json.dumps(report['cognitive_audit'], ensure_ascii=False)}",
         f"warning_families: {', '.join(report['summary']['warning_families']) or '(none)'}",
         f"error_families: {', '.join(report['summary']['error_families']) or '(none)'}",
         "findings:",
@@ -323,6 +422,9 @@ def main() -> int:
     parser.add_argument("--profile", type=Path, default=None, help="Profile JSON produced by build_style_profile.py")
     parser.add_argument("--corpus-dir", type=Path, default=None, help="Build an in-memory profile from this corpus if --profile is omitted")
     parser.add_argument("--draft-gate", action="store_true", help="Apply generated-draft-only hard gates for AI-surface features")
+    parser.add_argument("--phase", default=None, help="Optional corpus phase for stratified audit, e.g. A/B/C/D")
+    parser.add_argument("--genre", default=None, help="Optional genre for stratified audit, e.g. standard/sincere/micro-hope/surreal")
+    parser.add_argument("--min-stratum-docs", type=int, default=4, help="Minimum documents required before using a phase/genre stratum")
     parser.add_argument("--include-info", action="store_true", help="Include q10-q90 / 80% predictive informational drift")
     parser.add_argument("--strict", action="store_true", help="Return nonzero when profile status is revise, even without hard errors")
     parser.add_argument("--json", action="store_true", help="Output JSON")
@@ -335,7 +437,15 @@ def main() -> int:
     else:
         parser.error("Must provide --profile or --corpus-dir.")
 
-    report = check_draft(args.draft, profile, args.include_info, args.draft_gate)
+    report = check_draft(
+        args.draft,
+        profile,
+        args.include_info,
+        args.draft_gate,
+        phase=args.phase,
+        genre=args.genre,
+        min_stratum_docs=args.min_stratum_docs,
+    )
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
     else:

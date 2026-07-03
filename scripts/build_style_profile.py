@@ -20,7 +20,8 @@ from typing import Any
 
 
 EXPECTED_CORPUS_COUNT = 38
-PROFILE_VERSION = "1.1"
+PROFILE_VERSION = "1.2"
+MIN_STRATUM_DOCUMENTS = 4
 
 CONNECTORS = [
     "其实",
@@ -181,6 +182,9 @@ FEATURE_FAMILIES = {
 class DocumentProfile:
     file: str
     title: str
+    date: str
+    phase: str
+    genre: str
     counts: dict[str, int]
     denominators: dict[str, int]
     values: dict[str, float]
@@ -212,6 +216,43 @@ def split_title_body(text: str) -> tuple[str, str, list[str]]:
     title = re.sub(r"^\*\*(.+)\*\*$", r"\1", title).strip()
     body_lines = lines[1:]
     return title, "\n".join(body_lines), body_lines
+
+
+def infer_date_from_text_or_name(text: str, filename: str) -> str:
+    date_match = re.search(r"发布日期\*\*\s*[:：]\s*([0-9-]+)", text)
+    if date_match:
+        return date_match.group(1).strip()
+    filename_match = re.search(r"(20\d{2})(\d{2})?(\d{2})?", filename)
+    if not filename_match:
+        return "unknown"
+    year, month, day = filename_match.groups()
+    if month and day:
+        return f"{year}-{month}-{day}"
+    if month:
+        return f"{year}-{month}"
+    return year
+
+
+def phase_for(date: str) -> str:
+    if date.startswith(("2022-04", "2022-05")):
+        return "A"
+    if date.startswith(("2022-07", "2022-08", "2022-10")):
+        return "B"
+    if date.startswith("2023"):
+        return "C"
+    if date.startswith(("2024", "2025", "2026")):
+        return "D"
+    return "unknown"
+
+
+def genre_for(title: str, body: str) -> str:
+    if "母亲节" in title or "谢谢你" in title:
+        return "sincere"
+    if "活着就是" in title:
+        return "micro-hope"
+    if "存在主义" in title or "迷失" in title:
+        return "surreal"
+    return "standard"
 
 
 def paragraph_blocks(body: str) -> int:
@@ -337,6 +378,7 @@ def dominant_theme_share(lines: list[str]) -> float:
 def extract_document(path: Path) -> DocumentProfile:
     text = read_text(path)
     title, body, body_lines = split_title_body(text)
+    date = infer_date_from_text_or_name(text, path.name)
     content_lines = [line for line in body_lines if line and not line.lstrip().startswith("<!--")]
     line_lengths = [chinese_len(line) for line in content_lines if chinese_len(line) > 0]
     body_chars = chinese_len(body)
@@ -427,6 +469,9 @@ def extract_document(path: Path) -> DocumentProfile:
     return DocumentProfile(
         file=path.name,
         title=title,
+        date=date,
+        phase=phase_for(date),
+        genre=genre_for(title, body),
         counts=counts,
         denominators=denominators,
         values=values,
@@ -532,6 +577,41 @@ def load_corpus(corpus_dir: Path) -> list[Path]:
     ]
 
 
+def summarize_document_subset(documents: list[DocumentProfile]) -> dict[str, Any]:
+    value_summary = summarize_values(documents)
+    count_summary = summarize_counts(documents)
+    return {
+        "document_count": len(documents),
+        "files": [document.file for document in documents],
+        "value_summary": value_summary,
+        "value_families": {feature: infer_value_family(feature) for feature in value_summary},
+        "count_summary": count_summary,
+    }
+
+
+def build_strata(documents: list[DocumentProfile]) -> dict[str, Any]:
+    strata: dict[str, Any] = {
+        "min_documents_for_default_use": MIN_STRATUM_DOCUMENTS,
+        "phase": {},
+        "genre": {},
+        "phase_genre": {},
+    }
+    phases = sorted({document.phase for document in documents})
+    genres = sorted({document.genre for document in documents})
+    for phase in phases:
+        subset = [document for document in documents if document.phase == phase]
+        strata["phase"][phase] = summarize_document_subset(subset)
+    for genre in genres:
+        subset = [document for document in documents if document.genre == genre]
+        strata["genre"][genre] = summarize_document_subset(subset)
+    for phase in phases:
+        for genre in genres:
+            subset = [document for document in documents if document.phase == phase and document.genre == genre]
+            if subset:
+                strata["phase_genre"][f"{phase}/{genre}"] = summarize_document_subset(subset)
+    return strata
+
+
 def build_profile(corpus_dir: Path) -> dict[str, Any]:
     paths = load_corpus(corpus_dir)
     documents = [extract_document(path) for path in paths]
@@ -549,11 +629,13 @@ def build_profile(corpus_dir: Path) -> dict[str, Any]:
             "Do not force rare features to appear.",
             "Do not treat corpus-zero as impossible unless the feature is a hard generated-draft gate.",
             "Use placebo originals to calibrate warnings before blind-evaluation claims.",
+            "Use phase/genre strata only when explicitly requested and sample size is adequate; fall back to global priors otherwise.",
         ],
         "documents": [asdict(document) for document in documents],
         "value_summary": value_summary,
         "value_families": {feature: infer_value_family(feature) for feature in value_summary},
         "count_summary": count_summary,
+        "strata": build_strata(documents),
     }
 
 

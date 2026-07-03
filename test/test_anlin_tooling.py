@@ -1572,6 +1572,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(profile["corpus_file_count"], 38)
             self.assertEqual(len(profile["documents"]), 38)
             self.assertEqual(profile["profile_kind"], "corpus_prior_predictive_intervals")
+            self.assertEqual(profile["version"], "1.2")
             self.assertIn("body_chars", profile["value_summary"])
             self.assertIn("ai_binary_reframe", profile["count_summary"])
             self.assertIn("unique_3gram_ratio", profile["value_summary"])
@@ -1582,6 +1583,10 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(profile["value_families"]["unique_3gram_ratio"], "ngram_texture")
             self.assertEqual(profile["count_summary"]["texture_body_lines"]["family"], "texture")
             self.assertEqual(profile["count_summary"]["cognitive_crooked_interpretation"]["family"], "cognitive_mechanism")
+            self.assertIn("strata", profile)
+            self.assertIn("A", profile["strata"]["phase"])
+            self.assertIn("standard", profile["strata"]["genre"])
+            self.assertIn("A/standard", profile["strata"]["phase_genre"])
             self.assertTrue(profile["count_summary"]["ai_binary_reframe"]["hard_generated"])
             self.assertIn("Do not force rare features to appear.", profile["principles"])
 
@@ -1647,6 +1652,57 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(draft_gate_report["summary"]["status"], "revise")
             self.assertIn("red_families", draft_gate_report["summary"])
             self.assertIn("decision_rule", draft_gate_report["summary"])
+            self.assertIn("cognitive_audit", draft_gate_report)
+            self.assertIn("profile_scope", draft_gate_report)
+
+    def test_style_profile_uses_phase_genre_stratum_when_requested(self) -> None:
+        draft = next(iter(sorted(CORPUS.glob("Anlin_20220404.md"))))
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(CHECK_PROFILE),
+                str(draft),
+                "--profile",
+                str(STYLE_PROFILE),
+                "--phase",
+                "A",
+                "--genre",
+                "standard",
+                "--json",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["profile_scope"]["scope"], "phase_genre:A/standard")
+        self.assertFalse(report["profile_scope"]["fallback"])
+        self.assertIn("cognitive_audit", report)
+
+    def test_style_profile_falls_back_when_stratum_is_too_small(self) -> None:
+        draft = next(iter(sorted(CORPUS.glob("*.md"))))
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(CHECK_PROFILE),
+                str(draft),
+                "--profile",
+                str(STYLE_PROFILE),
+                "--genre",
+                "micro-hope",
+                "--json",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["profile_scope"]["scope"], "global")
+        self.assertTrue(report["profile_scope"]["fallback"])
 
     def test_style_profile_calibration_reports_original_warning_families(self) -> None:
         result = subprocess.run(

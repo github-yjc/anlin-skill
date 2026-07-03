@@ -187,7 +187,7 @@ python scripts/check_anlin_violations.py draft.md
 python scripts/check_anlin_violations.py draft.md --strict --draft-gate --corpus-dir "C:\Users\34025\Desktop\Anlin"
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
 python scripts/build_style_profile.py "C:\Users\34025\Desktop\Anlin" --output references/style-profile.json
-python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate
+python scripts/check_style_profile.py draft.md --profile references/style-profile.json --phase <A|B|C|D> --genre <standard|sincere|micro-hope|surreal> --draft-gate
 python scripts/calibrate_style_profile.py "C:\Users\34025\Desktop\Anlin" --profile references/style-profile.json
 python scripts/prepare_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --min-fragment-chars 550 --seed 1
 python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
