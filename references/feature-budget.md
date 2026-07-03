@@ -21,9 +21,12 @@ These apply to all normal generation:
 11. No learned ending button: `哦`, `算了`, `睡了`, a dark screen, or a lone sound effect cannot be used as default closure.
 12. No external-test scaffolding: formal evaluation drafts must be achievable from the skill and a realistic user prompt, not from extra controller hints, judge rubrics, or post-failure advice supplied to the generator.
 13. No diagnostic standard title: when writing a standard diary for blind evaluation, default to `日寄`; use a modified `X日寄` only if `X` is a local defensive handle rather than the user's topic noun.
-14. No underbuilt complete article: a generated standard diary submitted to full complete-article blind evaluation should normally land at 700+ body Chinese characters. 650 is only the lower comparison boundary; 650-699 is a draft-risk buffer zone. Below 700, expand with lived actions and residues or mark the evaluation as short-genre only.
+14. No underbuilt complete article: a generated standard diary submitted to full complete-article blind evaluation should normally land at 800-1100 body Chinese characters. 650 is only the lower comparison boundary; 650-699 is a draft-risk buffer zone, and 700-799 is still thin when repairs are likely. Below 800, expand with lived actions and residues or mark the evaluation as short-genre only.
 15. No realist-short-story smoothing: standard diary cannot keep every scene inside one coherent emotional arc. It needs lateral branches, rough social misfires, crooked jokes, and unhelpful residue.
 16. No high-signal prompt coverage: formal standard-diary blind evaluation should visibly use at most two prompt pressure surfaces; discard or bury the rest.
+17. No AI-reframe sentence: formal generated drafts should not use `不是X，是Y`, `不是X，而是Y`, `不是因为X，而是因为Y`, `真正的问题是`, `本质上`, or similar explanation scaffolds. Make the turn happen through scene, body, app, money, or another person's line.
+18. No unsupported concrete background: do not invent named districts, city routes, company parks, local policies, or game-role details. Use `anlin-background.md` and user-provided facts; if unsupported, lower specificity.
+19. No literary annotation sentence: formal generated drafts should not use `——` to append an explanatory feeling, and should avoid abstract emotion nouns such as `放松`, `释然`, `自洽`, `真实感`, `完整感`, or `命运感`. If the feeling matters, turn it into an action, body interruption, payment, route, food, or another person's plain line.
 
 ## Strong Defaults
 
@@ -51,7 +54,7 @@ Use most of these, but not all:
 Recommended budget:
 
 - 5-10 scene units depending on phase and length.
-- Usually 700-1200 body Chinese characters for generated full blind evaluation; always include a title; if shorter, judge only against matched short originals or revise before submission.
+- Usually 800-1200 body Chinese characters for generated full blind evaluation; always include a title; if shorter, judge only against matched short originals or revise before submission.
 - 2-4 emotional registers: laugh, sting, tenderness, deflection, absurdity, analysis.
 - 1-2 central motifs at most.
 - 0-2 recurring characters. Use none if the material is body, solitude, or observation driven.
@@ -73,9 +76,12 @@ Avoid:
 - title-to-ending closure that tells the judge the piece was designed around one idea
 - repeated typing/deleting as the main emotional engine
 - evaluation-prompt compliance: visible montage, unrelated details, anti-summary behavior, or title choice appearing only because the test prompt instructed them
+- AI-humanizer surface: obvious not-X-but-Y contrasts, blog-like summary words, or one-line explainer pivots that sound corrected by a machine
+- unsupported background specificity: named district/city/game-role detail inserted only to create realism
 - a smooth chain of scenes where every object proves the same wound
 - polite melancholy in place of a real laugh, self-own, or social embarrassment
 - a tasteful withheld ending that could close any literary short story
+- literary captioning after a good image: `——那种...`, `终于可以...的放松`, `释然`, `自洽`, or a sentence that names the feeling instead of making something happen
 
 ## Sincere Piece
 

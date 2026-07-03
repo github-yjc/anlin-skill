@@ -317,6 +317,115 @@ Before final identification, ask:
 
 If the answer is yes, lower confidence or answer `NONE`.
 
+### 23. AI-Reframe Sentence Radar
+
+Inspect:
+
+- `不是X，是Y`, `不是X，而是Y`, `不是因为X，而是因为Y`
+- `真正的问题是`, `核心是`, `本质上`, `这说明`, `这意味着`
+- balanced contrast or summary sentences that could be moved into any essay
+- whether a turn is announced by grammar rather than discovered through scene
+
+Strong generated tell:
+
+- a local physical detail is immediately translated into a neat binary insight.
+- the suspicious sentence could be deleted and the scene would become more human.
+
+Judge cautiously:
+
+- originals contain a few natural negative/contrast structures. Count only when the structure feels like an explanatory scaffold, especially in generated-sounding local narration.
+
+### 24. Literary Annotation Radar
+
+Inspect:
+
+- em dash used as a caption: `A——那种B`, `A——一种B`
+- abstract feeling labels: `放松`, `释然`, `自洽`, `真实感`, `完整感`, `命运感`
+- whether a sentence names the emotional texture instead of making the next physical/social thing happen
+- whether the line would be stronger if the caption after the image were deleted
+
+Strong generated tell:
+
+- a plausible scene suddenly becomes literary because the sample explains the exact feeling it wants the reader to have.
+- the phrase is portable: it could close many unrelated short essays with only nouns swapped.
+
+Judge cautiously:
+
+- originals sometimes use `那种` and a few em dashes, often as quote drag, interruption, or coarse comparison. Count this family only when the phrase is polishing or captioning the scene.
+
+### 25. Background Fact Consistency
+
+Inspect:
+
+- narrator place: small city, Yunnan weather evidence, old home, school area, delivery routes
+- unsupported named districts/cities/company parks/subway routes
+- game terms: supported 王者荣耀/星耀/ELO/蔡文姬/原神 vs unsupported role filler such as 打野教学
+- platform terms by phase: 知乎/微信/小红书/抖音/AI/GPT with era limits
+
+Strong generated tell:
+
+- a concrete place or game detail appears only to create realism and has no corpus/user/background support.
+- the draft writes Guangzhou/Shenzhen/Huangpu-like specificity into a small-city/Yunnan phase without evidence.
+
+Judge cautiously:
+
+- a place can appear as another person's contrast or one-time travel if supported by text, but the judge should ask what evidence in the article makes it earned.
+
+### 26. Seasonal And Phase Sanity
+
+Inspect:
+
+- weather and calendar fit: Yunnan rain/heat, holiday handling, phase A dense comedy vs later sparse reflection
+- whether the article uses a winter/summer detail against the target date with no reason
+- whether 2022 early entries use late 2025 AI/ADHD/MBTI/body-analysis vocabulary
+- whether later projection dates pretend to be source-supported
+
+Strong generated tell:
+
+- period details feel selected from a style database rather than from the requested day.
+
+### 27. Prompt-Execution Completeness
+
+Inspect:
+
+- whether every prompt noun appears exactly once
+- whether the article preserves prompt order while disguising it with line breaks
+- whether side details look selected to satisfy an anti-detection instruction
+- whether the title, opening, middle, and ending each carry one prompt element
+
+Strong generated tell:
+
+- the article is "good" at the user's assignment before it is believable as a day.
+
+### 28. Mid-Article Randomness
+
+Inspect:
+
+- the middle third, not only opening and ending
+- whether the middle has a real off-axis branch with its own turn
+- whether the middle merely adds correct-looking texture around the main topic
+- whether random details are functionally useless or secretly symbolic
+
+Strong generated tell:
+
+- off-axis details are decorative proof of "lived texture" and do not change action, social position, or bodily state.
+
+### 29. Human-Reader Single-Line Smell
+
+Inspect:
+
+- read each suspicious sentence aloud as if encountered on social media
+- ask whether a human would choose that exact syntactic route under pressure
+- note one-line "AI tells": clean binary correction, neatly parallel clause, therapeutic empathy, explainer aside, portable aphorism
+
+Strong generated tell:
+
+- one sentence is so model-coded that it damages trust in surrounding plausible scenes.
+
+Judge cautiously:
+
+- do not over-penalize one odd line in an original-like rough text. Use this family with at least two other evidence families.
+
 ## Judge Profiles
 
 Use multiple profiles across rounds. Each profile reads the same sample files but prioritizes different evidence.
@@ -331,6 +440,10 @@ Use multiple profiles across rounds. Each profile reads the same sample files bu
 | dialogue-social | dialogue plausibility, social collision, awkward residue |
 | phase-genre-title | date-zone, genre fit, title contract, ending, phase leakage |
 | synthetic-risk | AI smoothness, prompt-shape leakage, imitator over-display, surface/deep mismatch |
+| anti-ai-sentence | binary reframe, explainer voice, single-line AI smell |
+| literary-annotation | em dash captioning, abstract feeling labels, polished emotional subtitles |
+| background-fact | geography, games, platforms, phase facts, unsupported specificity |
+| mid-article-randomness | middle-third drift, useless residue, prompt-execution completeness |
 | placebo-calibrated | false-accusation control; actively prefer NONE when evidence is weak |
 
 ## Required Judge Output
@@ -385,5 +498,9 @@ If `IDENTIFIED: NONE`, still fill every section using the strongest non-decisive
 | missing dialogue/social noise | add plausible non-performative line or app/social residue |
 | too literary sincere/micro-hope | add rough logistics and remove final complete sentence |
 | AI over-explanation | delete the explanatory sentence after each image or joke |
+| AI binary reframe | rewrite the local move without `不是X，是Y`; state the physical fact or make a person/body/app reveal the turn |
+| literary annotation voice | remove `——` captioning and abstract emotion nouns; replace with the next action, body consequence, payment, route, food, or another person's plain line |
+| unsupported geography | remove named city/district/company route unless user/corpus/lookup supports it; keep the practical failure |
+| unsupported game filler | replace decorative role terms with corpus-supported 王者/星耀/ELO/蔡文姬/原神 only when they cause a turn |
 | surface Anlin tags | remove one iconic feature and deepen one ordinary scene |
 | placebo false positives high | calibrate judges toward NONE; require three evidence families plus confidence threshold before counting an accusation as stable |
