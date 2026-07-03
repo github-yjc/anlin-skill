@@ -1223,6 +1223,27 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertTrue(any(rule == "strict: 断裂过碎" for rule in rules))
 
+    def test_checker_draft_gate_rejects_formal_line_shape_buffers(self) -> None:
+        short_line = "我坐着看杯子又亮了，"
+        longish = "其实我觉得杯子有点脏，洗的时候水龙头咳了一下喷到裤子上，"
+        body = "\n".join(["# 日寄", "", *([short_line] * 105), *([longish] * 3)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any(rule == "strict: 标准日寄行数缓冲异常" for rule in rules))
+            self.assertTrue(any(rule == "strict: 标准日寄长行缓冲不足" for rule in rules))
+            self.assertTrue(any(rule == "strict: 标准日寄短行网格" for rule in rules))
+
     def test_checker_draft_gate_rejects_mid_article_prompt_loop(self) -> None:
         body = "\n".join(
             [
@@ -1572,16 +1593,22 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(profile["corpus_file_count"], 38)
             self.assertEqual(len(profile["documents"]), 38)
             self.assertEqual(profile["profile_kind"], "corpus_prior_predictive_intervals")
-            self.assertEqual(profile["version"], "1.2")
+            self.assertEqual(profile["version"], "1.3")
             self.assertIn("body_chars", profile["value_summary"])
             self.assertIn("ai_binary_reframe", profile["count_summary"])
             self.assertIn("unique_3gram_ratio", profile["value_summary"])
             self.assertIn("repeated_3gram_templates", profile["count_summary"])
             self.assertIn("texture_body_lines", profile["count_summary"])
+            self.assertIn("texture_any_line_share", profile["value_summary"])
+            self.assertIn("body_money_social_line_share", profile["value_summary"])
+            self.assertIn("middle_off_axis_line_share", profile["value_summary"])
+            self.assertIn("title_tail_bigram_overlap", profile["value_summary"])
             self.assertIn("dominant_theme_line_share", profile["value_summary"])
             self.assertIn("cognitive_crooked_interpretation", profile["count_summary"])
             self.assertEqual(profile["value_families"]["unique_3gram_ratio"], "ngram_texture")
             self.assertEqual(profile["count_summary"]["texture_body_lines"]["family"], "texture")
+            self.assertEqual(profile["count_summary"]["body_money_social_lines"]["family"], "texture")
+            self.assertEqual(profile["count_summary"]["middle_off_axis_lines"]["family"], "structure")
             self.assertEqual(profile["count_summary"]["cognitive_crooked_interpretation"]["family"], "cognitive_mechanism")
             self.assertIn("strata", profile)
             self.assertIn("A", profile["strata"]["phase"])
@@ -1653,6 +1680,9 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("red_families", draft_gate_report["summary"])
             self.assertIn("decision_rule", draft_gate_report["summary"])
             self.assertIn("cognitive_audit", draft_gate_report)
+            self.assertIn("missing_core", draft_gate_report["cognitive_audit"])
+            self.assertIn("first_hit_lines", draft_gate_report["cognitive_audit"])
+            self.assertIn("independent_drift_family_count", draft_gate_report["summary"])
             self.assertIn("profile_scope", draft_gate_report)
 
     def test_style_profile_uses_phase_genre_stratum_when_requested(self) -> None:
@@ -1725,6 +1755,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertEqual(report["error_files"], [])
         self.assertIn("red_family_counts", report)
         self.assertIn("yellow_family_counts", report)
+        self.assertIn("family_count_distribution", report)
+        self.assertIn("recommended_thresholds", report)
+        self.assertIn("per_file", report)
+        self.assertGreaterEqual(report["recommended_thresholds"]["soft_revise_threshold"], 10)
 
     def test_skill_links_style_profile_without_loading_as_generation_pack(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

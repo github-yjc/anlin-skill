@@ -14,7 +14,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from build_style_profile import build_profile, extract_document
+from build_style_profile import COGNITIVE_PATTERNS, build_profile, extract_document, read_text, split_title_body
 
 
 DEFAULT_CONTINUOUS_FEATURES = {
@@ -44,7 +44,7 @@ SUGGESTIONS = {
 
 TOPIC_SENSITIVE_SOFT_ONLY_FAMILIES = {"structure", "texture", "cognitive_mechanism", "title"}
 YELLOW_REVIEW_FAMILY_THRESHOLD = 5
-SOFT_REVISE_FAMILY_THRESHOLD = 10
+SOFT_REVISE_FAMILY_THRESHOLD = 12
 COGNITIVE_CORE_KEYS = [
     "concrete_entry",
     "crooked_interpretation",
@@ -302,12 +302,15 @@ def summarize_status(findings: list[ProfileFinding]) -> dict[str, Any]:
     error_families = sorted({finding.family for finding in errors})
     red_families = sorted({finding.family for finding in red_findings})
     yellow_families = sorted(({finding.family for finding in yellow_findings} | {finding.family for finding in warnings}) - set(red_families))
+    independent_drift_families = sorted(set(red_families) | set(yellow_families))
     if errors:
         status = "revise"
     elif len(red_families) >= 3:
         status = "revise"
-    elif len(set(red_families) | set(yellow_families)) >= SOFT_REVISE_FAMILY_THRESHOLD:
+    elif len(independent_drift_families) >= SOFT_REVISE_FAMILY_THRESHOLD:
         status = "revise"
+    elif len(independent_drift_families) >= YELLOW_REVIEW_FAMILY_THRESHOLD:
+        status = "review"
     elif red_families or yellow_families:
         status = "yellow"
     else:
@@ -322,14 +325,50 @@ def summarize_status(findings: list[ProfileFinding]) -> dict[str, Any]:
         "error_families": error_families,
         "red_families": red_families,
         "yellow_families": yellow_families,
+        "independent_drift_families": independent_drift_families,
+        "independent_drift_family_count": len(independent_drift_families),
         "yellow_review_threshold": YELLOW_REVIEW_FAMILY_THRESHOLD,
         "soft_revise_threshold": SOFT_REVISE_FAMILY_THRESHOLD,
-        "decision_rule": "revise on any hard error, three independent red drift families, or soft family drift beyond original-calibrated threshold; five yellow/red families require strong manual review",
+        "decision_rule": "revise on any hard error, three independent red drift families, or soft family drift beyond original-calibrated upper bound; five independent yellow/red families require strong manual review and placebo comparison",
         "principle": "Profile drift is evidence for revision, not proof of authorship or generation.",
     }
 
 
-def cognitive_audit(document: Any) -> dict[str, Any]:
+def first_hit_line(lines: list[str], pattern: str) -> int | None:
+    import re
+
+    compiled = re.compile(pattern, re.IGNORECASE)
+    for index, line in enumerate(lines, start=1):
+        if compiled.search(line):
+            return index
+    return None
+
+
+def ordered_pair_score(positions: dict[str, int | None], keys: list[str]) -> dict[str, Any]:
+    pairs = []
+    matched = 0
+    possible = 0
+    for left, right in zip(keys, keys[1:]):
+        left_position = positions.get(left)
+        right_position = positions.get(right)
+        if left_position is None or right_position is None:
+            pairs.append({"pair": f"{left}->{right}", "status": "missing", "left": left_position, "right": right_position})
+            continue
+        possible += 1
+        if left_position <= right_position:
+            matched += 1
+            pair_status = "ordered"
+        else:
+            pair_status = "reversed"
+        pairs.append({"pair": f"{left}->{right}", "status": pair_status, "left": left_position, "right": right_position})
+    return {
+        "matched_ordered_pairs": matched,
+        "possible_pairs": possible,
+        "pairs": pairs,
+    }
+
+
+def cognitive_audit(document: Any, draft_path: Path | None = None) -> dict[str, Any]:
     core = {
         key: int(document.counts.get(f"cognitive_{key}", 0))
         for key in COGNITIVE_CORE_KEYS
@@ -345,15 +384,52 @@ def cognitive_audit(document: Any) -> dict[str, Any]:
     if abstract_labels >= 3:
         score -= 1
     status = "green" if score >= 5 and len(core_present) >= 4 else "yellow" if score >= 3 else "red"
+    line_positions: dict[str, int | None] = {}
+    order_score: dict[str, Any] = {"matched_ordered_pairs": 0, "possible_pairs": 0, "pairs": []}
+    if draft_path is not None:
+        _, body, body_lines = split_title_body(read_text(draft_path))
+        _ = body
+        line_positions = {
+            key: first_hit_line(body_lines, COGNITIVE_PATTERNS[key])
+            for key in COGNITIVE_CORE_KEYS + COGNITIVE_SUPPORT_KEYS
+            if key in COGNITIVE_PATTERNS
+        }
+        order_score = ordered_pair_score(line_positions, COGNITIVE_CORE_KEYS)
+    missing_core = [key for key in COGNITIVE_CORE_KEYS if key not in core_present]
+    missing_support = [key for key in COGNITIVE_SUPPORT_KEYS if key not in support_present]
     return {
         "status": status,
         "score": max(score, 0),
         "max_score": 7,
         "core_counts": core,
         "support_counts": support,
+        "present_core": core_present,
+        "missing_core": missing_core,
+        "present_support": support_present,
+        "missing_support": missing_support,
+        "first_hit_lines": line_positions,
+        "order_score": order_score,
         "abstract_emotion_label_count": abstract_labels,
+        "repair_rule": "If core links are missing, change how existing scenes move: concrete object -> crooked read -> reality puncture -> defensive recovery -> exit. Do not insert labels to raise counts.",
         "principle": "Soft cognitive audit only: repair by changing how existing scenes think, not by inserting labels.",
     }
+
+
+def cognitive_findings(audit: dict[str, Any], draft_gate: bool) -> list[ProfileFinding]:
+    if not draft_gate or audit.get("status") != "red":
+        return []
+    return [
+        ProfileFinding(
+            severity="warning",
+            family="cognitive_mechanism",
+            metric="cognitive_audit_core",
+            observed=float(audit.get("score", 0)),
+            expected="soft score >=3 and at least partial concrete/crooked/puncture/recovery/exit movement",
+            rule=f"missing_core={audit.get('missing_core', [])}",
+            suggestion=SUGGESTIONS["cognitive_mechanism"],
+            level="yellow",
+        )
+    ]
 
 
 def check_draft(
@@ -370,6 +446,8 @@ def check_draft(
     findings = []
     findings.extend(continuous_findings(document, audit_profile, include_info))
     findings.extend(predictive_findings(document, audit_profile, include_info, draft_gate))
+    cognitive = cognitive_audit(document, draft_path)
+    findings.extend(cognitive_findings(cognitive, draft_gate))
     status = summarize_status(findings)
     return {
         "draft": str(draft_path),
@@ -379,7 +457,7 @@ def check_draft(
         "profile_scope": profile_scope,
         "draft_gate": draft_gate,
         "document": asdict(document),
-        "cognitive_audit": cognitive_audit(document),
+        "cognitive_audit": cognitive,
         "findings": [asdict(finding) for finding in findings],
         "summary": status,
     }

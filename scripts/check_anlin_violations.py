@@ -573,6 +573,9 @@ DRAFT_GATE_RULE_PREFIXES = (
     "中段旁逸不足",
     "孤立中文标点",
     "断裂过碎",
+    "标准日寄行数缓冲异常",
+    "标准日寄长行缓冲不足",
+    "标准日寄短行网格",
     "粗粝自毁信号不足",
     "段落发动机信号偏弱",
     "短行诗化表面",
@@ -580,7 +583,7 @@ DRAFT_GATE_RULE_PREFIXES = (
 DRAFT_GATE_RULE_NAMES: set[str] = set()
 
 STANDARD_DIARY_FORMAL_MIN_CHARS = 650
-STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS = 850
+STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS = 900
 
 
 def clean_excerpt(line: str) -> str:
@@ -1245,7 +1248,7 @@ def check_standard_diary_length(findings: list[Finding], lines: list[str], text:
                 "标准日寄完整文章篇幅偏短",
                 0,
                 f"body_chinese_chars={chars}",
-                "完整文章盲评最低比较边界约650字；正式生成稿以850字以上为安全缓冲、900-1100字为常规目标。扩展具体动作、对话、身体/金钱后果和非主题残留，或改为短体裁匹配评估。",
+                "完整文章盲评最低比较边界约650字；正式生成稿以900字以上为安全缓冲、950-1150字为常规目标。扩展具体动作、对话、身体/金钱后果和非主题残留，或改为短体裁匹配评估。",
             )
         )
     elif chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
@@ -1255,7 +1258,57 @@ def check_standard_diary_length(findings: list[Finding], lines: list[str], text:
                 "标准日寄完整文章篇幅缓冲不足",
                 0,
                 f"body_chinese_chars={chars}",
-                "650-849字容易在生成波动和修复中变成长度识别点；正式生成稿应补到850字以上，并优先接近900-1100字，增加行动链、社交误伤、身体/金钱后果或无用日常残留。",
+                "650-899字容易在生成波动和修复中变成长度识别点；正式生成稿应补到900字以上，并优先接近950-1150字，增加行动链、社交误伤、身体/金钱后果或无用日常残留。",
+            )
+        )
+
+
+def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    style = detect_style(text)
+    if style != "standard" or "日寄" not in title:
+        return
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    lengths = [chinese_len(line) for line in visible_lines if chinese_len(line)]
+    body_chars = sum(lengths)
+    if body_chars < STANDARD_DIARY_FORMAL_MIN_CHARS or not lengths:
+        return
+    line_count = len(lengths)
+    avg_len = body_chars / line_count
+    long_24 = sum(1 for length in lengths if length >= 24)
+    long_28 = sum(1 for length in lengths if length >= 28)
+    short_10_ratio = sum(1 for length in lengths if length <= 10) / line_count
+
+    if body_chars >= STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS and (line_count < 40 or line_count > 75):
+        findings.append(
+            Finding(
+                "warning",
+                "标准日寄行数缓冲异常",
+                0,
+                f"body_chars={body_chars}, content_lines={line_count}, avg_line_chars={avg_len:.2f}",
+                "正式标准日寄生成稿建议在45-70行附近；行数过少像压缩短篇，行数过多像短行网格。通过动作、对话、身体和现实后果调整，不要机械换行。",
+            )
+        )
+
+    if body_chars >= STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS and long_24 < 6:
+        findings.append(
+            Finding(
+                "warning",
+                "标准日寄长行缓冲不足",
+                0,
+                f"body_chars={body_chars}, content_lines={line_count}, lines_ge24={long_24}, lines_ge28={long_28}",
+                "生成稿需要几条粗糙长口语/动作链打破短行表面；合并相邻短行，让一次误读、对话、身体中断或现实动作自然跑长。",
+            )
+        )
+
+    if (line_count > 75 and body_chars < 1000) or (line_count > 90 and avg_len < 13) or short_10_ratio >= 0.68:
+        findings.append(
+            Finding(
+                "warning",
+                "标准日寄短行网格",
+                0,
+                f"body_chars={body_chars}, content_lines={line_count}, avg_line_chars={avg_len:.2f}, short_10_ratio={short_10_ratio:.2f}",
+                "这不是自然断裂，而像模型把正文切成均匀小格。先合并多数4-10字行，再补一条有后果的长动作/对话/身体线。",
             )
         )
 
@@ -1790,6 +1843,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_diagnostic_title(findings, lines)
     check_high_signal_opening(findings, lines)
     check_standard_diary_length(findings, lines, text)
+    check_standard_diary_formal_shape(findings, lines, text)
     check_learned_ending_button(findings, lines)
     check_ambient_ending(findings, lines)
     check_theme_density(findings, text)

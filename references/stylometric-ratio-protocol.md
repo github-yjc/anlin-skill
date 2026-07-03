@@ -71,6 +71,7 @@ These can be partly automated and partly reviewed:
 - main-prompt-domain scene share
 - off-axis branch share
 - dialogue/screen/body/money/social texture share
+- opening/middle/tail theme share, middle off-axis share, title-tail overlap, and body/money/social texture balance
 - title type and title-body contract
 - ending type and closure risk
 - early detail return count
@@ -157,7 +158,8 @@ Instead:
 Recommended controller interpretation:
 
 - `green`: no hard errors; no soft drift families
-- `yellow`: soft drift families present; five independent yellow/red families require strong manual review, not automatic rejection
+- `yellow`: soft drift families present below the review threshold
+- `review`: five or more independent yellow/red families require strong manual review and placebo comparison, not automatic rejection
 - `revise`: one hard gate, at least three independent red drift families, or soft-family drift beyond the original-calibrated upper bound
 - `inconclusive`: profile missing, corpus count mismatched, or placebo false accusations high
 
@@ -222,7 +224,7 @@ Required sanity tests:
 
 - all 38 originals should have no hard style-profile errors
 - originals may produce warnings; warnings are calibration data
-- `calibrate_style_profile.py` should be saved or summarized for serious runs so warning families are not over-interpreted
+- `calibrate_style_profile.py` should be saved or summarized for serious runs so warning families are not over-interpreted. It reports per-file red/yellow/independent family counts and recommended thresholds from original-placebo distribution.
 - if many originals would be rejected by the profile, the profile is too narrow
 - if a blind judge accuses originals with the same evidence families used against generated drafts, downgrade those cues
 

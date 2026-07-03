@@ -20,7 +20,7 @@ from typing import Any
 
 
 EXPECTED_CORPUS_COUNT = 38
-PROFILE_VERSION = "1.2"
+PROFILE_VERSION = "1.3"
 MIN_STRATUM_DOCUMENTS = 4
 
 CONNECTORS = [
@@ -175,6 +175,16 @@ FEATURE_FAMILIES = {
     "off_axis_line_share": "structure",
     "title_body_bigram_overlap": "title",
     "early_tail_3gram_overlap": "structure",
+    "early_tail_4gram_overlap": "structure",
+    "title_tail_bigram_overlap": "title",
+    "opening_theme_line_share": "structure",
+    "middle_theme_line_share": "structure",
+    "tail_theme_line_share": "structure",
+    "middle_off_axis_line_share": "structure",
+    "texture_any_line_share": "texture",
+    "texture_diversity_count": "texture",
+    "body_money_social_line_share": "texture",
+    "line_count_per_1k_chars": "line_rhythm",
 }
 
 
@@ -323,6 +333,16 @@ def line_hit_count(lines: list[str], terms: list[str]) -> int:
     return sum(1 for line in lines if any(term in line for term in terms))
 
 
+def line_hit_any_count(lines: list[str], term_groups: list[list[str]]) -> int:
+    return sum(1 for line in lines if any(any(term in line for term in terms) for terms in term_groups))
+
+
+def line_share(lines: list[str], terms: list[str]) -> float:
+    if not lines:
+        return 0.0
+    return line_hit_count(lines, terms) / len(lines)
+
+
 def line_pattern_count(lines: list[str], pattern: str) -> int:
     compiled = re.compile(pattern, re.IGNORECASE)
     return sum(1 for line in lines if compiled.search(line))
@@ -366,6 +386,22 @@ def early_tail_ngram_overlap(lines: list[str], n: int = 3) -> int:
     return len(set(char_ngrams(early, n)) & set(char_ngrams(tail, n)))
 
 
+def title_tail_bigram_overlap(title: str, lines: list[str]) -> int:
+    title_grams = set(char_ngrams(title, 2))
+    if not title_grams or not lines:
+        return 0
+    tail = "\n".join(lines[-max(3, len(lines) // 5) :])
+    return len(title_grams & set(char_ngrams(tail, 2)))
+
+
+def line_thirds(lines: list[str]) -> tuple[list[str], list[str], list[str]]:
+    if not lines:
+        return [], [], []
+    first = max(1, len(lines) // 3)
+    second = max(first + 1, (len(lines) * 2) // 3)
+    return lines[:first], lines[first:second], lines[second:]
+
+
 def dominant_theme_share(lines: list[str]) -> float:
     if not lines:
         return 0.0
@@ -385,6 +421,18 @@ def extract_document(path: Path) -> DocumentProfile:
     body_compact = compact_chinese(body)
     line_count = len(line_lengths)
     body_line_denominator = max(line_count, 1)
+    opening_lines, middle_lines, tail_lines = line_thirds(content_lines)
+    all_theme_terms = [term for terms in THEME_DOMAINS.values() for term in terms]
+    any_texture_groups = list(TEXTURE_GROUPS.values())
+    body_money_social_groups = [
+        TEXTURE_GROUPS["body"],
+        TEXTURE_GROUPS["money"],
+        TEXTURE_GROUPS["dialogue_social"],
+    ]
+    texture_counts = {
+        label: line_hit_count(content_lines, terms)
+        for label, terms in TEXTURE_GROUPS.items()
+    }
 
     counts: dict[str, int] = {}
     denominators: dict[str, int] = {}
@@ -406,6 +454,16 @@ def extract_document(path: Path) -> DocumentProfile:
         "off_axis_line_share": line_hit_count(content_lines, OFF_AXIS_TERMS) / body_line_denominator,
         "title_body_bigram_overlap": float(title_body_bigram_overlap(title, body)),
         "early_tail_3gram_overlap": float(early_tail_ngram_overlap(content_lines, 3)),
+        "early_tail_4gram_overlap": float(early_tail_ngram_overlap(content_lines, 4)),
+        "title_tail_bigram_overlap": float(title_tail_bigram_overlap(title, content_lines)),
+        "opening_theme_line_share": line_share(opening_lines, all_theme_terms),
+        "middle_theme_line_share": line_share(middle_lines, all_theme_terms),
+        "tail_theme_line_share": line_share(tail_lines, all_theme_terms),
+        "middle_off_axis_line_share": line_share(middle_lines, OFF_AXIS_TERMS),
+        "texture_any_line_share": line_hit_any_count(content_lines, any_texture_groups) / body_line_denominator,
+        "texture_diversity_count": float(sum(1 for count in texture_counts.values() if count > 0)),
+        "body_money_social_line_share": line_hit_any_count(content_lines, body_money_social_groups) / body_line_denominator,
+        "line_count_per_1k_chars": (line_count / body_chars * 1000) if body_chars else 0.0,
     }
 
     counts["short_lines"] = sum(1 for length in line_lengths if length <= 8)
@@ -439,9 +497,22 @@ def extract_document(path: Path) -> DocumentProfile:
 
     for label, terms in TEXTURE_GROUPS.items():
         feature = f"texture_{label}_lines"
-        counts[feature] = line_hit_count(content_lines, terms)
+        counts[feature] = texture_counts[label]
         denominators[feature] = line_count
         values[f"texture_{label}_line_ratio"] = counts[feature] / body_line_denominator
+
+    counts["texture_any_lines"] = line_hit_any_count(content_lines, any_texture_groups)
+    denominators["texture_any_lines"] = line_count
+    counts["body_money_social_lines"] = line_hit_any_count(content_lines, body_money_social_groups)
+    denominators["body_money_social_lines"] = line_count
+    counts["middle_off_axis_lines"] = line_hit_count(middle_lines, OFF_AXIS_TERMS)
+    denominators["middle_off_axis_lines"] = max(len(middle_lines), 1)
+    counts["opening_theme_lines"] = line_hit_count(opening_lines, all_theme_terms)
+    denominators["opening_theme_lines"] = max(len(opening_lines), 1)
+    counts["middle_theme_lines"] = line_hit_count(middle_lines, all_theme_terms)
+    denominators["middle_theme_lines"] = max(len(middle_lines), 1)
+    counts["tail_theme_lines"] = line_hit_count(tail_lines, all_theme_terms)
+    denominators["tail_theme_lines"] = max(len(tail_lines), 1)
 
     for label, terms in THEME_DOMAINS.items():
         feature = f"theme_{label}_lines"
@@ -527,7 +598,7 @@ def infer_value_family(feature: str) -> str:
         return "punctuation"
     if feature.startswith("connector_"):
         return "connectors"
-    if feature.startswith("texture_"):
+    if feature.startswith("texture_") or feature == "body_money_social_lines":
         return "texture"
     if feature.startswith("theme_"):
         return "structure"
@@ -541,9 +612,18 @@ def infer_family(feature: str) -> str:
         return "punctuation"
     if feature.startswith("connector_"):
         return "connectors"
-    if feature.startswith("texture_"):
+    if feature.startswith("texture_") or feature == "body_money_social_lines":
         return "texture"
-    if feature.startswith("theme_") or feature in {"off_axis_lines", "ending_button", "ambient_tail", "withholding_tail"}:
+    if feature.startswith("theme_") or feature in {
+        "off_axis_lines",
+        "middle_off_axis_lines",
+        "opening_theme_lines",
+        "middle_theme_lines",
+        "tail_theme_lines",
+        "ending_button",
+        "ambient_tail",
+        "withholding_tail",
+    }:
         return "structure"
     if feature.startswith("cognitive_"):
         return "cognitive_mechanism"
@@ -559,6 +639,7 @@ def infer_family(feature: str) -> str:
 def infer_denominator(feature: str) -> str:
     if (
         feature in {"short_lines", "long_lines", "off_axis_lines", "ending_button", "ambient_tail", "withholding_tail"}
+        or feature in {"middle_off_axis_lines", "opening_theme_lines", "middle_theme_lines", "tail_theme_lines", "texture_any_lines", "body_money_social_lines"}
         or feature.startswith("texture_")
         or feature.startswith("theme_")
         or feature.startswith("line_start_")

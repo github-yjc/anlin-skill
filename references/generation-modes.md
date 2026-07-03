@@ -207,11 +207,11 @@ The generation agent must deliver a finished article, not a validation transcrip
 For formal standard diary evaluation:
 
 - write the first complete article with title. The first `draft.md` should already be line-broken, complete, and close to the target length; do not write a compressed placeholder and plan to fix it only in the final response.
-- for formal standard diary, make the first `draft.md` roughly 45-70 non-empty body lines and 900-1100 body Chinese characters. A 900-1300 character draft should not exceed 90 body lines. Repairs usually shrink drafts; do not rely on the final response to expand a short artifact.
+- for formal standard diary, make the first `draft.md` roughly 45-70 non-empty body lines and 950-1150 body Chinese characters. Keep at least six naturally longer lines above about 24 Chinese characters. A 900-1300 character draft should not exceed 90 body lines, and a sub-1000 draft should not exceed 75 lines. Repairs usually shrink drafts; do not rely on the final response to expand a short artifact.
 - save it as `draft.md` in the current working directory and run the checker with `--strict --draft-gate`. If the working directory is a case/output directory, use the absolute checker path from the installed skill; do not try a missing relative `scripts/...` path first.
 - perform one targeted repair or one full rewrite from the scene slate
 - repair by replacement, not subtraction. If deleting one high-risk line, replace it with one concrete lived line before the second checker; if deleting a whole scene, add another off-axis scene with its own action or consequence.
-- before the second checker, the draft should still be close to 45-70 body lines and 900-1100 body Chinese characters. Do not send a shrunken artifact to the second checker.
+- before the second checker, the draft should still be close to 45-70 body lines and 950-1150 body Chinese characters. Do not send a shrunken artifact to the second checker.
 - before the second checker, scan the body lines for mechanical uniformity and over-fragmentation. If most lines are 4-10 characters or the draft has 100+ body lines, merge adjacent short lines into rougher spoken syntax, add one natural long thought/action line, and one low practical interruption rather than sprinkling random connectors.
 - before the first checker, scan family/roommate dialogue. If it contains a turn-by-turn ladder like `我妈问/我回/她说/我说`, compress it into one rough narrated sentence and interrupt with eating, washing, payment, body, or silence.
 - run the checker again if the tool is available
@@ -257,7 +257,7 @@ Before finalizing, remove the most "written" surface:
 - If most lines are 4-12 Chinese characters, merge several into rougher longer lines.
 - If the body has 100+ non-empty lines, it is not "Anlin brokenness"; it is a line grid. Merge before checking.
 - If the article is only 8-15 prose blocks, split it before the first checker call. A complete standard diary should move through many short body lines, not through compact essay paragraphs.
-- If the draft has fewer than 850 body Chinese characters and is headed for full blind evaluation, expand with lived material rather than adjectives: one dialogue/social residue, one body or money action, and one unrelated daily detail. For formal standard diary generation, draft toward 900-1100 body Chinese characters. Do not aim for 650, 700, or 800 exactly; that creates a length cue and often becomes a shortfall after editing.
+- If the draft has fewer than 900 body Chinese characters and is headed for full blind evaluation, expand with lived material rather than adjectives: one dialogue/social residue, one body or money action, and one unrelated daily detail. For formal standard diary generation, draft toward 950-1150 body Chinese characters. Do not aim for 650, 700, 800, or just under 900; that creates a length cue and often becomes a shortfall after editing.
 - If repair deletes a scene, replace it with a concrete action or off-axis residue before the second checker call; do not let repair shrink the article into the 650-699 risk zone.
 - If a group chat or comment scene stacks `有人说/有人回/又有人`, replace the chain with one concrete screen detail, one representative line plus reaction, or one practical consequence. Multi-person comment summaries read like a prompt checklist.
 - If a group chat scene leaves a residue like `底下跟了一串回答`, delete it too. A vague crowd summary is still a comment-chain formula unless it causes a concrete action.
