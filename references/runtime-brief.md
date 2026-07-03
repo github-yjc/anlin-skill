@@ -76,6 +76,8 @@ The state card is not part of the final prose. For formal standard diary blind e
 
 Do not write `draft.md` until the candidate is complete. A file that contains only a title, a 400-character sketch, or a few scene notes is a contaminated generation artifact. If interrupted before a complete article exists, leave the run invalid rather than treating the stub as the answer.
 
+Pre-write contract for formal standard diary: before writing `draft.md`, the candidate should already be around 950-1150 body Chinese characters, 45-70 body lines, at least six lines above about 24 Chinese characters, fewer than 75 lines when under 1000 characters, and not dominated by 4-10 character rows. If the candidate has 90+ body lines or no long lines, merge adjacent short rows into rough spoken/action syntax before the first file write. Do not expect the checker repair loop to fix a line grid later.
+
 If the user asked for an article, the final answer must contain only the article title and body. Do not print the state card, prompt buckets, scene slate, validation summary, checker output, overlap score, or any line such as `草拟`, `校验通过`, `State Card`, or `Prompt item`.
 Do not explain the stopping rule in the final answer. Never print `This is the second checker call`, `per protocol`, `current draft.md`, or `Here is the article`; the first visible line must be the title.
 
@@ -87,9 +89,9 @@ Blocking issues are process leakage, missing title, copied source phrasing, high
 
 Generated-draft AI slop includes explanatory `不是X，是Y` / `不是X，而是Y`, `像X，其实不是，好像就是Y`, blog-like insight translation, self-annotation such as `其实就是那种怎么说呢` / `大概就是这个意思`, unsupported specific place names, unsupported game-role filler, isolated Chinese punctuation lines such as `。`, ordinary `——` connectors, literary `——那种...` explanation, abstract emotion labels such as `放松` / `释然` / `自洽`, A/B or 甲乙 variable explanation, or any line that mainly announces a reframe rather than letting a scene create it.
 
-Use at most one checker-driven repair loop and call the checker at most twice. A third checker call or post-second write invalidates the clean-generation run more severely than a weak article does. After the second checker call, stop repair work: do not edit, write, compare, or run another command. You may read `draft.md` once only to output it exactly. Output the current `draft.md` content exactly, even if errors remain. Do not produce an unpersisted hand-repaired final variant after the second checker. Soft style warnings are not permission to run a third repair.
+Use at most one checker-driven repair loop and call the checker at most twice. Checker findings are not tool failures; a nonzero checker exit with findings is an ordinary evaluation result. A third checker call, post-second write, fallback rewrite, or unpersisted final repair invalidates the clean-generation run more severely than a weak article does. After the second checker call, stop repair work: do not edit, write, compare, explain, invoke fallback, or run another command. You may read `draft.md` once only to output it exactly. Output the current `draft.md` content exactly, even if errors remain. Do not produce an unpersisted hand-repaired final variant after the second checker. Soft style warnings are not permission to run a third repair.
 
-If the file/checker tool flow itself fails, do not end the response with logs or process text. Manually apply the strict gate, rewrite once, and output the article only. The external controller will validate afterward.
+If the file/checker tool flow itself fails, do not end the response with logs or process text. Manually apply the strict gate, rewrite once, and output the article only. This fallback is only for execution failure such as file creation, overwrite, missing interpreter, or checker command not running. It is never for checker findings, hard-rule errors, or a failed style grade. The external controller will validate afterward.
 
 ## Prompt Material Handling
 
@@ -146,7 +148,7 @@ For formal standard diary, do not compress the article into 8-15 prose paragraph
 
 If the model tends to underwrite, aim the first candidate near 1000-1200 body Chinese characters and let repair remove a little. Under 900 body characters is not a concise standard diary success in formal testing; it usually becomes a length cue.
 
-After the first checker, repair by replacement rather than subtraction. If you delete a comment chain, unsupported game detail, city, dash sentence, or prompt-shaped line, add an equally concrete action, body consequence, social misfire, route, food, household object, or app surface before the second checker. Never call the second checker on a draft that became visibly shorter than the first candidate.
+After the first checker, repair by replacement rather than subtraction. If you delete a comment chain, unsupported game detail, city, dash sentence, or prompt-shaped line, add an equally concrete action, body consequence, social misfire, route, food, household object, or app surface before the second checker. If the checker reports line-grid errors, do a rhythm rewrite: reduce toward 55-70 body lines, merge many short rows into longer action/speech/thought lines, keep at least six 24+ character lines, and remove all-current-match game details. Never call the second checker on a draft that became visibly shorter than the first candidate or still has a visible short-line grid.
 
 For a standard diary, the scene slate must satisfy all four gates:
 

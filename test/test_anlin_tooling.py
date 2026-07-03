@@ -1770,6 +1770,19 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn("stylometric-ratio-protocol", minimal_pack)
         self.assertIn("Do not use corpus ratio targets as a pre-draft recipe.", skill)
 
+    def test_clean_generation_protocol_does_not_treat_checker_findings_as_tool_failure(self) -> None:
+        combined = "\n".join(
+            [
+                (ROOT / "SKILL.md").read_text(encoding="utf-8"),
+                (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8"),
+                (ROOT / "references" / "generation-modes.md").read_text(encoding="utf-8"),
+            ]
+        )
+        self.assertIn("Checker findings are not tool failures", combined)
+        self.assertIn("never applies to ordinary checker findings", combined)
+        self.assertIn("Do not edit, write, compare, explain, invoke fallback", combined)
+        self.assertIn("unpersisted manual repair invalidates the clean test", combined)
+
     def test_realistic_eval_prompts_do_not_carry_style_hints(self) -> None:
         data = json.loads(EVALS.read_text(encoding="utf-8"))
         self.assertEqual(data["version"], "2.2")
