@@ -1904,6 +1904,61 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertGreater(report["split_body_lines"], report["original_body_lines"])
             self.assertGreaterEqual(report["split_body_lines"], 24)
 
+    def test_split_long_lines_defaults_repair_clean_run_paragraph_compression(self) -> None:
+        long_lines = [
+            "电动车钥匙插进去的时候，我才发现后座的蛇皮袋没扎紧，中午剩的西红柿滚了一个到路边。我弯腰去捡的时候，脖子后面的汗蹭到了衣领，黏得人想把短袖脱了扔了。我爸在厨房窗户那喊，汤要热第二遍啊，我说好，汤洒到地砖上滑了我一下，差点把碗摔了。",
+            "我妈把筷子搁在碗沿上问我，最近天天往外面跑，到底忙些啥呢。我扒拉一口饭说，改那个纸头，投了几个地方。她说投哪的，我说都有，有几个流程在走在面试。其实流程在走的那两个，上周已经给我发那个不匹配的邮件了，我手机里的垃圾短信比她发的养生链接还多。",
+            "我爸突然插嘴说隔壁陈叔的儿子考选调试上了，说那小子毕业就一直在考，头两年都没有上班。我哦了一声，扒拉最后两口饭，嘴里还塞着饭就说吃饱了骑车回去，晚上还有个活要干。那个活其实是我约的帮忙搬东西的顺风车单，把一台洗衣机扛上三楼，能挣八十块钱。",
+            "骑到半路闻到烧烤味，有人往地上泼了一泼泔水，我的车胎碾过去的时候滑了一下，手把差点没握住，我骂了一句，裤子屁股那里蹭到了车座上的灰，怎么拍都拍不干净。前面路口的红绿灯在闪黄，这是去我租房那个方向的灯，好像和我小时候去小学那个路口的是一个。",
+            "小学的时候我总觉得那个路口特别大，过马路要跑着走，还要被我妈拽着书包带，她总怕我被车撞。现在走到这里的时候我发现，那条路窄得要并排走两辆电动车都费劲，连个人行道线都描得模模糊糊，被外卖小哥的车轮碾得只剩个印子。",
+            "到租房楼下的时候，顺风车单取消了，说那个人自己找了货拉拉，不用我去了。我把电动车停好，拔了钥匙算了算今天的账，汤喝了两碗，没花钱，白跑一趟少挣八十块，手机里又多了三条招人的推送，都是招推销的，底薪三千五，抽成另算。",
+            "上楼的时候楼道里的声控灯又坏了，我摸黑爬了三层楼，脚踢到了门口的快递盒，里面是我买的便宜洗面奶，寄过来盖子都漏了，蹭得盒子里全是白色的膏体。钥匙插锁孔的时候划了一下手，没出血，就是有点疼，疼得我把钥匙都掉地上了。",
+            "开门后我先坐在床边没开灯，窗外的路灯照进来，照到桌面的简历打印版，纸张边角都卷了，我拿起来看了一眼，上面写的会的东西其实也就那样，到了估计也用不上。突然想起我妈问我在忙啥的时候，我其实想说我在想下个月的房租怎么凑，在想这个月的电费还没交。",
+            "算了，先去洗个脸，明天再改一版简历吧，这次多写点会的东西，反正面试的时候也不会问，大家走个流程，就像那个闪黄灯的红绿灯一样，大家慢慢蹭过去，谁也别停，停了后面还有人按喇叭。",
+            "洗面奶挤多了，弄到眼睛里，疼得我差点把镜子砸了，用凉水冲了好一会才舒服点。我擦脸的时候想，明天再跑两个吧，不管能不能面上，先把流程走了，万一呢？虽然大概率也没啥用，不过总比在家坐着听他们聊别人家孩子强。",
+            "毛巾有点硬，蹭得脸疼，算了，睡了。",
+        ]
+        body = "\n".join(["# 日寄", "", *long_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SPLIT_LONG_LINES),
+                    str(draft),
+                    "--in-place",
+                    "--target-lines",
+                    "58",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(result.stdout)
+            self.assertGreaterEqual(report["split_body_lines"], 45)
+            self.assertLessEqual(report["split_body_lines"], 70)
+            checker = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(checker.stdout)
+            line_rules = [
+                "标准日寄行数缓冲异常",
+                "标准日寄长行过密",
+                "散文块压缩",
+            ]
+            self.assertFalse(
+                any(any(rule in item["rule"] for rule in line_rules) for item in findings),
+                [item["rule"] for item in findings],
+            )
+
     def test_checker_accepts_low_body_roughness_as_self_damage_signal(self) -> None:
         body = "\n".join(
             [

@@ -117,8 +117,8 @@ def main() -> int:
     parser.add_argument("draft", type=Path)
     parser.add_argument("--in-place", action="store_true")
     parser.add_argument("--target-lines", type=int, default=58)
-    parser.add_argument("--max-chars", type=int, default=34)
-    parser.add_argument("--min-chunk-chars", type=int, default=10)
+    parser.add_argument("--max-chars", type=int, default=24)
+    parser.add_argument("--min-chunk-chars", type=int, default=7)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
