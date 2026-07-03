@@ -18,6 +18,7 @@ BUILD_PROFILE = ROOT / "scripts" / "build_style_profile.py"
 CHECK_PROFILE = ROOT / "scripts" / "check_style_profile.py"
 CALIBRATE_PROFILE = ROOT / "scripts" / "calibrate_style_profile.py"
 MERGE_SHORT_LINES = ROOT / "scripts" / "merge_short_lines.py"
+SOFTEN_LINE_ENDINGS = ROOT / "scripts" / "soften_line_endings.py"
 CARDS = ROOT / "references" / "corpus-cards"
 STYLE_PROFILE = ROOT / "references" / "style-profile.json"
 BACKGROUND_FACT_CLASSES = ROOT / "references" / "background-fact-classes.json"
@@ -352,6 +353,30 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any(rule == "strict: 粗粝自毁信号不足" for rule in rules))
             self.assertTrue(any(rule == "strict: 段落发动机信号偏弱" for rule in rules))
             self.assertTrue(any(rule == "strict: 短行诗化表面" for rule in rules))
+
+    def test_checker_accepts_ugly_low_engine_terms_as_paragraph_engine(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "我觉得今天这个事有点丢人，",
+                "香菜味冲上来的时候差点吐出来，",
+                "后来发现自己又欠了全世界香菜制造商一笔债，",
+                *(["其实水龙头咳了一下，裤子湿了一片，因为我没躲过那一下，"] * 28),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings))
 
     def test_checker_strict_promotes_blind_eval_risks(self) -> None:
         body = "\n".join(
@@ -1718,6 +1743,46 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertGreaterEqual(report["lines_ge24"], 6)
             merged_text = draft.read_text(encoding="utf-8")
             self.assertTrue(merged_text.startswith("# 日寄"))
+
+    def test_soften_line_endings_repairs_over_closed_first_twenty_lines(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                *(["我坐着看杯子又亮了，屏幕又震了一下。"] * 30),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SOFTEN_LINE_ENDINGS),
+                    str(draft),
+                    "--in-place",
+                    "--target-ratio",
+                    "0.55",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(result.stdout)
+            self.assertLess(report["before_ratio"], 0.45)
+            self.assertGreaterEqual(report["after_ratio"], 0.55)
+            checker = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(checker.stdout)
+            self.assertFalse(any("行末逗号比例" in item["rule"] for item in findings))
 
     def test_checker_accepts_low_body_roughness_as_self_damage_signal(self) -> None:
         body = "\n".join(
