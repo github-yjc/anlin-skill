@@ -107,12 +107,14 @@ Each round creates a clean directory containing only:
 
 `run_blind_test.py` also creates a neutral `judge-view-XX` directory for each round. Run automated judges from `judge-view-XX`, not from `round-XX-impostor` or `round-XX-placebo`, because round directory names leak the controller's answer key. A valid judge directory contains only `prompt.txt` and `sample-*.txt`.
 
+For OpenCode automation, `--pure` disables external plugins but may still leave installed skills available. If any local writing/style skill is installed, run judges with an isolated `OPENCODE_CONFIG_DIR` or equivalent no-skill configuration. A judge stderr line such as `Skill "..."` invalidates that round even when the judge only read `sample-*.txt` afterwards.
+
 Judge rules:
 
 - The judge may read only `prompt.txt` and `sample-*.txt` in the neutral judge directory.
 - The judge prompt must be source-neutral: use `MOST_SOURCE_LIKE` / `LEAST_SOURCE_LIKE`, not author-name field labels that may trigger a style skill.
 - The judge must not read `mapping.json`, the original corpus, skill files, controller notes, previous verdicts, web results, or a directory path/name that exposes `impostor`, `placebo`, `generated`, or similar controller labels.
-- The judge must not invoke or rely on any style skill, author-specific skill, corpus memory, previous analysis, or source-name prior knowledge. For opencode judge automation, run `opencode run --pure --dir <neutral-judge-view-dir> <prompt>` from a directory containing only `prompt.txt` and `sample-*.txt`.
+- The judge must not invoke or rely on any style skill, author-specific skill, corpus memory, previous analysis, or source-name prior knowledge. For opencode judge automation, run `opencode run --pure --dir <neutral-judge-view-dir> <prompt>` from a directory containing only `prompt.txt` and `sample-*.txt`, and set a temporary no-skill `OPENCODE_CONFIG_DIR` when installed skills would otherwise auto-trigger.
 - Titles are retained and normalized for all samples; metadata is removed.
 - Generated drafts must include the title as article text on the first line. The preparation script normalizes `# 标题`, plain first-line titles, and simple emphasis wrappers to the same `# 标题` form so title formatting does not become a leakage cue.
 - Impostor rounds are length-matched by complete article length.
@@ -138,7 +140,7 @@ For serious evaluation, read `blind-judge-angles.md` and use multiple profiles p
 - emotion-reality: emotional masking, body/money/social texture, ordinary noise
 - dialogue-social: dialogue plausibility, social collision, awkward residue
 - phase-genre: date-zone, genre fit, title/ending, phase leakage
-- ai-impostor-risk: AI smoothness, imitator over-display, surface/deep mismatch
+- synthetic-risk: AI smoothness, imitator over-display, surface/deep mismatch
 - placebo-calibrated reader: at least two all-original rounds; must be allowed and encouraged to answer `NONE`
 
 Treat invalid format, timeout, or contaminated access as invalid, not as a pass or failure. Re-run invalid rounds or report them separately.

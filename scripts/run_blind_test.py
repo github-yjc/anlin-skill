@@ -29,7 +29,7 @@ JUDGE_PROFILES = [
     "emotion-reality",
     "dialogue-social",
     "phase-genre-title",
-    "ai-impostor-risk",
+    "synthetic-risk",
 ]
 
 
@@ -177,7 +177,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         "placebo_rounds": placebo_rounds,
         "profiles": profiles,
         "rounds": [asdict(item) for item in rounds],
-        "controller_rule": "Give each prompt.txt from judge_directory to an isolated pure judge. Do not run judges from the controller round directory, because those directory names may contain impostor/placebo labels and mapping.json. For opencode, run judges with --pure and the neutral judge_directory containing only prompt.txt and sample-*.txt. Judges may read only prompt.txt and sample-*.txt and may answer NONE. If a judge uses any style skill, author-specific skill, original corpus, mapping, controller notes, web search, prior analysis, or round-kind directory names, mark that round contaminated. Titles are retained and normalized; title fit is evidence but cannot be the sole basis. Count a stable accusation only when IDENTIFIED is not NONE, confidence is >=75, and at least three independent evidence families are named, including one non-title/non-topic family. Report raw and stable rates plus placebo false accusations. Treat placebo rounds as original-text calibration; if the same evidence families accuse originals, lower confidence in those cues before revising the generator.",
+        "controller_rule": "Give each prompt.txt from judge_directory to an isolated pure judge. Do not run judges from the controller round directory, because those directory names may contain impostor/placebo labels and mapping.json. For opencode, run judges with --pure and the neutral judge_directory containing only prompt.txt and sample-*.txt. If the runtime has any local writing/style skills installed, also run with an isolated OPENCODE_CONFIG_DIR or equivalent configuration that contains no skills; --pure alone may not disable skills. Judges may read only prompt.txt and sample-*.txt and may answer NONE. If a judge uses any style skill, author-specific skill, original corpus, mapping, controller notes, web search, prior analysis, or round-kind directory names, mark that round contaminated. Titles are retained and normalized; title fit is evidence but cannot be the sole basis. Count a stable accusation only when IDENTIFIED is not NONE, confidence is >=75, and at least three independent evidence families are named, including one non-title/non-topic family. Report raw and stable rates plus placebo false accusations. Treat placebo rounds as original-text calibration; if the same evidence families accuse originals, lower confidence in those cues before revising the generator.",
     }
     manifest_path = output_root / "controller-manifest.json"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")

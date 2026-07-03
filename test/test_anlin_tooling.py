@@ -476,9 +476,20 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("DETAILED_REASONS", prompt)
             self.assertIn("MOST_SOURCE_LIKE", prompt)
             self.assertNotIn("MOST_ANLIN_LIKE", prompt)
-            self.assertIn("Do not use style skills", prompt)
+            self.assertIn("Do not use outside", prompt)
             self.assertIn("SOURCE_COHESION_CHECK", prompt)
             self.assertIn("title", prompt.lower())
+            trigger_terms = (
+                "Anlin",
+                "style skill",
+                "author-specific",
+                "skill references",
+                "mapping.json",
+                "impostor",
+                "original corpus",
+            )
+            for term in trigger_terms:
+                self.assertNotIn(term, prompt)
             self.assertFalse((output_dir / "portable-corpus.md").exists())
             self.assertFalse((output_dir / "vocabulary-rules.md").exists())
 
@@ -690,6 +701,20 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(len(placebo_rounds), 2)
             self.assertTrue(all(item["generated_sample"] == "NONE" for item in placebo_rounds))
             self.assertIn("original-text calibration", manifest["controller_rule"])
+            self.assertIn("OPENCODE_CONFIG_DIR", manifest["controller_rule"])
+            trigger_terms = (
+                "Anlin",
+                "style skill",
+                "author-specific",
+                "skill references",
+                "mapping.json",
+                "impostor",
+                "original corpus",
+            )
+            for item in manifest["rounds"]:
+                prompt = Path(item["prompt"]).read_text(encoding="utf-8")
+                for term in trigger_terms:
+                    self.assertNotIn(term, prompt)
             for item in placebo_rounds:
                 round_dir = Path(item["directory"])
                 mapping = json.loads((round_dir / "mapping.json").read_text(encoding="utf-8"))
