@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -26,6 +27,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from check_anlin_violations import (  # noqa: E402
     ENGINE_SIGNAL_TERMS,
     HIGH_FREQUENCY_TERMS,
+    ROUGH_SELF_DAMAGE_PATTERNS,
+    ROUGH_SELF_DAMAGE_TERMS,
     chinese_len,
     split_title_and_content_lines,
 )
@@ -82,13 +85,15 @@ def normalize_before_final_check(draft: Path) -> None:
     )
 
 
-def preflight_before_first_check(draft: Path) -> bool:
+def preflight_before_check(draft: Path, call_number: int) -> bool:
     text = draft.read_text(encoding="utf-8")
     _, content_lines = split_title_and_content_lines(text.splitlines())
     body = "\n".join(line for line in content_lines if line.strip() and not line.strip().startswith("<!--"))
     body_chars = chinese_len(body)
     connectors = [term for term in HIGH_FREQUENCY_TERMS if term in body]
     engine_hits = [term for term in ENGINE_SIGNAL_TERMS if term in body]
+    rough_terms = [term for term in ROUGH_SELF_DAMAGE_TERMS if term in body]
+    rough_patterns = [pattern for pattern in ROUGH_SELF_DAMAGE_PATTERNS if re.search(pattern, body)]
     messages: list[str] = []
     if body_chars < 950:
         messages.append(f"body_chinese_chars={body_chars} < 950")
@@ -96,10 +101,12 @@ def preflight_before_first_check(draft: Path) -> bool:
         messages.append(f"connectors={connectors} < 5")
     if len(engine_hits) < 3:
         messages.append(f"engine_hits={engine_hits} < 3")
+    if not rough_terms and not rough_patterns:
+        messages.append("rough_self_damage=[]")
     if not messages:
         return False
     print(
-        "CLEAN_RUN_PREFLIGHT: draft is not ready for checker call 1/2; "
+        f"CLEAN_RUN_PREFLIGHT: draft is not ready for checker call {call_number}/2; "
         + "; ".join(messages)
         + ". Continue writing concrete action/body/social/off-axis material, then run this wrapper again. "
         "This preflight did not consume a checker call."
@@ -134,7 +141,7 @@ def main() -> int:
             "Do not run another checker or repair command. Read draft.md once and output it unchanged."
         )
         return 2
-    if args.draft_gate and calls == 0 and preflight_before_first_check(draft):
+    if args.draft_gate and preflight_before_check(draft, calls + 1):
         return 3
 
     call_number = calls + 1
