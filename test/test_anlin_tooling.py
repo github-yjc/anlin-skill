@@ -403,6 +403,55 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
 
+    def test_checker_accepts_v15_like_dirty_body_material_as_rough_signal(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "指甲里还藏着点黑泥，",
+                "蹭在白菜叶上我想了想，还是一块咽了，",
+                "火腿肠胀袋，",
+                *(["其实我觉得杯子有点脏，因为水龙头咳了一下喷到裤子上，"] * 30),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+
+    def test_checker_accepts_v15_like_body_material_as_paragraph_engine(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "胃从中午就开始疼，",
+                "肚子咕噜咕噜响，",
+                "指甲断了一小块，",
+                "指头上的油蹭到了墙上，",
+                *(["不过我还是点开手机看了一眼，因为楼下水龙头一直咳，"] * 30),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings))
+
     def test_checker_draft_gate_rejects_over_dense_long_line_prose(self) -> None:
         long_line = "其实我觉得杯子有点脏，因为水龙头咳了一下喷到裤子上，后来发现自己差点吐出来，还是没躲过那一下。"
         body = "\n".join(["# 日寄", "", *([long_line] * 42)])
