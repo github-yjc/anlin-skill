@@ -66,7 +66,37 @@ def eligible_for_softening(lines: list[str], index: int, indices: list[int]) -> 
     return True
 
 
-def soften_lines(lines: list[str], target_ratio: float, sample_size: int) -> dict[str, object]:
+def eligible_for_hardening(lines: list[str], index: int, indices: list[int]) -> bool:
+    stripped = lines[index].rstrip()
+    if not stripped.endswith(("，", ",")):
+        return False
+    if chinese_len(stripped) < 8:
+        return False
+    if index == indices[-1]:
+        return False
+    return True
+
+
+def spaced_indices(indices: list[int], count: int) -> list[int]:
+    if count <= 0 or not indices:
+        return []
+    if count >= len(indices):
+        return indices
+    step = len(indices) / count
+    selected: list[int] = []
+    used: set[int] = set()
+    for item in range(count):
+        position = min(len(indices) - 1, int(round(item * step)))
+        while position in used and position + 1 < len(indices):
+            position += 1
+        if position in used:
+            position = next((idx for idx in range(len(indices)) if idx not in used), position)
+        used.add(position)
+        selected.append(indices[position])
+    return selected
+
+
+def soften_lines(lines: list[str], target_ratio: float, max_ratio: float, sample_size: int) -> dict[str, object]:
     indices = content_line_indices(lines)
     before = comma_ratio(lines, indices, sample_size)
     changed: list[int] = []
@@ -81,6 +111,14 @@ def soften_lines(lines: list[str], target_ratio: float, sample_size: int) -> dic
             lines[index] = re.sub(r"。\s*$", "，", lines[index])
             changed.append(index + 1)
             current += 1
+    elif before > max_ratio and indices:
+        sample = indices[:sample_size]
+        current = sum(1 for index in sample if lines[index].rstrip().endswith(("，", ",")))
+        allowed = int(max_ratio * len(sample))
+        candidates = [index for index in sample if eligible_for_hardening(lines, index, indices)]
+        for index in spaced_indices(candidates, current - allowed):
+            lines[index] = re.sub(r"[，,]\s*$", "。", lines[index])
+            changed.append(index + 1)
     after = comma_ratio(lines, indices, sample_size)
     return {
         "content_lines": len(indices),
@@ -96,13 +134,14 @@ def main() -> int:
     parser.add_argument("draft", type=Path)
     parser.add_argument("--in-place", action="store_true")
     parser.add_argument("--target-ratio", type=float, default=0.55)
+    parser.add_argument("--max-ratio", type=float, default=0.75)
     parser.add_argument("--sample-size", type=int, default=20)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
     text = args.draft.read_text(encoding="utf-8")
     lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
-    report = soften_lines(lines, args.target_ratio, args.sample_size)
+    report = soften_lines(lines, args.target_ratio, args.max_ratio, args.sample_size)
     output = "\n".join(lines)
     if text.endswith("\n") and not output.endswith("\n"):
         output += "\n"

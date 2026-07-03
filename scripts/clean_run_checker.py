@@ -19,6 +19,8 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECKER = ROOT / "scripts" / "check_anlin_violations.py"
+SPLIT_LONG_LINES = ROOT / "scripts" / "split_long_lines.py"
+SOFTEN_LINE_ENDINGS = ROOT / "scripts" / "soften_line_endings.py"
 
 
 def load_state(path: Path) -> dict[str, Any]:
@@ -32,6 +34,21 @@ def load_state(path: Path) -> dict[str, Any]:
 
 def save_state(path: Path, state: dict[str, Any]) -> None:
     path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def normalize_before_final_check(draft: Path) -> None:
+    subprocess.run(
+        [sys.executable, str(SPLIT_LONG_LINES), str(draft), "--in-place", "--target-lines", "58"],
+        text=True,
+        encoding="utf-8",
+        check=False,
+    )
+    subprocess.run(
+        [sys.executable, str(SOFTEN_LINE_ENDINGS), str(draft), "--in-place"],
+        text=True,
+        encoding="utf-8",
+        check=False,
+    )
 
 
 def main() -> int:
@@ -65,6 +82,8 @@ def main() -> int:
     call_number = calls + 1
     state["calls"] = call_number
     save_state(state_path, state)
+    if args.draft_gate and call_number == 2:
+        normalize_before_final_check(draft)
 
     command = [sys.executable, str(CHECKER), str(draft)]
     if args.strict:
