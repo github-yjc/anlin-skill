@@ -59,7 +59,20 @@ FORBIDDEN_TERMS = [
     "我妈要是知道",
 ]
 
-COMMENT_CHAIN_TERMS = ["有人说", "评论说", "回复说", "热评"]
+COMMENT_CHAIN_TERMS = ["有人说", "有人回", "评论说", "回复说", "热评"]
+COMMENT_CHAIN_FORMULA_MARKERS = [
+    "有人说",
+    "有人回",
+    "又有人",
+    "评论说",
+    "回复说",
+    "热评",
+    "第一条",
+    "第二条",
+    "下面一排",
+    "下面三个人",
+    "一排人",
+]
 LOW_FREQUENCY_TERMS = ["然而", "因此", "可是", "也许", "或许", "认为", "意识到"]
 HIGH_FREQUENCY_TERMS = ["其实", "觉得", "发现", "好像", "不过", "突然", "于是", "因为", "所以"]
 NORMAL_ROUTINE_TERMS = ["关机", "关灯", "按时睡觉", "关机睡觉"]
@@ -274,10 +287,15 @@ STRICT_ERROR_RULE_NAMES: set[str] = set()
 DRAFT_GATE_RULE_PREFIXES = (
     "题面诊断型标题",
     "标准日寄完整文章篇幅偏短",
+    "标准日寄完整文章篇幅缓冲不足",
     "单主题词密度偏高",
     "题面链条过于完整",
+    "评论链公式化转述",
 )
 DRAFT_GATE_RULE_NAMES: set[str] = set()
+
+STANDARD_DIARY_FORMAL_MIN_CHARS = 650
+STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS = 700
 
 
 def clean_excerpt(line: str) -> str:
@@ -479,14 +497,24 @@ def check_standard_diary_length(findings: list[Finding], lines: list[str], text:
         return
     body = "\n".join(line for line in content_lines if not line.startswith("<!--"))
     chars = chinese_len(body)
-    if 0 < chars < 650:
+    if 0 < chars < STANDARD_DIARY_FORMAL_MIN_CHARS:
         findings.append(
             Finding(
                 "warning",
                 "标准日寄完整文章篇幅偏短",
                 0,
                 f"body_chinese_chars={chars}",
-                "完整文章盲评建议约650-1200字；扩展具体动作、对话、身体/金钱后果和非主题残留，或改为短体裁匹配评估。",
+                "完整文章盲评最低比较边界约650字；正式生成稿以700字以上为安全目标。扩展具体动作、对话、身体/金钱后果和非主题残留，或改为短体裁匹配评估。",
+            )
+        )
+    elif chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
+        findings.append(
+            Finding(
+                "warning",
+                "标准日寄完整文章篇幅缓冲不足",
+                0,
+                f"body_chinese_chars={chars}",
+                "650-699字容易在生成波动中变成长度识别点；正式生成稿应补到700字以上，优先增加行动链、社交误伤、身体/金钱后果或无用日常残留。",
             )
         )
 
@@ -542,6 +570,22 @@ def check_theme_density(findings: list[Finding], text: str) -> None:
                     0,
                     f"terms={matched_terms}, hits={hit_count}",
                     "盲评高风险：场景可能都在服务同一主轴。替换一段为由气味、身体、路线、无关社交或脏物件触发的旁逸分支。",
+                )
+            )
+
+
+def check_comment_chain_formula(findings: list[Finding], lines: list[str]) -> None:
+    for line_number, line in enumerate(lines, start=1):
+        marker_hits = sum(line.count(marker) for marker in COMMENT_CHAIN_FORMULA_MARKERS)
+        actor_hits = len(re.findall(r"有人(?:说|回|问|发|开始)", line))
+        if marker_hits >= 2 or actor_hits >= 2:
+            findings.append(
+                Finding(
+                    "warning",
+                    "评论链公式化转述",
+                    line_number,
+                    clean_excerpt(line),
+                    "群聊/评论入口不能写成多人接力摘要。改成一条具体消息、一个屏幕视觉概括、一次实际回复或一个由消息造成的动作后果。",
                 )
             )
 
@@ -883,6 +927,7 @@ def collect_findings(text: str) -> list[Finding]:
     lines = text.splitlines()
     findings: list[Finding] = []
     check_process_leakage(findings, lines)
+    check_comment_chain_formula(findings, lines)
     add_term_findings(findings, lines, COMMENT_CHAIN_TERMS, "warning", "可能的评论链", "Anlin 在线内容入口是'我看到了什么，我什么反应'。检查上下文：如果这是评论链格式（热评→回复→又有人说）→删除。如果是一般观察或转述（'有人说当年我差点就买了'）→可能可接受，但需人工确认。")
     add_term_findings(findings, lines, FORBIDDEN_TERMS, "warning", "禁用/高风险词", "替换为 Anlin 词汇域内的具体动作或感官描述。")
     add_term_findings(findings, lines, LOW_FREQUENCY_TERMS, "info", "低频词", "优先替换为不过/所以/可能/好像/觉得/发现。")

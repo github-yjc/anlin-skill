@@ -214,7 +214,8 @@ Ending leaves on an action that does not explain the handle.
 Before finalizing, remove the most "written" surface:
 
 - If most lines are 4-12 Chinese characters, merge several into rougher longer lines.
-- If the draft has fewer than 650 Chinese characters and is headed for full blind evaluation, expand with lived material rather than adjectives: one dialogue/social residue, one body or money action, and one unrelated daily detail.
+- If the draft has fewer than 700 body Chinese characters and is headed for full blind evaluation, expand with lived material rather than adjectives: one dialogue/social residue, one body or money action, and one unrelated daily detail. Do not aim for 650 exactly; that creates a length cue and often becomes a shortfall after editing.
+- If a group chat or comment scene stacks `有人说/有人回/又有人`, replace the chain with one concrete screen detail, one representative line plus reaction, or one practical consequence. Multi-person comment summaries read like a prompt checklist.
 - If the ending neatly echoes the opening, break the echo with a bodily action, social interruption, or plain unfinished fact.
 - If every object is symbolic, add one object that is just there.
 - If there is no dialogue or quoted social texture in a standard diary, add one plausible line from a real person or app surface.

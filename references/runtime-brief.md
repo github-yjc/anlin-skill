@@ -89,6 +89,15 @@ When a prompt item is high-signal, prefer displacement:
 - middle: let another person or an app surface mention it
 - ending: end on a consequence, not the prompt's emotional thesis
 
+For group chat, forum, or comment material, do not summarize a chain of speakers. A generated line like "有人回A。有人说B。又有人开始C" reads like prompt coverage and online-content formula. Use one of four lower-risk entries instead:
+
+- one concrete message or screenshot detail, followed by the narrator's action
+- a visual surface such as a row of numbers, avatars, red dots, or repeated file names
+- one practical consequence such as delayed reply, changed route, payment, food, body interruption, or a missed task
+- a vague crowd texture without multiple quoted positions
+
+If the checker reports `评论链公式化转述`, delete the chain. Do not repair it by adding more people or more comments.
+
 ## Deep Voice Gates
 
 Recent calibrated blind reviews caught drafts that fixed titles and length but still read like complete realist short stories. Avoid that failure before drafting.
@@ -173,7 +182,7 @@ Use concrete behavior instead of emotional labels. Use actions, numbers, bad sle
 - Do not let the title, first scene, and ending agree too neatly. At least one of them should be weaker, dirtier, or off-axis.
 - Do not use learned Anlin-like end buttons unless the scene forces them. `哦`, `算了`, `睡了`, sound effects, and dark-screen endings are high-risk when used as decorative closure.
 - Do not make every required prompt detail visible. A blind judge can identify prompt-compliant writing faster than subtle style drift.
-- For standard diary blind evaluation, revise before final output if the body is under roughly 650 Chinese characters. Expand with action, dialogue, body/material pressure, and useless daily residue rather than adjectives.
+- For standard diary blind evaluation, revise before final output if the body is under roughly 700 Chinese characters. 650 is only the lower comparison boundary; 650-699 is still a generated-draft risk zone. Expand with action, dialogue, body/material pressure, and useless daily residue rather than adjectives.
 - For standard diary, do not deliver a title that diagnoses the prompt. `日寄` is safer than `春招日寄`, `情人节日寄`, `婚礼日寄`, or any title built from the user's topic noun unless the corpus phase and body strongly justify it.
 - Before final output, inspect the first five content lines, the title, and the last three content lines together. If a judge could reconstruct the user's prompt from those surfaces, displace one of them.
 - If the last line is `哦`, `算了`, `睡了`, `关屏`, a dark-screen action, or a lone sound effect, keep it only when the preceding scene forces that exact consequence. Otherwise end on a less iconic unfinished action, reply, route, object, payment, or bodily interruption.

@@ -114,6 +114,7 @@ Judge rules:
 - Titles are retained and normalized for all samples; metadata is removed.
 - Generated drafts must include the title as article text on the first line. The preparation script normalizes `# 标题`, plain first-line titles, and simple emphasis wrappers to the same `# 标题` form so title formatting does not become a leakage cue.
 - Impostor rounds are length-matched by complete article length.
+- Generated standard-diary drafts should clear the safer 700+ body-character buffer before complete-article impostor rounds. 650-699 can be used only with an explicit short/matched protocol and should not support formal full-article claims.
 - The judge may evaluate title fit as one evidence family, but must not use title, filename, ordering, or length as the sole basis for identification.
 - Treat blind review as open-set verification, not forced attribution. A stable accusation requires `IDENTIFIED` not `NONE`, confidence at least 75, and at least three independent evidence families, including one family that is not title, topic, length, filename, or order.
 - If the strongest accusation depends mainly on title neatness, prompt-topic compliance, article length, file order, or one polished ending, record it as raw suspicion but not stable identification.

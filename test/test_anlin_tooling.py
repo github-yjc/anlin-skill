@@ -322,6 +322,68 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any("标准日寄完整文章篇幅偏短" in rule for rule in draft_gate_rules))
             self.assertTrue(any("题面诊断型标题" in rule for rule in draft_gate_rules))
 
+    def test_checker_draft_gate_rejects_near_minimum_article_length(self) -> None:
+        filler_line = "我把杯子拿去洗水龙头先咳了一下喷到裤子上"
+        body = "\n".join(["# 日寄", "", *([filler_line] * 33)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            strict_result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            draft_gate_result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(strict_result.returncode, 0, strict_result.stderr)
+            self.assertNotEqual(draft_gate_result.returncode, 0)
+            strict_findings = json.loads(strict_result.stdout)
+            draft_gate_findings = json.loads(draft_gate_result.stdout)
+            self.assertFalse(
+                any(
+                    item["rule"] == "strict: 标准日寄完整文章篇幅缓冲不足"
+                    for item in strict_findings
+                )
+            )
+            self.assertTrue(
+                any(
+                    item["rule"] == "strict: 标准日寄完整文章篇幅缓冲不足"
+                    for item in draft_gate_findings
+                )
+            )
+
+    def test_checker_draft_gate_rejects_formulaic_comment_chain(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "群里有人回四管。有人说他们公司体检费报销，有人说不报销。然后又有人开始算公积金基数。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(
+                any(item["rule"] == "strict: 评论链公式化转述" for item in findings)
+            )
+
     def test_checker_flags_quiet_explanation_and_weak_engine(self) -> None:
         body = "\n".join(
             [

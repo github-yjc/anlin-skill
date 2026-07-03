@@ -21,7 +21,7 @@ These apply to all normal generation:
 11. No learned ending button: `哦`, `算了`, `睡了`, a dark screen, or a lone sound effect cannot be used as default closure.
 12. No external-test scaffolding: formal evaluation drafts must be achievable from the skill and a realistic user prompt, not from extra controller hints, judge rubrics, or post-failure advice supplied to the generator.
 13. No diagnostic standard title: when writing a standard diary for blind evaluation, default to `日寄`; use a modified `X日寄` only if `X` is a local defensive handle rather than the user's topic noun.
-14. No underbuilt complete article: a standard diary submitted to full complete-article blind evaluation should normally land around 650-1200 Chinese characters. Below that, expand with lived actions and residues or mark the evaluation as short-genre only.
+14. No underbuilt complete article: a generated standard diary submitted to full complete-article blind evaluation should normally land at 700+ body Chinese characters. 650 is only the lower comparison boundary; 650-699 is a draft-risk buffer zone. Below 700, expand with lived actions and residues or mark the evaluation as short-genre only.
 15. No realist-short-story smoothing: standard diary cannot keep every scene inside one coherent emotional arc. It needs lateral branches, rough social misfires, crooked jokes, and unhelpful residue.
 16. No high-signal prompt coverage: formal standard-diary blind evaluation should visibly use at most two prompt pressure surfaces; discard or bury the rest.
 
@@ -51,7 +51,7 @@ Use most of these, but not all:
 Recommended budget:
 
 - 5-10 scene units depending on phase and length.
-- Usually 650-1200 Chinese characters for full blind evaluation; always include a title; if shorter, judge only against matched short originals.
+- Usually 700-1200 body Chinese characters for generated full blind evaluation; always include a title; if shorter, judge only against matched short originals or revise before submission.
 - 2-4 emotional registers: laugh, sting, tenderness, deflection, absurdity, analysis.
 - 1-2 central motifs at most.
 - 0-2 recurring characters. Use none if the material is body, solitude, or observation driven.
