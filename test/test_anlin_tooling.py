@@ -17,6 +17,7 @@ BUILD_CARDS = ROOT / "scripts" / "build_corpus_cards.py"
 BUILD_PROFILE = ROOT / "scripts" / "build_style_profile.py"
 CHECK_PROFILE = ROOT / "scripts" / "check_style_profile.py"
 CALIBRATE_PROFILE = ROOT / "scripts" / "calibrate_style_profile.py"
+MERGE_SHORT_LINES = ROOT / "scripts" / "merge_short_lines.py"
 CARDS = ROOT / "references" / "corpus-cards"
 STYLE_PROFILE = ROOT / "references" / "style-profile.json"
 BACKGROUND_FACT_CLASSES = ROOT / "references" / "background-fact-classes.json"
@@ -1593,7 +1594,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(profile["corpus_file_count"], 38)
             self.assertEqual(len(profile["documents"]), 38)
             self.assertEqual(profile["profile_kind"], "corpus_prior_predictive_intervals")
-            self.assertEqual(profile["version"], "1.3")
+            self.assertEqual(profile["version"], "1.4")
             self.assertIn("body_chars", profile["value_summary"])
             self.assertIn("ai_binary_reframe", profile["count_summary"])
             self.assertIn("unique_3gram_ratio", profile["value_summary"])
@@ -1684,6 +1685,61 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("first_hit_lines", draft_gate_report["cognitive_audit"])
             self.assertIn("independent_drift_family_count", draft_gate_report["summary"])
             self.assertIn("profile_scope", draft_gate_report)
+
+    def test_merge_short_lines_reduces_generated_line_grid(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                *(["我坐着看杯子又亮了，", "屏幕又震了一下。", "我没动。"] * 40),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(MERGE_SHORT_LINES),
+                    str(draft),
+                    "--in-place",
+                    "--target-lines",
+                    "65",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(result.stdout)
+            self.assertLessEqual(report["merged_body_lines"], 65)
+            self.assertGreaterEqual(report["lines_ge24"], 6)
+            merged_text = draft.read_text(encoding="utf-8")
+            self.assertTrue(merged_text.startswith("# 日寄"))
+
+    def test_checker_accepts_low_body_roughness_as_self_damage_signal(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "牙齿塞了一根韭菜。",
+                *(["其实我觉得杯子有点脏，洗的时候水龙头咳了一下喷到裤子上，"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
 
     def test_style_profile_uses_phase_genre_stratum_when_requested(self) -> None:
         draft = next(iter(sorted(CORPUS.glob("Anlin_20220404.md"))))

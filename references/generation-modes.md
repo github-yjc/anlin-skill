@@ -221,7 +221,7 @@ For formal standard diary evaluation:
 
 Do not keep repairing connector coverage, coarse self-damage, paragraph engine, comma ratio, breathing-point hints, scene count, metadata, or line-rhythm warnings until the answer disappears. Those are controller diagnostics, not permission to stall. If a blocking issue remains after one rewrite, still output the cleanest pure article and let the external validation fail it; a visible process log is worse than a weak article for clean generation.
 
-If the first checker reports `标准日寄行数缓冲异常`, `标准日寄长行缓冲不足`, `标准日寄短行网格`, `节奏过度均匀`, or `断裂过碎`, treat it as one rhythm rewrite, not a small patch. Merge adjacent rows until the draft is around 55-70 content lines, add at least six rough long action/speech lines, keep the body above 950 characters, and delete current-match game/report details. Do this before the second checker; never after it.
+If the first checker reports `标准日寄行数缓冲异常`, `标准日寄长行缓冲不足`, `标准日寄短行网格`, `节奏过度均匀`, or `断裂过碎`, treat it as one rhythm rewrite, not a small patch. Run `scripts/merge_short_lines.py draft.md --in-place --target-lines 68` if the file path is local, then merge adjacent rows until the draft is around 55-70 content lines, add at least six rough long action/speech lines, keep the body above 950 characters, and delete current-match game/report details. Do this before the second checker; never after it.
 
 ## Title Selection
 

@@ -44,7 +44,7 @@ SUGGESTIONS = {
 
 TOPIC_SENSITIVE_SOFT_ONLY_FAMILIES = {"structure", "texture", "cognitive_mechanism", "title"}
 YELLOW_REVIEW_FAMILY_THRESHOLD = 5
-SOFT_REVISE_FAMILY_THRESHOLD = 12
+SOFT_REVISE_FAMILY_THRESHOLD = 11
 COGNITIVE_CORE_KEYS = [
     "concrete_entry",
     "crooked_interpretation",

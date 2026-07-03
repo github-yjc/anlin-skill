@@ -1,5 +1,5 @@
 {
-  "version": "1.3",
+  "version": "1.4",
   "profile_kind": "corpus_prior_predictive_intervals",
   "corpus_dir": "C:\\Users\\34025\\Desktop\\Anlin",
   "expected_corpus_count": 38,
@@ -1997,7 +1997,7 @@
         "cognitive_abstract_emotion_label": 0,
         "ai_binary_reframe": 0,
         "ai_explainer": 0,
-        "ordered_explainer": 1,
+        "ordered_explainer": 0,
         "therapeutic_humanizer": 0,
         "literary_dash_caption": 0
       },
@@ -2176,7 +2176,7 @@
         "cognitive_abstract_emotion_label_per_1k": 0.0,
         "ai_binary_reframe_per_1k": 0.0,
         "ai_explainer_per_1k": 0.0,
-        "ordered_explainer_per_1k": 1.5649452269170578,
+        "ordered_explainer_per_1k": 0.0,
         "therapeutic_humanizer_per_1k": 0.0,
         "literary_dash_caption_per_1k": 0.0
       }
@@ -4436,7 +4436,7 @@
         "cognitive_abstract_emotion_label": 1,
         "ai_binary_reframe": 0,
         "ai_explainer": 0,
-        "ordered_explainer": 1,
+        "ordered_explainer": 0,
         "therapeutic_humanizer": 0,
         "literary_dash_caption": 0
       },
@@ -4615,7 +4615,7 @@
         "cognitive_abstract_emotion_label_per_1k": 0.9950248756218905,
         "ai_binary_reframe_per_1k": 0.0,
         "ai_explainer_per_1k": 0.0,
-        "ordered_explainer_per_1k": 0.9950248756218905,
+        "ordered_explainer_per_1k": 0.0,
         "therapeutic_humanizer_per_1k": 0.0,
         "literary_dash_caption_per_1k": 0.0
       }
@@ -5520,7 +5520,7 @@
         "cognitive_abstract_emotion_label": 0,
         "ai_binary_reframe": 1,
         "ai_explainer": 0,
-        "ordered_explainer": 2,
+        "ordered_explainer": 0,
         "therapeutic_humanizer": 0,
         "literary_dash_caption": 0
       },
@@ -5699,7 +5699,7 @@
         "cognitive_abstract_emotion_label_per_1k": 0.0,
         "ai_binary_reframe_per_1k": 1.0030090270812437,
         "ai_explainer_per_1k": 0.0,
-        "ordered_explainer_per_1k": 2.0060180541624875,
+        "ordered_explainer_per_1k": 0.0,
         "therapeutic_humanizer_per_1k": 0.0,
         "literary_dash_caption_per_1k": 0.0
       }
@@ -6333,7 +6333,7 @@
         "cognitive_abstract_emotion_label": 0,
         "ai_binary_reframe": 0,
         "ai_explainer": 0,
-        "ordered_explainer": 1,
+        "ordered_explainer": 0,
         "therapeutic_humanizer": 0,
         "literary_dash_caption": 0
       },
@@ -6512,7 +6512,7 @@
         "cognitive_abstract_emotion_label_per_1k": 0.0,
         "ai_binary_reframe_per_1k": 0.0,
         "ai_explainer_per_1k": 0.0,
-        "ordered_explainer_per_1k": 4.25531914893617,
+        "ordered_explainer_per_1k": 0.0,
         "therapeutic_humanizer_per_1k": 0.0,
         "literary_dash_caption_per_1k": 0.0
       }
@@ -6604,7 +6604,7 @@
         "cognitive_abstract_emotion_label": 7,
         "ai_binary_reframe": 0,
         "ai_explainer": 0,
-        "ordered_explainer": 1,
+        "ordered_explainer": 0,
         "therapeutic_humanizer": 0,
         "literary_dash_caption": 0
       },
@@ -6783,7 +6783,7 @@
         "cognitive_abstract_emotion_label_per_1k": 9.446693657219974,
         "ai_binary_reframe_per_1k": 0.0,
         "ai_explainer_per_1k": 0.0,
-        "ordered_explainer_per_1k": 1.3495276653171389,
+        "ordered_explainer_per_1k": 0.0,
         "therapeutic_humanizer_per_1k": 0.0,
         "literary_dash_caption_per_1k": 0.0
       }
@@ -7688,7 +7688,7 @@
         "cognitive_abstract_emotion_label": 1,
         "ai_binary_reframe": 0,
         "ai_explainer": 0,
-        "ordered_explainer": 1,
+        "ordered_explainer": 0,
         "therapeutic_humanizer": 0,
         "literary_dash_caption": 0
       },
@@ -7867,7 +7867,7 @@
         "cognitive_abstract_emotion_label_per_1k": 1.3123359580052494,
         "ai_binary_reframe_per_1k": 0.0,
         "ai_explainer_per_1k": 0.0,
-        "ordered_explainer_per_1k": 1.3123359580052494,
+        "ordered_explainer_per_1k": 0.0,
         "therapeutic_humanizer_per_1k": 0.0,
         "literary_dash_caption_per_1k": 0.0
       }
@@ -8501,7 +8501,7 @@
         "cognitive_abstract_emotion_label": 1,
         "ai_binary_reframe": 0,
         "ai_explainer": 1,
-        "ordered_explainer": 3,
+        "ordered_explainer": 0,
         "therapeutic_humanizer": 0,
         "literary_dash_caption": 0
       },
@@ -8680,7 +8680,7 @@
         "cognitive_abstract_emotion_label_per_1k": 0.970873786407767,
         "ai_binary_reframe_per_1k": 0.0,
         "ai_explainer_per_1k": 0.970873786407767,
-        "ordered_explainer_per_1k": 2.912621359223301,
+        "ordered_explainer_per_1k": 0.0,
         "therapeutic_humanizer_per_1k": 0.0,
         "literary_dash_caption_per_1k": 0.0
       }
@@ -8772,7 +8772,7 @@
         "cognitive_abstract_emotion_label": 0,
         "ai_binary_reframe": 0,
         "ai_explainer": 0,
-        "ordered_explainer": 1,
+        "ordered_explainer": 0,
         "therapeutic_humanizer": 0,
         "literary_dash_caption": 0
       },
@@ -8951,7 +8951,7 @@
         "cognitive_abstract_emotion_label_per_1k": 0.0,
         "ai_binary_reframe_per_1k": 0.0,
         "ai_explainer_per_1k": 0.0,
-        "ordered_explainer_per_1k": 0.9259259259259259,
+        "ordered_explainer_per_1k": 0.0,
         "therapeutic_humanizer_per_1k": 0.0,
         "literary_dash_caption_per_1k": 0.0
       }
@@ -9043,7 +9043,7 @@
         "cognitive_abstract_emotion_label": 0,
         "ai_binary_reframe": 2,
         "ai_explainer": 0,
-        "ordered_explainer": 2,
+        "ordered_explainer": 0,
         "therapeutic_humanizer": 0,
         "literary_dash_caption": 0
       },
@@ -9222,7 +9222,7 @@
         "cognitive_abstract_emotion_label_per_1k": 0.0,
         "ai_binary_reframe_per_1k": 1.9665683382497543,
         "ai_explainer_per_1k": 0.0,
-        "ordered_explainer_per_1k": 1.9665683382497543,
+        "ordered_explainer_per_1k": 0.0,
         "therapeutic_humanizer_per_1k": 0.0,
         "literary_dash_caption_per_1k": 0.0
       }
@@ -9585,7 +9585,7 @@
         "cognitive_abstract_emotion_label": 0,
         "ai_binary_reframe": 0,
         "ai_explainer": 0,
-        "ordered_explainer": 1,
+        "ordered_explainer": 0,
         "therapeutic_humanizer": 0,
         "literary_dash_caption": 0
       },
@@ -9764,7 +9764,7 @@
         "cognitive_abstract_emotion_label_per_1k": 0.0,
         "ai_binary_reframe_per_1k": 0.0,
         "ai_explainer_per_1k": 0.0,
-        "ordered_explainer_per_1k": 0.9560229445506692,
+        "ordered_explainer_per_1k": 0.0,
         "therapeutic_humanizer_per_1k": 0.0,
         "literary_dash_caption_per_1k": 0.0
       }
@@ -10923,10 +10923,10 @@
       "q05": 0.0,
       "q10": 0.0,
       "median": 0.0,
-      "q90": 1.9784032530235747,
-      "q95": 2.650434870550161,
-      "max": 4.25531914893617,
-      "mean": 0.5793509817657956,
+      "q90": 0.0,
+      "q95": 0.1750291715285864,
+      "max": 2.6041666666666665,
+      "mean": 0.09923757395238386,
       "mad": 0.0
     },
     "paragraph_blocks": {
@@ -11872,10 +11872,10 @@
       "hard_generated": false
     },
     "ordered_explainer": {
-      "successes": 16,
+      "successes": 2,
       "trials": 33197,
-      "alpha": 17,
-      "beta": 33182,
+      "alpha": 3,
+      "beta": 33196,
       "family": "ai_slop",
       "denominator": "body_chars",
       "hard_generated": true
@@ -12814,10 +12814,10 @@
             "q05": 0.0,
             "q10": 0.0,
             "median": 0.0,
-            "q90": 1.7413743578152308,
-            "q95": 2.4247220829154124,
-            "max": 4.25531914893617,
-            "mean": 0.5163652881905678,
+            "q90": 0.0,
+            "q95": 0.8168028004667435,
+            "max": 2.6041666666666665,
+            "mean": 0.13966769667372544,
             "mad": 0.0
           },
           "paragraph_blocks": {
@@ -13763,10 +13763,10 @@
             "hard_generated": false
           },
           "ordered_explainer": {
-            "successes": 8,
+            "successes": 2,
             "trials": 19751,
-            "alpha": 9,
-            "beta": 19744,
+            "alpha": 3,
+            "beta": 19750,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -14679,10 +14679,10 @@
             "q05": 0.0,
             "q10": 0.0,
             "median": 0.0,
-            "q90": 1.0498687664041995,
-            "q95": 1.1811023622047243,
-            "max": 1.3123359580052494,
-            "mean": 0.4374453193350831,
+            "q90": 0.0,
+            "q95": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
             "mad": 0.0
           },
           "paragraph_blocks": {
@@ -15628,10 +15628,10 @@
             "hard_generated": false
           },
           "ordered_explainer": {
-            "successes": 1,
+            "successes": 0,
             "trials": 3441,
-            "alpha": 2,
-            "beta": 3441,
+            "alpha": 1,
+            "beta": 3442,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -16542,14 +16542,14 @@
           },
           "ordered_explainer_per_1k": {
             "min": 0.0,
-            "q05": 0.13888888888888892,
-            "q10": 0.27777777777777785,
-            "median": 1.44624713208784,
-            "q90": 2.6288054529312372,
-            "q95": 2.7707134060772685,
-            "max": 2.912621359223301,
-            "mean": 1.4512789058497453,
-            "mad": 0.9832841691248771
+            "q05": 0.0,
+            "q10": 0.0,
+            "median": 0.0,
+            "q90": 0.0,
+            "q95": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
+            "mad": 0.0
           },
           "paragraph_blocks": {
             "min": 1.0,
@@ -17494,10 +17494,10 @@
             "hard_generated": false
           },
           "ordered_explainer": {
-            "successes": 6,
+            "successes": 0,
             "trials": 4793,
-            "alpha": 7,
-            "beta": 4788,
+            "alpha": 1,
+            "beta": 4794,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -18410,10 +18410,10 @@
             "q05": 0.0,
             "q10": 0.0,
             "median": 0.0,
-            "q90": 0.7648183556405354,
-            "q95": 0.8604206500956022,
-            "max": 0.9560229445506692,
-            "mean": 0.3186743148502231,
+            "q90": 0.0,
+            "q95": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
             "mad": 0.0
           },
           "paragraph_blocks": {
@@ -19359,10 +19359,10 @@
             "hard_generated": false
           },
           "ordered_explainer": {
-            "successes": 1,
+            "successes": 0,
             "trials": 3385,
-            "alpha": 2,
-            "beta": 3385,
+            "alpha": 1,
+            "beta": 3386,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -22134,14 +22134,14 @@
             "mad": 0.0
           },
           "ordered_explainer_per_1k": {
-            "min": 0.9259259259259259,
-            "q05": 0.9259259259259259,
-            "q10": 0.9259259259259259,
-            "median": 0.9259259259259259,
-            "q90": 0.9259259259259259,
-            "q95": 0.9259259259259259,
-            "max": 0.9259259259259259,
-            "mean": 0.9259259259259259,
+            "min": 0.0,
+            "q05": 0.0,
+            "q10": 0.0,
+            "median": 0.0,
+            "q90": 0.0,
+            "q95": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
             "mad": 0.0
           },
           "paragraph_blocks": {
@@ -23087,10 +23087,10 @@
             "hard_generated": false
           },
           "ordered_explainer": {
-            "successes": 1,
+            "successes": 0,
             "trials": 1080,
-            "alpha": 2,
-            "beta": 1080,
+            "alpha": 1,
+            "beta": 1081,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -23999,14 +23999,14 @@
           },
           "ordered_explainer_per_1k": {
             "min": 0.0,
-            "q05": 0.2127659574468085,
-            "q10": 0.425531914893617,
-            "median": 2.127659574468085,
-            "q90": 3.8297872340425534,
-            "q95": 4.042553191489361,
-            "max": 4.25531914893617,
-            "mean": 2.127659574468085,
-            "mad": 2.127659574468085
+            "q05": 0.0,
+            "q10": 0.0,
+            "median": 0.0,
+            "q90": 0.0,
+            "q95": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
+            "mad": 0.0
           },
           "paragraph_blocks": {
             "min": 1.0,
@@ -24951,10 +24951,10 @@
             "hard_generated": false
           },
           "ordered_explainer": {
-            "successes": 1,
+            "successes": 0,
             "trials": 1901,
-            "alpha": 2,
-            "beta": 1901,
+            "alpha": 1,
+            "beta": 1902,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -25898,10 +25898,10 @@
             "q05": 0.0,
             "q10": 0.0,
             "median": 0.0,
-            "q90": 1.846081404849945,
-            "q95": 2.215370068538949,
-            "max": 2.912621359223301,
-            "mean": 0.4951203597717099,
+            "q90": 0.0,
+            "q95": 0.4084014002333697,
+            "max": 2.6041666666666665,
+            "mean": 0.11091258265266432,
             "mad": 0.0
           },
           "paragraph_blocks": {
@@ -26847,10 +26847,10 @@
             "hard_generated": false
           },
           "ordered_explainer": {
-            "successes": 14,
+            "successes": 2,
             "trials": 28284,
-            "alpha": 15,
-            "beta": 28271,
+            "alpha": 3,
+            "beta": 28283,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -29622,14 +29622,14 @@
             "mad": 0.0
           },
           "ordered_explainer_per_1k": {
-            "min": 4.25531914893617,
-            "q05": 4.25531914893617,
-            "q10": 4.25531914893617,
-            "median": 4.25531914893617,
-            "q90": 4.25531914893617,
-            "q95": 4.25531914893617,
-            "max": 4.25531914893617,
-            "mean": 4.25531914893617,
+            "min": 0.0,
+            "q05": 0.0,
+            "q10": 0.0,
+            "median": 0.0,
+            "q90": 0.0,
+            "q95": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
             "mad": 0.0
           },
           "paragraph_blocks": {
@@ -30575,10 +30575,10 @@
             "hard_generated": false
           },
           "ordered_explainer": {
-            "successes": 1,
+            "successes": 0,
             "trials": 235,
-            "alpha": 2,
-            "beta": 235,
+            "alpha": 1,
+            "beta": 236,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -31514,10 +31514,10 @@
             "q05": 0.0,
             "q10": 0.0,
             "median": 0.0,
-            "q90": 1.4572364461170983,
-            "q95": 1.89574984735113,
+            "q90": 0.0,
+            "q95": 0.8751458576429403,
             "max": 2.6041666666666665,
-            "mean": 0.37255937046958315,
+            "mean": 0.14503953116117643,
             "mad": 0.0
           },
           "paragraph_blocks": {
@@ -32463,10 +32463,10 @@
             "hard_generated": false
           },
           "ordered_explainer": {
-            "successes": 7,
+            "successes": 2,
             "trials": 19516,
-            "alpha": 8,
-            "beta": 19510,
+            "alpha": 3,
+            "beta": 19515,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -33375,14 +33375,14 @@
           },
           "ordered_explainer_per_1k": {
             "min": 0.0,
-            "q05": 0.06561679790026247,
-            "q10": 0.13123359580052493,
-            "median": 0.6561679790026247,
-            "q90": 1.1811023622047245,
-            "q95": 1.246719160104987,
-            "max": 1.3123359580052494,
-            "mean": 0.6561679790026247,
-            "mad": 0.6561679790026247
+            "q05": 0.0,
+            "q10": 0.0,
+            "median": 0.0,
+            "q90": 0.0,
+            "q95": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
+            "mad": 0.0
           },
           "paragraph_blocks": {
             "min": 1.0,
@@ -34327,10 +34327,10 @@
             "hard_generated": false
           },
           "ordered_explainer": {
-            "successes": 1,
+            "successes": 0,
             "trials": 1509,
-            "alpha": 2,
-            "beta": 1509,
+            "alpha": 1,
+            "beta": 1510,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -37100,14 +37100,14 @@
             "mad": 0.0
           },
           "ordered_explainer_per_1k": {
-            "min": 0.9259259259259259,
-            "q05": 0.9259259259259259,
-            "q10": 0.9259259259259259,
-            "median": 0.9259259259259259,
-            "q90": 0.9259259259259259,
-            "q95": 0.9259259259259259,
-            "max": 0.9259259259259259,
-            "mean": 0.9259259259259259,
+            "min": 0.0,
+            "q05": 0.0,
+            "q10": 0.0,
+            "median": 0.0,
+            "q90": 0.0,
+            "q95": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
             "mad": 0.0
           },
           "paragraph_blocks": {
@@ -38053,10 +38053,10 @@
             "hard_generated": false
           },
           "ordered_explainer": {
-            "successes": 1,
+            "successes": 0,
             "trials": 1080,
-            "alpha": 2,
-            "beta": 1080,
+            "alpha": 1,
+            "beta": 1081,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -40827,15 +40827,15 @@
             "mad": 0.0
           },
           "ordered_explainer_per_1k": {
-            "min": 1.9665683382497543,
-            "q05": 2.0138709892984314,
-            "q10": 2.061173640347109,
-            "median": 2.4395948487365278,
-            "q90": 2.8180160571259463,
-            "q95": 2.8653187081746236,
-            "max": 2.912621359223301,
-            "mean": 2.4395948487365278,
-            "mad": 0.47302651048677335
+            "min": 0.0,
+            "q05": 0.0,
+            "q10": 0.0,
+            "median": 0.0,
+            "q90": 0.0,
+            "q95": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
+            "mad": 0.0
           },
           "paragraph_blocks": {
             "min": 1.0,
@@ -41780,10 +41780,10 @@
             "hard_generated": false
           },
           "ordered_explainer": {
-            "successes": 5,
+            "successes": 0,
             "trials": 2047,
-            "alpha": 6,
-            "beta": 2043,
+            "alpha": 1,
+            "beta": 2048,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -42696,10 +42696,10 @@
             "q05": 0.0,
             "q10": 0.0,
             "median": 0.0,
-            "q90": 0.7648183556405354,
-            "q95": 0.8604206500956022,
-            "max": 0.9560229445506692,
-            "mean": 0.3186743148502231,
+            "q90": 0.0,
+            "q95": 0.0,
+            "max": 0.0,
+            "mean": 0.0,
             "mad": 0.0
           },
           "paragraph_blocks": {
@@ -43645,10 +43645,10 @@
             "hard_generated": false
           },
           "ordered_explainer": {
-            "successes": 1,
+            "successes": 0,
             "trials": 3385,
-            "alpha": 2,
-            "beta": 3385,
+            "alpha": 1,
+            "beta": 3386,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
