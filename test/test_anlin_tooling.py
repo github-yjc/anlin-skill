@@ -17,6 +17,7 @@ BUILD_CARDS = ROOT / "scripts" / "build_corpus_cards.py"
 BUILD_PROFILE = ROOT / "scripts" / "build_style_profile.py"
 CHECK_PROFILE = ROOT / "scripts" / "check_style_profile.py"
 CALIBRATE_PROFILE = ROOT / "scripts" / "calibrate_style_profile.py"
+CLEAN_RUN_CHECKER = ROOT / "scripts" / "clean_run_checker.py"
 MERGE_SHORT_LINES = ROOT / "scripts" / "merge_short_lines.py"
 SOFTEN_LINE_ENDINGS = ROOT / "scripts" / "soften_line_endings.py"
 SPLIT_LONG_LINES = ROOT / "scripts" / "split_long_lines.py"
@@ -354,6 +355,26 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any(rule == "strict: 粗粝自毁信号不足" for rule in rules))
             self.assertTrue(any(rule == "strict: 段落发动机信号偏弱" for rule in rules))
             self.assertTrue(any(rule == "strict: 短行诗化表面" for rule in rules))
+
+    def test_clean_run_checker_enforces_two_call_limit(self) -> None:
+        body = "\n".join(["# 日寄", "", *(["杯子脏了。"] * 180)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            first = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            third = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", first.stdout)
+            self.assertIn("CLEAN_RUN_STOP: this was checker call 2/2", second.stdout)
+            self.assertEqual(third.returncode, 2)
+            self.assertIn("CLEAN_RUN_STOP: checker call limit already reached", third.stdout)
 
     def test_checker_accepts_ugly_low_engine_terms_as_paragraph_engine(self) -> None:
         body = "\n".join(
