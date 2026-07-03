@@ -17,7 +17,7 @@ from typing import Any
 from build_style_profile import build_profile, extract_document
 
 
-CONTINUOUS_FEATURES = {
+DEFAULT_CONTINUOUS_FEATURES = {
     "body_chars": "length",
     "body_lines": "length",
     "paragraph_blocks": "structure",
@@ -33,11 +33,24 @@ SUGGESTIONS = {
     "structure": "Repair structure by changing scene movement, not by adding a decorative paragraph.",
     "title": "Weaken diagnostic or clever title behavior; for standard blind evaluation, plain 日寄 is often safer.",
     "line_rhythm": "Change rhythm through action, speech, body interruption, or thought turns; do not create a visible short-line grid.",
+    "ngram_texture": "Inspect repeated local templates and n-gram reuse; replace repeated scaffolds with different actions, objects, or social turns.",
     "punctuation": "Repair punctuation drift through natural spoken/thought continuation, not punctuation sprinkling.",
     "connectors": "Remove explanatory glue and let scenes jump by object, body, app surface, or another person's line.",
+    "texture": "Adjust lived texture through necessary body, screen, money, route, object, or social consequence; do not add decorative tags.",
+    "cognitive_mechanism": "Repair thinking movement inside existing scenes: concrete entry, crooked read, reality puncture, defensive recovery, or retreat.",
     "ai_slop": "Replace the explanatory scaffold with the physical fact, body consequence, app surface, money action, or plain dialogue.",
     "other": "Inspect this signal manually against placebo originals before treating it as decisive.",
 }
+
+TOPIC_SENSITIVE_SOFT_ONLY_FAMILIES = {"structure", "texture", "cognitive_mechanism", "title"}
+YELLOW_REVIEW_FAMILY_THRESHOLD = 5
+SOFT_REVISE_FAMILY_THRESHOLD = 10
+
+
+def calibrate_level_for_family(family: str, level: str) -> str:
+    if level == "red" and family in TOPIC_SENSITIVE_SOFT_ONLY_FAMILIES:
+        return "yellow"
+    return level
 
 
 @dataclass(frozen=True)
@@ -49,6 +62,7 @@ class ProfileFinding:
     expected: str
     rule: str
     suggestion: str
+    level: str = "yellow"
 
 
 def read_json(path: Path) -> dict[str, Any]:
@@ -101,7 +115,8 @@ def robust_z(observed: float, summary: dict[str, float]) -> float:
 def continuous_findings(document: Any, profile: dict[str, Any], include_info: bool) -> list[ProfileFinding]:
     findings: list[ProfileFinding] = []
     summaries = profile.get("value_summary", {})
-    for metric, family in CONTINUOUS_FEATURES.items():
+    value_families = profile.get("value_families") or DEFAULT_CONTINUOUS_FEATURES
+    for metric, family in sorted(value_families.items()):
         if metric not in summaries:
             continue
         observed = float(document.values.get(metric, 0.0))
@@ -112,14 +127,26 @@ def continuous_findings(document: Any, profile: dict[str, Any], include_info: bo
         q95 = float(summary.get("q95", 0.0))
         severity = ""
         rule = ""
-        if observed < q05 or observed > q95:
+        level = "yellow"
+        z_value = robust_z(observed, summary)
+        min_value = float(summary.get("min", q05))
+        max_value = float(summary.get("max", q95))
+        if observed < min_value or observed > max_value or abs(z_value) >= 7.0:
             severity = "warning"
+            level = "red"
+            if observed < min_value or observed > max_value:
+                rule = "outside corpus observed min-max"
+            else:
+                rule = "robust z-score strong drift"
+        elif observed < q05 or observed > q95:
+            severity = "warning"
+            level = "yellow"
             rule = "outside corpus q05-q95"
         elif include_info and (observed < q10 or observed > q90):
             severity = "info"
             rule = "outside corpus q10-q90"
         if severity:
-            z_value = robust_z(observed, summary)
+            level = calibrate_level_for_family(family, level)
             findings.append(
                 ProfileFinding(
                     severity=severity,
@@ -128,7 +155,8 @@ def continuous_findings(document: Any, profile: dict[str, Any], include_info: bo
                     observed=observed,
                     expected=f"q10-q90={q10:.3f}..{q90:.3f}; q05-q95={q05:.3f}..{q95:.3f}; robust_z={z_value:.2f}",
                     rule=rule,
-                    suggestion=SUGGESTIONS[family],
+                    suggestion=SUGGESTIONS.get(family, SUGGESTIONS["other"]),
+                    level=level,
                 )
             )
     return findings
@@ -161,34 +189,46 @@ def predictive_findings(
                     expected="0 in generated-draft gate",
                     rule="generated draft hard gate",
                     suggestion=SUGGESTIONS[family],
+                    level="red",
                 )
             )
             continue
 
         alpha = float(summary.get("alpha", 1.0))
         beta = float(summary.get("beta", 1.0))
+        p01, p99 = beta_binomial_interval(denominator, alpha, beta, 0.01, 0.99)
         p05, p95 = beta_binomial_interval(denominator, alpha, beta, 0.05, 0.95)
         p10, p90 = beta_binomial_interval(denominator, alpha, beta, 0.10, 0.90)
         severity = ""
         rule = ""
-        if observed < p05 or observed > p95:
+        if observed < p01 or observed > p99:
             severity = "warning"
+            level = "red"
+            rule = "outside posterior predictive 98% central interval"
+        elif observed < p05 or observed > p95:
+            severity = "warning"
+            level = "yellow"
             rule = "outside posterior predictive 90% central interval"
         elif include_info and (observed < p10 or observed > p90):
             severity = "info"
+            level = "yellow"
             rule = "outside posterior predictive 80% central interval"
+        else:
+            level = "green"
 
         if severity:
             per_1k = observed / denominator * 1000 if denominator else 0.0
+            level = calibrate_level_for_family(family, level)
             findings.append(
                 ProfileFinding(
                     severity=severity,
                     family=family,
                     metric=metric,
                     observed=float(observed),
-                    expected=f"count80={p10}..{p90}; count90={p05}..{p95}; observed_per_1k={per_1k:.3f}",
+                    expected=f"count80={p10}..{p90}; count90={p05}..{p95}; count98={p01}..{p99}; observed_per_1k={per_1k:.3f}",
                     rule=rule,
                     suggestion=SUGGESTIONS.get(family, SUGGESTIONS["other"]),
+                    level=level,
                 )
             )
     return findings
@@ -196,14 +236,20 @@ def predictive_findings(
 
 def summarize_status(findings: list[ProfileFinding]) -> dict[str, Any]:
     errors = [finding for finding in findings if finding.severity == "error"]
+    red_findings = [finding for finding in findings if finding.level == "red" and finding.severity != "error"]
+    yellow_findings = [finding for finding in findings if finding.level == "yellow" and finding.severity != "error"]
     warnings = [finding for finding in findings if finding.severity == "warning"]
     warning_families = sorted({finding.family for finding in warnings})
     error_families = sorted({finding.family for finding in errors})
+    red_families = sorted({finding.family for finding in red_findings})
+    yellow_families = sorted(({finding.family for finding in yellow_findings} | {finding.family for finding in warnings}) - set(red_families))
     if errors:
         status = "revise"
-    elif len(warning_families) >= 3:
+    elif len(red_families) >= 3:
         status = "revise"
-    elif warnings:
+    elif len(set(red_families) | set(yellow_families)) >= SOFT_REVISE_FAMILY_THRESHOLD:
+        status = "revise"
+    elif red_families or yellow_families:
         status = "yellow"
     else:
         status = "green"
@@ -211,8 +257,15 @@ def summarize_status(findings: list[ProfileFinding]) -> dict[str, Any]:
         "status": status,
         "error_count": len(errors),
         "warning_count": len(warnings),
+        "red_count": len(red_findings),
+        "yellow_count": len(yellow_findings),
         "warning_families": warning_families,
         "error_families": error_families,
+        "red_families": red_families,
+        "yellow_families": yellow_families,
+        "yellow_review_threshold": YELLOW_REVIEW_FAMILY_THRESHOLD,
+        "soft_revise_threshold": SOFT_REVISE_FAMILY_THRESHOLD,
+        "decision_rule": "revise on any hard error, three independent red drift families, or soft family drift beyond original-calibrated threshold; five yellow/red families require strong manual review",
         "principle": "Profile drift is evidence for revision, not proof of authorship or generation.",
     }
 
@@ -245,6 +298,8 @@ def format_report(report: dict[str, Any]) -> str:
         f"status: {report['summary']['status']}",
         f"errors: {report['summary']['error_count']}",
         f"warnings: {report['summary']['warning_count']}",
+        f"red_families: {', '.join(report['summary']['red_families']) or '(none)'}",
+        f"yellow_families: {', '.join(report['summary']['yellow_families']) or '(none)'}",
         f"warning_families: {', '.join(report['summary']['warning_families']) or '(none)'}",
         f"error_families: {', '.join(report['summary']['error_families']) or '(none)'}",
         "findings:",
@@ -254,7 +309,7 @@ def format_report(report: dict[str, Any]) -> str:
     for item in report["findings"]:
         lines.append(
             "  - "
-            f"{item['severity']} | {item['family']} | {item['metric']} | "
+            f"{item['severity']}:{item.get('level', 'yellow')} | {item['family']} | {item['metric']} | "
             f"observed={item['observed']} | expected={item['expected']} | {item['rule']} | "
             f"{item['suggestion']}"
         )
@@ -295,4 +350,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

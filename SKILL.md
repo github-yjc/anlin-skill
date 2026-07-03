@@ -34,7 +34,7 @@ For ordinary article generation, use the minimal generation pack:
 6. `references/structure-patterns.md`
 7. `references/vocabulary-rules.md` only for review or uncertain wording
 
-`references/anlin-background.md` is a contradiction boundary, not a feature checklist. Do not load it as source material before scene selection. Load it only after the candidate scene slate exists, or when the user supplied a concrete background fact that must be verified. Use it to verify, lower, or delete facts about place/game/platform/body/phase; never use it to find extra nouns to add. Do not add 王者、云南、狗哥、痛风、外卖、知乎, or AI/GPT merely because they are listed there. Game can appear when the user's material, current action, memory trigger, or scene consequence naturally calls for it; it must not become mandatory or decorative.
+`references/anlin-background.md` and `references/background-fact-classes.json` are contradiction boundaries, not feature checklists. Do not load them as source material before scene selection. Load them only after the candidate scene slate exists, or when the user supplied a concrete background fact that must be verified. Use them to verify, classify, lower, or delete facts about place/game/platform/body/phase; never use them to find extra nouns to add. Do not add 王者、云南、狗哥、痛风、外卖、知乎, or AI/GPT merely because they are listed there. Game can appear when the user's material, current action, memory trigger, or scene consequence naturally calls for it; it must not become mandatory or decorative.
 
 Do not read `anlin-reference-library.md`, `writing-checklist.md`, `self-check.md`, `review-rubric.md`, or `blind-judge-angles.md` before the first draft. Those are critique/reference materials and can cause the agent to stall or overfit. Use them only after the first checker pass fails or when the user explicitly asks for analysis/validation.
 
@@ -45,7 +45,7 @@ Then load only the branch-specific files as needed:
 | Need | Load |
 |---|---|
 | Target date, phase, or projection handling | `references/era-state.md` |
-| Place, game, platform, school/work, or background facts after scene selection | `references/anlin-background.md`, then `references/era-state.md` |
+| Place, game, platform, school/work, or background facts after scene selection | `references/anlin-background.md`, `references/background-fact-classes.json`, then `references/era-state.md` |
 | AI-like formulaic phrasing, over-smoothness, or human-reader slop audit | `references/anti-ai-slop.md` |
 | Standard, sincere, micro-hope, surreal, or mixed genre choices | `references/generation-modes.md` |
 | Detailed rhythm, structure, endings, Bathos | `references/structure-patterns.md` |
@@ -125,7 +125,7 @@ Mark each candidate by function: laugh, sting, tenderness, deflection, absurdity
 
 Do not make background facts into candidate scenes by themselves. A valid candidate must still have an action, body effect, social change, money cost, app surface, route problem, joke, or memory trigger if named background tags are removed. Game is allowed as a candidate, but only as one of those lived functions; it is not a required Anlin marker and it is not forbidden by prompt silence.
 
-Before drafting, run a fact gate on the selected slate: load `references/anlin-background.md` only for facts that are already present in selected scenes, then lower or remove unsupported specifics. If a new fact appears only because the background file listed it, cut it before Step 5.
+Before drafting, run a fact gate on the selected slate: load `references/anlin-background.md` and, for machine-readable classification, `references/background-fact-classes.json` only for facts that are already present in selected scenes, then lower or remove unsupported specifics. If a new fact appears only because either background file listed it, cut it before Step 5.
 
 ### 5. Draft With Scene Modes
 
@@ -184,10 +184,11 @@ Required wording:
 
 ```powershell
 python scripts/check_anlin_violations.py draft.md
-python scripts/check_anlin_violations.py draft.md --strict --draft-gate
+python scripts/check_anlin_violations.py draft.md --strict --draft-gate --corpus-dir "C:\Users\34025\Desktop\Anlin"
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
 python scripts/build_style_profile.py "C:\Users\34025\Desktop\Anlin" --output references/style-profile.json
 python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate
+python scripts/calibrate_style_profile.py "C:\Users\34025\Desktop\Anlin" --profile references/style-profile.json
 python scripts/prepare_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --min-fragment-chars 550 --seed 1
 python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 python -m unittest discover -s test

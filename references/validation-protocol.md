@@ -52,16 +52,21 @@ Run:
 
 ```powershell
 python scripts/check_anlin_violations.py draft.md
-python scripts/check_anlin_violations.py draft.md --strict --draft-gate
+python scripts/check_anlin_violations.py draft.md --strict --draft-gate --corpus-dir "C:\Users\34025\Desktop\Anlin"
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
 python scripts/build_style_profile.py "C:\Users\34025\Desktop\Anlin" --output references/style-profile.json
 python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate
+python scripts/calibrate_style_profile.py "C:\Users\34025\Desktop\Anlin" --profile references/style-profile.json
 python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 ```
 
 `--strict` is a corpus-calibrated blocking gate. It should fail generated drafts only for deterministic contamination or high-risk structural buttons that do not hard-fail original corpus files. Other blind-review risks remain warnings and must be interpreted with placebo/original calibration.
 
 `--draft-gate` is generated-draft-only. It promotes formal article length and prompt-shape risks that may appear in some originals but should still block clean generated drafts for complete-article blind evaluation. Do not use `--draft-gate` when reporting original-corpus hard-error calibration.
+
+`--corpus-dir` on `check_anlin_violations.py` enables the deterministic copy-overlap gate. Use it for full-corpus formal validation; do not use it to calibrate an original against the same corpus unless the checker can skip the same source file.
+
+`calibrate_style_profile.py` runs the profile against originals without `--draft-gate` and reports warning-family frequencies. If a family often flags originals, treat that family as weak blind-review evidence unless a hard gate or placebo-stable cue supports it.
 
 `run_blind_test.py` prepares anonymous rounds and prints the judge prompts. If no LLM automation key is configured, the controller manually gives each prompt to an isolated judge and records verdicts.
 
@@ -240,6 +245,7 @@ If a judge sees `mapping.json`, original corpus filenames, skill files, previous
 - [ ] Corpus path and date-zone recorded outside prose.
 - [ ] Checker output saved or summarized.
 - [ ] Corpus comparison inspected for overlap, not treated as style proof.
+- [ ] Deterministic copy-overlap gate run with `--corpus-dir` when full corpus is available.
 - [ ] Style-profile audit recorded when corpus is available; profile drift is treated as revision evidence, not proof of generation or authorship.
 - [ ] Style-profile thresholds were calibrated against originals without `--draft-gate`; original warnings were not converted into hard failures.
 - [ ] Blind rounds use isolated neutral judge directories whose paths do not reveal impostor/placebo status.

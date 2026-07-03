@@ -16,8 +16,10 @@ RUN_BLIND = ROOT / "scripts" / "run_blind_test.py"
 BUILD_CARDS = ROOT / "scripts" / "build_corpus_cards.py"
 BUILD_PROFILE = ROOT / "scripts" / "build_style_profile.py"
 CHECK_PROFILE = ROOT / "scripts" / "check_style_profile.py"
+CALIBRATE_PROFILE = ROOT / "scripts" / "calibrate_style_profile.py"
 CARDS = ROOT / "references" / "corpus-cards"
 STYLE_PROFILE = ROOT / "references" / "style-profile.json"
+BACKGROUND_FACT_CLASSES = ROOT / "references" / "background-fact-classes.json"
 EVALS = ROOT / "evals" / "evals.json"
 
 
@@ -507,6 +509,88 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(draft_gate_result.stdout)
             self.assertTrue(any(item["rule"] == "strict: AI二元解释句式" for item in findings))
 
+    def test_checker_draft_gate_rejects_missing_title(self) -> None:
+        body = "\n".join(
+            [
+                "今天楼下水龙头先咳了一下，喷到裤子上。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            normal_result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            draft_gate_result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(normal_result.returncode, 0, normal_result.stderr)
+            self.assertNotEqual(draft_gate_result.returncode, 0)
+            findings = json.loads(draft_gate_result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 缺少标题" for item in findings))
+
+    def test_checker_draft_gate_rejects_provenance_claims(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "这篇已经接近原文级，基本看不出来是AI生成。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 来源身份声明" for item in findings))
+
+    def test_checker_corpus_overlap_gate_rejects_copied_source_package(self) -> None:
+        source = (
+            "# 日寄\n\n"
+            "校招网站上有个统计offer数量的帖子，下面一排整整齐齐的0，还以为不小心点到了blued。\n"
+            "投简历的时候要写爱好特长，我填会用三种方法泡出五种口感不同的泡面。\n"
+        )
+        draft_text = (
+            "# 日寄\n\n"
+            "校招网站上有个统计offer数量的帖子，下面一排整整齐齐的0，还以为不小心点到了blued。\n"
+            "投简历的时候要写爱好特长，我填会用三种方法泡出五种口感不同的泡面。\n"
+            + "\n".join(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36)
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            temp_path = Path(temp)
+            corpus = temp_path / "corpus"
+            corpus.mkdir()
+            (corpus / "source.md").write_text(source, encoding="utf-8")
+            draft = temp_path / "draft.md"
+            draft.write_text(draft_text, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--corpus-dir", str(corpus)],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "复制重叠风险" for item in findings))
+
     def test_checker_draft_gate_rejects_split_binary_reframe(self) -> None:
         body = "\n".join(
             [
@@ -936,11 +1020,23 @@ class AnlinToolingTests(unittest.TestCase):
     def test_skill_load_order_keeps_background_as_post_scene_fact_gate(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         always_start = skill.split("For ordinary article generation", 1)[0]
-        minimal_pack = skill.split("For ordinary article generation, use the minimal generation pack:", 1)[1].split("`references/anlin-background.md` is", 1)[0]
+        minimal_pack = skill.split("For ordinary article generation, use the minimal generation pack:", 1)[1].split(
+            "`references/anlin-background.md` and", 1
+        )[0]
         self.assertNotIn("references/anlin-background.md", always_start)
         self.assertNotIn("references/anlin-background.md", minimal_pack)
+        self.assertNotIn("references/background-fact-classes.json", always_start)
+        self.assertNotIn("references/background-fact-classes.json", minimal_pack)
         self.assertIn("after the candidate scene slate exists", skill)
         self.assertIn("Do not make background facts into candidate scenes by themselves", skill)
+        self.assertIn("background-fact-classes.json", skill)
+
+    def test_background_fact_classes_are_boundaries_not_requirements(self) -> None:
+        table = json.loads(BACKGROUND_FACT_CLASSES.read_text(encoding="utf-8"))
+        self.assertIn("王者荣耀", table["classes"]["supported"]["game"])
+        self.assertIn("打野教学", table["classes"]["unsupported"]["game_specifics"])
+        self.assertIn("Background facts are contradiction boundaries", table["principle"])
+        self.assertIn("does not change action", table["runtime_rule"])
 
     def test_checker_draft_gate_rejects_therapeutic_humanizer_terms(self) -> None:
         body = "\n".join(
@@ -1478,6 +1574,14 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(profile["profile_kind"], "corpus_prior_predictive_intervals")
             self.assertIn("body_chars", profile["value_summary"])
             self.assertIn("ai_binary_reframe", profile["count_summary"])
+            self.assertIn("unique_3gram_ratio", profile["value_summary"])
+            self.assertIn("repeated_3gram_templates", profile["count_summary"])
+            self.assertIn("texture_body_lines", profile["count_summary"])
+            self.assertIn("dominant_theme_line_share", profile["value_summary"])
+            self.assertIn("cognitive_crooked_interpretation", profile["count_summary"])
+            self.assertEqual(profile["value_families"]["unique_3gram_ratio"], "ngram_texture")
+            self.assertEqual(profile["count_summary"]["texture_body_lines"]["family"], "texture")
+            self.assertEqual(profile["count_summary"]["cognitive_crooked_interpretation"]["family"], "cognitive_mechanism")
             self.assertTrue(profile["count_summary"]["ai_binary_reframe"]["hard_generated"])
             self.assertIn("Do not force rare features to appear.", profile["principles"])
 
@@ -1541,13 +1645,37 @@ class AnlinToolingTests(unittest.TestCase):
             errors = [item for item in draft_gate_report["findings"] if item["severity"] == "error"]
             self.assertTrue(any(item["metric"] == "ai_binary_reframe" for item in errors))
             self.assertEqual(draft_gate_report["summary"]["status"], "revise")
+            self.assertIn("red_families", draft_gate_report["summary"])
+            self.assertIn("decision_rule", draft_gate_report["summary"])
+
+    def test_style_profile_calibration_reports_original_warning_families(self) -> None:
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(CALIBRATE_PROFILE),
+                str(CORPUS),
+                "--profile",
+                str(STYLE_PROFILE),
+                "--json",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["corpus_file_count"], 38)
+        self.assertEqual(report["error_files"], [])
+        self.assertIn("red_family_counts", report)
+        self.assertIn("yellow_family_counts", report)
 
     def test_skill_links_style_profile_without_loading_as_generation_pack(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         self.assertIn("references/stylometric-ratio-protocol.md", skill)
         self.assertIn("scripts/check_style_profile.py", skill)
         minimal_pack = skill.split("For ordinary article generation, use the minimal generation pack:", 1)[1].split(
-            "`references/anlin-background.md` is", 1
+            "`references/anlin-background.md` and", 1
         )[0]
         self.assertNotIn("stylometric-ratio-protocol", minimal_pack)
         self.assertIn("Do not use corpus ratio targets as a pre-draft recipe.", skill)

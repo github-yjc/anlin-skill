@@ -329,6 +329,10 @@ PROCESS_LEAK_TERMS = [
     "协议内",
     "按协议",
     "修复机会",
+    "仿写",
+    "生成文本",
+    "AI生成",
+    "ai生成",
 ]
 PROCESS_LEAK_LINE_PATTERNS = [
     r"^#\s*草拟\s*$",
@@ -535,6 +539,10 @@ STRICT_ERROR_RULE_PREFIXES = (
 )
 STRICT_ERROR_RULE_NAMES: set[str] = set()
 DRAFT_GATE_RULE_PREFIXES = (
+    "缺少标题",
+    "标题标签泄漏",
+    "来源身份声明",
+    "复制重叠风险",
     "题面诊断型标题",
     "标准日寄完整文章篇幅偏短",
     "标准日寄完整文章篇幅缓冲不足",
@@ -584,6 +592,23 @@ def chinese_len(text: str) -> int:
     return len(re.findall(r"[\u4e00-\u9fff]", text))
 
 
+def compact_chinese_text(text: str) -> str:
+    return "".join(re.findall(r"[\u4e00-\u9fff]", text))
+
+
+def char_ngram_set(text: str, n: int) -> set[str]:
+    chars = compact_chinese_text(text)
+    if len(chars) < n:
+        return set()
+    return {chars[index : index + n] for index in range(len(chars) - n + 1)}
+
+
+def jaccard(left: set[str], right: set[str]) -> float:
+    if not left or not right:
+        return 0.0
+    return len(left & right) / len(left | right)
+
+
 def normalize_title_line(line: str) -> str:
     title = line.strip()
     title = re.sub(r"^#+\s*", "", title).strip()
@@ -604,6 +629,24 @@ def split_title_and_content_lines(lines: list[str]) -> tuple[str, list[str]]:
     if not re.search(r"[。！？!?，,：:；;]", first) and chinese_len(first) <= 24:
         return normalize_title_line(first), [line.strip() for line in lines[first_index + 1 :] if line.strip()]
     return "", [line.strip() for line in lines if line.strip()]
+
+
+def is_corpus_metadata_line(line: str) -> bool:
+    stripped = line.strip()
+    return (
+        stripped == "---"
+        or stripped.startswith("<!--")
+        or re.match(r"^-\s*\*\*(?:作者|原链接|发布日期|标题)\*\*\s*[:：]", stripped)
+        is not None
+    )
+
+
+def visible_article_lines(lines: list[str]) -> list[tuple[int, str]]:
+    return [
+        (line_number, line.strip())
+        for line_number, line in enumerate(lines, start=1)
+        if line.strip() and not is_corpus_metadata_line(line)
+    ]
 
 
 def is_chinese_word_char(char: str) -> bool:
@@ -637,6 +680,72 @@ def add_drift_term_findings(findings: list[Finding], lines: list[str]) -> None:
         for term, (severity, suggestion) in DRIFT_MESSAGES.items():
             if term in line:
                 findings.append(Finding(severity, f"词汇域漂移: {term}", line_number, clean_excerpt(line), suggestion))
+
+
+def check_missing_title(findings: list[Finding], lines: list[str]) -> None:
+    visible = visible_article_lines(lines)
+    if not visible:
+        findings.append(
+            Finding(
+                "warning",
+                "缺少标题",
+                0,
+                "",
+                "正式盲评稿必须是完整文章，第一行必须是标题。补一个正文级标题，通常优先弱化为“日寄”。",
+            )
+        )
+        return
+    first_line_number, first = visible[0]
+    title, _ = split_title_and_content_lines(lines)
+    if not title:
+        findings.append(
+            Finding(
+                "warning",
+                "缺少标题",
+                first_line_number,
+                clean_excerpt(first),
+                "正式盲评稿必须把标题作为第一行文章内容；不要让正文第一句冒充标题。",
+            )
+        )
+        return
+    if re.match(r"^(标题|题目)\s*[:：]", first):
+        findings.append(
+            Finding(
+                "warning",
+                "标题标签泄漏",
+                first_line_number,
+                clean_excerpt(first),
+                "标题应直接作为第一行文章文本，不要写“标题：”或“题目：”这类控制器标签。",
+            )
+        )
+
+
+def check_provenance_claims(findings: list[Finding], lines: list[str]) -> None:
+    patterns = [
+        r"(?:Anlin|安林)[^。！？\n]{0,12}本人",
+        r"本人[^。！？\n]{0,8}(?:写|创作|会这么写)",
+        r"(?:原作者|真实作者)[^。！？\n]{0,12}(?:写|身份|口吻)",
+        r"(?:本人级|原文级|原作者级)",
+        r"(?:无法|不能|不可|不被)[^。！？\n]{0,10}(?:区分|分辨|识别)",
+        r"(?:看不出来|看不出)[^。！？\n]{0,10}(?:AI|生成|仿写)",
+        r"(?:不是|非)[^。！？\n]{0,4}AI[^。！？\n]{0,8}(?:生成|写)",
+        r"真人[^。！？\n]{0,8}(?:写|创作)",
+        r"(?:冒充|伪造|伪称)[^。！？\n]{0,12}(?:作者|身份|来源)",
+    ]
+    compiled = [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
+    for line_number, line in visible_article_lines(lines):
+        if line.startswith("#"):
+            continue
+        if any(pattern.search(line) for pattern in compiled):
+            findings.append(
+                Finding(
+                    "warning",
+                    "来源身份声明",
+                    line_number,
+                    clean_excerpt(line),
+                    "文章正文不得声明真实作者身份、来源、真假、非AI或不可分辨。匿名盲评只能在报告里写测试条件、样本量和识别率。",
+                )
+            )
 
 
 def check_process_leakage(findings: list[Finding], lines: list[str]) -> None:
@@ -1648,6 +1757,8 @@ def check_news_name_drop(findings: list[Finding], lines: list[str]) -> None:
 def collect_findings(text: str) -> list[Finding]:
     lines = text.splitlines()
     findings: list[Finding] = []
+    check_missing_title(findings, lines)
+    check_provenance_claims(findings, lines)
     check_process_leakage(findings, lines)
     check_isolated_punctuation(findings, lines)
     check_comment_chain_formula(findings, lines)
@@ -1752,17 +1863,87 @@ def read_text_flexible(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
+def check_corpus_overlap(
+    findings: list[Finding],
+    *,
+    draft_path: Path,
+    text: str,
+    corpus_dir: Path | None,
+    jaccard_threshold: float,
+    shared_24gram_threshold: int,
+) -> None:
+    if corpus_dir is None:
+        return
+    if not corpus_dir.is_dir():
+        findings.append(
+            Finding(
+                "error",
+                "复制重叠风险: 语料目录不可用",
+                0,
+                str(corpus_dir),
+                "正式全语料验证必须提供可读语料目录；否则不能声称完成复制重叠门禁。",
+            )
+        )
+        return
+
+    draft_5grams = char_ngram_set(text, 5)
+    draft_24grams = char_ngram_set(text, 24)
+    if not draft_5grams and not draft_24grams:
+        return
+
+    resolved_draft = draft_path.resolve()
+    risky: list[str] = []
+    for corpus_path in sorted(
+        path
+        for pattern in ("*.md", "*.txt")
+        for path in corpus_dir.glob(pattern)
+        if path.is_file()
+    ):
+        try:
+            if corpus_path.resolve() == resolved_draft:
+                continue
+        except OSError:
+            pass
+        source_text = read_text_flexible(corpus_path)
+        similarity = jaccard(draft_5grams, char_ngram_set(source_text, 5))
+        shared_24grams = len(draft_24grams & char_ngram_set(source_text, 24))
+        if similarity >= jaccard_threshold or shared_24grams >= shared_24gram_threshold:
+            risky.append(f"{corpus_path.name}: jaccard5={similarity:.4f}, shared24={shared_24grams}")
+
+    if risky:
+        findings.append(
+            Finding(
+                "error",
+                "复制重叠风险",
+                0,
+                " | ".join(risky[:5]),
+                "生成稿与原文表面重叠过高或共享长片段。必须重写相关场景，不要从原文搬运句组、顺序或独有包裹。",
+            )
+        )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check deterministic Anlin-style hard-rule violations.")
     parser.add_argument("file", type=Path, help="Draft markdown/text file to inspect")
     parser.add_argument("--json", action="store_true", help="Output JSON findings")
     parser.add_argument("--strict", action="store_true", help="Promote blind-evaluation high-risk warnings to errors")
     parser.add_argument("--draft-gate", action="store_true", help="Promote generated-draft-only formal article gates; do not use for original-corpus calibration")
+    parser.add_argument("--corpus-dir", type=Path, default=None, help="Optional corpus directory for high-overlap copy gate")
+    parser.add_argument("--copy-jaccard-threshold", type=float, default=0.16, help="5-gram Jaccard threshold for corpus copy gate")
+    parser.add_argument("--copy-shared-24gram-threshold", type=int, default=2, help="Shared 24-character n-gram count threshold for corpus copy gate")
     parser.add_argument("--fail-on-warning", action="store_true", help="Return nonzero for warnings as well as errors")
     args = parser.parse_args()
 
     text = read_text_flexible(args.file)
     findings = collect_findings(text)
+    check_corpus_overlap(
+        findings,
+        draft_path=args.file,
+        text=text,
+        corpus_dir=args.corpus_dir,
+        jaccard_threshold=args.copy_jaccard_threshold,
+        shared_24gram_threshold=args.copy_shared_24gram_threshold,
+    )
     if args.strict or args.draft_gate:
         findings = apply_strict_mode(findings, draft_gate=args.draft_gate)
     if args.json:

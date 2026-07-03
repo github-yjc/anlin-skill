@@ -156,9 +156,9 @@ Instead:
 
 Recommended controller interpretation:
 
-- `green`: no hard errors; no more than one soft strong drift family
-- `yellow`: several warnings, but placebo originals show similar drift
-- `revise`: one hard gate or at least three independent strong drift families
+- `green`: no hard errors; no soft drift families
+- `yellow`: soft drift families present; five independent yellow/red families require strong manual review, not automatic rejection
+- `revise`: one hard gate, at least three independent red drift families, or soft-family drift beyond the original-calibrated upper bound
 - `inconclusive`: profile missing, corpus count mismatched, or placebo false accusations high
 
 ## Drafting Use
@@ -190,6 +190,7 @@ Run this layer after deterministic hard gates and before blind review:
 ```powershell
 python scripts/build_style_profile.py "C:\Users\34025\Desktop\Anlin" --output references/style-profile.json
 python scripts/check_style_profile.py draft.md --profile references/style-profile.json
+python scripts/calibrate_style_profile.py "C:\Users\34025\Desktop\Anlin" --profile references/style-profile.json
 ```
 
 For strict reporting, keep the profile file, skill commit, corpus path, corpus file count, and command arguments in the controller report.
@@ -204,6 +205,7 @@ Required sanity tests:
 
 - all 38 originals should have no hard style-profile errors
 - originals may produce warnings; warnings are calibration data
+- `calibrate_style_profile.py` should be saved or summarized for serious runs so warning families are not over-interpreted
 - if many originals would be rejected by the profile, the profile is too narrow
 - if a blind judge accuses originals with the same evidence families used against generated drafts, downgrade those cues
 
@@ -237,4 +239,3 @@ Low-confidence or local-only evidence:
 - any exact numeric threshold from 38 originals
 - single-draft blind judge results
 - one model's suspicion without placebo calibration
-

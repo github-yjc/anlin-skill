@@ -1,0 +1,31 @@
+{
+  "version": "1.0",
+  "principle": "Background facts are contradiction boundaries, not content requirements. Supported facts are allowed only when the selected scene already needs them.",
+  "classes": {
+    "supported": {
+      "place": ["云南", "小城", "小城市", "五线", "老家"],
+      "game": ["王者荣耀", "王者", "5000局", "星耀五", "ELO", "elo", "蔡文姬"],
+      "platform": ["知乎", "小红书", "贴吧", "微博", "B站", "NGA", "GPT", "AI"],
+      "school_work": ["211", "春招", "外卖", "送外卖", "程序员", "被裁", "失业"],
+      "body": ["痛风", "脚踝", "尿急", "痔疮", "口腔溃疡"],
+      "cast": ["狗哥", "Java大哥", "水哥", "我姐", "我妈", "我爸", "室友", "舍友"]
+    },
+    "generic": {
+      "place": ["楼下", "门口", "小区", "学校门口", "路边", "小卖部"],
+      "game": ["打游戏", "开游戏", "游戏界面"],
+      "work": ["招聘", "简历", "面试", "同学群", "入职"],
+      "objects": ["水龙头", "塑料袋", "电动车", "钥匙", "充电器", "杯子", "空调", "冰箱"]
+    },
+    "third_person": {
+      "place": ["北京"],
+      "platform_discourse": ["原神", "米哈游"],
+      "work": ["大厂", "年薪", "offer"]
+    },
+    "unsupported": {
+      "district_or_city": ["黄埔区", "天河区", "南山区", "福田区", "浦东新区", "西湖区", "海淀区", "朝阳区", "广州", "深圳", "上海", "杭州", "成都", "重庆", "武汉", "南京", "天津", "苏州", "珠海", "东莞", "佛山", "长沙", "湖南", "昆明"],
+      "game_specifics": ["排位", "星耀一", "星耀二", "星耀三", "星耀四", "星耀段", "晋级赛", "打野教学", "打野", "辅助位", "补了个辅助", "中路被抓", "秒选法师", "队友秒选", "压血线", "战令", "福利局", "撤退信号", "二塔", "团战", "三换二", "结算界面", "MVP", "复活点", "加血", "加盾", "奶不到", "输出全靠", "队友全死", "退出匹配", "阵容", "泉水", "经济面板", "输出比辅助", "干得漂亮", "硬辅", "下路", "装备", "adc", "ADC", "AD", "上单", "中单", "射手", "法师", "辅助装"],
+      "employer_compensation": ["签字费", "股票", "base", "住房补贴", "租房补贴", "到手", "月薪", "年薪"]
+    }
+  },
+  "runtime_rule": "Load after scene selection only. If deleting a supported fact does not change action, body, money, social relation, memory trigger, or the next scene, delete it. If a specific fact is unsupported, lower it to generic or remove it."
+}
