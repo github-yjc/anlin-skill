@@ -19,6 +19,7 @@ CHECK_PROFILE = ROOT / "scripts" / "check_style_profile.py"
 CALIBRATE_PROFILE = ROOT / "scripts" / "calibrate_style_profile.py"
 MERGE_SHORT_LINES = ROOT / "scripts" / "merge_short_lines.py"
 SOFTEN_LINE_ENDINGS = ROOT / "scripts" / "soften_line_endings.py"
+SPLIT_LONG_LINES = ROOT / "scripts" / "split_long_lines.py"
 CARDS = ROOT / "references" / "corpus-cards"
 STYLE_PROFILE = ROOT / "references" / "style-profile.json"
 BACKGROUND_FACT_CLASSES = ROOT / "references" / "background-fact-classes.json"
@@ -377,6 +378,47 @@ class AnlinToolingTests(unittest.TestCase):
             )
             findings = json.loads(result.stdout)
             self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings))
+
+    def test_checker_accepts_low_rough_terms_from_food_and_status_damage(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "衣服味道廉价，",
+                "吃到香菜差点吐出来，",
+                "想了想自己也快养不起自己，",
+                *(["其实我觉得杯子有点脏，因为水龙头咳了一下喷到裤子上，"] * 30),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+
+    def test_checker_draft_gate_rejects_over_dense_long_line_prose(self) -> None:
+        long_line = "其实我觉得杯子有点脏，因为水龙头咳了一下喷到裤子上，后来发现自己差点吐出来，还是没躲过那一下。"
+        body = "\n".join(["# 日寄", "", *([long_line] * 42)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 标准日寄长行过密" for item in findings))
 
     def test_checker_strict_promotes_blind_eval_risks(self) -> None:
         body = "\n".join(
@@ -1783,6 +1825,35 @@ class AnlinToolingTests(unittest.TestCase):
             )
             findings = json.loads(checker.stdout)
             self.assertFalse(any("行末逗号比例" in item["rule"] for item in findings))
+
+    def test_split_long_lines_repairs_over_compressed_generated_lines(self) -> None:
+        long_line = (
+            "我摸了摸手机，六条未读，三条是运营商的催缴短信，两条是前同事群的消息，还有一条是妈的，"
+            "她说你也老大不小了，我没点开听，直接把手机扣在桌上。"
+        )
+        body = "\n".join(["# 日寄", "", *([long_line] * 12)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SPLIT_LONG_LINES),
+                    str(draft),
+                    "--in-place",
+                    "--target-lines",
+                    "50",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(result.stdout)
+            self.assertGreater(report["split_body_lines"], report["original_body_lines"])
+            self.assertGreaterEqual(report["split_body_lines"], 24)
 
     def test_checker_accepts_low_body_roughness_as_self_damage_signal(self) -> None:
         body = "\n".join(

@@ -465,6 +465,9 @@ ROUGH_SELF_DAMAGE_TERMS = [
     "舔狗",
     "社死",
     "丢人",
+    "廉价",
+    "养不起",
+    "冻不死",
     "好家伙",
     "工贼",
     "塞牙",
@@ -477,6 +480,7 @@ ROUGH_SELF_DAMAGE_PATTERNS = [
     r"我[^。！？\n]{0,12}(?:丢人|社死|嘴贱|像个傻逼|像傻逼)",
     r"(?:拉屎|尿|痔疮|阳痿)[^。！？\n]{0,24}(?:我|自己|本人|室友|同学|群|厕所)?",
     r"(?:牙齿|牙缝)[^。！？\n]{0,16}(?:塞|卡)",
+    r"吐[^。！？\n]{0,8}出来",
     r"闻[^。！？\n]{0,12}袜",
     r"(?:后背|脖子|脸|身上)[^。！？\n]{0,24}(?:痘|痒|疼)",
     r"(?:馅|汤|外卖盒|垃圾桶)[^。！？\n]{0,30}(?:泥|酸|臭|发霉)",
@@ -590,6 +594,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "断裂过碎",
     "标准日寄行数缓冲异常",
     "标准日寄长行缓冲不足",
+    "标准日寄长行过密",
     "标准日寄短行网格",
     "粗粝自毁信号不足",
     "段落发动机信号偏弱",
@@ -1293,6 +1298,7 @@ def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str],
     long_24 = sum(1 for length in lengths if length >= 24)
     long_28 = sum(1 for length in lengths if length >= 28)
     short_10_ratio = sum(1 for length in lengths if length <= 10) / line_count
+    long_28_ratio = long_28 / line_count
 
     if body_chars >= STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS and (line_count < 40 or line_count > 75):
         findings.append(
@@ -1313,6 +1319,17 @@ def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str],
                 0,
                 f"body_chars={body_chars}, content_lines={line_count}, lines_ge24={long_24}, lines_ge28={long_28}",
                 "生成稿需要几条粗糙长口语/动作链打破短行表面；合并相邻短行，让一次误读、对话、身体中断或现实动作自然跑长。",
+            )
+        )
+
+    if body_chars >= STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS and (avg_len >= 29 or long_28_ratio >= 0.48):
+        findings.append(
+            Finding(
+                "warning",
+                "标准日寄长行过密",
+                0,
+                f"body_chars={body_chars}, content_lines={line_count}, avg_line_chars={avg_len:.2f}, lines_ge28={long_28}, long_28_ratio={long_28_ratio:.2f}",
+                "生成稿不能从短行网格反弹成长句散文。把长行按动作、对话、误读、身体中断和物件后果拆开，目标是45-70行且平均行长更接近原文。",
             )
         )
 
