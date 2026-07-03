@@ -357,7 +357,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any(rule == "strict: 短行诗化表面" for rule in rules))
 
     def test_clean_run_checker_enforces_two_call_limit(self) -> None:
-        body = "\n".join(["# 日寄", "", *(["杯子脏了。"] * 180)])
+        line = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"
+        body = "\n".join(["# 日寄", "", *([line] * 60)])
         with tempfile.TemporaryDirectory() as temp:
             draft = Path(temp) / "draft.md"
             draft.write_text(body, encoding="utf-8")
@@ -376,10 +377,30 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(third.returncode, 2)
             self.assertIn("CLEAN_RUN_STOP: checker call limit already reached", third.stdout)
 
+    def test_clean_run_checker_preflight_does_not_consume_checker_call(self) -> None:
+        short_body = "\n".join(["# 日寄", "", "杯子脏了。"])
+        ready_line = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(short_body, encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3)
+            self.assertIn("CLEAN_RUN_PREFLIGHT", preflight.stdout)
+            draft.write_text("\n".join(["# 日寄", "", *([ready_line] * 60)]), encoding="utf-8")
+            first = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", first.stdout)
+
     def test_clean_run_checker_normalizes_rhythm_before_second_call(self) -> None:
         long_line = (
-            "我摸了摸手机，六条未读，三条是运营商的催缴短信，两条是前同事群的消息，还有一条是妈的，"
-            "她说你也老大不小了，我没点开听，直接把手机扣在桌上。"
+            "其实我摸了摸手机，觉得六条未读有点多，突然发现三条是运营商的催缴短信，"
+            "于是去厕所洗了把脸，因为差点吐出来，丢人得很，好像还是没躲过去。"
         )
         body = "\n".join(["# 日寄", "", *([long_line] * 22)])
         with tempfile.TemporaryDirectory() as temp:
