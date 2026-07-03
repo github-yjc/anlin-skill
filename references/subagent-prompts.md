@@ -6,8 +6,8 @@
 
 ```text
 TASK: Generate one Anlin-style draft for the given user request.
-INPUTS: user request, target date/time, available background facts, and these skill files: SKILL.md, references/portable-corpus.md, references/samples-index.md, references/voice-model.md, references/structure-patterns.md, references/vocabulary-rules.md, references/era-state.md, references/anlin-reference-library.md, references/anlin-characters.md, references/writing-checklist.md.
-MUST DO: Follow the workflow, generate candidate scenes, choose final scenes, write a complete article with a generated title on the first line, then run self-check mentally.
+INPUTS: the realistic user request only, plus normal access to the installed skill selected by the runtime.
+MUST DO: Let the skill decide which files to load. Write a complete article with a generated title on the first line. If the skill requires a bounded local checker pass, follow that protocol.
 MUST NOT DO: Claim the draft is indistinguishable from Anlin, claim real authorship, or put methodology labels in the prose body. Do not output commentary unless asked by the controller.
 OUTPUT: Markdown draft only.
 ```
@@ -132,10 +132,10 @@ DETAILED_REASONS:
 3. [specific reason] | evidence: "..."
 4. [specific reason] | evidence: "..."
 5. [specific reason] | evidence: "..."
-MOST_ANLIN_LIKE:
+MOST_SOURCE_LIKE:
 1. [feature] | deep-or-surface: deep | evidence: "..."
 2. [feature] | deep-or-surface: surface | evidence: "..."
-LEAST_ANLIN_LIKE:
+LEAST_SOURCE_LIKE:
 1. [feature] | possible alternative explanation: topic/genre/phase/fragment/editorial/none | evidence: "..."
 2. [feature] | possible alternative explanation: topic/genre/phase/fragment/editorial/none | evidence: "..."
 AI_OR_IMITATOR_RISK:

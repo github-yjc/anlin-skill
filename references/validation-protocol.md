@@ -78,6 +78,14 @@ Generator setup:
 - Do not provide previous blind-review failures, judge rubrics, source excerpts, corpus filenames, controller mappings, hidden expected elements, or manual advice such as "add montage", "add unrelated details", or "avoid prompt-shape leakage".
 - If the generator reads `outputs/`, blind-round folders, `mapping.json`, judge reports, or controller notes before writing, mark the generation contaminated.
 - Record the exact prompt, skill path, skill commit, model/surface, allowed tools, corpus availability, and whether web/background lookup was allowed.
+- For OpenCode generation against the current global skill path, disable legacy Claude skill scans when a same-name `.claude/skills/anlin-writing` copy exists. Example:
+
+```powershell
+$env:OPENCODE_DISABLE_CLAUDE_CODE_SKILLS='1'
+opencode run --model 'longcat/LongCat-2.0' --dir <case-dir> <realistic_prompt>
+```
+
+  A generation stderr/log line that reads `C:\Users\34025\.claude\skills\anlin-writing\...` means the run used the wrong skill and must be marked contaminated.
 
 If a test draft only succeeds because the prompt itself supplied style rules, classify the run as diagnostic, not a clean skill evaluation.
 
@@ -107,18 +115,18 @@ Each round creates a clean directory containing only:
 
 `run_blind_test.py` also creates a neutral `judge-view-XX` directory for each round. Run automated judges from `judge-view-XX`, not from `round-XX-impostor` or `round-XX-placebo`, because round directory names leak the controller's answer key. A valid judge directory contains only `prompt.txt` and `sample-*.txt`.
 
-For OpenCode automation, `--pure` disables external plugins but may still leave installed skills available. If any local writing/style skill is installed, run judges with an isolated `OPENCODE_CONFIG_DIR` or equivalent no-skill configuration. A judge stderr line such as `Skill "..."` invalidates that round even when the judge only read `sample-*.txt` afterwards.
+For OpenCode automation, `--pure` disables external plugins but may still leave installed skills available. If any local writing/style skill is installed, run judges with an isolated `OPENCODE_CONFIG_DIR` or equivalent no-skill configuration. Also set `OPENCODE_DISABLE_EXTERNAL_SKILLS=1` and `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1` where supported. A judge stderr line such as `Skill "..."` invalidates that round even when the judge only read `sample-*.txt` afterwards.
 
 Judge rules:
 
 - The judge may read only `prompt.txt` and `sample-*.txt` in the neutral judge directory.
 - The judge prompt must be source-neutral: use `MOST_SOURCE_LIKE` / `LEAST_SOURCE_LIKE`, not author-name field labels that may trigger a style skill.
 - The judge must not read `mapping.json`, the original corpus, skill files, controller notes, previous verdicts, web results, or a directory path/name that exposes `impostor`, `placebo`, `generated`, or similar controller labels.
-- The judge must not invoke or rely on any style skill, author-specific skill, corpus memory, previous analysis, or source-name prior knowledge. For opencode judge automation, run `opencode run --pure --dir <neutral-judge-view-dir> <prompt>` from a directory containing only `prompt.txt` and `sample-*.txt`, and set a temporary no-skill `OPENCODE_CONFIG_DIR` when installed skills would otherwise auto-trigger.
+- The judge must not invoke or rely on any style skill, author-specific skill, corpus memory, previous analysis, or source-name prior knowledge. For opencode judge automation, run `opencode run --pure --dir <neutral-judge-view-dir> <prompt>` from a directory containing only `prompt.txt` and `sample-*.txt`, set a temporary no-skill `OPENCODE_CONFIG_DIR` when installed skills would otherwise auto-trigger, and disable external skill scans with `OPENCODE_DISABLE_EXTERNAL_SKILLS=1` / `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1`.
 - Titles are retained and normalized for all samples; metadata is removed.
 - Generated drafts must include the title as article text on the first line. The preparation script normalizes `# 标题`, plain first-line titles, and simple emphasis wrappers to the same `# 标题` form so title formatting does not become a leakage cue.
 - Impostor rounds are length-matched by complete article length.
-- Generated standard-diary drafts should clear the safer 700+ body-character buffer before complete-article impostor rounds. 650-699 can be used only with an explicit short/matched protocol and should not support formal full-article claims.
+- Generated standard-diary drafts should clear the safer 850+ body-character buffer and normally target 900-1100 body Chinese characters before complete-article impostor rounds. 650-849 can be used only with an explicit short/matched protocol and should not support formal full-article claims.
 - The judge may evaluate title fit as one evidence family, but must not use title, filename, ordering, or length as the sole basis for identification.
 - Treat blind review as open-set verification, not forced attribution. A stable accusation requires `IDENTIFIED` not `NONE`, confidence at least 75, and at least three independent evidence families, including one family that is not title, topic, length, filename, or order.
 - If the strongest accusation depends mainly on title neatness, prompt-topic compliance, article length, file order, or one polished ending, record it as raw suspicion but not stable identification.
@@ -141,6 +149,12 @@ For serious evaluation, read `blind-judge-angles.md` and use multiple profiles p
 - dialogue-social: dialogue plausibility, social collision, awkward residue
 - phase-genre: date-zone, genre fit, title/ending, phase leakage
 - synthetic-risk: AI smoothness, imitator over-display, surface/deep mismatch
+- anti-ai-sentence: binary reframe, explainer voice, pseudo-colloquial terms, ordered essay skeletons, single-line smell
+- literary-annotation: em dash captioning, abstract feeling labels, and polished emotional subtitles
+- background-fact: place, game, platform, phase, and unsupported specificity
+- background-display: supported background facts used as a visible dossier checklist rather than lived constraints
+- middle-randomness: middle-third off-axis branch, decorative texture, and prompt-execution completeness
+- stylometric-drift: function-word habits, punctuation, line-length distribution, and repeated sentence templates
 - placebo-calibrated reader: at least two all-original rounds; must be allowed and encouraged to answer `NONE`
 
 Treat invalid format, timeout, or contaminated access as invalid, not as a pass or failure. Re-run invalid rounds or report them separately.

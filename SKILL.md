@@ -13,6 +13,8 @@ The goal is narrow:
 
 Generated prose should not contain process labels such as "仿写", "AI", "生成", "验证通过", or "38篇语料". Controller notes and validation reports may mention methodology; the prose body must not.
 
+This skill is self-contained at runtime. Do not require or call any external anti-slop, author-style, or personal writing skill while generating, repairing, or judging. The anti-AI-writing guidance needed for this task lives in `references/anti-ai-slop.md`, `references/feature-budget.md`, and the checker bundled in this skill. External writing skills may be used only by a maintainer while developing this skill, not by a generation agent using it.
+
 ## Load Order
 
 Always start with these four files:
@@ -20,18 +22,19 @@ Always start with these four files:
 1. `references/runtime-brief.md`
 2. `references/feature-budget.md`
 3. `references/anti-ai-slop.md`
-4. `references/anlin-background.md`
+4. `references/generation-modes.md`
 
 For ordinary article generation, use the minimal generation pack:
 
 1. `references/runtime-brief.md`
 2. `references/feature-budget.md`
 3. `references/anti-ai-slop.md`
-4. `references/anlin-background.md`
+4. `references/generation-modes.md`
 5. `references/era-state.md` only if date/phase matters
-6. `references/generation-modes.md`
-7. `references/structure-patterns.md`
-8. `references/vocabulary-rules.md` only for review or uncertain wording
+6. `references/structure-patterns.md`
+7. `references/vocabulary-rules.md` only for review or uncertain wording
+
+`references/anlin-background.md` is a contradiction boundary, not a feature checklist. Do not load it as source material before scene selection. Load it only after the candidate scene slate exists, or when the user supplied a concrete background fact that must be verified. Use it to verify, lower, or delete facts about place/game/platform/body/phase; never use it to find extra nouns to add. Do not add 王者、云南、狗哥、痛风、外卖、知乎, or AI/GPT merely because they are listed there. Game can appear when the user's material, current action, memory trigger, or scene consequence naturally calls for it; it must not become mandatory or decorative.
 
 Do not read `anlin-reference-library.md`, `writing-checklist.md`, `self-check.md`, `review-rubric.md`, or `blind-judge-angles.md` before the first draft. Those are critique/reference materials and can cause the agent to stall or overfit. Use them only after the first checker pass fails or when the user explicitly asks for analysis/validation.
 
@@ -42,7 +45,7 @@ Then load only the branch-specific files as needed:
 | Need | Load |
 |---|---|
 | Target date, phase, or projection handling | `references/era-state.md` |
-| Place, game, platform, school/work, or background facts | `references/anlin-background.md`, then `references/era-state.md` |
+| Place, game, platform, school/work, or background facts after scene selection | `references/anlin-background.md`, then `references/era-state.md` |
 | AI-like formulaic phrasing, over-smoothness, or human-reader slop audit | `references/anti-ai-slop.md` |
 | Standard, sincere, micro-hope, surreal, or mixed genre choices | `references/generation-modes.md` |
 | Detailed rhythm, structure, endings, Bathos | `references/structure-patterns.md` |
@@ -55,7 +58,9 @@ Then load only the branch-specific files as needed:
 
 Do not read every reference before drafting. The generation pass uses a small state model; the critique pass uses the rule library.
 
-For formal clean generation, checker call count is a hard protocol boundary. The second checker call must be the final tool action by the generation agent: do not edit, write, read, compare, or run another checker after it. Output the best pure article immediately; the external controller will decide pass/fail.
+Do not compensate for weak prose by loading another style or anti-AI skill. If the draft smells synthetic, revise through this skill's own lenses: scene-first causality, prompt displacement, background restraint, rhythm variance from action, and concrete body/social/material consequence.
+
+For formal clean generation, checker call count is a hard protocol boundary. After the second checker call, the only allowed tool action is reading `draft.md` once to output it exactly. Do not edit, write, compare, or run another checker after it. A third checker call or any post-second write contaminates the test more severely than leaving draft errors unresolved. The external controller will decide pass/fail.
 
 For formal clean generation, the visible final article must be exactly the current `draft.md` content after the last write. Do not create an unpersisted "manual repair" in the final response after the second checker call. If the second checker still reports errors, output the current `draft.md` anyway and let the controller fail it.
 
@@ -74,7 +79,7 @@ If the user refuses or leaves inputs open, proceed with `inferred` or `fictional
 
 ### 2. Build The State Card
 
-Before scene generation, write an internal state card using `runtime-brief.md`:
+Before scene generation, form an internal state card using `runtime-brief.md`. Keep it mental/private. Do not print it, write it into the chat, or put it in `draft.md` unless the user explicitly asks for process notes:
 
 - date zone and phase
 - genre
@@ -89,7 +94,7 @@ Before scene generation, write an internal state card using `runtime-brief.md`:
 - target length and rhythm constraints for the chosen validation mode
 - feature budget
 
-This state card is internal unless the user asks to see process notes.
+This state card is internal unless the user asks to see process notes. In clean generation, visible process chatter contaminates the run even if the final `draft.md` is clean.
 
 ### 3. Sample Calibration
 
@@ -115,13 +120,19 @@ List 8-12 candidate fragments. Each fragment must come from one of:
 
 Mark each candidate by function: laugh, sting, tenderness, deflection, absurdity, analysis, body, money, social collision, memory, or noise. At least 30% should not directly serve the main theme. Keep at least two boring or accidental details available for the anti-detection pass.
 
+Do not make background facts into candidate scenes by themselves. A valid candidate must still have an action, body effect, social change, money cost, app surface, route problem, joke, or memory trigger if named background tags are removed. Game is allowed as a candidate, but only as one of those lived functions; it is not a required Anlin marker and it is not forbidden by prompt silence.
+
+Before drafting, run a fact gate on the selected slate: load `references/anlin-background.md` only for facts that are already present in selected scenes, then lower or remove unsupported specifics. If a new fact appears only because the background file listed it, cut it before Step 5.
+
 ### 5. Draft With Scene Modes
 
 Use `generation-modes.md`. Do not force every scene through one template.
 
 Select the smallest set of scenes that can carry the piece. Standard diary usually uses several fragments; sincere and micro-hope pieces can be short. The five-step cognitive path is a strong mode for misread/self-sabotage scenes, not a global obligation.
 
-For blind-evaluation drafts, always produce a complete article with a title. Put the generated title on the first line as plain text or `# Title`; do not bold it, label it as `标题：`, or wrap it in controller notes. Serious blind review keeps and normalizes titles for all samples, then length-matches complete articles. A formal standard diary should aim safely above the lower boundary, usually 800-1100 body Chinese characters and preferably not by padding. Short sincere or micro-hope pieces require short-original matched evaluation; otherwise expand with concrete actions, dialogue, body/money consequence, and non-theme residue before blind testing.
+For blind-evaluation drafts, always produce a complete article with a title. Put the generated title on the first line as plain text or `# Title`; do not bold it, label it as `标题：`, or wrap it in controller notes. Serious blind review keeps and normalizes titles for all samples, then length-matches complete articles. A formal standard diary should usually aim around 900-1100 body Chinese characters and preferably not by padding; below 850 is a generated-draft risk buffer. Short sincere or micro-hope pieces require short-original matched evaluation; otherwise expand with concrete actions, dialogue, body/money consequence, and non-theme residue before blind testing.
+
+For formal standard-diary clean generation, do not save a skeletal placeholder as `draft.md`. The first written `draft.md` must already be a complete article with title, roughly 45-70 non-empty body lines, and near 1000-1200 body Chinese characters when the model tends to shorten. If the candidate is visibly short, expand before writing/running the checker rather than relying on a later terminal-only repair.
 
 ### 6. Separate Review From Generation
 
@@ -134,7 +145,7 @@ After drafting, switch to review mode:
    - Fix hard errors, process leakage, missing title, copied source phrasing, high-signal opening, learned ending buttons, sealed-night/story enclosure, pure ambient endings, repeated material hooks, formulaic comment-chain summaries, and obvious prompt-shape leakage before output.
    - Also fix generated-draft AI-slop errors: explanatory `不是X，是Y` / `不是X，而是Y` structures, unsupported specific place names, unsupported game-role filler, blog-like explainer phrases, or any line that reads like a model announcing a reframe.
    - Treat quiet explanation, weak paragraph engine, and missing coarse self-damage as serious review signals, not automatic hard failures: the original corpus contains some of these. In generated full-article blind tests, `--draft-gate` promotes diagnostic title, underbuilt length, single-theme density, prompt-chain over-compliance, and formulaic comment-chain summaries to blocking errors.
-   - Use at most one checker-driven repair loop inside the generation agent. Call the checker at most twice total, including failed/nonzero checker runs. A nonzero checker exit is normal when findings include `error`; it is not a tooling failure. After the second checker call, stop all tool use: no edit, write, read, compare, or third checker command. Output the current `draft.md` content exactly, even if errors or warnings remain. Do not hand-repair a different final answer after the second checker. Do not continue repairing high-frequency coverage, coarse self-damage, paragraph engine, comma-ratio, breathing-point, scene-count, metadata, or other corpus-calibrated warnings. The external controller will validate it.
+   - Use at most one checker-driven repair loop inside the generation agent. Call the checker at most twice total, including failed/nonzero checker runs. A nonzero checker exit is normal when findings include `error`; it is not a tooling failure. If the first checker reports more than three `error` findings, or reports prompt-chain density, offer-specific fabrication, dialogue ladder, underbuilt length, or paragraph-block compression, do one full rewrite from a new scene slate. Do not patch the existing draft line by line. If the first checker reports only one or two local errors, repair by replacement, not deletion: removed prompt-chain, game, dash, or comment material must be replaced with concrete body/action/social/route residue before the second checker. Do not call the second checker on a visibly shortened draft. After the second checker call, stop all repair tool use: no edit, write, compare, or third checker command. You may read `draft.md` once only to output it exactly. Output the current `draft.md` content exactly, even if errors or warnings remain. Do not hand-repair a different final answer after the second checker. Do not continue repairing high-frequency coverage, coarse self-damage, paragraph engine, comma-ratio, breathing-point, scene-count, metadata, or other corpus-calibrated warnings. The external controller will validate it.
    - If temporary-file creation, overwrite, or checker execution fails for tooling reasons, do not stop with process notes. Apply the strict checklist manually, rewrite once, and output the article only; the controller can run the checker externally.
 2. If the full corpus is available, run `scripts/compare_anlin_corpus.py <draft> --corpus-dir <corpus>`.
 3. Read `review-rubric.md` and inspect the draft against the appropriate genre gates.
@@ -157,6 +168,8 @@ Required wording:
 ## Output Rules
 
 - If the user asks for prose, output prose only unless they asked for process notes. The first visible line must be the article title, usually `日寄` or `# 日寄`; never print `State Card`, prompt buckets, scene slate, validation notes, Jaccard scores, checker summaries, or `草拟`.
+- Never prepend protocol explanations such as `This is the second checker call`, `per protocol`, `Here is the article`, or comments about `draft.md`. The first visible line must be the title.
+- Never announce clean-generation steps in Chinese either: no `现在构建状态卡`, `开始写草稿`, `检查器发现`, `需要重写`, `最后一次修复`, or similar process lines.
 - Do not narrate reference loading, file checks, or internal decisions to the user. Tool use and validation stay internal unless validation reporting was requested.
 - Do not include methodology labels inside the prose.
 - If the user asks for validation, report commands, conditions, sample size, and results.

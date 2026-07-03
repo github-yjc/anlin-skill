@@ -29,7 +29,10 @@ Rewrite or refuse the relevant part if any appears:
 - generated formal draft uses literary annotation prose such as `——那种...`, `终于可以...的放松`, `释然`, `自洽`, `真实感`, or other abstract feeling labels that caption a scene
 - generated formal draft uses A/B, 甲乙, or variable placeholders to explain a concrete daily failure
 - generated formal draft invents unsupported concrete background: named district, city route, company park, local policy, game role, platform fact, or location inconsistent with corpus/user-provided facts
+- generated formal draft displays supported background as a checklist: several facts such as 211/外卖/王者/狗哥/知乎/痛风/AI appear without changing action, phase pressure, body state, social position, or the next scene
 - generated formal draft keeps online discussion as a comment-chain residue such as `底下跟了一串回答`, or writes ordinary chat as standalone quoted script lines
+- generated formal draft can only pass after invoking an external style cleanup or anti-AI-writing skill; the runtime method must be self-contained in this skill
+- generated formal draft turns cautious background inference into precise current facts: city/district, current game rank, match tactic, employer, benefit policy, or platform state
 
 ## Structural Gates
 
@@ -78,6 +81,7 @@ Registers include laugh, sting, tenderness, deflection, absurdity, analysis, bod
 - 2: no explanatory binary reframe, no blog-like thesis translation, no literary captioning, no smooth prompt-answer structure; the turn comes from scene/action/dialogue/body
 - 1: one line has AI-ish symmetry, explanation, or abstract feeling caption but local scene still carries most of the meaning
 - 0: multiple not-X-but-Y frames, insight labels, "this means" sentences, `——那种...` captions, A/B variables, balanced contrasts, or artificial humanizer roughness
+- 0: therapy/humanizer phrases such as `允许自己`, `接住自己`, `被看见`, `和自己和解`, or `慢慢来` repair the emotional arc instead of a concrete action doing it
 
 ### Literary Annotation Surface
 
@@ -90,6 +94,12 @@ Registers include laugh, sting, tenderness, deflection, absurdity, analysis, bod
 - 2: place, game, platform, school/work, family, and phase facts are supported by corpus, user-provided background, or documented lookup
 - 1: some vague or projection details are not fully supported but remain generic enough not to assert false specificity
 - 0: named city/district/company/game role/policy appears without support, or contradicts the corpus phase
+
+### Background Restraint
+
+- 2: background facts act as guardrails; only facts required by prompt, phase, or concrete consequence appear
+- 1: one supported tag feels displayed but the scene still works through action
+- 0: supported tags are stacked as style proof, or third-person/platform facts become narrator biography
 
 ### Dialogue And Screen Surface
 

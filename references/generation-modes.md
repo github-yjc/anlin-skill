@@ -115,9 +115,29 @@ Before writing the first paragraph, do a reader-risk preflight:
 - title cannot reveal the assignment
 - first scene cannot reveal the assignment
 - middle third must contain one off-axis branch with a turn
-- place/game/platform facts must be supported or generic
+- place/game/platform facts must be supported, generic, or omitted; never add a fact only to display background knowledge
+- background inference must lower specificity; it cannot invent current place, current rank, game tactics, company campus, or benefit policy
+- game is allowed only when it has scene function: action, memory trigger, social wound, practical delay, or cognitive turn. Prompt silence is not a ban, but off-axis does not mean "add 王者".
 - no selected scene should require `不是X，是Y` to explain itself
 - no selected scene should require a literary caption such as `——那种...` or `终于可以...的放松`
+- no selected scene should rely on pseudo-colloquial invented phrases, tidy concept clusters, or scheduled roughness to look human
+- at least one selected scene must change action, body state, money state, route, reply, or social position; texture without consequence reads generated
+- all anti-AI cleanup must be handled by this skill's own rules; do not rely on another external style cleanup skill
+
+Run the judge-angle preflight as a generation tool, not as a final checklist:
+
+- `title`: what can a reader infer from the title alone?
+- `first-five-lines`: can the user prompt be reconstructed before the article breathes?
+- `middle-third`: is there an off-axis branch with a hook and consequence, not decorative randomness?
+- `syntax`: is any turn carried by balanced grammar instead of a scene?
+- `rhythm`: are line lengths and punctuation varied by thought/action rather than by a visible pattern?
+- `dialogue`: does a person speak to get through life, not to deliver the theme?
+- `background`: are place, game, platform, and date facts supported or low-specificity?
+- `humor`: is there at least one laugh with a physical/social base?
+- `body-money`: does body, payment, food, route, or app friction interrupt the analysis?
+- `ending`: does the last move create a consequence rather than a literary fade-out?
+- `prompt-shape`: did at least one requested item disappear or become barely visible?
+- `one-line-smell`: would any single sentence make an ordinary reader say "AI wrote this"?
 
 For standard diary blind evaluation, also run a domain-count pass:
 
@@ -127,6 +147,10 @@ For standard diary blind evaluation, also run a domain-count pass:
 - `off-axis` scenes would still make sense if the prompt topic disappeared.
 
 Keep `main-domain` below half the selected scenes. If it is too high, cut the cleanest on-topic scene first, usually the one that only restates the prompt, and replace it with an off-axis scene connected by a small hook.
+
+For the middle third, apply a stricter rule: if the dominant prompt domain still appears three or more times in the middle and no body/food/route/object/social consequence interrupts it, replace the middle scene. The replacement must change what the narrator does next; a stray dirty cup or weather sentence that only "adds realism" is still prompt execution in disguise.
+
+If the replacement is a game scene, use it only when it creates a scene-level consequence: the narrator does something, avoids something, remembers something, loses status, or makes a bad inference. Do not use game as a generic off-axis patch. A line about current rank, match order, teammate behavior, scoreboards, roles, or interface details is usually worse than a coarse game line because it adds unsupported specificity.
 
 For formal blind evaluation, also cap visible high-signal prompt surfaces:
 
@@ -166,7 +190,7 @@ Before drafting, mark each prompt noun as one of:
 - **background**: most items should be displaced into phone screens, other people's words, receipts, unfinished replies, or objects.
 - **discard**: anything that would make the piece feel like a complete response to the prompt.
 
-Do not march through all prompt items in order. If the prompt says Valentine's Day, the article may start from a wrong condiment, a delivery note, a family message, or a game loss. If the prompt says moving, the article may start from tape stuck to a slipper. If the prompt says mother, the article may start from an unanswered delivery call. If the prompt says spring recruitment, roommate offer, and class group benefits, the article should not start from the group chat; start from something like a charger, stale food, a game loss, an app badge, or a body problem, then let the job pressure arrive late and partially. The theme should become visible late and partially, not on the first page.
+Do not march through all prompt items in order. If the prompt says Valentine's Day, the article may start from a wrong condiment, a delivery note, a family message, or a coarse game/app failure when that failure changes action. If the prompt says moving, the article may start from tape stuck to a slipper. If the prompt says mother, the article may start from an unanswered delivery call. If the prompt says spring recruitment, roommate offer, and class group benefits, the article should not start from the group chat; start from something like a charger, stale food, an app badge, a body problem, or a coarse game/app branch only if it has a practical consequence, then let the job pressure arrive late and partially. The theme should become visible late and partially, not on the first page.
 
 Opening preflight:
 
@@ -183,10 +207,15 @@ The generation agent must deliver a finished article, not a validation transcrip
 For formal standard diary evaluation:
 
 - write the first complete article with title. The first `draft.md` should already be line-broken, complete, and close to the target length; do not write a compressed placeholder and plan to fix it only in the final response.
+- for formal standard diary, make the first `draft.md` roughly 45-70 non-empty body lines and 900-1100 body Chinese characters. A 900-1300 character draft should not exceed 90 body lines. Repairs usually shrink drafts; do not rely on the final response to expand a short artifact.
 - save it as `draft.md` in the current working directory and run the checker with `--strict --draft-gate`. If the working directory is a case/output directory, use the absolute checker path from the installed skill; do not try a missing relative `scripts/...` path first.
 - perform one targeted repair or one full rewrite from the scene slate
+- repair by replacement, not subtraction. If deleting one high-risk line, replace it with one concrete lived line before the second checker; if deleting a whole scene, add another off-axis scene with its own action or consequence.
+- before the second checker, the draft should still be close to 45-70 body lines and 900-1100 body Chinese characters. Do not send a shrunken artifact to the second checker.
+- before the second checker, scan the body lines for mechanical uniformity and over-fragmentation. If most lines are 4-10 characters or the draft has 100+ body lines, merge adjacent short lines into rougher spoken syntax, add one natural long thought/action line, and one low practical interruption rather than sprinkling random connectors.
+- before the first checker, scan family/roommate dialogue. If it contains a turn-by-turn ladder like `我妈问/我回/她说/我说`, compress it into one rough narrated sentence and interrupt with eating, washing, payment, body, or silence.
 - run the checker again if the tool is available
-- after the second checker call, stop all tool use. Do not edit, write, read, compare, or run another command. Output the current `draft.md` content exactly, even if the second checker still has errors. The external controller will fail it if needed.
+- after the second checker call, stop all repair work. Do not edit, write, compare, or run another command. You may read `draft.md` once only to output it exactly. Output the current `draft.md` content exactly, even if the second checker still has errors. A third checker call or post-second write invalidates the clean test more than the remaining errors do.
 - do not create a terminal-only final repair after the second checker. If the fix matters, it must have been written to `draft.md` before the second checker.
 - never run a third checker-driven repair for errors or warnings. A third checker call or post-second edit is a protocol failure, not diligence.
 
@@ -226,10 +255,16 @@ Ending leaves on an action that does not explain the handle.
 Before finalizing, remove the most "written" surface:
 
 - If most lines are 4-12 Chinese characters, merge several into rougher longer lines.
-- If the draft has fewer than 700 body Chinese characters and is headed for full blind evaluation, expand with lived material rather than adjectives: one dialogue/social residue, one body or money action, and one unrelated daily detail. For formal standard diary generation, draft toward 800-1100 body Chinese characters. Do not aim for 650 exactly; that creates a length cue and often becomes a shortfall after editing.
+- If the body has 100+ non-empty lines, it is not "Anlin brokenness"; it is a line grid. Merge before checking.
+- If the article is only 8-15 prose blocks, split it before the first checker call. A complete standard diary should move through many short body lines, not through compact essay paragraphs.
+- If the draft has fewer than 850 body Chinese characters and is headed for full blind evaluation, expand with lived material rather than adjectives: one dialogue/social residue, one body or money action, and one unrelated daily detail. For formal standard diary generation, draft toward 900-1100 body Chinese characters. Do not aim for 650, 700, or 800 exactly; that creates a length cue and often becomes a shortfall after editing.
 - If repair deletes a scene, replace it with a concrete action or off-axis residue before the second checker call; do not let repair shrink the article into the 650-699 risk zone.
 - If a group chat or comment scene stacks `有人说/有人回/又有人`, replace the chain with one concrete screen detail, one representative line plus reaction, or one practical consequence. Multi-person comment summaries read like a prompt checklist.
 - If a group chat scene leaves a residue like `底下跟了一串回答`, delete it too. A vague crowd summary is still a comment-chain formula unless it causes a concrete action.
+- Also delete compressed residue such as `底下追了一串问号`, `被人回了个笑哭`, or `跟了一排`; keep one screen surface or a resulting action.
+- In formal drafts, do not repair group chat with another `有人` actor. Also delete `跟了个捂脸`, `又发了个文档`, `发截图的人`, `群里回了两个人`, and reaction-summary residue. Prefer zero-person screen surfaces: unread count, screenshot crop, file name, red dot, scroll distance, delayed reply, or a practical action after seeing it.
+- If a forum scene uses `第一条回复`, `底下有人`, `热评`, `评论区`, or a stock internet reply, delete the reply. Keep the app action or one screen title only.
+- If dialogue becomes a five-line `我说/他说` handoff, compress it. People should wound, misunderstand, dodge, or interrupt; they should not cooperate to deliver background facts.
 - If the ending neatly echoes the opening, break the echo with a bodily action, social interruption, or plain unfinished fact.
 - If every object is symbolic, add one object that is just there.
 - If there is no dialogue or quoted social texture in a standard diary, add one plausible line from a real person or app surface.
@@ -241,6 +276,7 @@ Before finalizing, remove the most "written" surface:
 - If a detail appears because it is in the prompt, bury it: have another person mention it, make it half-visible on screen, or let it produce a practical problem rather than a theme.
 - If three consecutive scenes all point to the same wound, replace the middle one with a useless scene that still belongs to the day.
 - If a sentence sounds like a portable aphorism, delete it or convert it into a bad practical claim someone could argue with.
+- If a phrase sounds like fake internet slang or a reusable "human" idiom, replace it with a phrase someone in the scene could actually say or with a physical fact.
 - If a sentence uses A/B, 甲乙, or another variable placeholder, delete the abstraction and keep the concrete bad object.
 - If the first scene, title, or final image would let a reader reconstruct the user's prompt, displace one required item into an offhand line, wrong object, or practical inconvenience.
 - If a scene feels like it was added because a rubric wanted "realistic texture", make it do something mundane: delay a reply, dirty an object, change a route, interrupt a body, or create a small cost.
@@ -251,12 +287,16 @@ Before finalizing, remove the most "written" surface:
 - If a scene ends in "大概是因为..." or another clean emotional explanation, cut the explanation and make reality answer instead.
 - If a scene uses `不是X，是Y` or another binary reframe to create the turn, rewrite the scene around the physical fact, app surface, person's line, or body consequence.
 - If a scene uses `——`, `那种...的放松`, `释然`, `自洽`, `真实感`, or another abstract feeling label to create polish, delete the label and force a practical next move.
+- If a formal generated draft has any `——`, remove it unless it is literal dragged speech in a quote. Use line break, comma, heard words, or body action.
 - If a scene uses named geography or game-role detail for realism, check `anlin-background.md`; unsupported specifics should be removed before the checker sees them.
-- If a game scene uses role labels such as `打野`, `中单`, `adc`, `射手`, or strategy filler, remove the role label unless an anchor explicitly supports it. Use corpus-supported surfaces such as 王者, 排位, 星耀, ELO, 蔡文姬, 原神.
+- Do not add a game scene merely to display Anlin background. If the user did not mention game, that is not a ban; it only means the game scene must earn its place through a specific lived consequence.
+- If background knowledge appears in the scene slate only because the skill file listed it, cut it. Replace it with a fact the current day produces: a message, route, food, body interruption, payment, family sentence, or app surface.
+- If a game scene uses role labels or system filler such as `排位`, `星耀二`, `星耀三`, `打野`, `中单`, `adc`, `射手`, `法师`, `辅助`, `战令`, `福利局`, `晋级赛`, `MVP`, `复活点`, `加血`, `加盾`, `奶不到`, `输出全靠`, `队友全死`, `退出匹配`, `撤退信号`, `二塔`, `团战`, `三换二`, `结算页面`, `结算界面`, `阵容`, `泉水`, `经济面板`, `输出比辅助低`, `干得漂亮`, `硬辅`, `下路`, `装备`, or strategy filler, remove the role label unless an anchor explicitly supports it. Use only corpus-supported surfaces such as 打王者, 打了5000局王者荣耀, 最高星耀五, ELO, 蔡文姬, or filling health bars.
 - If a draft has almost no comma-ended lines or fewer than five high-frequency connectors (`其实`, `觉得`, `发现`, `好像`, `不过`, `突然`, `于是`, `因为`, `所以`), revise rhythm before the first checker call. Do not sprinkle terms; make lines break through thought, dialogue, body, or app motion.
 - If ordinary chat appears as standalone quoted lines, convert it into narration with `问/说/回`, or reduce it to one screen detail. Do not turn daily dialogue into a script.
 - If the middle third is only prompt execution, replace one scene with a hooked off-axis branch that changes what the narrator does next.
 - If the draft is "accurate but quiet", it is probably generated. Raise the amplitude through a social cut, body collapse, or bad system analogy.
+- If the draft's only roughness is debt, charging cable, or quiet room detail, it is still too polite. Add one ugly self-own or social misfire that would be slightly embarrassing to quote.
 - If the whole article can be described as one closed night, break time or place. Add a memory or outside scene caused by a small object, not by "I remembered".
 - If the ending repays an early object too beautifully, remove the repayment. End on a loose tail that could annoy the narrator tomorrow.
 

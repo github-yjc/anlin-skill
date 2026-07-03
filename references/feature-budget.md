@@ -21,12 +21,19 @@ These apply to all normal generation:
 11. No learned ending button: `哦`, `算了`, `睡了`, a dark screen, or a lone sound effect cannot be used as default closure.
 12. No external-test scaffolding: formal evaluation drafts must be achievable from the skill and a realistic user prompt, not from extra controller hints, judge rubrics, or post-failure advice supplied to the generator.
 13. No diagnostic standard title: when writing a standard diary for blind evaluation, default to `日寄`; use a modified `X日寄` only if `X` is a local defensive handle rather than the user's topic noun.
-14. No underbuilt complete article: a generated standard diary submitted to full complete-article blind evaluation should normally land at 800-1100 body Chinese characters. 650 is only the lower comparison boundary; 650-699 is a draft-risk buffer zone, and 700-799 is still thin when repairs are likely. Below 800, expand with lived actions and residues or mark the evaluation as short-genre only.
+14. No underbuilt complete article: a generated standard diary submitted to full complete-article blind evaluation should normally land around 900-1100 body Chinese characters. 650 is only the lower comparison boundary; 650-849 is a draft-risk buffer zone when repairs are likely. Below 850, expand with lived actions and residues or mark the evaluation as short-genre only.
 15. No realist-short-story smoothing: standard diary cannot keep every scene inside one coherent emotional arc. It needs lateral branches, rough social misfires, crooked jokes, and unhelpful residue.
 16. No high-signal prompt coverage: formal standard-diary blind evaluation should visibly use at most two prompt pressure surfaces; discard or bury the rest.
 17. No AI-reframe sentence: formal generated drafts should not use `不是X，是Y`, `不是X，而是Y`, `不是因为X，而是因为Y`, `真正的问题是`, `本质上`, or similar explanation scaffolds. Make the turn happen through scene, body, app, money, or another person's line.
-18. No unsupported concrete background: do not invent named districts, city routes, company parks, local policies, or game-role details. Use `anlin-background.md` and user-provided facts; if unsupported, lower specificity.
+18. No unsupported concrete background: do not invent named districts, city routes, company parks, local policies, or game-role details. Use `anlin-background.md` and user-provided facts; if unsupported, lower specificity. Supported background is not mandatory material; it only prevents contradictions.
 19. No literary annotation sentence: formal generated drafts should not use `——` to append an explanatory feeling, and should avoid abstract emotion nouns such as `放松`, `释然`, `自洽`, `真实感`, `完整感`, or `命运感`. If the feeling matters, turn it into an action, body interruption, payment, route, food, or another person's plain line.
+20. No pseudo-humanizer regularity: do not manufacture roughness on a schedule. Avoid repeated "口语化" tics, invented internet idioms, four-item concept clusters, and a predictable alternation of short joke / sad line / object detail.
+21. No middle-third prompt loop: the middle of a standard diary cannot keep restating the user's main domain. It needs at least one off-axis branch with consequence, not a decorative realism detail.
+22. No line-length grid: do not make the article a sequence of same-sized short lines. Rhythm variance should come from action, speech, body, and thought turns.
+23. No over-fragmented body: a 900-1300 character standard diary should not become 100+ tiny lines. Broken rhythm is not one clause per line.
+24. No runtime dependence on external style cleanup: anti-AI-writing behavior must come from this skill's own references and checker. Do not call another personal style or anti-slop skill to make the prose acceptable.
+25. No over-specific inference: corpus-supported inference may lower specificity, but it must not invent current city, current game rank, match tactics, employer, local policy, or platform fact.
+26. No helpful clarification sentence: if a line explains why the scene matters, helps the reader understand the theme, or repairs ambiguity, delete it unless a person/app in the scene literally produced that line.
 
 ## Strong Defaults
 
@@ -54,7 +61,7 @@ Use most of these, but not all:
 Recommended budget:
 
 - 5-10 scene units depending on phase and length.
-- Usually 800-1200 body Chinese characters for generated full blind evaluation; always include a title; if shorter, judge only against matched short originals or revise before submission.
+- Usually 900-1100 body Chinese characters for generated full blind evaluation; always include a title; if shorter than 850, judge only against matched short originals or revise before submission.
 - 2-4 emotional registers: laugh, sting, tenderness, deflection, absurdity, analysis.
 - 1-2 central motifs at most.
 - 0-2 recurring characters. Use none if the material is body, solitude, or observation driven.
@@ -63,6 +70,7 @@ Recommended budget:
 - 2+ non-theme residues: details that make the day feel lived rather than designed.
 - main-domain scenes below half the selected slate; use side-pressure and off-axis scenes to prevent a single-topic essay.
 - at most two visible high-signal prompt items. If the request lists roommate offer, class group physical exam, rent subsidy, job app, and resume, do not include all of them.
+- background facts used as invisible rails. If a scene only exists to show "Anlin plays 王者" or "Anlin is in Yunnan", cut the scene. If game changes action, memory, status, social relation, or cognition, it is allowed; if it only satisfies a perceived label, it fails.
 
 Avoid:
 
@@ -74,14 +82,21 @@ Avoid:
 - a visible opening/ending mirror that makes the piece feel designed
 - static image chains where every object becomes a symbol
 - title-to-ending closure that tells the judge the piece was designed around one idea
+- reader-risk fixes that appear only as visible technique: artificially spaced slang, scheduled broken sentences, or one "random" object inserted every paragraph
+- a middle section that still loops through the prompt nouns while pretending to drift
+- line rhythm that looks mechanically cut to avoid prose blocks
+- 100+ tiny body lines in a normal-length draft
 - repeated typing/deleting as the main emotional engine
 - evaluation-prompt compliance: visible montage, unrelated details, anti-summary behavior, or title choice appearing only because the test prompt instructed them
 - AI-humanizer surface: obvious not-X-but-Y contrasts, blog-like summary words, or one-line explainer pivots that sound corrected by a machine
 - unsupported background specificity: named district/city/game-role detail inserted only to create realism
+- background-display stuffing: adding 王者、痛风、狗哥、外卖、知乎, or a city cue only because the background file permits it
 - a smooth chain of scenes where every object proves the same wound
 - polite melancholy in place of a real laugh, self-own, or social embarrassment
 - a tasteful withheld ending that could close any literary short story
 - literary captioning after a good image: `——那种...`, `终于可以...的放松`, `释然`, `自洽`, or a sentence that names the feeling instead of making something happen
+- game scenes that become proof of MOBA knowledge: first/second match, teammates, tactics, scoreboard, rank interface, win/loss sequence, or role vocabulary
+- a cause/explanation tail after every good scene: `因为...`, `所以...`, `可能...` can be natural, but when they translate the wound for the reader they make the draft feel generated
 
 ## Sincere Piece
 

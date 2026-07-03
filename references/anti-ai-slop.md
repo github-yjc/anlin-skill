@@ -4,6 +4,10 @@ Use this file before drafting and again during review. It is a short guardrail a
 
 The goal is not to make the article casual. The goal is to remove surfaces that make a reader feel a model completed an assignment: too balanced, too explanatory, too coherent, too loyal to the prompt, and too clean.
 
+This file is the complete runtime anti-AI layer for this skill. Do not depend on any external anti-slop skill, style skill, web article, or private prompt during generation. Maintenance research can inspire this file, but a generation agent must be able to avoid synthetic surfaces by reading this skill alone.
+
+The strongest human-reader tells are not rare words. They are visible decisions: a sentence announces its own meaning, a paragraph obeys the prompt too completely, a title and ending form a clean contract, or the middle looks inserted to satisfy a rubric. Treat those as drafting constraints, not only as post-draft lint.
+
 ## High-Risk AI Surfaces
 
 ### 1. Binary Explanation
@@ -16,6 +20,7 @@ Avoid explanatory contrast frames:
 - `X不是问题，Y才是`
 - `真正的X不是Y，而是Z`
 - `表面上X，实际上Y`
+- `像X，其实不是，好像就是Y`
 
 These are model-friendly because they announce a reframe, then deliver it. In Anlin-like prose the turn should come from a scene, a person, a body interruption, or a stupid object, not from a balanced sentence.
 
@@ -47,6 +52,9 @@ Delete sentences that translate the scene for the reader:
 - `真正的问题是...`
 - `我终于明白...`
 - `最终我意识到...`
+- `说不上是那种...`
+- `其实就是那种怎么说呢`
+- `大概就是这个意思`
 
 Anlin can analyze, but his analysis usually stays attached to an object, price, app surface, bodily symptom, or somebody's line. When the sentence sounds like a blog post summarizing insight, cut it.
 
@@ -74,7 +82,7 @@ Better:
 我把听筒拿远了一点，锅里的面已经坨了。
 ```
 
-Em dashes are rare in the corpus and usually belong to quoted speech, interruption, or dragged sound. In generated drafts, do not use `——` to attach an explanation or an abstract feeling.
+Em dashes are rare in the corpus and usually belong to quoted speech, interruption, or dragged sound. In generated formal drafts, default to no `——` at all. Do not use it to attach an explanation, a heard-word list, or an abstract feeling; use a comma, a line break, an action, or the plain words heard.
 
 ### 2c. Variable Placeholder Explanation
 
@@ -105,6 +113,15 @@ Generated text often looks fake because it obeys the prompt too well. The articl
 
 Before drafting, bury or discard most prompt material. Keep one pressure surface and one consequence. Make the rest arrive as a screen residue, another person's line, a practical delay, or not at all.
 
+High-risk pattern:
+
+```text
+The prompt lists A, B, C, D.
+The article opens with A, moves to B, uses C in the middle, and ends by resolving D.
+```
+
+This can pass a style checklist and still fail a real reader. Remove one requested item before drafting. If the item must remain, make it partial: a cropped screenshot, a file name, a payment, a delayed reply, a wrong object, or a person asking the wrong practical question.
+
 ### 4. Smooth Paragraph Engine
 
 AI prose likes clean transitions:
@@ -132,6 +149,40 @@ AI prose often has one temperature. Watch for:
 
 Add roughness by changing what the narrator must do, not by adding adjectives.
 
+### 6. Portable Humanizer Smell
+
+Do not replace obvious AI prose with visible "humanizer" tricks:
+
+- planned typos or fake roughness
+- scheduled slang every few lines
+- a rotation of joke / sad line / object / short sentence
+- invented internet idioms that no actual person in the scene would say
+- therapy-adjacent phrases such as `允许自己`, `接住自己`, `被看见`, `和自己和解`, `慢慢来` when they are not quoted from a real screen/person
+- explanatory causal tails after a good scene: `因为打开也不知道说什么`, `所以也没什么好说的`, `可能就是这样`
+
+The repair is not to make the line messier. Make a real thing happen: a reply comes from the wrong person, food goes cold, the body demands something, money is paid, an object breaks, a route changes, or someone says a plain ugly sentence.
+
+### 7. Clean Causality
+
+Models often make every detail explain the next detail. Anlin-like movement can be intelligible, but it should not feel engineered.
+
+Before drafting a scene, ask whether it can survive without becoming a thesis. If every object points to the same wound, pick one object and refuse its symbolism. Let it stay cheap, dirty, late, wrong, or practically annoying.
+
+Do not write:
+
+```text
+I saw X, which made me realize Y, so I did Z.
+```
+
+Prefer:
+
+```text
+I saw X.
+Somebody interrupted.
+Z happened for a stupid practical reason.
+Y remains unstated.
+```
+
 ## Human-Reader Audit
 
 After the checker passes, do one quiet read as a skeptical ordinary reader:
@@ -144,6 +195,10 @@ After the checker passes, do one quiet read as a skeptical ordinary reader:
 6. Would the same article work if every specific noun were swapped? If yes, it has no life.
 7. Is there one polished line with `——`, `那种`, `终于可以`, or an abstract feeling noun that sounds like a caption? If yes, remove the caption and keep the action.
 8. Is any sentence using A/B, 甲乙, or a schematic analogy? Replace the variables with the actual bad object.
+9. Is there any `——` in a formal draft? Remove it unless it is truly quoted dragged speech from a source-like line.
+10. Did the draft hide a prompt item by simply replacing it with another prompt-adjacent item? If yes, it is still prompt execution.
+11. Does any sentence sound like a universal life-coach repair: `允许`, `接住`, `和解`, `被看见`, `慢慢来`, `松弛`? Delete it unless someone in the text actually said it.
+12. Does a cause word (`因为`, `所以`, `可能`) explain a feeling that a scene already showed? Cut the explanation and let the next action carry the residue.
 
 If one line gives off AI smell, remove or rewrite the whole local move. Do not polish around it.
 
@@ -171,15 +226,26 @@ The middle third is where generated drafts often fail. It cannot be a disguised 
 
 The branch must change action, mood, or social position. A random object that only "adds texture" still reads generated.
 
+If the middle still repeats the prompt's main nouns, the draft is not drifting; it is decorating the assignment. Replace one on-topic middle unit with a practical interruption that makes the narrator do something else.
+
+### Rhythm Lens
+
+Do not create a grid of equal short lines to avoid prose blocks. Vary line length because the mind is interrupted: a longer spoken sentence, a stupid explanation that runs too far, a blunt two-character retreat, a comma-led continuation, a payment/action line. If rhythm variation can be described as a pattern, it is probably visible to a judge.
+
 ### Background Lens
 
 Before using a concrete noun, decide its evidence level:
 
 - `supported`: appears in corpus, user facts, or verified lookup
-- `generic`: low-specificity daily surface such as 小城, 楼下, 学校门口, 招聘, 王者, 排位
+- `generic`: low-specificity daily surface such as 小城, 楼下, 学校门口, 招聘, 打游戏, 打王者
+- `third-person`: appears as another person's action, platform discourse, or contrast, not narrator biography
 - `unsupported`: district/city/company/game-role/platform detail added for realism
 
-Use supported or generic. Delete unsupported.
+Use supported or generic. Keep third-person facts as third-person facts. Delete unsupported.
+
+Do not add a supported background noun just because it is supported. Background facts are guardrails against contradiction, not ingredients. Prompt silence does not ban game, and corpus support does not require game. If a selected game detail has no practical, social, bodily, memory, or cognitive consequence, remove the game detail or lower it to a generic action.
+
+Allowed inference is low-resolution. `He plays games` or `he has played 王者荣耀` can be inferred from the corpus. A current match, role, lane, build, rank, tactical signal, or win/loss sequence cannot be inferred. If a game scene starts to look like a match report, delete the game and use body, food, money, route, family, app, or social misfire instead.
 
 ### Prompt-Loyalty Lens
 
@@ -188,3 +254,5 @@ Pick one visible pressure surface and one consequence. If the article includes a
 ### One-Line Smell Lens
 
 Before finalizing each scene, identify the single most polished sentence. If that sentence explains the scene, remove it. If the scene collapses after removing it, the scene did not have enough life.
+
+Also identify the single most "helpful" sentence. If it clarifies the theme, repairs the reader's confusion, or tells the reader how to feel, remove it. A human draft can leave a rough edge; a model draft often over-serves.
