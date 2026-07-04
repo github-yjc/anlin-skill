@@ -83,7 +83,7 @@ Keep main-topic scenes under half the selected slate. If the prompt gives many p
 Before writing `draft.md`, do a private source preflight:
 
 - body is already at least 950 Chinese characters and 45-70 body lines
-- at least five of `其实/觉得/发现/好像/不过/突然/于是/因为/所以` occur naturally
+- several different connectors from `其实/觉得/发现/好像/不过/突然/于是/因为/所以` occur because the thought is moving; zero or one signal is too polished, but repeating one word such as `其实/已经/当时` as glue is also synthetic
 - no `不是X，是Y`, `不是X，而是Y`, `不是说X，是说Y`, or split-line equivalent
 - no group/comment chain markers such as `有人发/有人说/有人问/又有人/底下有人/另一个说`
 - one coarse body/social/self-own consequence is present in the scene, not only a quiet mood or clean ache
@@ -118,7 +118,7 @@ Use:
 - comma-led lines where the thought is still moving
 - a few longer spoken/action/thought lines
 - blunt short drops only when they land something
-- some rough connectors from `其实/觉得/发现/好像/不过/突然/于是/因为/所以`
+- several rough connectors from `其实/觉得/发现/好像/不过/突然/于是/因为/所以`, distributed across actual turns instead of one repeated glue word
 
 Avoid:
 
@@ -126,6 +126,7 @@ Avoid:
 - all lines around the same length
 - one clause per line across the whole article
 - decorative comma spraying
+- explaining every turn with `其实`, `已经`, `当时`, or `然后`
 - 100+ body lines in a normal-length draft
 
 Before writing `draft.md`, scan the first 20 content lines. If nearly all end with `。`, change some ongoing action/thought lines into comma continuations. If most adjacent lines are 4-10 characters, merge them into rough spoken/action syntax.

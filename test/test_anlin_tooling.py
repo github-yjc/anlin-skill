@@ -22,6 +22,7 @@ CHECK_PROFILE = ROOT / "scripts" / "check_style_profile.py"
 CALIBRATE_PROFILE = ROOT / "scripts" / "calibrate_style_profile.py"
 CLEAN_RUN_CHECKER = ROOT / "scripts" / "clean_run_checker.py"
 CHECK_TRACE = ROOT / "scripts" / "check_clean_eval_trace.py"
+SUMMARY_CHECKPOINTS = ROOT / "scripts" / "summarize_dev_checkpoints.py"
 MERGE_SHORT_LINES = ROOT / "scripts" / "merge_short_lines.py"
 SOFTEN_LINE_ENDINGS = ROOT / "scripts" / "soften_line_endings.py"
 SPLIT_LONG_LINES = ROOT / "scripts" / "split_long_lines.py"
@@ -29,6 +30,8 @@ CARDS = ROOT / "references" / "corpus-cards"
 STYLE_PROFILE = ROOT / "references" / "style-profile.json"
 BACKGROUND_FACT_CLASSES = ROOT / "references" / "background-fact-classes.json"
 EVALS = ROOT / "evals" / "evals.json"
+sys.path.insert(0, str(ROOT / "scripts"))
+from summarize_dev_checkpoints import classify_development_result  # noqa: E402
 
 
 class AnlinToolingTests(unittest.TestCase):
@@ -639,6 +642,44 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertIn("clean-eval未调用clean_run_checker", rules)
+
+    def test_dev_checkpoint_classifier_keeps_bounded_and_finalized_separate(self) -> None:
+        self.assertEqual(classify_development_result("fail", "pass")[0], "source_guidance_gap")
+        self.assertEqual(classify_development_result("invalid", "pass")[0], "source_guidance_gap")
+        self.assertEqual(classify_development_result("fail", "fail")[0], "systemic_gap")
+        self.assertEqual(classify_development_result("pass", "pass")[0], "ready_for_blind_rounds")
+        self.assertEqual(classify_development_result("pass", "fail")[0], "repair_or_validator_gap")
+        self.assertEqual(classify_development_result("fail", None)[0], "bounded_fail_finalized_missing")
+
+    def test_dev_checkpoint_summary_creates_controller_audit_copy(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            case_dir.mkdir()
+            draft = case_dir / "draft.md"
+            draft.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 90)]), encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(draft),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                    "--output-json",
+                    str(case_dir / "controller-audit" / "summary.json"),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["diagnosis"], "bounded_fail_finalized_missing")
+            self.assertTrue((case_dir / "controller-audit" / "bounded-draft.md").is_file())
+            self.assertTrue((case_dir / "controller-audit" / "summary.json").is_file())
 
     def test_clean_run_checker_merges_uniform_medium_grid_before_second_call(self) -> None:
         fragments = [
@@ -1794,9 +1835,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Before writing `draft.md`, do a private source preflight", clean)
         self.assertIn("no group/comment chain markers", clean)
         self.assertIn("one coarse body/social/self-own consequence", clean)
-        self.assertIn("at least five natural small connectors", skill)
+        self.assertIn("several different natural small connectors", skill)
+        self.assertIn("repeating `其实/已经/当时` as glue", skill)
         self.assertIn("convert chat pressure into one screen/action/body consequence", skill)
-        self.assertIn("These are readiness signals, not content quotas", skill)
+        self.assertIn("These are movement signals, not content quotas", skill)
         self.assertIn("For clean-eval generation, do not open this file before the first complete `draft.md`", runtime)
         self.assertIn("do not open this file before the first complete `draft.md`", anti_ai)
         self.assertIn("do not open this file before the first complete `draft.md` unless the scene slate is stuck", modes)
@@ -2102,6 +2144,30 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertTrue(any(rule == "strict: 对话接力过密" for rule in rules))
             self.assertTrue(any(rule == "strict: 游戏复盘细节" for rule in rules))
+
+    def test_checker_warns_on_connector_glue_overuse_without_hard_failure(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                *(["其实我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            findings = json.loads(result.stdout)
+            glue = [item for item in findings if item["rule"] == "连接词胶水过量"]
+            self.assertEqual(len(glue), 1)
+            self.assertEqual(glue[0]["severity"], "warning")
 
     def test_checker_draft_gate_promotes_sparse_connector_and_comma_rhythm(self) -> None:
         body = "\n".join(["# 日寄", "", *(["杯子脏了。"] * 120)])

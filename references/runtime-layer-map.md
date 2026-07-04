@@ -91,7 +91,7 @@ Files:
 - `references/subagent-prompts.md`
 - `evals/evals.json`
 - `evals/README.md`
-- `scripts/` validation and repair helpers
+- `scripts/` validation and repair helpers, especially `summarize_dev_checkpoints.py` for bounded/finalized development attribution
 - `test/test_anlin_tooling.py`
 
 Purpose:

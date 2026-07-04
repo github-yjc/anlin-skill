@@ -132,6 +132,21 @@ For each serious generation case, create two external artifacts outside `<skill-
 1. **Bounded clean-eval checkpoint**: the fresh generator receives only the realistic prompt plus normal access to `anlin-writing`. It may use `clean_run_checker.py` according to clean-eval rules, with at most two actual checker calls and bounded preflight. Save the resulting `draft.md`, checker state, hard-check report, style-profile report when available, and controller notes under the case workspace. This checkpoint answers: did the skill naturally guide the agent close enough before open-ended repair?
 2. **Finalized repair checkpoint**: copy the bounded checkpoint draft into a separate `finalized/` case directory, then start from that copy and its visible checker results. Allow ordinary-user style repair loops, including multiple checker calls, rewrites from a new scene slate, and targeted profile/corpus review. Save the final article and full validation reports separately from the bounded checkpoint. This checkpoint answers: can the skill plus its checker/references converge to a usable final article in a realistic user workflow?
 
+After both artifacts exist, run the controller summary from the external case workspace:
+
+```powershell
+python <skill-dir>/scripts/summarize_dev_checkpoints.py <case-dir> `
+  --bounded-draft <case-dir>/draft.md `
+  --finalized-draft <case-dir>/finalized/draft.md `
+  --trace-log <case-dir>/opencode-output.txt `
+  --corpus-dir <corpus-dir> `
+  --profile <skill-dir>/references/style-profile.json `
+  --output-json <case-dir>/controller-audit/summary.json `
+  --output-md <case-dir>/controller-audit/summary.md
+```
+
+The summary script copies drafts into `<case-dir>/controller-audit/` before running the normal hard checker, so the controller can audit a stopped bounded draft without mutating the bounded generation directory or bypassing the clean-eval stop rule. If the finalized checkpoint is not available yet, omit `--finalized-draft`; the result is a partial development summary and must not be treated as final convergence evidence.
+
 Interpretation:
 
 - bounded fails, finalized passes: strengthen Layer 0/Layer 1 generation guidance; the checker and repair path can recover, but the source loop is still weak.

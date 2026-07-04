@@ -104,6 +104,26 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 - `bounded clean-eval checkpoint`：全新 agent 只拿 `realistic_prompt` + anlin-writing skill，最多两次实际 `clean_run_checker.py` 调用，保存两次限制内得到的 `draft.md` 和检查报告。它衡量自然引导能力。
 - `finalized repair checkpoint`：把 bounded 草稿复制到单独的 `finalized/` 用例目录，再从这份复制稿和公开检查结果继续，允许普通用户模式下多轮修复、重写和复检，保存最终稿和检查报告。它衡量 checker / repair references 能否收敛。
 
+推荐每个用例最终都运行一次控制器汇总：
+
+```powershell
+python <skill-dir>/scripts/summarize_dev_checkpoints.py <case-dir> `
+  --bounded-draft <case-dir>/draft.md `
+  --finalized-draft <case-dir>/finalized/draft.md `
+  --trace-log <case-dir>/opencode-output.txt `
+  --corpus-dir <corpus-dir> `
+  --profile <skill-dir>/references/style-profile.json `
+  --output-json <case-dir>/controller-audit/summary.json `
+  --output-md <case-dir>/controller-audit/summary.md
+```
+
+`summary.json` 中的 `diagnosis` 是开发归因，不是风格证明：
+
+- `source_guidance_gap`：两次检查器边界稿没过，但最终稿过了；优先改源头引导。
+- `repair_path_gap` / `repair_or_validator_gap`：自然引导可用但修复路径或验证器出了问题。
+- `systemic_gap`：两阶段都没过；不要只改检查器，回查架构、事实门禁、声音模型和修复流程。
+- `ready_for_blind_rounds`：两阶段都过；进入盲评和 placebo，不直接宣称目标达成。
+
 判读规则：
 
 - bounded 失败但 finalized 通过：优先加强源头引导。

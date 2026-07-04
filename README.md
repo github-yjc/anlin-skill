@@ -24,6 +24,8 @@ Development validation now uses two checkpoints per serious case. The bounded ch
 
 Latest source-level tightening: clean-eval first draft may only use `clean-generation-brief.md` plus phase/date handling when needed. Repair, title, structure, anti-slop, corpus-card, judge, and ratio references are explicitly post-draft materials for this mode.
 
+Latest controller tooling update: `scripts/summarize_dev_checkpoints.py` now summarizes bounded and finalized checkpoints separately, copies drafts into an external `controller-audit/` directory before normal checker runs, and classifies the development result as source guidance gap, repair path gap, systemic gap, or ready for blind rounds.
+
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
 ## Install Path
@@ -119,6 +121,7 @@ python scripts/check_anlin_violations.py draft.md --strict --draft-gate --corpus
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir $env:ANLIN_CORPUS_DIR
 python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate --strict
 python scripts/calibrate_style_profile.py $env:ANLIN_CORPUS_DIR --profile references/style-profile.json
+python scripts/summarize_dev_checkpoints.py <case-dir> --bounded-draft <case-dir>/draft.md --finalized-draft <case-dir>/finalized/draft.md --trace-log <case-dir>/opencode-output.txt --corpus-dir $env:ANLIN_CORPUS_DIR --profile references/style-profile.json --output-json <case-dir>/controller-audit/summary.json --output-md <case-dir>/controller-audit/summary.md
 python scripts/run_blind_test.py draft.md $env:ANLIN_CORPUS_DIR --rounds 8 --placebo-rounds 2 --min-fragment-chars 550
 python scripts/check_clean_eval_trace.py <case-dir>/opencode-output.txt --json
 ```
@@ -145,6 +148,7 @@ python -m unittest discover -s test -p test_anlin_tooling.py
 $env:ANLIN_CORPUS_DIR='<corpus-dir>'
 python scripts\build_style_profile.py $env:ANLIN_CORPUS_DIR --output references\style-profile.json
 python scripts\calibrate_style_profile.py $env:ANLIN_CORPUS_DIR --profile references\style-profile.json
+python scripts\summarize_dev_checkpoints.py <case-dir> --bounded-draft <case-dir>\draft.md --finalized-draft <case-dir>\finalized\draft.md --trace-log <case-dir>\opencode-output.txt --corpus-dir $env:ANLIN_CORPUS_DIR --profile references\style-profile.json
 ```
 
 Fresh pass/fail claims should quote the exact command results. Older results in this README are status boundaries, not current verification.

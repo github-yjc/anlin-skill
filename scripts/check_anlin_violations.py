@@ -102,6 +102,22 @@ COMMENT_CHAIN_FORMULA_MARKERS = [
 ]
 LOW_FREQUENCY_TERMS = ["然而", "因此", "可是", "也许", "或许", "认为", "意识到"]
 HIGH_FREQUENCY_TERMS = ["其实", "觉得", "发现", "好像", "不过", "突然", "于是", "因为", "所以"]
+CONNECTOR_OVERUSE_TERMS = [
+    "其实",
+    "觉得",
+    "发现",
+    "好像",
+    "不过",
+    "突然",
+    "于是",
+    "因为",
+    "所以",
+    "已经",
+    "当时",
+    "然后",
+    "结果",
+    "后来",
+]
 NORMAL_ROUTINE_TERMS = ["关机", "关灯", "按时睡觉", "关机睡觉"]
 DRIFT_TERMS = [
     "压缩机",
@@ -1355,7 +1371,29 @@ def check_dialogue_stack(findings: list[Finding], lines: list[str]) -> None:
 def check_high_frequency_coverage(findings: list[Finding], text: str) -> None:
     present = [term for term in HIGH_FREQUENCY_TERMS if term in text]
     if len(present) < 5:
-        findings.append(Finding("warning", "高频词覆盖不足", 0, f"present={present}", "自然补入至少5个高频连接词，不要硬塞。"))
+        findings.append(Finding("warning", "高频词覆盖不足", 0, f"present={present}", "需要多个不同的自然连接信号；先让动作、对话、身体或屏幕移动产生连接词，不要在句尾硬撒。"))
+
+
+def check_connector_overuse(findings: list[Finding], text: str) -> None:
+    style = detect_style(text)
+    if style != "standard" or chinese_len(text) < 650:
+        return
+    counts = {term: text.count(term) for term in CONNECTOR_OVERUSE_TERMS}
+    overused = {
+        term: count
+        for term, count in counts.items()
+        if count >= 6 or (term in {"其实", "已经", "当时"} and count >= 5)
+    }
+    if overused:
+        findings.append(
+            Finding(
+                "warning",
+                "连接词胶水过量",
+                0,
+                json.dumps(overused, ensure_ascii=False),
+                "生成稿高风险：同一连接词反复承担转场，会像模型在补口语感。删掉解释胶水，让场景靠物件、动作、对话、身体或屏幕表面跳过去。",
+            )
+        )
 
 
 def check_diagnostic_title(findings: list[Finding], lines: list[str]) -> None:
@@ -2081,6 +2119,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_dialogue_quotes(findings, lines)
     check_dialogue_stack(findings, lines)
     check_high_frequency_coverage(findings, text)
+    check_connector_overuse(findings, text)
     check_diagnostic_title(findings, lines)
     check_high_signal_opening(findings, lines)
     check_standard_diary_length(findings, lines, text)
