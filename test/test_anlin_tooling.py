@@ -1574,6 +1574,30 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertFalse(any("游戏复盘细节" in rule for rule in rules))
             self.assertFalse(any("背景展示堆砌" in rule for rule in rules))
 
+    def test_checker_does_not_treat_mineral_water_as_game_fountain(self) -> None:
+        body = "\n".join(
+            [
+                "# 凉水日寄",
+                "",
+                "我买了一瓶矿泉水，瓶盖拧到一半掉在地上，",
+                "脚趾头露在拖鞋外面，尴尬地缩了一下，",
+                *(["其实我觉得杯子有点脏，洗的时候水龙头咳了一下喷到裤子上，"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertFalse(any("无依据游戏角色细节: 泉水" in rule for rule in rules))
+
     def test_checker_flags_unsupported_province_or_city_for_review(self) -> None:
         body = "\n".join(
             [
@@ -3171,6 +3195,30 @@ class AnlinToolingTests(unittest.TestCase):
                 "# 日寄",
                 "",
                 "牙齿塞了一根韭菜。",
+                *(["其实我觉得杯子有点脏，洗的时候水龙头咳了一下喷到裤子上，"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+
+    def test_checker_accepts_dirty_foot_stomach_and_status_damage_as_rough_signal(self) -> None:
+        body = "\n".join(
+            [
+                "# 凉水日寄",
+                "",
+                "我低头看见大脚趾头露在外面，尴尬地缩了缩脚趾，",
+                "中午又拉了两回肚子，憋都憋不住，",
+                "路口那一下腿一软差点跪在地上，好像我是碰瓷的，",
                 *(["其实我觉得杯子有点脏，洗的时候水龙头咳了一下喷到裤子上，"] * 35),
             ]
         )

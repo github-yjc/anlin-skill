@@ -332,6 +332,33 @@ UNSUPPORTED_GAME_ROLE_TERMS = [
     "法师",
     "辅助装",
 ]
+GAME_CONTEXT_TERMS = [
+    "王者",
+    "王者荣耀",
+    "游戏",
+    "蔡文姬",
+    "ELO",
+    "elo",
+    "队友",
+    "英雄",
+    "排位",
+    "匹配",
+    "复活",
+    "满血",
+    "辅助",
+    "法师",
+    "射手",
+    "团战",
+    "二塔",
+    "MVP",
+    "结算",
+    "经济面板",
+    "装备",
+    "adc",
+    "ADC",
+    "ad",
+    "AD",
+]
 CURRENT_OFFICE_PERSONA_TERMS = [
     "到了公司",
     "到公司",
@@ -573,6 +600,9 @@ ROUGH_SELF_DAMAGE_TERMS = [
     "硌牙",
     "油蹭",
     "咕噜咕噜",
+    "拉肚子",
+    "憋都憋不住",
+    "碰瓷",
 ]
 ROUGH_SELF_DAMAGE_PATTERNS = [
     r"(?<![一二两三四五六七八九十百千万\d])滚(?![一二两三四五六七八九十百千万\d年月日天点分秒])",
@@ -588,6 +618,10 @@ ROUGH_SELF_DAMAGE_PATTERNS = [
     r"不是东西",
     r"不能吃[^。！？\n]{0,8}脏东西",
     r"差点跪[^。！？\n]{0,12}",
+    r"脚趾[^。！？\n]{0,16}(?:露|缩|黑|脏)",
+    r"(?:拉肚子|拉了[一二两三四五六七八九十\d]+回|憋都憋不住)",
+    r"腿一软[^。！？\n]{0,12}跪",
+    r"好像我是碰瓷",
     r"头[^。！？\n]{0,16}(?:肿|包)",
     r"闻[^。！？\n]{0,12}袜",
     r"(?:后背|脖子|脸|身上)[^。！？\n]{0,24}(?:痘|痒|疼)",
@@ -1134,6 +1168,16 @@ def check_ai_variable_placeholders(findings: list[Finding], lines: list[str]) ->
             )
 
 
+def unsupported_game_term_present(term: str, line: str) -> bool:
+    if term == "泉水":
+        if "矿泉水" in line:
+            return False
+        return "泉水" in line and any(context in line for context in GAME_CONTEXT_TERMS)
+    if term in {"ad", "AD"}:
+        return bool(re.search(rf"(?<![A-Za-z]){re.escape(term)}(?![A-Za-z])", line))
+    return term in line
+
+
 def check_background_fact_specificity(findings: list[Finding], lines: list[str]) -> None:
     for line_number, line in enumerate(lines, start=1):
         for term in UNSUPPORTED_DISTRICT_TERMS:
@@ -1149,7 +1193,7 @@ def check_background_fact_specificity(findings: list[Finding], lines: list[str])
                 )
                 break
         for term in UNSUPPORTED_GAME_ROLE_TERMS:
-            if term in line:
+            if unsupported_game_term_present(term, line):
                 findings.append(
                     Finding(
                         "warning",

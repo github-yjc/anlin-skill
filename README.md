@@ -32,6 +32,8 @@ Latest two-checkpoint retest after `e80e3d2`: `iteration-20260704-10/eval-02-foo
 
 Follow-up retest `iteration-20260704-11/eval-02-food-delivery-heatstroke` triggered the correct skill but wrote `draft.md` before checking `.anlin-clean-eval-mode` and then used the normal checker instead of `clean_run_checker.py`; trace checker marked the bounded run invalid. Root fix: the entry contract and clean generation brief now require a lightweight marker check as the first tool action before any `draft.md` write or checker command.
 
+Follow-up retest `iteration-20260704-12/eval-02-food-delivery-heatstroke` correctly checked the clean-eval marker first and used `clean_run_checker.py`, but still stopped at bounded preflight (`calls=0`, `preflights=3`). Controller audit exposed two tooling issues that could distort diagnosis: `矿泉水` was falsely matched as unsupported game `泉水`, and real low-body/status material such as exposed toes, stomach trouble, and falling/being mistaken for碰瓷 was not counted as rough self-damage. Those checker issues are now covered by regression tests; the run itself still does not prove readiness for blind rounds.
+
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
 ## Install Path
@@ -91,6 +93,8 @@ The practical ownership rule is:
 - Developer: when controller failures repeat, rewrite the earliest generation lens that caused the failure; do not merely add a new detection rule.
 
 For development testing, the controller must keep the bounded clean-eval draft and the finalized repair draft as separate artifacts. The finalized draft should start from a copy in a separate `finalized/` directory; continuing to edit the bounded directory after clean-eval stop contaminates the source-guidance measurement. The finalized draft can show that the repair path works, but it cannot be used to claim the first-pass natural guidance succeeded. If only finalized passes, update the source guidance layer next; if finalized is `review`, `fail`, or `invalid`, treat the final article as still problematic and inspect architecture and repair path before adding another checker rule.
+
+Read the two checkpoints as two separate questions, not one averaged score: bounded clean-eval answers whether natural guidance gets close under the two-checker-call limit; finalized repair answers whether ordinary multi-round repair can converge afterward. A bounded failure with a finalized pass means the source guidance still needs improvement. A finalized failure or `review` means the final article is not clean yet, even if some local checker problems were fixed.
 
 ## Technique Sources
 
