@@ -619,6 +619,27 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(json.loads(result.stdout), [])
 
+    def test_clean_eval_trace_rejects_missing_clean_run_checker(self) -> None:
+        log = """
+        → Read C:/skill/references/clean-generation-brief.md
+        ← Write draft.md
+        python scripts/check_anlin_violations.py draft.md
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval未调用clean_run_checker", rules)
+
     def test_clean_run_checker_merges_uniform_medium_grid_before_second_call(self) -> None:
         fragments = [
             "其实厕所灯坏了我站着很丢人",
@@ -1866,6 +1887,8 @@ class AnlinToolingTests(unittest.TestCase):
         layer_map = (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8")
         self.assertIn("Ordinary user mode", skill)
         self.assertIn("Clean-eval mode", skill)
+        self.assertIn(".anlin-clean-eval-mode", skill)
+        self.assertIn(".anlin-clean-eval-mode", validation)
         self.assertIn("the checker loop may continue until hard errors are cleared", clean)
         self.assertIn("The two-call stop rule belongs to clean-eval only", clean)
         self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", skill)

@@ -45,6 +45,8 @@ evals/
 
 将 `realistic_prompt` 发给一个全新上下文（无历史对话）的 agent，让 agent 正常触发并加载 `anlin-writing` skill 后生成文章。不要给生成 agent 提供盲评失败分析、judge rubric、原文摘录、controller mapping、人工风格提示或旧生成稿。将输出保存为 `draft.md`。
 
+bounded clean-eval 用例可以在外部 case 工作区放置空文件 `.anlin-clean-eval-mode` 来选择两次 checker 上限流程。这个文件只能是空的模式标记，不能包含提示词、风格规则、失败分析或评审角度。
+
 草稿只保存一篇完整文章的标题和正文。标题必须由生成 agent 产出，放在第一行，推荐使用 `# 标题`；不要加粗、不要写成 `标题：...`，也不要把标题作为控制器元数据附加。不要把仿写、生成、验证、语料、片段级验证等方法标签写进正文；这些信息由控制器记录在验证报告里。
 
 ### 步骤 2：运行硬规则脚本

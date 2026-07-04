@@ -53,6 +53,15 @@ def clean_excerpt(text: str, start: int, width: int = 180) -> str:
 def collect_findings(text: str) -> list[TraceFinding]:
     normalized = normalize_log(text)
     findings: list[TraceFinding] = []
+    if "clean_run_checker.py" not in normalized:
+        findings.append(
+            TraceFinding(
+                "error",
+                "clean-eval未调用clean_run_checker",
+                clean_excerpt(normalized, 0),
+                "Bounded clean-eval generation must use clean_run_checker.py. A run that uses only the normal checker belongs to ordinary/finalized repair, not the bounded checkpoint.",
+            )
+        )
     first_write = first_index(normalized, ["Write draft.md", "filesystem_write_file", "write_file"])
     pre_draft = normalized[:first_write] if first_write >= 0 else normalized
     for reference in FORBIDDEN_PRE_DRAFT_REFERENCES:

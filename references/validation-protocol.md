@@ -96,6 +96,7 @@ Generator setup:
 
 - Start a fresh agent context for each article.
 - Give the generator only the realistic user prompt, the target date/background contained in that prompt, and normal access to the `anlin-writing` skill.
+- For bounded clean-eval, create an empty `.anlin-clean-eval-mode` marker in the case workspace or otherwise explicitly select clean-eval mode without adding style hints. The marker only selects the two-call protocol; it must not contain prompts, rubrics, examples, or failure analysis.
 - Use `evals/evals.json` `realistic_prompt` for clean-eval blind evaluation. The richer `prompt` field is a stress-test prompt and must not be used to claim blind-evaluation performance.
 - Do not provide previous blind-review failures, judge rubrics, source excerpts, corpus filenames, controller mappings, hidden expected elements, or manual advice such as "add montage", "add unrelated details", or "avoid prompt-shape leakage".
 - If the generator reads `outputs/`, blind-round folders, `mapping.json`, judge reports, or controller notes before writing, mark the generation contaminated.

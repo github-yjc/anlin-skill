@@ -20,7 +20,7 @@ This skill is self-contained at runtime. Do not require or call any external ant
 Use the smallest mode that matches the user's request:
 
 - **Ordinary user mode**: the user wants an article, revision, or saved prose. Ask only for missing information that materially changes the result. Use the checker and repair loops as needed to clear hard errors and satisfy the user, but do not mechanically chase every ratio warning. If the same issue repeats, change the scene source, title choice, background specificity, or rhythm model instead of piling on local patches.
-- **Clean-eval mode**: the user or controller is testing whether the skill naturally guides a fresh agent. The generator receives only a realistic user prompt plus this skill. It may call `clean_run_checker.py` at most twice and must output the current `draft.md` after the second call, even if problems remain. This mode measures the source guidance; it is intentionally stricter than ordinary use.
+- **Clean-eval mode**: the user or controller is testing whether the skill naturally guides a fresh agent. The generator receives only a realistic user prompt plus this skill; the controller may also place an empty `.anlin-clean-eval-mode` marker in the task workspace to select this mode without adding style hints. It may call `clean_run_checker.py` at most twice and must output the current `draft.md` after the second call, even if problems remain. This mode measures the source guidance; it is intentionally stricter than ordinary use.
 - **Controller validation mode**: after an article exists, run corpus comparison, style-profile audit, blind rounds, placebo rounds, and reports. Do not feed controller findings back to a fresh clean-eval generator as hidden writing advice.
 
 Do not write generated articles into the skill directory. Use these locations:
@@ -29,6 +29,8 @@ Do not write generated articles into the skill directory. Use these locations:
 - If the user asks to save a file and no output directory is given, ask for an output directory in the intake turn. If the user does not answer, save in the current task working directory, not inside `<skill-dir>`.
 - If the current working directory is the skill directory, create or use a task/eval workspace outside the distributable skill before writing `draft.md`.
 - For tests and blind review, use an external evaluation workspace such as `<eval-workspace>/iteration-<n>/eval-<id>/draft.md` and `<eval-workspace>/iteration-<n>/benchmark.json`. The `evals/` folder defines prompts and protocols; it is not the default output sink.
+
+If the current task workspace contains `.anlin-clean-eval-mode`, treat the request as clean-eval mode even if the user prompt itself reads like an ordinary article request. The marker is a mode selector, not writing advice; do not mention it in the article.
 
 ## Clean-Eval Minimum
 
