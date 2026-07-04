@@ -71,7 +71,7 @@ Pick the smallest scene set that carries the piece. For standard diary, use seve
 Engine readiness before first draft:
 
 - one crooked misread or system joke
-- one ugly self-own, body lowering, or social embarrassment
+- one ugly self-own, body lowering, or social embarrassment that would feel a little bad to quote, not only a tasteful symptom
 - one off-axis branch with a consequence
 - one plausible social misfire or dumb practical line
 - two small residues that do not summarize the theme
@@ -79,6 +79,14 @@ Engine readiness before first draft:
 Every concrete noun must change action, social position, body consequence, money, route, reply, or the next scene. If deleting a detail changes nothing, delete it.
 
 Keep main-topic scenes under half the selected slate. If the prompt gives many pressure nouns, make only one or two visible and bury or discard the rest.
+
+Before writing `draft.md`, do a private source preflight:
+
+- body is already at least 950 Chinese characters and 45-70 body lines
+- at least five of `其实/觉得/发现/好像/不过/突然/于是/因为/所以` occur naturally
+- no `不是X，是Y`, `不是X，而是Y`, `不是说X，是说Y`, or split-line equivalent
+- no group/comment chain markers such as `有人发/有人说/有人问/又有人/底下有人/另一个说`
+- one coarse body/social/self-own consequence is present in the scene, not only a quiet mood or clean ache
 
 If these readiness signals tempt you to add a game scene, recurring character, body symptom, app platform, or background fact only because a reference mentions it, do not add it. Rework an existing scene so the function appears through its own action.
 
@@ -98,6 +106,8 @@ Avoid these generated-draft surfaces:
 - five-line `我说/他说/他说/我说` dialogue ladders
 
 When a turn needs explanation, replace the explanation with a thing happening: food goes cold, a reply comes from the wrong person, money is paid, the body interrupts, the route changes, or someone says a plain ugly line.
+
+If the user prompt contains a group chat, forum, comment thread, or class chat, convert it before drafting. Use one cropped surface, unread count, screenshot title, message preview, delayed reply, body reaction, or practical consequence. Do not narrate multiple speakers. Formal generated drafts should usually contain zero `有人/又有人/底下有人/另一个说` in those scenes.
 
 ## Rhythm
 
