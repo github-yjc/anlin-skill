@@ -1,6 +1,6 @@
 # Generation Modes
 
-Use these scene modes while drafting. Do not force every scene through one path.
+Use these scene modes for ordinary drafting, explicit analysis, or repair after the first clean-eval checker pass. For clean-eval generation, `clean-generation-brief.md` already carries the first-draft mode summary; do not open this file before the first complete `draft.md` unless the scene slate is stuck. Do not force every scene through one path.
 
 ## Mode A: Misread Scene
 
@@ -16,7 +16,7 @@ Shape:
 
 Use when the scene has a strong daily object or platform/system surface.
 
-In standard diary, use at least one Mode A scene with a real punchline. A misread is not a metaphor; it is the narrator applying a wrong but internally coherent rule to the world. If the line could appear in a sad prose poem, it is not a misread.
+In standard diary, usually keep one Mode A-style crooked turn with a real punchline. A misread is not a metaphor; it is the narrator applying a wrong but internally coherent rule to the world. If the line could appear in a sad prose poem, it is not a misread. If the day's material has no natural misread, use social collision or body intrusion instead of forcing a fake system joke.
 
 ## Mode B: Social Collision
 
@@ -221,9 +221,9 @@ For formal standard diary evaluation:
 - do not create a terminal-only final repair after the second checker. If the fix matters, it must have been written to `draft.md` before the second checker.
 - never run a third checker-driven repair for errors or warnings. A third checker call or post-second edit is a protocol failure, not diligence.
 
-Do not keep repairing connector coverage, coarse self-damage, paragraph engine, comma ratio, breathing-point hints, scene count, metadata, or line-rhythm warnings until the answer disappears. Those are controller diagnostics, not permission to stall. If a blocking issue remains after one rewrite, still output the cleanest pure article and let the external validation fail it; a visible process log is worse than a weak article for clean generation.
+Do not keep repairing connector coverage, coarse self-damage, paragraph engine, comma ratio, breathing-point hints, scene count, metadata, or line-rhythm warnings until the answer disappears. Those are controller diagnostics, not permission to stall. If a blocking issue remains after one rewrite, still output the cleanest pure article and let the validation controller fail it; a visible process log is worse than a weak article for clean-eval generation.
 
-Run formal checks through `scripts/clean_run_checker.py draft.md --strict --draft-gate`, not the raw checker. If the first checker reports `散文块压缩`, `标准日寄行数缓冲异常`, or `标准日寄长行过密`, treat it as one rhythm rewrite toward more body lines: run `scripts/split_long_lines.py draft.md --in-place --target-lines 58`, then inspect once. If you later write the file again, run the split again when the new file is still under 45 body lines or visibly paragraph-compressed. If it reports `标准日寄长行缓冲不足`, `标准日寄短行网格`, `节奏过度均匀`, or `断裂过碎`, treat it as one rhythm rewrite toward fewer tiny rows: run `scripts/merge_short_lines.py draft.md --in-place --target-lines 68` if the file path is local, then merge adjacent rows until the draft is around 55-70 content lines, add at least six rough long action/speech lines, keep the body above 950 characters, and delete current-match game/report details. If the first checker reports `行末逗号比例`, run `scripts/soften_line_endings.py draft.md --in-place` and then inspect once; repeat after a content rewrite if needed. Do all of this before the second checker; never after it.
+Run clean-eval checks through `scripts/clean_run_checker.py draft.md --strict --draft-gate`, not the raw checker. If the first checker reports `散文块压缩`, `标准日寄行数缓冲异常`, or `标准日寄长行过密`, treat it as one rhythm rewrite toward more body lines: run `scripts/split_long_lines.py draft.md --in-place --target-lines 58`, then inspect once. If you later write the file again, run the split again when the new file is still under 45 body lines or visibly paragraph-compressed. If it reports `标准日寄长行缓冲不足`, `标准日寄短行网格`, `节奏过度均匀`, or `断裂过碎`, treat it as one rhythm rewrite toward fewer tiny rows: run `scripts/merge_short_lines.py draft.md --in-place --target-lines 68` if the file path is local, then merge adjacent rows until the draft is around 55-70 content lines, add at least six rough long action/speech lines, keep the body above 950 characters, and delete current-match game/report details. If the first checker reports `行末逗号比例`, run `scripts/soften_line_endings.py draft.md --in-place` and then inspect once; repeat after a content rewrite if needed. Do all of this before the second checker; never after it.
 
 ## Title Selection
 
@@ -231,7 +231,7 @@ Choose the title after the body has a lived shape.
 
 Rules:
 
-- Standard diary defaults to `日寄`. Use a modified `X日寄` only when `X` is a shame/body/side-object handle that sounds like a first defensive move, not a prompt label.
+- Standard diary does not have one safe default. Choose from the title families in `title-model.md`: bare `日寄`, `X日寄`, `X寄`, question, meme/platform title, sentence title, or literary phrase. Use bare `日寄` when the body already carries enough local color; use a modified `X日寄` only when `X` is a shame/body/side-object handle that sounds like a first defensive move, not a prompt label.
 - Sincere or micro-hope titles may be complete sentences, but the title should come from a side action or wrong object, not from the final meaning.
 - Avoid titles that contain the full emotional contract: `不算坏事`, `没发出去那条消息`, `给不存在的人写信`, and similar prompt-summary phrases are high-risk.
 - Avoid topic-diagnostic standard titles such as `春招日寄`, `情人节日寄`, `婚礼日寄`, `痛风日寄`, `搬家日寄`, unless the body makes the modifier feel like an ugly side handle rather than the user's assignment.
@@ -300,7 +300,7 @@ Before finalizing, remove the most "written" surface:
 - If ordinary chat appears as standalone quoted lines, convert it into narration with `问/说/回`, or reduce it to one screen detail. Do not turn daily dialogue into a script.
 - If the middle third is only prompt execution, replace one scene with a hooked off-axis branch that changes what the narrator does next.
 - If the draft is "accurate but quiet", it is probably generated. Raise the amplitude through a social cut, body collapse, or bad system analogy.
-- If the draft's only roughness is debt, charging cable, or quiet room detail, it is still too polite. Add one ugly self-own or social misfire that would be slightly embarrassing to quote.
+- If the draft's only roughness is debt, charging cable, or quiet room detail, it is still too polite. Repair an existing scene into one ugly self-own or social misfire that would be slightly embarrassing to quote; do not satisfy this by adding a decorative named friend or game scene.
 - If the whole article can be described as one closed night, break time or place. Add a memory or outside scene caused by a small object, not by "I remembered".
 - If the ending repays an early object too beautifully, remove the repayment. End on a loose tail that could annoy the narrator tomorrow.
 

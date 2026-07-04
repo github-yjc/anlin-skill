@@ -531,7 +531,7 @@ def main() -> int:
 
     if report["summary"]["error_count"] > 0:
         return 1
-    if args.strict and report["summary"]["status"] == "revise":
+    if args.strict and report["summary"]["status"] in {"review", "revise"}:
         return 1
     return 0
 

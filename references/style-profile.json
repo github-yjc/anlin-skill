@@ -1,7 +1,7 @@
 {
   "version": "1.4",
   "profile_kind": "corpus_prior_predictive_intervals",
-  "corpus_dir": "C:\\Users\\34025\\Desktop\\Anlin",
+  "corpus_dir": "<corpus-dir>",
   "expected_corpus_count": 38,
   "corpus_file_count": 38,
   "principles": [

@@ -159,7 +159,7 @@ Recommended controller interpretation:
 
 - `green`: no hard errors; no soft drift families
 - `yellow`: soft drift families present below the review threshold
-- `review`: five or more independent yellow/red families require strong manual review and placebo comparison, not automatic rejection
+- `review`: five or more independent yellow/red families require strong manual review and placebo comparison. In `--strict --draft-gate` controller checks this returns nonzero, but the report should still say `review`, not pretend the evidence is a hard authorship proof.
 - `revise`: one hard gate, at least three independent red drift families, or soft-family drift beyond the original-calibrated upper bound
 - `inconclusive`: profile missing, corpus count mismatched, or placebo false accusations high
 
@@ -190,9 +190,9 @@ Examples:
 Run this layer after deterministic hard gates and before blind review:
 
 ```powershell
-python scripts/build_style_profile.py "C:\Users\34025\Desktop\Anlin" --output references/style-profile.json
+python scripts/build_style_profile.py <corpus-dir> --output references/style-profile.json
 python scripts/check_style_profile.py draft.md --profile references/style-profile.json
-python scripts/calibrate_style_profile.py "C:\Users\34025\Desktop\Anlin" --profile references/style-profile.json
+python scripts/calibrate_style_profile.py <corpus-dir> --profile references/style-profile.json
 ```
 
 For strict reporting, keep the profile file, skill commit, corpus path, corpus file count, and command arguments in the controller report.

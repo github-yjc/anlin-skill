@@ -800,7 +800,7 @@ def check_missing_title(findings: list[Finding], lines: list[str]) -> None:
                 "缺少标题",
                 0,
                 "",
-                "正式盲评稿必须是完整文章，第一行必须是标题。补一个正文级标题，通常优先弱化为“日寄”。",
+                "正式盲评稿必须是完整文章，第一行必须是标题。按正文完成后的标题模型选择：可用“日寄”，但不要把它当作 universal default。",
             )
         )
         return
@@ -1369,7 +1369,7 @@ def check_diagnostic_title(findings: list[Finding], lines: list[str]) -> None:
                     "题面诊断型标题",
                     1,
                     title,
-                    f"标题含高信号主题词 {matched}；标准日寄盲评通常优先弱化为“日寄”，除非修饰词来自正文里的侧面把手。",
+                    f"标题含高信号主题词 {matched}；先按 title-model.md 弱化诊断词。可改为“日寄”，也可改为正文里的侧面把手、问题、短句或低状态物件。",
                 )
             )
 

@@ -2,6 +2,12 @@
 
 Validation improves confidence under stated conditions. It never proves authorship or objective indistinguishability.
 
+## Corpus Boundary
+
+The distributable skill is usable without a local copy of the 38 originals. Runtime generation should rely on bundled portable evidence: `portable-corpus.md`, `samples-index.md`, `corpus-cards/`, `background-fact-classes.json`, and the checked-in `style-profile.json`.
+
+The full original corpus is optional developer/controller evidence. Use it only when available for stronger checks: rebuilding cards or profile, deterministic copy-overlap gates, original calibration, and complete-article blind rounds. If `ANLIN_CORPUS_DIR` / `--corpus-dir <corpus-dir>` is unavailable, report portable or fragment-level review and do not claim full-corpus blind-evaluation performance.
+
 Report only:
 
 - test conditions
@@ -31,13 +37,13 @@ python scripts/check_anlin_violations.py draft.md
 2. If full corpus is available, run:
 
 ```powershell
-python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
+python scripts/compare_anlin_corpus.py draft.md --corpus-dir <corpus-dir>
 ```
 
 3. If a corpus profile exists or full corpus is available, run the stylometric ratio audit:
 
 ```powershell
-python scripts/build_style_profile.py "C:\Users\34025\Desktop\Anlin" --output references/style-profile.json
+python scripts/build_style_profile.py <corpus-dir> --output references/style-profile.json
 python scripts/check_style_profile.py draft.md --profile references/style-profile.json --phase <A|B|C|D> --genre <standard|sincere|micro-hope|surreal> --draft-gate
 ```
 
@@ -46,18 +52,18 @@ python scripts/check_style_profile.py draft.md --profile references/style-profil
 
 ### Full Corpus Mode
 
-Applicable when `C:\Users\34025\Desktop\Anlin` or an equivalent corpus directory is available.
+Applicable when the 38-article corpus or an equivalent corpus directory is available.
 
 Run:
 
 ```powershell
 python scripts/check_anlin_violations.py draft.md
-python scripts/check_anlin_violations.py draft.md --strict --draft-gate --corpus-dir "C:\Users\34025\Desktop\Anlin"
-python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
-python scripts/build_style_profile.py "C:\Users\34025\Desktop\Anlin" --output references/style-profile.json
+python scripts/check_anlin_violations.py draft.md --strict --draft-gate --corpus-dir <corpus-dir>
+python scripts/compare_anlin_corpus.py draft.md --corpus-dir <corpus-dir>
+python scripts/build_style_profile.py <corpus-dir> --output references/style-profile.json
 python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate
-python scripts/calibrate_style_profile.py "C:\Users\34025\Desktop\Anlin" --profile references/style-profile.json
-python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
+python scripts/calibrate_style_profile.py <corpus-dir> --profile references/style-profile.json
+python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 ```
 
 `--strict` is a corpus-calibrated blocking gate. It should fail generated drafts only for deterministic contamination or high-risk structural buttons that do not hard-fail original corpus files. Other blind-review risks remain warnings and must be interpreted with placebo/original calibration.
@@ -82,26 +88,27 @@ Applicable when the full corpus is unavailable.
 4. Do not run full-corpus blind evaluation.
 5. Mark the result as portable review, not corpus validation.
 
-## Clean Generation Protocol
+## Clean-Eval Protocol
 
-Formal blind evaluation must measure the skill, not extra help from the controller.
+Clean-eval blind evaluation must measure the skill, not extra help from the controller.
 
 Generator setup:
 
 - Start a fresh agent context for each article.
-- Give the generator only the realistic user prompt, the target date/background contained in that prompt, and normal access to the Anlin skill.
-- Use `evals/evals.json` `realistic_prompt` for formal blind evaluation. The richer `prompt` field is a stress-test prompt and must not be used to claim blind-evaluation performance.
+- Give the generator only the realistic user prompt, the target date/background contained in that prompt, and normal access to the `anlin-writing` skill.
+- Use `evals/evals.json` `realistic_prompt` for clean-eval blind evaluation. The richer `prompt` field is a stress-test prompt and must not be used to claim blind-evaluation performance.
 - Do not provide previous blind-review failures, judge rubrics, source excerpts, corpus filenames, controller mappings, hidden expected elements, or manual advice such as "add montage", "add unrelated details", or "avoid prompt-shape leakage".
 - If the generator reads `outputs/`, blind-round folders, `mapping.json`, judge reports, or controller notes before writing, mark the generation contaminated.
 - Record the exact prompt, skill path, skill commit, model/surface, allowed tools, corpus availability, and whether web/background lookup was allowed.
-- For OpenCode generation against the current global skill path, disable legacy Claude skill scans when a same-name `.claude/skills/anlin-writing` copy exists. Example:
+- For OpenCode generation against the current installed skill path, disable legacy or external skill scans when an older same-name copy exists outside `<skill-dir>`. Example:
 
 ```powershell
 $env:OPENCODE_DISABLE_CLAUDE_CODE_SKILLS='1'
+$env:OPENCODE_DISABLE_EXTERNAL_SKILLS='1'
 opencode run --model 'longcat/LongCat-2.0' --dir <case-dir> <realistic_prompt>
 ```
 
-  A generation stderr/log line that reads `C:\Users\34025\.claude\skills\anlin-writing\...` means the run used the wrong skill and must be marked contaminated.
+  A generation stderr/log line that references any Anlin-writing skill path other than the recorded `<skill-dir>` means the run used the wrong skill and must be marked contaminated.
 
 If a test draft only succeeds because the prompt itself supplied style rules, classify the run as diagnostic, not a clean skill evaluation.
 
@@ -118,7 +125,7 @@ Terms:
 Recommended command:
 
 ```powershell
-python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
+python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 ```
 
 Each round creates a clean directory containing only:
@@ -242,7 +249,7 @@ If a judge sees `mapping.json`, original corpus filenames, skill files, previous
 ## Controller Checklist
 
 - [ ] Draft body contains no process labels.
-- [ ] Formal generation used `realistic_prompt` or an equivalently natural prompt, not the diagnostic stress prompt.
+- [ ] Clean-eval generation used `realistic_prompt` or an equivalently natural prompt, not the diagnostic stress prompt.
 - [ ] Generator did not receive judge rubrics, source excerpts, prior failures, mappings, or manual style hints outside the skill.
 - [ ] Corpus path and date-zone recorded outside prose.
 - [ ] Checker output saved or summarized.

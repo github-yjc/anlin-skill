@@ -1,6 +1,6 @@
 # Anti-AI Slop Gate
 
-Use this file before drafting and again during review. It is a short guardrail against the agent's default prose habits.
+Use this file directly for ordinary drafting, explicit anti-AI analysis, or repair after the first clean-eval checker pass. For clean-eval generation, `clean-generation-brief.md` already carries the distilled first-draft anti-AI constraints; do not open this file before the first complete `draft.md`.
 
 The goal is not to make the article casual. The goal is to remove surfaces that make a reader feel a model completed an assignment: too balanced, too explanatory, too coherent, too loyal to the prompt, and too clean.
 

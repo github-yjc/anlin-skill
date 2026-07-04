@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -9,7 +10,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CORPUS = Path(r"C:\Users\34025\Desktop\Anlin")
+CORPUS_ENV = os.environ.get("ANLIN_CORPUS_DIR")
+CORPUS = Path(CORPUS_ENV) if CORPUS_ENV else Path("__ANLIN_CORPUS_DIR_NOT_SET__")
+HAS_CORPUS = CORPUS_ENV is not None and CORPUS.is_dir()
 CHECKER = ROOT / "scripts" / "check_anlin_violations.py"
 BLIND_PREP = ROOT / "scripts" / "prepare_blind_test.py"
 RUN_BLIND = ROOT / "scripts" / "run_blind_test.py"
@@ -28,6 +31,7 @@ EVALS = ROOT / "evals" / "evals.json"
 
 
 class AnlinToolingTests(unittest.TestCase):
+    @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_checker_has_no_hard_errors_on_original_corpus(self) -> None:
         self.assertTrue(CORPUS.is_dir(), f"missing corpus: {CORPUS}")
         originals = sorted(CORPUS.glob("*.md"))
@@ -1573,22 +1577,153 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Layer 4: Controller Validation", layer_map)
         self.assertIn("background facts are contradiction boundaries", layer_map.lower())
         self.assertIn("Do not solve a generation failure only by adding a new checker rule", layer_map)
+        self.assertIn("The runtime has two roles", skill)
+        self.assertIn("Generator role", skill)
+        self.assertIn("Controller role", skill)
+        self.assertIn("Deep references in Layer 3 are repair libraries", layer_map)
         self.assertIn("runtime-layer-map.md", readme)
         self.assertIn("runtime-layer-map.md", skill)
         self.assertIn("not a drafting aid", skill)
+        self.assertIn("Own the clean-eval first-draft source loop", layer_map)
+        self.assertIn("Layer 1 is not a pre-draft requirement", layer_map)
 
-    def test_readme_uses_current_opencode_skill_path(self) -> None:
+    def test_formal_first_draft_uses_source_loop_not_long_repair_files(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
-        self.assertIn(r"C:\Users\34025\.config\opencode\skills\anlin-writing", readme)
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        anti_ai = (ROOT / "references" / "anti-ai-slop.md").read_text(encoding="utf-8")
+        modes = (ROOT / "references" / "generation-modes.md").read_text(encoding="utf-8")
+
+        self.assertIn("that file is the first-draft source loop", skill)
+        self.assertIn("Do not read `references/runtime-brief.md`", skill)
+        self.assertIn("Do not open `runtime-brief.md` before the first complete `draft.md`", skill)
+        self.assertIn("Use this loop instead of opening the long runtime or review files", clean)
+        self.assertIn("repair by replacing failed scene functions, not by adding feature labels", clean)
+        self.assertIn("These are readiness signals, not content quotas", skill)
+        self.assertIn("For clean-eval generation, do not open this file before the first complete `draft.md`", runtime)
+        self.assertIn("do not open this file before the first complete `draft.md`", anti_ai)
+        self.assertIn("do not open this file before the first complete `draft.md` unless the scene slate is stuck", modes)
+        self.assertIn("source-load conflict", readme)
+        self.assertIn("runtime-brief.md`, `generation-modes.md`, and `anti-ai-slop.md` remain available", readme)
+
+    def test_readme_uses_portable_skill_and_corpus_paths(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("<skill-dir>", readme)
+        self.assertIn("<corpus-dir>", readme)
+        self.assertIn("ANLIN_CORPUS_DIR", readme)
+        self.assertIn("distributable skill does not require every user to own the 38 original articles", readme)
+        self.assertNotIn(r"C:\Users\34025", readme)
         self.assertNotIn(r"skills\Anlin", readme)
         self.assertNotIn("Claude Code", readme)
         self.assertIn("not yet proven", readme)
 
+    def test_validation_protocol_uses_portable_skill_and_corpus_paths(self) -> None:
+        validation = (ROOT / "references" / "validation-protocol.md").read_text(encoding="utf-8")
+        self.assertIn("<skill-dir>", validation)
+        self.assertIn("<corpus-dir>", validation)
+        self.assertIn("ANLIN_CORPUS_DIR", validation)
+        self.assertIn("The distributable skill is usable without a local copy of the 38 originals", validation)
+        self.assertIn("OPENCODE_DISABLE_EXTERNAL_SKILLS", validation)
+        self.assertIn("other than the recorded `<skill-dir>`", validation)
+        self.assertNotIn(r"C:\Users\34025", validation)
+        self.assertNotIn(r"C:\Users\34025\.claude\skills\anlin-writing", validation)
+
+    def test_distributable_files_do_not_embed_local_machine_paths(self) -> None:
+        checked_roots = [ROOT / "README.md", ROOT / "SKILL.md", ROOT / "references", ROOT / "evals", ROOT / "scripts"]
+        offenders: list[str] = []
+        for root in checked_roots:
+            paths = [root] if root.is_file() else list(root.rglob("*"))
+            for path in paths:
+                if not path.is_file():
+                    continue
+                if path.suffix.lower() not in {".md", ".py", ".json"}:
+                    continue
+                text = path.read_text(encoding="utf-8")
+                if "C:\\Users\\" in text or "Desktop\\Anlin" in text or ".claude\\skills\\anlin-writing" in text:
+                    offenders.append(str(path.relative_to(ROOT)))
+        self.assertEqual(offenders, [])
+
     def test_voice_model_summary_does_not_use_must_include_recipe(self) -> None:
         voice = (ROOT / "references" / "voice-model.md").read_text(encoding="utf-8")
         self.assertNotIn("写作必含", voice)
+        self.assertNotIn("每篇至少三种", voice)
+        self.assertNotIn("按 §8.6 迭代机制修复所有违规后才输出", voice)
         self.assertIn("高价值候选，不是必含配方", voice)
         self.assertIn("不要把背景、游戏、平台、熟人或身体标签当配料", voice)
+
+    def test_self_check_respects_clean_eval_boundaries(self) -> None:
+        self_check = (ROOT / "references" / "self-check.md").read_text(encoding="utf-8")
+        self.assertIn("clean-eval 例外", self_check)
+        self.assertIn("两次 `clean_run_checker.py` 上限", self_check)
+        self.assertIn("不允许因为 warning 或普通 error 继续第三次写稿/第三次检查", self_check)
+        self.assertIn("clean-eval 不使用无限循环", self_check)
+
+    def test_runtime_docs_use_current_skill_name_and_output_locations(self) -> None:
+        files = [
+            ROOT / "README.md",
+            ROOT / "SKILL.md",
+            ROOT / "references" / "clean-generation-brief.md",
+            ROOT / "references" / "runtime-brief.md",
+            ROOT / "references" / "runtime-layer-map.md",
+            ROOT / "references" / "validation-protocol.md",
+            ROOT / "evals" / "README.md",
+        ]
+        combined = "\n".join(path.read_text(encoding="utf-8") for path in files)
+        self.assertNotIn("Anlin Skill", combined)
+        self.assertNotIn("Anlin skill", combined)
+        self.assertNotIn("formal clean-run", combined)
+        self.assertNotIn("formal clean generation", combined)
+        self.assertNotIn("正式 clean-run", combined)
+        self.assertNotIn("evals/outputs", combined)
+        self.assertNotIn("maintainer", combined.lower())
+        self.assertIn("anlin-writing", combined)
+        self.assertIn("<eval-workspace>/iteration-<n>/eval-<id>/draft.md", combined)
+        self.assertIn("Do not write generated articles into the skill directory", combined)
+
+    def test_runtime_docs_distinguish_clean_eval_from_ordinary_use(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        self.assertIn("Ordinary user mode", skill)
+        self.assertIn("Clean-eval mode", skill)
+        self.assertIn("the checker loop may continue until hard errors are cleared", clean)
+        self.assertIn("The two-call stop rule belongs to clean-eval only", clean)
+        self.assertIn("Generated articles do not belong in the skill directory", runtime)
+
+    def test_title_model_prevents_universal_ri_default(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        modes = (ROOT / "references" / "generation-modes.md").read_text(encoding="utf-8")
+        budget = (ROOT / "references" / "feature-budget.md").read_text(encoding="utf-8")
+        title = (ROOT / "references" / "title-model.md").read_text(encoding="utf-8")
+        combined = "\n".join([skill, clean, modes, budget, title])
+        self.assertIn("references/title-model.md", skill)
+        self.assertIn("Choose after the body exists", clean)
+        self.assertIn("Standard diary does not have one safe default", modes)
+        self.assertIn("Bare `日寄` is valid, but not a universal default", budget)
+        self.assertIn("not a safe universal default", title)
+        self.assertNotIn("Standard diary defaults to `日寄`", combined)
+        self.assertNotIn("default to `日寄`; use", combined)
+
+    def test_deep_repair_references_are_not_content_quotas(self) -> None:
+        generation_modes = (ROOT / "references" / "generation-modes.md").read_text(encoding="utf-8")
+        structure = (ROOT / "references" / "structure-patterns.md").read_text(encoding="utf-8")
+        reference_library = (ROOT / "references" / "anlin-reference-library.md").read_text(encoding="utf-8")
+        portable = (ROOT / "references" / "portable-corpus.md").read_text(encoding="utf-8")
+        characters = (ROOT / "references" / "anlin-characters.md").read_text(encoding="utf-8")
+        self.assertIn("If the day's material has no natural misread", generation_modes)
+        self.assertIn("do not satisfy this by adding a decorative named friend or game scene", generation_modes)
+        self.assertIn("不要为了凑线条补背景素材", structure)
+        self.assertIn("大多数保留场景应有转向", structure)
+        self.assertIn("天气通常不能直说成气象播报", reference_library)
+        self.assertNotIn("每篇至少混入三类", portable)
+        self.assertIn("不能全篇只有一种低温情绪", portable)
+        self.assertNotIn("每次出场三人格必须齐全", characters)
+        self.assertIn("不要只写成负责骂人的工具人", characters)
+        self.assertNotIn("出场必须携带", characters)
+        self.assertNotIn("每个角色出场必须", characters)
+        self.assertIn("若出场，应携带", characters)
 
     def test_skill_load_order_keeps_background_as_post_scene_fact_gate(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
@@ -1612,6 +1747,8 @@ class AnlinToolingTests(unittest.TestCase):
         brief = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
         self.assertIn("Skill references are local bundled files", brief)
         self.assertIn("Do not call `read_mcp_resource`", brief)
+        self.assertIn("Source Loop", brief)
+        self.assertIn("friction and consequence before any audit vocabulary", brief)
         self.assertIn("about 950-1150 Chinese characters", brief)
         self.assertIn("45-70 non-empty lines", brief)
         self.assertIn("not 100+ tiny rows", brief)
@@ -1971,6 +2108,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any("封闭夜晚短篇结构" in item["rule"] for item in findings))
             self.assertTrue(all(item["severity"] != "error" for item in findings))
 
+    @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_blind_prep_supports_fragments_and_placebo(self) -> None:
         draft = next(iter(sorted(CORPUS.glob("*.md"))))
         with tempfile.TemporaryDirectory() as temp:
@@ -2024,6 +2162,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertFalse((output_dir / "portable-corpus.md").exists())
             self.assertFalse((output_dir / "vocabulary-rules.md").exists())
 
+    @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_blind_prep_keeps_titles_and_rejects_short_draft(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             temp_path = Path(temp)
@@ -2121,6 +2260,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotIn("**日寄**", sample_text)
             self.assertEqual(mapping[draft_sample]["title"], "日寄")
 
+    @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_blind_prep_removes_metadata_from_draft(self) -> None:
         draft = next(iter(sorted(CORPUS.glob("*.md"))))
         with tempfile.TemporaryDirectory() as temp:
@@ -2155,6 +2295,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotIn("**作者**", sample_text)
             self.assertNotIn("原链接", sample_text)
 
+    @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_corpus_cards_exist(self) -> None:
         result = subprocess.run(
             [sys.executable, str(BUILD_CARDS), "--corpus-dir", str(CORPUS)],
@@ -2168,6 +2309,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertEqual(len(cards), 38)
         self.assertTrue((CARDS / "INDEX.md").is_file())
 
+    @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_style_profile_builds_corpus_prior(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             profile_path = Path(temp) / "style-profile.json"
@@ -2181,6 +2323,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             profile = json.loads(profile_path.read_text(encoding="utf-8"))
             self.assertEqual(profile["corpus_file_count"], 38)
+            self.assertEqual(profile["corpus_dir"], "<corpus-dir>")
             self.assertEqual(len(profile["documents"]), 38)
             self.assertEqual(profile["profile_kind"], "corpus_prior_predictive_intervals")
             self.assertEqual(profile["version"], "1.4")
@@ -2207,6 +2350,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(profile["count_summary"]["ai_binary_reframe"]["hard_generated"])
             self.assertIn("Do not force rare features to appear.", profile["principles"])
 
+    @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_style_profile_has_no_hard_errors_on_original_corpus(self) -> None:
         self.assertTrue(STYLE_PROFILE.is_file(), f"missing style profile: {STYLE_PROFILE}")
         failures: list[str] = []
@@ -2274,6 +2418,98 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("first_hit_lines", draft_gate_report["cognitive_audit"])
             self.assertIn("independent_drift_family_count", draft_gate_report["summary"])
             self.assertIn("profile_scope", draft_gate_report)
+
+    def test_style_profile_strict_returns_nonzero_for_review_status(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(
+                "\n".join(
+                    [
+                        "# 日寄",
+                        "",
+                        "我在楼下看见水龙头又漏了一点。",
+                        "还以为这是系统在结算我今天的钱。",
+                        "手机亮了一下，我说算了。",
+                        "杯子放在桌上，底下有一圈水，我关了屏幕。",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            profile = Path(temp) / "profile.json"
+            yellow_summary = {
+                "min": 0.0,
+                "q05": 0.0,
+                "q10": 0.0,
+                "median": 0.0,
+                "q90": 0.0,
+                "q95": 0.0,
+                "max": 100000.0,
+                "mean": 0.0,
+                "mad": 0.0,
+            }
+            profile.write_text(
+                json.dumps(
+                    {
+                        "version": "test",
+                        "corpus_file_count": 38,
+                        "expected_corpus_count": 38,
+                        "value_summary": {
+                            "body_chars": yellow_summary,
+                            "title_chars": yellow_summary,
+                            "line_mean_chars": yellow_summary,
+                            "paragraph_blocks": yellow_summary,
+                            "punct_period_per_1k": yellow_summary,
+                        },
+                        "value_families": {
+                            "body_chars": "length",
+                            "title_chars": "title",
+                            "line_mean_chars": "line_rhythm",
+                            "paragraph_blocks": "structure",
+                            "punct_period_per_1k": "punctuation",
+                        },
+                        "count_summary": {},
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            json_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECK_PROFILE),
+                    str(draft),
+                    "--profile",
+                    str(profile),
+                    "--draft-gate",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(json_result.returncode, 0, json_result.stderr)
+            report = json.loads(json_result.stdout)
+            self.assertEqual(report["summary"]["status"], "review")
+            self.assertEqual(report["summary"]["independent_drift_family_count"], 5)
+
+            strict_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECK_PROFILE),
+                    str(draft),
+                    "--profile",
+                    str(profile),
+                    "--draft-gate",
+                    "--strict",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(strict_result.returncode, 0)
 
     def test_merge_short_lines_reduces_generated_line_grid(self) -> None:
         body = "\n".join(
@@ -2530,6 +2766,7 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
 
+    @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_style_profile_uses_phase_genre_stratum_when_requested(self) -> None:
         draft = next(iter(sorted(CORPUS.glob("Anlin_20220404.md"))))
         result = subprocess.run(
@@ -2556,6 +2793,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertFalse(report["profile_scope"]["fallback"])
         self.assertIn("cognitive_audit", report)
 
+    @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_style_profile_falls_back_when_stratum_is_too_small(self) -> None:
         draft = next(iter(sorted(CORPUS.glob("*.md"))))
         result = subprocess.run(
@@ -2579,6 +2817,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertEqual(report["profile_scope"]["scope"], "global")
         self.assertTrue(report["profile_scope"]["fallback"])
 
+    @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_style_profile_calibration_reports_original_warning_families(self) -> None:
         result = subprocess.run(
             [
@@ -2632,8 +2871,11 @@ class AnlinToolingTests(unittest.TestCase):
         data = json.loads(EVALS.read_text(encoding="utf-8"))
         self.assertEqual(data["version"], "2.2")
         self.assertEqual(data["skill_name"], "anlin-writing")
+        self.assertIn("anlin-writing", data["trigger_aliases"])
+        self.assertIn("anlinwriting", data["trigger_aliases"])
         self.assertIn("Anlin", data["trigger_aliases"])
-        self.assertTrue(data["installed_skill_path"].endswith(r"skills\anlin-writing"))
+        self.assertEqual(data["installed_skill_path"], "<skill-dir>")
+        self.assertEqual(data["corpus_path"], "<corpus-dir or ANLIN_CORPUS_DIR>")
         banned_helpers = (
             "蒙太奇",
             "不总结",
@@ -2653,10 +2895,11 @@ class AnlinToolingTests(unittest.TestCase):
         for item in data["evals"]:
             self.assertIn("realistic_prompt", item, item["name"])
             realistic_prompt = item["realistic_prompt"]
-            self.assertTrue(realistic_prompt.startswith("用 Anlin skill 写"), item["name"])
+            self.assertTrue(realistic_prompt.startswith("用 anlin-writing skill 写"), item["name"])
             for banned in banned_helpers:
                 self.assertNotIn(banned, realistic_prompt, item["name"])
 
+    @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_run_blind_test_supports_multiple_placebo_rounds(self) -> None:
         draft = next(iter(sorted(CORPUS.glob("*.md"))))
         with tempfile.TemporaryDirectory() as temp:

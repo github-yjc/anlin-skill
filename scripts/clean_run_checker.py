@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bounded checker wrapper for formal clean generation.
+"""Bounded checker wrapper for clean-eval generation.
 
 This wrapper is for generation agents, not external validation. It delegates to
 check_anlin_violations.py while recording how many checker calls have been made
@@ -242,7 +242,7 @@ def preflight_before_check(draft: Path, call_number: int) -> bool:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run Anlin draft checker with a two-call clean-run limit.")
+    parser = argparse.ArgumentParser(description="Run anlin-writing draft checker with a two-call clean-eval limit.")
     parser.add_argument("draft", type=Path)
     parser.add_argument("--strict", action="store_true")
     parser.add_argument("--draft-gate", action="store_true")

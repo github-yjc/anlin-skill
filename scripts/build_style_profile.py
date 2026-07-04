@@ -701,7 +701,7 @@ def build_profile(corpus_dir: Path) -> dict[str, Any]:
     return {
         "version": PROFILE_VERSION,
         "profile_kind": "corpus_prior_predictive_intervals",
-        "corpus_dir": str(corpus_dir),
+        "corpus_dir": "<corpus-dir>",
         "expected_corpus_count": EXPECTED_CORPUS_COUNT,
         "corpus_file_count": len(paths),
         "principles": [

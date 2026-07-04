@@ -8,7 +8,9 @@ Do not announce that you are loading references or building a state card. Do not
 
 Skill references are local bundled files. Do not call `read_mcp_resource` for this skill. Read local files directly only when this brief tells you to.
 
-For formal clean generation, do not print the article to chat before the checker flow. First write the complete article to `draft.md`, run the bounded checker flow, then read `draft.md` once and output that exact content. A visible pre-check article followed by tools contaminates the run.
+For clean-eval generation, do not print the article to chat before the checker flow. First write the complete article to `draft.md` in the task workspace, run the bounded checker flow, then read `draft.md` once and output that exact content. A visible pre-check article followed by tools contaminates the run.
+
+For ordinary user mode, the same quiet drafting rule applies, but the checker loop may continue until hard errors are cleared or the user is satisfied. The two-call stop rule belongs to clean-eval only.
 
 ## Target
 
@@ -16,7 +18,7 @@ The goal is anonymous blind-evaluation robustness under reported conditions. Do 
 
 For a standard diary blind-evaluation draft:
 
-- title required; default `日寄`
+- title required; choose from the completed body, not from a fixed default
 - body target: about 950-1150 Chinese characters
 - body shape: roughly 45-70 non-empty lines
 - at least six naturally longer lines above about 24 Chinese characters
@@ -25,6 +27,20 @@ For a standard diary blind-evaluation draft:
 - not 100+ tiny rows
 
 If the candidate has 90+ body lines, no long lines, or mostly 4-10 character rows, merge lines before writing `draft.md`. If it is under 900 Chinese characters, expand through lived action, not adjectives.
+
+## Source Loop
+
+Use this loop instead of opening the long runtime or review files before the first draft:
+
+1. Pick one daily friction that exists without the assignment.
+2. Let at most one prompt pressure surface interrupt it.
+3. Add one off-axis branch that changes an action, body state, reply, route, payment, or social position.
+4. Keep one useless residue that does not summarize the theme.
+5. Check only facts already present in selected scenes; lower or delete unsupported specifics.
+6. Choose a title from the completed body and write one complete titled article to `draft.md`.
+7. Run the checker flow for the selected mode; repair by replacing failed scene functions, not by adding feature labels.
+
+This is source guidance, not a scorecard. The point is to make the first draft grow from friction and consequence before any audit vocabulary enters the model's writing surface.
 
 ## Start From Friction
 
@@ -50,7 +66,7 @@ Use this source order before drafting:
 
 Pick the smallest scene set that carries the piece. For standard diary, use several fragments rather than one closed short story.
 
-Required before first draft:
+Engine readiness before first draft:
 
 - one crooked misread or system joke
 - one ugly self-own, body lowering, or social embarrassment
@@ -61,6 +77,8 @@ Required before first draft:
 Every concrete noun must change action, social position, body consequence, money, route, reply, or the next scene. If deleting a detail changes nothing, delete it.
 
 Keep main-topic scenes under half the selected slate. If the prompt gives many pressure nouns, make only one or two visible and bury or discard the rest.
+
+If these readiness signals tempt you to add a game scene, recurring character, body symptom, app platform, or background fact only because a reference mentions it, do not add it. Rework an existing scene so the function appears through its own action.
 
 ## Anti-Synthetic Shape
 
@@ -118,18 +136,34 @@ Do not summarize, heal, or neatly explain the article. Avoid learned buttons suc
 
 End on a loose practical consequence: body interruption, unfinished reply, wrong object, route, payment, cold food, next notification, or a small action that does not solve anything.
 
+## Title
+
+Do not default mechanically to `日寄`, and do not avoid it mechanically either. Corpus titles include exact `日寄`, `X日寄`, `X寄`, questions, meme/platform titles, sentence titles, and literary phrases. Choose after the body exists:
+
+- If the body already has strong local color, bare `日寄` may work.
+- If the body has a side wound or low-status handle, `X日寄` or `X寄` may work.
+- If the body is sincere, micro-hope, surreal, or later reflective, a sentence or phrase title may work.
+- If the title alone reveals the user's prompt, weaken it or choose a side object/action.
+- If the title and ending explain each other too neatly, lower one of them.
+
 ## Required Tool Flow
 
-Write the complete titled article to `draft.md` in the current working directory. Then run:
+Write the complete titled article to `draft.md` in the current task working directory. Do not write it inside the skill directory. If the current working directory is the skill directory, switch to or create a task/eval workspace outside it before writing.
+
+For clean-eval mode, then run:
 
 ```powershell
-python C:\Users\34025\.config\opencode\skills\anlin-writing\scripts\clean_run_checker.py draft.md --strict --draft-gate
+python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate
 ```
+
+Resolve `<skill-dir>` from the directory that contains this `SKILL.md`. Do not make `<skill-dir>` the output directory.
 
 If the wrapper prints `CLEAN_RUN_PREFLIGHT`, revise before the first checker call is consumed. Do not inspect checker source or tests for hidden tokens.
 
-Use at most two clean-run checker calls. If the first actual checker reports severe line grid, over-fragmentation, dialogue ladder, reference contamination, underbuilt length, background stuffing, or more than three errors, rewrite once from a new scene slate. Repair by replacement, not deletion.
+In clean-eval mode, use at most two clean-run checker calls. If the first actual checker reports severe line grid, over-fragmentation, dialogue ladder, reference contamination, underbuilt length, background stuffing, or more than three errors, rewrite once from a new scene slate. Repair by replacement, not deletion.
+
+In ordinary user mode, use the normal checker and continue repair as needed, but do not chase every ratio warning by adding visible features. Repeated warnings mean the scene source or title/rhythm model is wrong.
 
 If a rhythm script is needed, use the bundled script named by the checker or SKILL.md. If you rewrite `draft.md` afterward, earlier rhythm repairs no longer count.
 
-After the second checker call, stop. The only next tool action may be reading `draft.md` once and outputting it exactly, even if errors remain. Do not create an unpersisted final repair.
+In clean-eval mode, after the second checker call, stop. The only next tool action may be reading `draft.md` once and outputting it exactly, even if errors remain. Do not create an unpersisted final repair.

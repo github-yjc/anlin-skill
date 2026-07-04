@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -179,15 +180,19 @@ Use this card for calibration only. Do not copy anchor phrasing into generated p
 
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Build Anlin corpus cards from original markdown files.")
-    parser.add_argument("--corpus-dir", type=Path, default=Path(r"C:\Users\34025\Desktop\Anlin"))
+    parser.add_argument("--corpus-dir", type=Path, default=None)
     parser.add_argument("--output-dir", type=Path, default=Path(__file__).resolve().parent.parent / "references" / "corpus-cards")
     args = parser.parse_args(argv)
 
-    if not args.corpus_dir.is_dir():
-        parser.error(f"Corpus directory not found: {args.corpus_dir}")
+    corpus_dir = args.corpus_dir or os.environ.get("ANLIN_CORPUS_DIR")
+    if not corpus_dir:
+        parser.error("Must provide --corpus-dir or set ANLIN_CORPUS_DIR.")
+    corpus_path = Path(corpus_dir)
+    if not corpus_path.is_dir():
+        parser.error(f"Corpus directory not found: {corpus_path}")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    paths = sorted(path for path in args.corpus_dir.glob("*.md") if path.is_file())
+    paths = sorted(path for path in corpus_path.glob("*.md") if path.is_file())
     for path in paths:
         card = build_card(path)
         output = args.output_dir / f"{path.stem}.md"
@@ -212,4 +217,3 @@ def main(argv: Optional[list[str]] = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

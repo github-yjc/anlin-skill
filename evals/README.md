@@ -1,4 +1,4 @@
-# Anlin Skill Evaluation Set
+# anlin-writing Evaluation Set
 
 结构化评测集，用于定量测量 Anlin 写作 skill 是否通过风格验证门禁。评测不证明「与原文无法区分」，只证明生成物满足 skill 规定的客观和主观质量标准。
 
@@ -43,14 +43,14 @@ evals/
 
 正式盲评使用 `evals.json` 中对应用例的 `realistic_prompt` 字段。`prompt` 字段保留给诊断压力测试，不得用来声明正式盲评通过率，因为它包含额外写作提示。
 
-将 `realistic_prompt` 发给一个全新上下文（无历史对话）的 agent，让 agent 正常触发并加载 Anlin skill 后生成文章。不要给生成 agent 提供盲评失败分析、judge rubric、原文摘录、controller mapping、人工风格提示或旧生成稿。将输出保存为 `draft.md`。
+将 `realistic_prompt` 发给一个全新上下文（无历史对话）的 agent，让 agent 正常触发并加载 `anlin-writing` skill 后生成文章。不要给生成 agent 提供盲评失败分析、judge rubric、原文摘录、controller mapping、人工风格提示或旧生成稿。将输出保存为 `draft.md`。
 
 草稿只保存一篇完整文章的标题和正文。标题必须由生成 agent 产出，放在第一行，推荐使用 `# 标题`；不要加粗、不要写成 `标题：...`，也不要把标题作为控制器元数据附加。不要把仿写、生成、验证、语料、片段级验证等方法标签写进正文；这些信息由控制器记录在验证报告里。
 
 ### 步骤 2：运行硬规则脚本
 
 ```powershell
-python C:\Users\34025\.config\opencode\skills\anlin-writing\scripts\check_anlin_violations.py draft.md
+python <skill-dir>/scripts/check_anlin_violations.py draft.md
 ```
 
 - 退出码 0：没有检测到 error 级违规；warning 仍需人工复核
@@ -82,7 +82,7 @@ python C:\Users\34025\.config\opencode\skills\anlin-writing\scripts\check_anlin_
 - `references/structure-patterns.md`
 - `references/voice-model.md`
 
-如果完整语料目录可用（`C:\Users\34025\Desktop\Anlin`），还可读取原文进行比对。
+如果完整语料目录可用（通过 `ANLIN_CORPUS_DIR` 或 `--corpus-dir <corpus-dir>` 指定），还可读取原文进行比对。没有完整原文时，只使用 skill 内置的 portable/corpus-card 材料。
 
 ### 步骤 4：计算通过/失败
 
@@ -110,10 +110,10 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 未来可用控制器脚本自动完成全流程：
 1. 读取 evals.json 的 `realistic_prompt`
 2. 对每个用例启动一个独立 agent（无上下文污染）
-3. agent 生成一篇含标题的完整文章 → 保存到 `evals/outputs/eval-{id}-draft.md`
+3. agent 生成一篇含标题的完整文章 → 保存到外部评测工作区，例如 `<eval-workspace>/iteration-<n>/eval-<id>/draft.md`
 4. 运行 `check_anlin_violations.py`
 5. 运行 Style Critic 子代理评分
-6. 汇总到 `evals/outputs/benchmark.json`
+6. 汇总到外部评测工作区，例如 `<eval-workspace>/iteration-<n>/benchmark.json`
 
 ## 与盲测的关系
 
@@ -133,7 +133,7 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 - 评测集不修改 skill 文件，只读取
 - 每个用例的 `realistic_prompt` 字段是正式盲评入口——全新 agent 只读 realistic prompt + skill 即可生成
 - `prompt` 字段是压力测试入口，适合定位问题，不适合作为“skill 单独能力”的通过率依据
-- 完整语料路径: `C:\Users\34025\Desktop\Anlin`
+- 完整语料路径: 可选；通过 `ANLIN_CORPUS_DIR` 或 `--corpus-dir <corpus-dir>` 指定
 - portable 模式用例（12、14）的 `corpus: unavailable` 或片段级验证状态只写入控制器验证报告，不写入正文
 - 用例 15 是「应拒绝」场景，其通过标准与其他用例不同
 
