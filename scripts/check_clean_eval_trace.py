@@ -80,13 +80,13 @@ def collect_findings(text: str) -> list[TraceFinding]:
     if stop_index >= 0:
         after_stop = normalized[stop_index:]
         post_stop_patterns = [
-            ("stop后继续写稿", r"(Write draft\.md|Edit draft\.md|filesystem_write_file|filesystem_edit_file)"),
-            ("stop后切普通checker", r"check_anlin_violations\.py"),
-            ("stop后删除状态", r"(Remove-Item|rm\s+|del\s+).{0,120}\.anlin-clean-run-state\.json"),
-            ("stop后读取checker源码", r"scripts/check_anlin_violations\.py.{0,120}(offset|Select-String|Read)"),
+            ("stop后继续写稿", r"(Write draft\.md|Edit draft\.md|filesystem_write_file|filesystem_edit_file)", 0),
+            ("stop后切普通checker", r"check_anlin_violations\.py", re.IGNORECASE),
+            ("stop后删除状态", r"(Remove-Item|rm\s+|del\s+).{0,120}\.anlin-clean-run-state\.json", re.IGNORECASE),
+            ("stop后读取checker源码", r"scripts/check_anlin_violations\.py.{0,120}(offset|Select-String|Read)", re.IGNORECASE),
         ]
-        for rule, pattern in post_stop_patterns:
-            match = re.search(pattern, after_stop, re.IGNORECASE | re.DOTALL)
+        for rule, pattern, flags in post_stop_patterns:
+            match = re.search(pattern, after_stop, flags | re.DOTALL)
             if match:
                 findings.append(
                     TraceFinding(
