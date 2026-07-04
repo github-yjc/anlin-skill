@@ -22,6 +22,8 @@ Clean-eval preflight now blocks obvious non-article drafts before they consume a
 
 Development validation now uses two checkpoints per serious case. The bounded checkpoint records the fresh-agent result after clean-eval limits, and the finalized checkpoint records the result after ordinary multi-round repair from a separate copied draft. A bounded failure with a finalized pass means source guidance should be strengthened; failures in both checkpoints indicate a broader skill problem, not just a stricter checker need.
 
+Latest source-level tightening: clean-eval first draft may only use `clean-generation-brief.md` plus phase/date handling when needed. Repair, title, structure, anti-slop, corpus-card, judge, and ratio references are explicitly post-draft materials for this mode.
+
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
 ## Install Path

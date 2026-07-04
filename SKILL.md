@@ -53,6 +53,8 @@ For ordinary or formal article generation, start with one file only:
 
 For clean-eval generation, that file is the first-draft source loop. Do not read `references/runtime-brief.md`, blind-judge materials, style-ratio materials, corpus cards, or deep repair references before the first complete `draft.md` exists. If the first checker fails, load the smallest repair file that matches the failure.
 
+Clean-eval pre-draft hard no-load list: before the first complete `draft.md`, do not open `references/anti-ai-slop.md`, `references/structure-patterns.md`, `references/title-model.md`, `references/generation-modes.md`, `references/runtime-brief.md`, `references/review-rubric.md`, `references/writing-checklist.md`, `references/self-check.md`, `references/blind-judge-angles.md`, `references/stylometric-ratio-protocol.md`, or `references/corpus-cards/`. These files are repair/controller materials at that stage. If you feel you need one of them, write the first complete article from `clean-generation-brief.md` first, run the bounded checker, then load the smallest matching repair file.
+
 For architecture audits, developer refactors, or repeated-failure diagnosis, read `references/runtime-layer-map.md`. Do not load it during ordinary generation; it is a map of responsibilities, not a drafting aid.
 
 The runtime has two roles:
@@ -83,6 +85,8 @@ Do not read `anlin-reference-library.md`, `writing-checklist.md`, `self-check.md
 Do not list the skill directory recursively during ordinary generation. The paths above are known. Do not read `references/corpus-cards/` before the first draft in clean-eval generation; corpus cards are for failed-draft repair or explicit validation.
 
 Then load only the branch-specific files as needed:
+
+The table below is not permission to load extra files before a clean-eval first draft. It applies to ordinary mode, explicit analysis, or post-checker repair.
 
 | Need | Load |
 |---|---|

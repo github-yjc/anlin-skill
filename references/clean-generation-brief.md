@@ -12,6 +12,8 @@ For clean-eval generation, do not print the article to chat before the checker f
 
 For ordinary user mode, the same quiet drafting rule applies, but the checker loop may continue until hard errors are cleared or the user is satisfied. The two-call stop rule belongs to clean-eval only.
 
+For clean-eval, this brief already contains the distilled anti-AI, title, rhythm, background, and scene constraints needed for the first draft. Do not open `anti-ai-slop.md`, `structure-patterns.md`, `title-model.md`, `generation-modes.md`, `runtime-brief.md`, corpus cards, judge rubrics, or style-ratio files before the first complete `draft.md`. Extra pre-draft files contaminate the source-guidance measurement and often cause checklist writing.
+
 ## Target
 
 The goal is anonymous blind-evaluation robustness under reported conditions. Do not claim real authorship, provenance, or indistinguishability. The article itself must not mention validation, corpus, generated text, or methodology.
