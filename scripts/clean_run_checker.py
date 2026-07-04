@@ -207,13 +207,19 @@ def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]
     return messages
 
 
-def preflight_before_check(draft: Path, call_number: int) -> bool:
+def preflight_messages(draft: Path) -> list[str]:
     text = draft.read_text(encoding="utf-8")
     _, content_lines = split_title_and_content_lines(text.splitlines())
     article_lines = [line.strip() for line in text.splitlines() if line.strip() and not line.strip().startswith("<!--")]
     visible_lines = [line for line in content_lines if line.strip() and not line.strip().startswith("<!--")]
     body = "\n".join(visible_lines)
     body_chars = chinese_len(body)
+    line_lengths = [chinese_len(line) for line in visible_lines]
+    body_line_count = len(line_lengths)
+    mean_line = statistics.mean(line_lengths) if line_lengths else 0.0
+    long_line_count = sum(1 for length in line_lengths if length >= 28)
+    first_twenty = visible_lines[:20]
+    comma_ratio = (sum(1 for line in first_twenty if line.endswith("，")) / len(first_twenty)) if first_twenty else 0.0
     connectors = [term for term in HIGH_FREQUENCY_TERMS if term in body]
     engine_hits = [term for term in ENGINE_SIGNAL_TERMS if term in body]
     rough_terms = [term for term in ROUGH_SELF_DAMAGE_TERMS if term in body]
@@ -223,6 +229,14 @@ def preflight_before_check(draft: Path, call_number: int) -> bool:
         messages.append(f"body_chinese_chars={body_chars} < 950")
     if body_chars > STANDARD_DIARY_DRAFT_OVERFULL_CHARS:
         messages.append(f"body_chinese_chars={body_chars} > {STANDARD_DIARY_DRAFT_OVERFULL_CHARS}")
+    if body_line_count < 45:
+        messages.append(f"body_lines={body_line_count} < 45 (write a line-broken article, not prose paragraphs)")
+    if body_chars >= 900 and (body_line_count <= 20 or mean_line >= 42 or long_line_count >= max(6, int(body_line_count * 0.65))):
+        messages.append(
+            f"prose_block_shape=compressed (body_lines={body_line_count}, mean_line={mean_line:.1f}, long_lines={long_line_count})"
+        )
+    if len(first_twenty) >= 8 and comma_ratio < 0.15:
+        messages.append(f"early_comma_ratio={comma_ratio:.2f} < 0.15")
     if len(connectors) < 5:
         messages.append(f"connectors={connectors} < 5")
     if len(engine_hits) < 3:
@@ -230,14 +244,29 @@ def preflight_before_check(draft: Path, call_number: int) -> bool:
     if not rough_terms and not rough_patterns:
         messages.append("rough_self_damage=missing (add one organic ugly body/social/self-own consequence in your own words; do not inspect checker source/tests)")
     messages.extend(surface_preflight_messages(article_lines, "\n".join(article_lines)))
+    return messages
+
+
+def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_attempts: int) -> bool:
+    messages = preflight_messages(draft)
     if not messages:
         return False
-    print(
-        f"CLEAN_RUN_PREFLIGHT: draft is not ready for checker call {call_number}/2; "
-        + "; ".join(messages)
-        + ". Revise toward a complete but not overfilled article: add concrete action/body/social/off-axis material only when short, or cut unsupported/non-consequential texture when long; then run this wrapper again. "
-        "This preflight did not consume a checker call."
-    )
+    if attempt >= max_attempts:
+        print(
+            f"CLEAN_RUN_PREFLIGHT_STOP: draft is still not ready for checker call {call_number}/2 "
+            f"after {attempt}/{max_attempts} preflight attempts; "
+            + "; ".join(messages)
+            + ". Stop repair work for this clean-eval run. Read draft.md once and output it unchanged; the controller should mark this generation invalid or failed. "
+            "No checker call was consumed."
+        )
+    else:
+        print(
+            f"CLEAN_RUN_PREFLIGHT: draft is not ready for checker call {call_number}/2 "
+            f"(preflight {attempt}/{max_attempts}); "
+            + "; ".join(messages)
+            + ". Revise toward a complete but not overfilled article: write a line-broken article first, add concrete action/body/social/off-axis material only when short, or cut unsupported/non-consequential texture when long; then run this wrapper again. "
+            "This preflight did not consume a checker call."
+        )
     return True
 
 
@@ -260,7 +289,7 @@ def main() -> int:
     state = {} if args.reset else load_state(state_path)
     draft_key = str(draft)
     if state.get("draft") != draft_key:
-        state = {"draft": draft_key, "calls": 0}
+        state = {"draft": draft_key, "calls": 0, "preflights": 0}
     calls = int(state.get("calls", 0))
     if calls >= 2:
         print(
@@ -268,11 +297,17 @@ def main() -> int:
             "Do not run another checker or repair command. Read draft.md once and output it unchanged."
         )
         return 2
-    if args.draft_gate and preflight_before_check(draft, calls + 1):
-        return 3
+    if args.draft_gate and calls == 0:
+        preflight_attempt = int(state.get("preflights", 0)) + 1
+        max_preflight_attempts = 3
+        if preflight_before_check(draft, calls + 1, attempt=preflight_attempt, max_attempts=max_preflight_attempts):
+            state["preflights"] = preflight_attempt
+            save_state(state_path, state)
+            return 2 if preflight_attempt >= max_preflight_attempts else 3
 
     call_number = calls + 1
     state["calls"] = call_number
+    state["preflights"] = int(state.get("preflights", 0))
     save_state(state_path, state)
     if args.draft_gate and call_number == 2:
         normalize_before_final_check(draft)

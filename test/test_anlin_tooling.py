@@ -361,8 +361,13 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any(rule == "strict: 短行诗化表面" for rule in rules))
 
     def test_clean_run_checker_enforces_two_call_limit(self) -> None:
-        line = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"
-        body = "\n".join(["# 日寄", "", *([line] * 32)])
+        ready_lines = [
+            "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",
+            "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
+            "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
+            "不过镜子里那张脸像没睡醒，还以为自己要去面试。",
+        ] * 12
+        body = "\n".join(["# 日寄", "", *ready_lines])
         with tempfile.TemporaryDirectory() as temp:
             draft = Path(temp) / "draft.md"
             draft.write_text(body, encoding="utf-8")
@@ -399,9 +404,21 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("CLEAN_RUN_PREFLIGHT", preflight.stdout)
             self.assertIn("do not inspect checker source", preflight.stdout)
             self.assertNotIn("engine_hits", preflight.stdout)
-            draft.write_text("\n".join(["# 日寄", "", *([ready_line] * 32)]), encoding="utf-8")
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+            ready_lines = [
+                "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",
+                "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
+                "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
+                "不过镜子里那张脸像没睡醒，还以为自己要去面试。",
+            ] * 12
+            draft.write_text("\n".join(["# 日寄", "", *ready_lines]), encoding="utf-8")
             first = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", first.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 1)
+            self.assertEqual(state["preflights"], 1)
 
     def test_clean_run_checker_preflight_blocks_overfull_without_consuming_call(self) -> None:
         long_line = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"
@@ -421,10 +438,68 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("body_chinese_chars=", preflight.stdout)
             self.assertIn("> 1350", preflight.stdout)
             self.assertIn("cut unsupported/non-consequential texture", preflight.stdout)
-            self.assertFalse((draft.parent / ".anlin-clean-run-state.json").exists())
-            draft.write_text("\n".join(["# 日寄", "", *([ready_line] * 38)]), encoding="utf-8")
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+            ready_lines = [
+                "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",
+                "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
+                "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
+                "不过镜子里那张脸像没睡醒，还以为自己要去面试。",
+            ] * 12
+            draft.write_text("\n".join(["# 日寄", "", *ready_lines]), encoding="utf-8")
             first = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", first.stdout)
+
+    def test_clean_run_checker_preflight_blocks_compressed_prose_shape(self) -> None:
+        long_line = (
+            "其实我摸了摸手机，觉得六条未读有点多，突然发现三条是运营商的催缴短信，"
+            "于是去厕所洗了把脸，因为差点吐出来，丢人得很，好像还是没躲过去。"
+            "楼道灯又闪了一下，我还以为有人在后面叫我，回头只有一个快递盒歪在门口，"
+            "盒角湿了一块，像谁把一口气吐在那里。"
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 日寄", "", *([long_line] * 9)]), encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3)
+            self.assertIn("CLEAN_RUN_PREFLIGHT", preflight.stdout)
+            self.assertIn("body_lines=9 < 45", preflight.stdout)
+            self.assertIn("prose_block_shape=compressed", preflight.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+
+    def test_clean_run_checker_preflight_stops_after_three_attempts(self) -> None:
+        short_body = "\n".join(["# 日寄", "", "杯子脏了。"])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(short_body, encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            first = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            third = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(first.returncode, 3)
+            self.assertEqual(second.returncode, 3)
+            self.assertEqual(third.returncode, 2)
+            self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", third.stdout)
+            self.assertIn("No checker call was consumed", third.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 3)
 
     def test_clean_run_checker_surface_preflight_blocks_high_risk_forms_without_consuming_call(self) -> None:
         filler = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"
@@ -458,7 +533,9 @@ class AnlinToolingTests(unittest.TestCase):
                     self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
                     self.assertIn("CLEAN_RUN_PREFLIGHT", preflight.stdout)
                     self.assertIn(expected_message, preflight.stdout)
-                    self.assertFalse((draft.parent / ".anlin-clean-run-state.json").exists())
+                    state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+                    self.assertEqual(state["calls"], 0)
+                    self.assertEqual(state["preflights"], 1)
 
     def test_clean_run_checker_merges_uniform_medium_grid_before_second_call(self) -> None:
         fragments = [
@@ -531,6 +608,11 @@ class AnlinToolingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             draft = Path(temp) / "draft.md"
             draft.write_text(body, encoding="utf-8")
+            state = draft.parent / ".anlin-clean-run-state.json"
+            state.write_text(
+                json.dumps({"draft": str(draft.resolve()), "calls": 1}, ensure_ascii=False),
+                encoding="utf-8",
+            )
             command = [
                 sys.executable,
                 str(CLEAN_RUN_CHECKER),
@@ -538,7 +620,6 @@ class AnlinToolingTests(unittest.TestCase):
                 "--strict",
                 "--draft-gate",
             ]
-            subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertIn("CLEAN_RUN_STOP: this was checker call 2/2", second.stdout)
             lines = [line for line in draft.read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -561,6 +642,11 @@ class AnlinToolingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             draft = Path(temp) / "draft.md"
             draft.write_text(body, encoding="utf-8")
+            state = draft.parent / ".anlin-clean-run-state.json"
+            state.write_text(
+                json.dumps({"draft": str(draft.resolve()), "calls": 1}, ensure_ascii=False),
+                encoding="utf-8",
+            )
             command = [
                 sys.executable,
                 str(CLEAN_RUN_CHECKER),
@@ -568,7 +654,6 @@ class AnlinToolingTests(unittest.TestCase):
                 "--strict",
                 "--draft-gate",
             ]
-            subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertIn("CLEAN_RUN_STOP: this was checker call 2/2", second.stdout)
             lines = [line for line in draft.read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -1685,10 +1770,24 @@ class AnlinToolingTests(unittest.TestCase):
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
         runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        validation = (ROOT / "references" / "validation-protocol.md").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        eval_readme = (ROOT / "evals" / "README.md").read_text(encoding="utf-8")
+        layer_map = (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8")
         self.assertIn("Ordinary user mode", skill)
         self.assertIn("Clean-eval mode", skill)
         self.assertIn("the checker loop may continue until hard errors are cleared", clean)
         self.assertIn("The two-call stop rule belongs to clean-eval only", clean)
+        self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", skill)
+        self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", clean)
+        self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", runtime)
+        self.assertIn("Developer Two-Checkpoint Evaluation", validation)
+        self.assertIn("Bounded clean-eval checkpoint", validation)
+        self.assertIn("Finalized repair checkpoint", validation)
+        self.assertIn("bounded failure with a finalized pass means source guidance should be strengthened", readme)
+        self.assertIn("双检查点记录", eval_readme)
+        self.assertIn("bounded clean-eval checkpoint", layer_map)
+        self.assertIn("finalized repair checkpoint", layer_map)
         self.assertIn("Generated articles do not belong in the skill directory", runtime)
 
     def test_title_model_prevents_universal_ri_default(self) -> None:

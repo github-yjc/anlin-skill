@@ -108,9 +108,29 @@ $env:OPENCODE_DISABLE_EXTERNAL_SKILLS='1'
 opencode run --model 'longcat/LongCat-2.0' --dir <case-dir> <realistic_prompt>
 ```
 
-  A generation stderr/log line that references any Anlin-writing skill path other than the recorded `<skill-dir>` means the run used the wrong skill and must be marked contaminated.
+  A generation stderr/log line that references any anlin-writing skill path other than the recorded `<skill-dir>` means the run used the wrong skill and must be marked contaminated.
 
 If a test draft only succeeds because the prompt itself supplied style rules, classify the run as diagnostic, not a clean skill evaluation.
+
+Generator-side preflight is allowed only through `clean_run_checker.py`. `CLEAN_RUN_PREFLIGHT` means the draft was not ready and no formal checker call was consumed. `CLEAN_RUN_PREFLIGHT_STOP` means the generator did not reach a checker-ready article within the bounded preflight attempts; record the run as invalid or failed and do not let the same generation agent continue repairing indefinitely. This preserves the distinction between clean-eval mode and ordinary user mode.
+
+## Developer Two-Checkpoint Evaluation
+
+Development tests must measure both source guidance and repair convergence. Do not collapse them into one score.
+
+For each serious generation case, create two external artifacts outside `<skill-dir>`:
+
+1. **Bounded clean-eval checkpoint**: the fresh generator receives only the realistic prompt plus normal access to `anlin-writing`. It may use `clean_run_checker.py` according to clean-eval rules, with at most two actual checker calls and bounded preflight. Save the resulting `draft.md`, checker state, hard-check report, style-profile report when available, and controller notes under the case workspace. This checkpoint answers: did the skill naturally guide the agent close enough before open-ended repair?
+2. **Finalized repair checkpoint**: start from the bounded checkpoint draft and its visible checker results, then allow ordinary-user style repair loops, including multiple checker calls, rewrites from a new scene slate, and targeted profile/corpus review. Save the final article and full validation reports separately from the bounded checkpoint. This checkpoint answers: can the skill plus its checker/references converge to a usable final article in a realistic user workflow?
+
+Interpretation:
+
+- bounded fails, finalized passes: strengthen Layer 0/Layer 1 generation guidance; the checker and repair path can recover, but the source loop is still weak.
+- bounded passes, finalized fails: investigate checker blind spots, style-profile drift, blind-judge angles, or high-level voice/structure issues.
+- bounded fails, finalized fails: treat it as a broader skill issue; inspect architecture, fact gates, voice model, repair instructions, and deterministic checks before adding more local lint.
+- bounded passes and finalized passes: run blind rounds and placebo calibration before reporting rates; still do not claim authorship or indistinguishability.
+
+The finalized checkpoint is not allowed to retroactively improve the bounded checkpoint. Report both results, including checker-call counts, preflight stop status, number of repair iterations, model/surface, prompt, skill commit, corpus availability, recognition rate, and false-accusation rate.
 
 ## Blind Test Design
 

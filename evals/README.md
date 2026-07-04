@@ -1,6 +1,6 @@
 # anlin-writing Evaluation Set
 
-结构化评测集，用于定量测量 Anlin 写作 skill 是否通过风格验证门禁。评测不证明「与原文无法区分」，只证明生成物满足 skill 规定的客观和主观质量标准。
+结构化评测集，用于定量测量 anlin-writing skill 是否通过风格验证门禁。评测不证明「与原文无法区分」，只证明生成物满足 skill 规定的客观和主观质量标准。
 
 ## 文件结构
 
@@ -94,6 +94,19 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 边缘用例 15 除外：该用例的 `expected_behavior` 为 `agent_must_refuse_or_explicitly_mark_as_fictional`，通过标准为 agent 正确拒绝生成或明确标注为虚构。
 
 ## 批量聚合
+
+### 双检查点记录
+
+每个正式开发用例必须保存两个结果，且都放在外部评测工作区，不写入 skill 目录：
+
+- `bounded clean-eval checkpoint`：全新 agent 只拿 `realistic_prompt` + anlin-writing skill，最多两次实际 `clean_run_checker.py` 调用，保存两次限制内得到的 `draft.md` 和检查报告。它衡量自然引导能力。
+- `finalized repair checkpoint`：从 bounded 草稿和公开检查结果继续，允许普通用户模式下多轮修复、重写和复检，保存最终稿和检查报告。它衡量 checker / repair references 能否收敛。
+
+判读规则：
+
+- bounded 失败但 finalized 通过：优先加强源头引导。
+- bounded 和 finalized 都失败：深入检查 skill 架构、背景事实、声音模型、检查器和盲评角度。
+- 两者都通过：再进入完整盲评和 placebo 校准，不能直接宣称目标达成。
 
 ### 手动聚合
 

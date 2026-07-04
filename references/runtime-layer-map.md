@@ -125,3 +125,10 @@ The preferred developer move after a repeated blind-review failure is:
 2. Add or revise one compact generation lens in Layer 0 when the failure affects formal first drafts.
 3. Use Layer 1 or Layer 3 only when the fix needs a richer repair model.
 4. Leave Layer 4 to measure the effect; do not make a new detector the only change.
+
+During development evaluation, Layer 4 should record two checkpoints rather than one blended result:
+
+- bounded clean-eval checkpoint: the draft after the fresh generator's two-call clean-eval limit, measuring natural source guidance.
+- finalized repair checkpoint: the draft after ordinary multi-round repair, measuring whether the checker and repair references can converge.
+
+If only the finalized checkpoint passes, update Layer 0 or Layer 1 before celebrating the repair. If neither checkpoint passes, broaden the diagnosis across layers instead of only tightening the checker.

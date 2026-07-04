@@ -18,6 +18,10 @@ The current architecture pass is addressing source-level guidance, not only dete
 
 Additional architecture audit found a source-load conflict: `SKILL.md` said clean-eval generation should begin with only `clean-generation-brief.md`, while the workflow and `runtime-brief.md` still implied loading the longer runtime brief before drafting. The clean-eval first-draft path now has a single source loop in `clean-generation-brief.md`: friction -> one pressure surface -> off-axis consequence -> fact gate -> complete titled draft -> bounded checker repair. `runtime-brief.md`, `generation-modes.md`, and `anti-ai-slop.md` remain available for ordinary drafting, analysis, or post-checker repair, not as mandatory pre-draft material.
 
+Clean-eval preflight now blocks obvious non-article drafts before they consume a formal checker call: too short, too overfilled, fewer than 45 body lines, prose-block compression, missing connector/engine/rough self-damage signals, or high-risk AI/background surfaces. Preflight is bounded; if it prints `CLEAN_RUN_PREFLIGHT_STOP`, the generation run should stop and the external controller should mark it invalid or failed instead of letting the generator repair indefinitely.
+
+Development validation now uses two checkpoints per serious case. The bounded checkpoint records the fresh-agent result after clean-eval limits, and the finalized checkpoint records the result after ordinary multi-round repair. A bounded failure with a finalized pass means source guidance should be strengthened; failures in both checkpoints indicate a broader skill problem, not just a stricter checker need.
+
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
 ## Install Path
@@ -76,6 +80,8 @@ The practical ownership rule is:
 - Controller: corpus/profile/blind/placebo validation and documentation.
 - Developer: when controller failures repeat, rewrite the earliest generation lens that caused the failure; do not merely add a new detection rule.
 
+For development testing, the controller must keep the bounded clean-eval draft and the finalized repair draft as separate artifacts. The finalized draft can show that the repair path works, but it cannot be used to claim the first-pass natural guidance succeeded.
+
 ## Technique Sources
 
 The old README-level technique summary is now mapped to maintained references:
@@ -99,8 +105,9 @@ For ordinary formal article generation:
 4. Open `anlin-background.md` only after selected scenes already contain facts that need checking.
 5. Write a complete titled `draft.md` before the first checker.
 6. Run `scripts/clean_run_checker.py draft.md --strict --draft-gate`.
-7. Do at most one repair/rewrite and at most two clean-eval checker calls.
-8. After the second checker call, output the current `draft.md` exactly.
+7. If `CLEAN_RUN_PREFLIGHT` appears, revise before the first checker call is consumed; if `CLEAN_RUN_PREFLIGHT_STOP` appears, output the current draft unchanged and let the controller record failure.
+8. Do at most one repair/rewrite and at most two clean-eval checker calls.
+9. After the second checker call, output the current `draft.md` exactly.
 
 For controller validation, use the full validation layer after generation:
 
