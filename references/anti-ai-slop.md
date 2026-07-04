@@ -18,6 +18,7 @@ Avoid explanatory contrast frames:
 
 - `不是X，是Y`
 - `不是X，而是Y`
+- `不是X。是Y`
 - `不是因为X，而是因为Y`
 - `X不是问题，Y才是`
 - `这不是X，这是Y`
@@ -27,7 +28,7 @@ Avoid explanatory contrast frames:
 
 These are model-friendly because they announce a reframe, then deliver it. In Anlin-like prose the turn should come from a scene, a person, a body interruption, or a stupid object, not from a balanced sentence.
 
-Putting `不是X，` at the end of one line and `是Y` / `就是Y` / `而是Y` at the start of the next line does not fix it. It is still the same model-coded reframe.
+Putting `不是X，` or `不是X。` at the end of one line and `是Y` / `就是Y` / `而是Y` at the start of the next line does not fix it. It is still the same model-coded reframe.
 
 Bad:
 

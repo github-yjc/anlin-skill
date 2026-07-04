@@ -89,7 +89,7 @@ Before writing `draft.md`, do a private source preflight:
 
 - body is already at least 950 Chinese characters and 45-70 body lines
 - several different connectors from `其实/觉得/发现/好像/不过/突然/于是/因为/所以` occur because the thought is moving; zero or one signal is too polished, but repeating one word such as `其实/已经/当时` as glue is also synthetic
-- no `不是X，是Y`, `不是X，而是Y`, `不是说X，是说Y`, or split-line equivalent
+- no `不是X，是Y`, `不是X，而是Y`, `不是X。是Y`, `不是说X，是说Y`, or split-line equivalent
 - no group/comment chain markers such as `有人发/有人说/有人问/又有人/底下有人/另一个说`
 - one coarse body/social/self-own consequence is present in the scene, not only a quiet mood or clean ache
 
@@ -105,7 +105,7 @@ The anti-AI material in this skill is a negative list, not subject material. Unl
 
 Avoid these generated-draft surfaces:
 
-- `不是X，是Y`, `不是X，而是Y`, `这不是X，这是Y`
+- `不是X，是Y`, `不是X，而是Y`, `不是X。是Y`, `这不是X，这是Y`
 - `本质上`, `真正的问题是`, `这说明`, `这意味着`, `换句话说`, `总之`
 - `首先/其次/最后/综上`
 - `——那种...`, `终于可以...的放松`, `释然`, `自洽`, `真实感`

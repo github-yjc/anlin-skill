@@ -968,7 +968,7 @@ def check_not_x_is_y(findings: list[Finding], lines: list[str]) -> None:
     patterns = [
         re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:而|只|也|这|那)?(?:才)?是"),
         re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:就是|只是)"),
-        re.compile(r"不是[^。！？\n]{1,28}[。！？]\s*(?:就是|只是)"),
+        re.compile(r"不是[^。！？\n]{1,28}[。！？]\s*(?:是|就是|只是|而是|才是)"),
         re.compile(r"其实不是[,，]?(?:好像|就是|只是|而是|是)"),
         re.compile(r"像[^。！？\n]{1,32}其实不是"),
     ]
@@ -981,7 +981,7 @@ def check_not_x_is_y(findings: list[Finding], lines: list[str]) -> None:
         left = lines[index].strip()
         right = lines[index + 1].strip()
         if (
-            re.search(r"不是[^。！？\n]{1,28}[，,]?$", left)
+            re.search(r"不是[^。！？\n]{1,28}[，,。！？]?$", left)
             and re.match(r"^(?:而是|是|就是|只是|这是|那是|才是)[^。！？\n]{1,40}", right)
         ):
             matches.append((index + 1, f"{left} / {right}"))

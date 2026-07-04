@@ -664,6 +664,7 @@ class AnlinToolingTests(unittest.TestCase):
         filler = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"
         cases = [
             ("binary_reframe=present", ["不是包装袋漏，是电动车前面那个篮子。"]),
+            ("binary_reframe=present", ["不是不想帮。是帮了还要继续站在太阳底下。"]),
             ("comment_chain_markers=", ["评论区有一行字写着展示给谁看。"]),
             ("process_leak_terms=", ["final article"]),
             ("meta_ai_topic_hits=", ["驿站老板刷短视频，说怎么识别AI写的文章。", "我又打开AI对话窗口。"]),
@@ -1650,6 +1651,53 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: AI二元解释句式" for item in findings))
 
+    def test_checker_draft_gate_rejects_sentence_split_binary_reframe(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "不是不想帮。是帮了得继续站在四十度底下说很多话。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: AI二元解释句式" for item in findings))
+
+    def test_checker_draft_gate_rejects_cross_line_sentence_binary_reframe(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "不是不想帮。",
+                "是帮了得继续站在四十度底下说很多话。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: AI二元解释句式" for item in findings))
+
     def test_checker_draft_gate_rejects_cross_line_binary_reframe(self) -> None:
         body = "\n".join(
             [
@@ -2289,7 +2337,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("不要只看“最后有没有修好”", eval_readme)
         self.assertIn("Style-profile `yellow` with zero errors and no red-family stop is acceptable", skill)
         self.assertIn("Clean-eval freezes the fresh-agent result after bounded preflight and limited checker-driven repair", skill)
-        self.assertIn("do one rhythm-reset rewrite around 55-70 body lines", skill)
+        self.assertIn("do one rhythm-reset rewrite around 55-65 body lines", skill)
+        self.assertIn("repairs bounce between opposite profile failures", skill)
         self.assertIn("style-profile remains `revise` with red `line_rhythm` + `punctuation`", runtime)
         self.assertIn("breathing clusters of 2-5 visible lines", runtime)
         self.assertIn("`finalized=review` is not a clean final success", validation)
@@ -2978,7 +3027,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(profile["corpus_dir"], "<corpus-dir>")
             self.assertEqual(len(profile["documents"]), 38)
             self.assertEqual(profile["profile_kind"], "corpus_prior_predictive_intervals")
-            self.assertEqual(profile["version"], "1.4")
+            self.assertEqual(profile["version"], "1.5")
             self.assertIn("body_chars", profile["value_summary"])
             self.assertIn("ai_binary_reframe", profile["count_summary"])
             self.assertIn("unique_3gram_ratio", profile["value_summary"])
@@ -3026,6 +3075,7 @@ class AnlinToolingTests(unittest.TestCase):
                 "# 日寄",
                 "",
                 "不是包装袋漏，是电动车前面那个篮子。",
+                "不是不想帮。是帮了还要继续站在太阳底下。",
                 "酸梅汤顺着车篮子滴了一路。",
             ]
         )

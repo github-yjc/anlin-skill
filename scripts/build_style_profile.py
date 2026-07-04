@@ -20,7 +20,7 @@ from typing import Any
 
 
 EXPECTED_CORPUS_COUNT = 38
-PROFILE_VERSION = "1.4"
+PROFILE_VERSION = "1.5"
 MIN_STRATUM_DOCUMENTS = 4
 
 CONNECTORS = [
@@ -69,7 +69,7 @@ PUNCTUATION = {
 }
 
 PATTERNS = {
-    "ai_binary_reframe": r"不是[^，。！？\n]{0,18}[，,]?\s*(?:而是|是)",
+    "ai_binary_reframe": r"(?:不是[^，。！？\n]{0,18}[，,]?\s*(?:而是|是)|不是[^。！？\n]{1,28}[。！？]\s*(?:是|就是|只是|而是|才是))",
     "ai_explainer": r"(?:本质上|真正的问题是|核心是|这说明|这意味着|换句话说|说白了|最终我意识到|我终于明白)",
     "ordered_explainer": r"(?:首先|其次|综上|总之)",
     "therapeutic_humanizer": r"(?:允许自己|接住自己|被看见|和自己和解|跟自己和解|慢慢来|拥抱自己|善待自己)",

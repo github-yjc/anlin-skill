@@ -1,5 +1,5 @@
 {
-  "version": "1.4",
+  "version": "1.5",
   "profile_kind": "corpus_prior_predictive_intervals",
   "corpus_dir": "<corpus-dir>",
   "expected_corpus_count": 38,
