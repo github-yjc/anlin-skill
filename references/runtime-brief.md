@@ -107,6 +107,8 @@ If the file/checker tool flow itself fails, do not end the response with logs or
 
 For finalized repair, a clean metric is not enough if the text now shows the repair. Do not turn many hard-stop lines into one huge comma chain or add connector words as visible glue. `行末逗号比例` means actual line endings, not comma count inside long lines. If a repair line becomes an unnaturally long first paragraph, or if `其实/因为/所以/然后/已经` start carrying transitions by themselves, return to the scene source: split the action, add a body/social interruption, or replace one on-theme line with a practical consequence. After any mechanical merge, reread the local facts; repair must not create semantic breaks such as an object being acted on by the wrong verb. A finalized `review` status still means the final article has unresolved risk; do not label it as "only source guidance" unless strict hard gate and style-profile both pass.
 
+If strict hard gate is clean but style-profile remains `revise` with red `line_rhythm` + `punctuation`, stop local punctuation chasing. Do one rhythm-reset rewrite: keep the same scene facts, target roughly 55-70 body lines and 950-1150 body Chinese characters, organize the article into breathing clusters of 2-5 visible lines, and make line breaks follow action/thought movement. In each cluster, one line can run on with `，`, another can land with `。`, and a short line can drop a body/social consequence. Avoid 85+ one-sentence rows, avoid 30-line prose blocks, and avoid designing the first 20 lines by percentage alone. After that rhythm reset, validate once; if the same red families remain, record finalized failure instead of looping forever.
+
 ## Prompt Material Handling
 
 Before drafting, split the user's prompt nouns into four buckets:

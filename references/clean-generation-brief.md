@@ -145,6 +145,10 @@ Before writing `draft.md`, scan the first 20 content lines. If nearly all end wi
 
 If the draft has more than about 90 content lines, or no naturally longer action/speech/thought lines, it is not a better Anlin surface; it is a generated short-line grid. Merge before checking. After merging, reread for broken facts and impossible object-action collisions.
 
+Draft in breathing clusters, not sentence rows. A cluster can be 2-5 visible lines carrying one action/thought movement: one line may end with `，`, the next lands with `。`, then a short drop or ugly reply. Do not put a blank line after every sentence only to raise line count. Do not turn every line ending into `，` only to satisfy `行末逗号比例`. If a line break does not change breath, action, reply, body, or thought direction, it is formatting, not rhythm.
+
+Before the first `draft.md`, the first 20 content lines should usually contain several comma-ended continuation lines and several hard-stop lines. The whole body should not be mostly independent sentences. If you can read every line as a finished caption, the draft is still too AI-smooth even if the length is correct.
+
 ## Background And Game
 
 Background facts are guardrails, not ingredients. Do not insert 云南、王者、痛风、狗哥、外卖、知乎, or AI/GPT just because another reference says they exist.
@@ -191,10 +195,11 @@ If the wrapper prints `CLEAN_RUN_PREFLIGHT`, revise before the first checker cal
 
 Use the preflight message as a shape diagnosis, not as permission to thrash between prose blocks and tiny grids:
 
-- `body_lines < 45` or `prose_block_shape=compressed`: first run `python <skill-dir>/scripts/split_long_lines.py draft.md --in-place --target-lines 58`, read once, then add only the missing concrete action/body/social/off-axis material.
+- `body_lines < 45` or `prose_block_shape=compressed`: first run `python <skill-dir>/scripts/split_long_lines.py draft.md --in-place --target-lines 58`, read once, then add only the missing concrete action/body/social/off-axis material. Do not throw the draft away and rewrite it shorter.
 - `body_lines > 90`, `short_line_grid`, or `long_lines < 4`: first run `python <skill-dir>/scripts/merge_short_lines.py draft.md --in-place --target-lines 68`, read once, then keep several longer action/speech/thought lines.
 - `early_comma_ratio`: run `python <skill-dir>/scripts/soften_line_endings.py draft.md --in-place` or manually break ongoing actions after visible line-final `，`; internal comma chains do not count.
 - `binary_reframe`: delete the `不是X，是Y` move and let the physical fact, body reaction, money action, or plain social line carry the turn.
+- `rough_self_damage`: pain, heat, and fatigue alone are too polite. Add one losing-face consequence: dirty clothing noticed by someone, stomach/urine/sweat trouble, being mistaken as ridiculous, a bad reply, a body failure that changes the next action, or a practical low-status cost.
 - `body_chinese_chars < 950`: expand within the existing line-broken shape; do not collapse the whole article back into 8-15 prose paragraphs.
 
 After any rewrite of `draft.md`, prior rhythm script work no longer applies. Run the relevant script again before the next wrapper call if the current file has the same shape problem.

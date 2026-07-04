@@ -530,6 +530,8 @@ class AnlinToolingTests(unittest.TestCase):
             second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             third = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertEqual(first.returncode, 3)
+            self.assertIn("split_long_lines.py", first.stdout)
+            self.assertIn("pain or heat alone is too polite", first.stdout)
             self.assertEqual(second.returncode, 3)
             self.assertEqual(third.returncode, 0)
             self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", third.stdout)
@@ -565,6 +567,29 @@ class AnlinToolingTests(unittest.TestCase):
             findings_after_delete = json.loads(bypass_after_delete.stdout)
             errors_after_delete = [item for item in findings_after_delete if item["severity"] == "error"]
             self.assertTrue(any(item["rule"] == "clean-eval停止边界越过" for item in errors_after_delete))
+
+    def test_clean_run_checker_preflight_names_soften_script_for_overclosed_early_lines(self) -> None:
+        line = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"
+        body = "\n".join(["# 日寄", "", *([line] * 46)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLEAN_RUN_CHECKER),
+                    str(draft),
+                    "--strict",
+                    "--draft-gate",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 3)
+            self.assertIn("early_comma_ratio", result.stdout)
+            self.assertIn("soften_line_endings.py", result.stdout)
 
     def test_clean_run_checker_allows_near_miss_connector_draft_to_reach_checker(self) -> None:
         lines = [
@@ -2113,6 +2138,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("never substitute a different date-stamped directory", skill)
         self.assertIn("Use the relative path `draft.md` or `.\\draft.md`", clean)
         self.assertIn("Do not construct an absolute path from memory", clean)
+        self.assertIn("Draft in breathing clusters, not sentence rows", clean)
+        self.assertIn("pain, heat, and fatigue alone are too polite", clean)
         self.assertIn("This marker check should be the first tool action", clean)
         self.assertIn("The wrapper `clean_run_checker.py` is the only checker entrypoint", clean)
         self.assertIn("Choose the checker by mode before running any command", skill)
@@ -2130,6 +2157,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("不要只看“最后有没有修好”", eval_readme)
         self.assertIn("Style-profile `yellow` with zero errors and no red-family stop is acceptable", skill)
         self.assertIn("Clean-eval freezes the fresh-agent result after bounded preflight and limited checker-driven repair", skill)
+        self.assertIn("do one rhythm-reset rewrite around 55-70 body lines", skill)
+        self.assertIn("style-profile remains `revise` with red `line_rhythm` + `punctuation`", runtime)
+        self.assertIn("breathing clusters of 2-5 visible lines", runtime)
         self.assertIn("`finalized=review` is not a clean final success", validation)
         self.assertIn("exits nonzero unless both checkpoints are ready for blind rounds", validation)
         self.assertIn("separate `finalized/` case directory", validation)

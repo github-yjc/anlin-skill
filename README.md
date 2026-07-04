@@ -40,6 +40,8 @@ Follow-up retest `iteration-20260704-14/eval-02-food-delivery-heatstroke` confir
 
 Follow-up run `iteration-20260704-15/eval-02-food-delivery-heatstroke` did not produce a draft. The generator loaded the correct skill and checked the clean-eval marker first, but then attempted to write `draft.md` to a wrong date-stamped absolute path outside the assigned case directory, so OpenCode rejected the file write. This is a contaminated tooling/path run, not a prose-quality result. Root fix: runtime instructions now require relative `draft.md` / `.\draft.md` in the current task workspace and forbid invented absolute output paths.
 
+Follow-up retest `iteration-20260704-16/eval-02-food-delivery-heatstroke` used the correct relative path and had a clean trace, but bounded clean-eval still stopped at preflight (`calls=0`, `preflights=3`). The draft stayed compressed at 30 body lines, had zero early line-final comma continuations, retained a binary reframe, and lacked a rough losing-face body/social consequence. Finalized repair cleared the strict hard gate but timed out while mechanically chasing punctuation; style-profile remained `revise` with red `line_rhythm`, `punctuation`, and `ngram_texture`. Diagnosis is `systemic_gap`. Root fixes from this case: preflight now names the exact rhythm scripts to run, clean generation explains breathing clusters instead of sentence rows, and finalized repair now requires a rhythm-reset rewrite rather than repeated percentage tweaking.
+
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
 ## Install Path

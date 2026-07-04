@@ -282,11 +282,38 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     messages = preflight_messages(draft)
     if not messages:
         return False
+    joined_messages = "; ".join(messages)
+    repair_hints: list[str] = []
+    compressed_shape = any("< 45" in message or "prose_block_shape=compressed" in message for message in messages)
+    overfragmented_shape = any(
+        "> 90" in message or "short_line_grid=" in message or "long_lines=" in message for message in messages
+    )
+    if compressed_shape:
+        repair_hints.append(
+            "for prose compression or body_lines < 45, first run `python <skill-dir>/scripts/split_long_lines.py draft.md --in-place --target-lines 58`; inspect once, then add missing lived content only if still short"
+        )
+    if overfragmented_shape:
+        repair_hints.append(
+            "for overfragmented grids or too few long lines, run `python <skill-dir>/scripts/merge_short_lines.py draft.md --in-place --target-lines 68`; do not rewrite into many tiny rows"
+        )
+    if "early_comma_ratio=" in joined_messages:
+        repair_hints.append(
+            "for early_comma_ratio, run `python <skill-dir>/scripts/soften_line_endings.py draft.md --in-place` before hand editing; line-final commas must continue an action or thought"
+        )
+    if "rough_self_damage=missing" in joined_messages:
+        repair_hints.append(
+            "for rough_self_damage, add one losing-face body/social consequence; pain or heat alone is too polite"
+        )
+    if "binary_reframe=present" in joined_messages:
+        repair_hints.append(
+            "for binary_reframe, delete the not-X/is-Y sentence and replace it with a physical reaction, money action, or ugly reply"
+        )
+    hint_text = " Prioritized repair: " + " | ".join(repair_hints) + "." if repair_hints else ""
     if attempt >= max_attempts:
         print(
             f"CLEAN_RUN_PREFLIGHT_STOP: draft is still not ready for checker call {call_number}/2 "
             f"after {attempt}/{max_attempts} preflight attempts; "
-            + "; ".join(messages)
+            + joined_messages
             + ". Stop repair work for this clean-eval run. Read draft.md once and output it unchanged; the controller should mark this generation invalid or failed. "
             "No checker call was consumed."
         )
@@ -294,8 +321,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         print(
             f"CLEAN_RUN_PREFLIGHT: draft is not ready for checker call {call_number}/2 "
             f"(preflight {attempt}/{max_attempts}); "
-            + "; ".join(messages)
-            + ". Revise toward a complete but not overfilled article: write a line-broken article first, merge overfragmented short-line grids, keep punctuation at line endings, add concrete action/body/social/off-axis material only when short, or cut unsupported/non-consequential texture when long; then run this wrapper again. "
+            + joined_messages
+            + ". Revise toward a complete but not overfilled article: write a line-broken article first, merge overfragmented short-line grids, keep punctuation at line endings, add concrete action/body/social/off-axis material only when short, or cut unsupported/non-consequential texture when long; then run this wrapper again."
+            + hint_text
+            + " "
             "This preflight did not consume a checker call."
         )
     return True
