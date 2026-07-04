@@ -516,6 +516,18 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(bypass.stdout)
             errors = [item for item in findings if item["severity"] == "error"]
             self.assertTrue(any(item["rule"] == "clean-eval停止边界越过" for item in errors))
+            (draft.parent / ".anlin-clean-run-state.json").unlink()
+            bypass_after_delete = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(bypass_after_delete.returncode, 0)
+            findings_after_delete = json.loads(bypass_after_delete.stdout)
+            errors_after_delete = [item for item in findings_after_delete if item["severity"] == "error"]
+            self.assertTrue(any(item["rule"] == "clean-eval停止边界越过" for item in errors_after_delete))
 
     def test_clean_run_checker_surface_preflight_blocks_high_risk_forms_without_consuming_call(self) -> None:
         filler = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"

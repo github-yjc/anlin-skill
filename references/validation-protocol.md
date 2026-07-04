@@ -130,7 +130,7 @@ Interpretation:
 - bounded fails, finalized fails: treat it as a broader skill issue; inspect architecture, fact gates, voice model, repair instructions, and deterministic checks before adding more local lint.
 - bounded passes and finalized passes: run blind rounds and placebo calibration before reporting rates; still do not claim authorship or indistinguishability.
 
-The finalized checkpoint is not allowed to retroactively improve the bounded checkpoint. Do not keep editing the bounded `draft.md` after `CLEAN_RUN_PREFLIGHT_STOP` or `CLEAN_RUN_STOP`; direct normal-checker use in that directory is a protocol violation. Report both results, including checker-call counts, preflight stop status, number of repair iterations, model/surface, prompt, skill commit, corpus availability, recognition rate, and false-accusation rate.
+The finalized checkpoint is not allowed to retroactively improve the bounded checkpoint. Do not keep editing the bounded `draft.md` after `CLEAN_RUN_PREFLIGHT_STOP` or `CLEAN_RUN_STOP`; direct normal-checker use in that directory is a protocol violation. The checker records stop state both beside the draft and in a system temporary lock keyed by draft path, so deleting the local state file does not make the bounded run valid again. Report both results, including checker-call counts, preflight stop status, number of repair iterations, model/surface, prompt, skill commit, corpus availability, recognition rate, and false-accusation rate.
 
 ## Blind Test Design
 

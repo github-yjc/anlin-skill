@@ -9,8 +9,10 @@ It is calibrated so original corpus files should not fail with hard errors.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
+import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -2217,16 +2219,36 @@ def check_corpus_overlap(
         )
 
 
+def stop_lock_path(draft_path: Path) -> Path:
+    digest = hashlib.sha256(str(draft_path.resolve()).encode("utf-8")).hexdigest()
+    return Path(tempfile.gettempdir()) / "anlin-clean-run-locks" / f"{digest}.json"
+
+
+def load_clean_run_state(draft_path: Path) -> dict:
+    draft = draft_path.resolve()
+    states: list[dict] = []
+    for state_path in (draft.parent / ".anlin-clean-run-state.json", stop_lock_path(draft)):
+        if not state_path.exists():
+            continue
+        try:
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if state.get("draft") == str(draft):
+            states.append(state)
+    for state in states:
+        if state.get("stopped"):
+            return state
+    for state in states:
+        if int(state.get("calls", 0)) == 0 and int(state.get("preflights", 0)) >= 3:
+            return state
+    return {}
+
+
 def check_clean_run_stop_boundary(findings: list[Finding], draft_path: Path) -> None:
     """Block normal-checker bypass after the bounded clean-eval wrapper has stopped."""
-    state_path = draft_path.resolve().parent / ".anlin-clean-run-state.json"
-    if not state_path.exists():
-        return
-    try:
-        state = json.loads(state_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return
-    if state.get("draft") != str(draft_path.resolve()):
+    state = load_clean_run_state(draft_path)
+    if not state:
         return
     stopped = bool(state.get("stopped")) or (int(state.get("calls", 0)) == 0 and int(state.get("preflights", 0)) >= 3)
     if not stopped:

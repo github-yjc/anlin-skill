@@ -10,11 +10,13 @@ draft.md and outputting it unchanged.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import statistics
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -52,6 +54,26 @@ def load_state(path: Path) -> dict[str, Any]:
 
 def save_state(path: Path, state: dict[str, Any]) -> None:
     path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def stop_lock_path(draft: Path) -> Path:
+    digest = hashlib.sha256(str(draft.resolve()).encode("utf-8")).hexdigest()
+    return Path(tempfile.gettempdir()) / "anlin-clean-run-locks" / f"{digest}.json"
+
+
+def save_stop_state(state_path: Path, draft: Path, state: dict[str, Any]) -> None:
+    save_state(state_path, state)
+    lock_path = stop_lock_path(draft)
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    save_state(lock_path, state)
+
+
+def load_stop_lock(draft: Path) -> dict[str, Any]:
+    lock_path = stop_lock_path(draft)
+    state = load_state(lock_path)
+    if state.get("draft") == str(draft.resolve()) and state.get("stopped"):
+        return state
+    return {}
 
 
 def normalize_before_final_check(draft: Path) -> None:
@@ -284,10 +306,18 @@ def main() -> int:
     draft = args.draft.resolve()
     if not draft.is_file():
         parser.error(f"draft not found: {draft}")
+    if args.reset:
+        try:
+            stop_lock_path(draft).unlink()
+        except FileNotFoundError:
+            pass
     state_path = args.state or (draft.parent / ".anlin-clean-run-state.json")
     state_path = state_path.resolve()
     state = {} if args.reset else load_state(state_path)
     draft_key = str(draft)
+    locked_state = {} if args.reset else load_stop_lock(draft)
+    if locked_state:
+        state = locked_state
     if state.get("draft") != draft_key:
         state = {"draft": draft_key, "calls": 0, "preflights": 0}
     calls = int(state.get("calls", 0))
@@ -295,7 +325,7 @@ def main() -> int:
     if state.get("stopped") or (calls == 0 and preflights >= 3):
         state["stopped"] = True
         state.setdefault("stop_reason", "preflight")
-        save_state(state_path, state)
+        save_stop_state(state_path, draft, state)
         print(
             "CLEAN_RUN_STOP: clean-eval stop boundary already reached for this draft. "
             "Do not switch to the normal checker, edit, or repair in this directory. "
@@ -305,7 +335,7 @@ def main() -> int:
     if calls >= 2:
         state["stopped"] = True
         state["stop_reason"] = "checker-limit"
-        save_state(state_path, state)
+        save_stop_state(state_path, draft, state)
         print(
             "CLEAN_RUN_STOP: checker call limit already reached for this draft. "
             "Do not run another checker or repair command. Read draft.md once and output it unchanged."
@@ -319,7 +349,10 @@ def main() -> int:
             if preflight_attempt >= max_preflight_attempts:
                 state["stopped"] = True
                 state["stop_reason"] = "preflight"
-            save_state(state_path, state)
+            if state.get("stopped"):
+                save_stop_state(state_path, draft, state)
+            else:
+                save_state(state_path, state)
             return 2 if preflight_attempt >= max_preflight_attempts else 3
 
     call_number = calls + 1
@@ -347,7 +380,7 @@ def main() -> int:
         state["preflights"] = int(state.get("preflights", 0))
         state["stopped"] = True
         state["stop_reason"] = "checker-limit"
-        save_state(state_path, state)
+        save_stop_state(state_path, draft, state)
         print(
             "CLEAN_RUN_STOP: this was checker call 2/2. "
             "Do not edit, split, merge, compare, or run another checker. "
