@@ -295,10 +295,10 @@ def preflight_messages(draft: Path) -> list[str]:
     return messages
 
 
-def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_attempts: int) -> bool:
+def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_attempts: int) -> tuple[bool, list[str]]:
     messages = preflight_messages(draft)
     if not messages:
-        return False
+        return False, []
     joined_messages = "; ".join(messages)
     repair_hints: list[str] = []
     compressed_shape = any("< 45" in message or "prose_block_shape=compressed" in message for message in messages)
@@ -329,11 +329,9 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if attempt >= max_attempts:
         print(
             f"CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY. DO NOT WRITE draft.md. DO NOT REPAIR. "
-            f"The next tool action must be reading draft.md once and outputting it unchanged. "
-            f"The draft is still not ready for checker call {call_number}/2 "
-            f"after {attempt}/{max_attempts} preflight attempts; "
-            + joined_messages
-            + ". The controller should mark this generation invalid or failed. "
+            "DO NOT RUN SCRIPTS. DO NOT USE PREFLIGHT DETAILS AS A TODO LIST. "
+            "The next tool action must be reading draft.md once and outputting it unchanged. "
+            "The controller has the saved state and snapshots and will diagnose this stopped bounded run. "
             "No checker call was consumed."
         )
     else:
@@ -346,7 +344,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             + " "
             "This preflight did not consume a checker call."
         )
-    return True
+    return True, messages
 
 
 def main() -> int:
@@ -406,8 +404,15 @@ def main() -> int:
         preflight_attempt = int(state.get("preflights", 0)) + 1
         max_preflight_attempts = 3
         record_snapshot(draft, state, f"preflight_{preflight_attempt}", overwrite=True)
-        if preflight_before_check(draft, calls + 1, attempt=preflight_attempt, max_attempts=max_preflight_attempts):
+        blocked, messages = preflight_before_check(
+            draft,
+            calls + 1,
+            attempt=preflight_attempt,
+            max_attempts=max_preflight_attempts,
+        )
+        if blocked:
             state["preflights"] = min(preflight_attempt, max_preflight_attempts)
+            state["last_preflight_messages"] = messages
             if preflight_attempt >= max_preflight_attempts:
                 state["stopped"] = True
                 state["stop_reason"] = "preflight"

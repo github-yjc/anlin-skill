@@ -99,6 +99,7 @@ Before writing `draft.md`, do a private source preflight:
 - several different connectors from `其实/觉得/发现/好像/不过/突然/于是/因为/所以` occur because the thought is moving; zero or one signal is too polished, but repeating one word such as `其实/已经/当时` as glue is also synthetic
 - no `不是X，是Y`, `不是X，而是Y`, `不是X。是Y`, `不是说X，是说Y`, or split-line equivalent
 - no group/comment chain markers such as `有人发/有人说/有人问/又有人/底下有人/另一个说`
+- no invented spouse/child identity such as `老婆/妻子/媳妇/孩子`; delivery pressure is route, app, heat, money, body, customer, parent, landlord, or class comparison, not a married-rider biography
 - one coarse body/social/self-own consequence is present in the scene, not only a quiet mood or clean ache
 
 If these readiness signals tempt you to add a game scene, recurring character, body symptom, app platform, or background fact only because a reference mentions it, do not add it. Rework an existing scene so the function appears through its own action.
@@ -124,7 +125,7 @@ Avoid these generated-draft surfaces:
 
 When a turn needs explanation, replace the explanation with a thing happening: food goes cold, a reply comes from the wrong person, money is paid, the body interrupts, the route changes, or someone says a plain ugly line.
 
-If the user prompt contains a group chat, forum, comment thread, or class chat, convert it before drafting. Use one cropped surface, unread count, screenshot title, message preview, delayed reply, body reaction, or practical consequence. Do not narrate multiple speakers. Formal generated drafts should usually contain zero `有人/又有人/底下有人/另一个说` in those scenes.
+If the user prompt contains a group chat, forum, comment thread, class chat, or a short-video/social-media surface, convert it before drafting. Use one cropped surface, unread count, screenshot title, message preview, delayed reply, body reaction, scroll action, or practical consequence. Do not narrate multiple speakers. A rider video with `有人说...` is still a comment chain. Formal generated drafts should usually contain zero `有人/又有人/底下有人/另一个说` in those scenes.
 
 ## Rhythm
 
@@ -169,7 +170,7 @@ Load `references/anlin-background.md` and `references/background-fact-classes.js
 
 Do not invent a current office-worker identity. Unless the user gives a phase/date or concrete material that supports it, avoid first-person scenes built around `到了公司`, `同事小X`, `张哥`, `工位`, `领导`, `KPI`, `营收`, `财务`, meetings,饭卡, or quarterly office reporting. Work/company material is phase-bound and often belongs to other people, old work, interviews, layoffs, or screen pressure; default current generation should lower it to old coworker, recruitment surface, someone else's company, or ordinary daily life.
 
-Do not convert delivery work into a different biography. 2022 delivery work is supported as a pressure/work surface, but the narrator is still the corpus-bounded young graduate. Do not invent a wife, spouse, child, full-time rider family life, or older married-provider identity unless the user explicitly supplies that fact. If the prompt says `送外卖`, keep it as route, app, customer, heat, money, body, family pressure, or class-rank pressure; do not make it a marriage story.
+Do not convert delivery work into a different biography. 2022 delivery work is supported as a pressure/work surface, but the narrator is still the corpus-bounded young graduate. Do not invent a wife, spouse, child, full-time rider family life, or older married-provider identity unless the user explicitly supplies that fact. If the prompt says `送外卖`, keep it as route, app, customer, heat, money, body, parent/family pressure, landlord, roommate, or class-rank pressure; do not make it a marriage story. Before writing `draft.md`, scan the candidate for `老婆/妻子/媳妇/孩子他妈/我儿子/我女儿`; if any appears without user support, delete or lower the relation before the checker.
 
 ## Ending
 
