@@ -10,6 +10,8 @@ Skill references are local bundled files. Do not call `read_mcp_resource` for th
 
 For clean-eval generation, do not print the article to chat before the checker flow. First write the complete article to `draft.md` in the task workspace, run the bounded checker flow, then read `draft.md` once and output that exact content. A visible pre-check article followed by tools contaminates the run.
 
+Use the relative path `draft.md` or `.\draft.md` for the article file in the current task workspace. Do not construct an absolute path from memory, from a previous evaluation directory, or from a date-stamped folder. If the current directory is unclear, run `Get-Location` / `pwd`; do not guess.
+
 For ordinary user mode, the same quiet drafting rule applies, but the checker loop may continue until hard errors are cleared or the user is satisfied. The two-call stop rule belongs to clean-eval only.
 
 Before writing, check whether the current task workspace contains `.anlin-clean-eval-mode`. This marker check should be the first tool action before any `draft.md` write or checker command. If it exists, use clean-eval mode and do not call `check_anlin_violations.py` directly in that bounded directory. The wrapper `clean_run_checker.py` is the only checker entrypoint for clean-eval.
@@ -175,7 +177,7 @@ Do not default mechanically to `日寄`, and do not avoid it mechanically either
 
 ## Required Tool Flow
 
-Write the complete titled article to `draft.md` in the current task working directory. Do not write it inside the skill directory. If the current working directory is the skill directory, switch to or create a task/eval workspace outside it before writing.
+Write the complete titled article to relative `draft.md` in the current task working directory. Do not write it inside the skill directory. Do not compose an absolute output path unless the user explicitly gave one for ordinary saved output. If the current working directory is the skill directory, switch to or create a task/eval workspace outside it before writing.
 
 For clean-eval mode, then run:
 

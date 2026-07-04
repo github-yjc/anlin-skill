@@ -38,6 +38,8 @@ Follow-up retest `iteration-20260704-13/eval-02-food-delivery-heatstroke` produc
 
 Follow-up retest `iteration-20260704-14/eval-02-food-delivery-heatstroke` confirmed the stop-boundary fix: trace audit was clean and the generator stopped after `CLEAN_RUN_PREFLIGHT_STOP`. The remaining bounded failure was more specific: preflight blocked before the first actual checker call because the draft had four distinct connector signals instead of the full draft-gate target. The preflight threshold is now limited to severe connector starvation, so near-miss drafts can enter the first real checker pass and use the bounded repair opportunity. The same pass also clarified that style-profile `yellow` is acceptable for finalized checkpoint pass; do not keep rewriting only to remove yellow warnings.
 
+Follow-up run `iteration-20260704-15/eval-02-food-delivery-heatstroke` did not produce a draft. The generator loaded the correct skill and checked the clean-eval marker first, but then attempted to write `draft.md` to a wrong date-stamped absolute path outside the assigned case directory, so OpenCode rejected the file write. This is a contaminated tooling/path run, not a prose-quality result. Root fix: runtime instructions now require relative `draft.md` / `.\draft.md` in the current task workspace and forbid invented absolute output paths.
+
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
 ## Install Path
