@@ -44,6 +44,8 @@ Follow-up retest `iteration-20260704-16/eval-02-food-delivery-heatstroke` used t
 
 Follow-up run `iteration-20260704-17/eval-02-food-delivery-heatstroke` triggered the skill but did not enter clean-eval mode: it wrote before checking the marker and used the normal checker repeatedly, then ran `split_long_lines.py` directly. The run is invalid for bounded measurement. Root fix: the skill description now exposes the `.anlin-clean-eval-mode` marker and `clean_run_checker.py` route so the model sees the clean-eval hard entry even if it under-loads the full body.
 
+Follow-up retest `iteration-20260704-18/eval-02-food-delivery-heatstroke` restored clean-eval routing: marker check happened first, the wrapper ran, and `split_long_lines.py` was used after the first preflight. The run still became invalid because the generator continued writing after `CLEAN_RUN_PREFLIGHT_STOP`, then hit `CLEAN_RUN_STOP`. Root fix: wrapper stop output and runtime docs now place `FINAL BOUNDARY`, `DO NOT WRITE draft.md`, and read-only next-action language at the start of the stop message.
+
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
 ## Install Path

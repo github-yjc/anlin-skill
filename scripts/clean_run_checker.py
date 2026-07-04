@@ -311,10 +311,12 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     hint_text = " Prioritized repair: " + " | ".join(repair_hints) + "." if repair_hints else ""
     if attempt >= max_attempts:
         print(
-            f"CLEAN_RUN_PREFLIGHT_STOP: draft is still not ready for checker call {call_number}/2 "
+            f"CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY. DO NOT WRITE draft.md. DO NOT REPAIR. "
+            f"The next tool action must be reading draft.md once and outputting it unchanged. "
+            f"The draft is still not ready for checker call {call_number}/2 "
             f"after {attempt}/{max_attempts} preflight attempts; "
             + joined_messages
-            + ". Stop repair work for this clean-eval run. Read draft.md once and output it unchanged; the controller should mark this generation invalid or failed. "
+            + ". The controller should mark this generation invalid or failed. "
             "No checker call was consumed."
         )
     else:
@@ -365,9 +367,9 @@ def main() -> int:
         state.setdefault("stop_reason", "preflight")
         save_stop_state(state_path, draft, state)
         print(
-            "CLEAN_RUN_STOP: clean-eval stop boundary already reached for this draft. "
-            "Do not switch to the normal checker, edit, or repair in this directory. "
-            "Read draft.md once and output it unchanged; use a separate finalized checkpoint directory for ordinary repair."
+            "CLEAN_RUN_STOP: FINAL BOUNDARY already reached for this draft. "
+            "DO NOT WRITE draft.md. DO NOT REPAIR. Do not switch to the normal checker in this directory. "
+            "The next tool action must be reading draft.md once and outputting it unchanged; use a separate finalized checkpoint directory for ordinary repair."
         )
         return 0
     if calls >= 2:
@@ -375,8 +377,8 @@ def main() -> int:
         state["stop_reason"] = "checker-limit"
         save_stop_state(state_path, draft, state)
         print(
-            "CLEAN_RUN_STOP: checker call limit already reached for this draft. "
-            "Do not run another checker or repair command. Read draft.md once and output it unchanged."
+            "CLEAN_RUN_STOP: FINAL BOUNDARY, checker call limit already reached for this draft. "
+            "DO NOT WRITE draft.md. Do not run another checker or repair command. Read draft.md once and output it unchanged."
         )
         return 0
     if args.draft_gate and calls == 0:
@@ -420,8 +422,8 @@ def main() -> int:
         state["stop_reason"] = "checker-limit"
         save_stop_state(state_path, draft, state)
         print(
-            "CLEAN_RUN_STOP: this was checker call 2/2. "
-            "Do not edit, split, merge, compare, or run another checker. "
+            "CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2. "
+            "DO NOT WRITE draft.md. Do not edit, split, merge, compare, or run another checker. "
             "Read draft.md once and output it unchanged, even if errors remain."
         )
         return 0

@@ -386,9 +386,10 @@ class AnlinToolingTests(unittest.TestCase):
             second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             third = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", first.stdout)
-            self.assertIn("CLEAN_RUN_STOP: this was checker call 2/2", second.stdout)
+            self.assertIn("CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2", second.stdout)
+            self.assertIn("DO NOT WRITE draft.md", second.stdout)
             self.assertEqual(third.returncode, 0)
-            self.assertIn("clean-eval stop boundary already reached", third.stdout)
+            self.assertIn("FINAL BOUNDARY already reached", third.stdout)
 
     def test_clean_run_checker_preflight_does_not_consume_checker_call(self) -> None:
         short_body = "\n".join(["# 日寄", "", "杯子脏了。"])
@@ -535,6 +536,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(second.returncode, 3)
             self.assertEqual(third.returncode, 0)
             self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", third.stdout)
+            self.assertIn("FINAL BOUNDARY. DO NOT WRITE draft.md", third.stdout)
             self.assertIn("No checker call was consumed", third.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
@@ -543,7 +545,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["stop_reason"], "preflight")
             fourth = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertEqual(fourth.returncode, 0)
-            self.assertIn("clean-eval stop boundary already reached", fourth.stdout)
+            self.assertIn("FINAL BOUNDARY already reached", fourth.stdout)
             bypass = subprocess.run(
                 [sys.executable, str(CHECKER), str(draft), "--json"],
                 capture_output=True,
@@ -689,7 +691,7 @@ class AnlinToolingTests(unittest.TestCase):
         CLEAN_RUN_NOTE: checker call 1/2
         ← Write draft.md
         python scripts/clean_run_checker.py draft.md --strict --draft-gate
-        CLEAN_RUN_STOP: this was checker call 2/2
+        CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2
         → Read draft.md
         """
         with tempfile.TemporaryDirectory() as temp:
@@ -837,7 +839,7 @@ class AnlinToolingTests(unittest.TestCase):
                 "--draft-gate",
             ]
             second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
-            self.assertIn("CLEAN_RUN_STOP: this was checker call 2/2", second.stdout)
+            self.assertIn("CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2", second.stdout)
             lines = [line for line in draft.read_text(encoding="utf-8").splitlines() if line.strip()]
             body_lines = [line for line in lines[1:] if not line.lstrip().startswith("#")]
             self.assertLess(len(body_lines), 80)
@@ -867,7 +869,7 @@ class AnlinToolingTests(unittest.TestCase):
                 "--draft-gate",
             ]
             second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
-            self.assertIn("CLEAN_RUN_STOP: this was checker call 2/2", second.stdout)
+            self.assertIn("CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2", second.stdout)
             lines = [line for line in draft.read_text(encoding="utf-8").splitlines() if line.strip()]
             body_lines = [line for line in lines[1:] if not line.lstrip().startswith("#")]
             long_lines = [line for line in body_lines if len([char for char in line if "\u4e00" <= char <= "\u9fff"]) >= 28]
@@ -896,7 +898,7 @@ class AnlinToolingTests(unittest.TestCase):
                 "--draft-gate",
             ]
             second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
-            self.assertIn("CLEAN_RUN_STOP: this was checker call 2/2", second.stdout)
+            self.assertIn("CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2", second.stdout)
             lines = [line for line in draft.read_text(encoding="utf-8").splitlines() if line.strip()]
             body_lines = [line for line in lines[1:] if not line.lstrip().startswith("#")]
             self.assertGreaterEqual(len(body_lines), 45)
@@ -930,7 +932,7 @@ class AnlinToolingTests(unittest.TestCase):
                 "--draft-gate",
             ]
             second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
-            self.assertIn("CLEAN_RUN_STOP: this was checker call 2/2", second.stdout)
+            self.assertIn("CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2", second.stdout)
             lines = [line for line in draft.read_text(encoding="utf-8").splitlines() if line.strip()]
             body_lines = [line for line in lines[1:] if not line.lstrip().startswith("#")]
             self.assertLessEqual(len(body_lines), 75)
@@ -2130,6 +2132,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", skill)
         self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", clean)
         self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", runtime)
+        self.assertIn("FINAL BOUNDARY", clean)
+        self.assertIn("do not write `draft.md`, do not repair", runtime)
+        self.assertIn("The next tool action must be reading `draft.md` once", skill)
         self.assertIn("cannot be switched back to ordinary user mode", skill)
         self.assertIn("In any workspace containing `.anlin-clean-eval-mode`", skill)
         self.assertIn("use `clean_run_checker.py`, not the normal checker", skill)
@@ -2145,7 +2150,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("This marker check should be the first tool action", clean)
         self.assertIn("The wrapper `clean_run_checker.py` is the only checker entrypoint", clean)
         self.assertIn("Choose the checker by mode before running any command", skill)
-        self.assertIn("Do not switch to `check_anlin_violations.py`", runtime)
+        self.assertIn("do not switch to `check_anlin_violations.py`", runtime)
         self.assertIn("Developer Two-Checkpoint Evaluation", validation)
         self.assertIn("Bounded clean-eval checkpoint", validation)
         self.assertIn("Finalized repair checkpoint", validation)

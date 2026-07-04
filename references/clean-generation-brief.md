@@ -204,9 +204,9 @@ Use the preflight message as a shape diagnosis, not as permission to thrash betw
 
 After any rewrite of `draft.md`, prior rhythm script work no longer applies. Run the relevant script again before the next wrapper call if the current file has the same shape problem.
 
-If the wrapper prints `CLEAN_RUN_PREFLIGHT_STOP`, the draft still is not ready after the bounded preflight attempts. Stop repair work for this clean-eval run, read the current `draft.md` once, and output it unchanged. The controller should mark that run invalid or failed; do not keep rewriting until the preflight disappears. Do not decide that this was ordinary user mode after all, and do not switch to `check_anlin_violations.py` in the same directory.
+If the wrapper prints `CLEAN_RUN_PREFLIGHT_STOP`, the draft still is not ready after the bounded preflight attempts. This is a final boundary for the bounded case. Do not write `draft.md`, do not repair, do not run another rhythm script, and do not switch to `check_anlin_violations.py` in the same directory. The next tool action must be reading the current `draft.md` once and outputting it unchanged. The controller should mark that run invalid or failed.
 
-`CLEAN_RUN_PREFLIGHT_STOP` and `CLEAN_RUN_STOP` are stop signals even when the wrapper exits with status 0. Status 0 at a stop boundary only means the protocol message was delivered; it does not mean the article passed. The controller will read the state file and validation reports.
+`CLEAN_RUN_PREFLIGHT_STOP` and `CLEAN_RUN_STOP` are stop signals even when the wrapper exits with status 0. Status 0 at a stop boundary only means the protocol message was delivered; it does not mean the article passed. Treat the words `FINAL BOUNDARY` in wrapper output literally. The controller will read the state file and validation reports.
 
 In clean-eval mode, use at most two clean-run checker calls. If the first actual checker reports severe line grid, over-fragmentation, dialogue ladder, reference contamination, underbuilt length, background stuffing, or more than three errors, rewrite once from a new scene slate. Repair by replacement, not deletion.
 
