@@ -34,6 +34,8 @@ Follow-up retest `iteration-20260704-11/eval-02-food-delivery-heatstroke` trigge
 
 Follow-up retest `iteration-20260704-12/eval-02-food-delivery-heatstroke` correctly checked the clean-eval marker first and used `clean_run_checker.py`, but still stopped at bounded preflight (`calls=0`, `preflights=3`). Controller audit exposed two tooling issues that could distort diagnosis: `矿泉水` was falsely matched as unsupported game `泉水`, and real low-body/status material such as exposed toes, stomach trouble, and falling/being mistaken for碰瓷 was not counted as rough self-damage. Those checker issues are now covered by regression tests; the run itself still does not prove readiness for blind rounds.
 
+Follow-up retest `iteration-20260704-13/eval-02-food-delivery-heatstroke` produced a clearer two-checkpoint diagnosis: bounded clean-eval was invalid because the generator kept writing after `CLEAN_RUN_PREFLIGHT_STOP`, while finalized repair from a copied draft passed strict hard gate and style-profile validation. Root fix from that run: stop boundaries in `clean_run_checker.py` now return a successful process status while still recording invalid/stopped state for the controller. This reduces the chance that a generation agent treats a protocol stop as a command failure to repair.
+
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
 ## Install Path

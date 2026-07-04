@@ -387,7 +387,7 @@ class AnlinToolingTests(unittest.TestCase):
             third = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", first.stdout)
             self.assertIn("CLEAN_RUN_STOP: this was checker call 2/2", second.stdout)
-            self.assertEqual(third.returncode, 2)
+            self.assertEqual(third.returncode, 0)
             self.assertIn("clean-eval stop boundary already reached", third.stdout)
 
     def test_clean_run_checker_preflight_does_not_consume_checker_call(self) -> None:
@@ -531,7 +531,7 @@ class AnlinToolingTests(unittest.TestCase):
             third = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertEqual(first.returncode, 3)
             self.assertEqual(second.returncode, 3)
-            self.assertEqual(third.returncode, 2)
+            self.assertEqual(third.returncode, 0)
             self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", third.stdout)
             self.assertIn("No checker call was consumed", third.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
@@ -540,7 +540,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(state["stopped"])
             self.assertEqual(state["stop_reason"], "preflight")
             fourth = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
-            self.assertEqual(fourth.returncode, 2)
+            self.assertEqual(fourth.returncode, 0)
             self.assertIn("clean-eval stop boundary already reached", fourth.stdout)
             bypass = subprocess.run(
                 [sys.executable, str(CHECKER), str(draft), "--json"],
@@ -1963,6 +1963,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Before writing `draft.md`, do a private source preflight", clean)
         self.assertIn("no group/comment chain markers", clean)
         self.assertIn("one coarse body/social/self-own consequence", clean)
+        self.assertIn("Use the preflight message as a shape diagnosis", clean)
+        self.assertIn("split_long_lines.py draft.md --in-place --target-lines 58", clean)
+        self.assertIn("merge_short_lines.py draft.md --in-place --target-lines 68", clean)
+        self.assertIn("Status 0 at a stop boundary only means the protocol message was delivered", clean)
         self.assertIn("several different natural small connectors", skill)
         self.assertIn("repeating `其实/已经/当时` as glue", skill)
         self.assertIn("convert chat pressure into one screen/action/body consequence", skill)

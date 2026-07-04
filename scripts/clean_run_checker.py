@@ -340,7 +340,7 @@ def main() -> int:
             "Do not switch to the normal checker, edit, or repair in this directory. "
             "Read draft.md once and output it unchanged; use a separate finalized checkpoint directory for ordinary repair."
         )
-        return 2
+        return 0
     if calls >= 2:
         state["stopped"] = True
         state["stop_reason"] = "checker-limit"
@@ -349,7 +349,7 @@ def main() -> int:
             "CLEAN_RUN_STOP: checker call limit already reached for this draft. "
             "Do not run another checker or repair command. Read draft.md once and output it unchanged."
         )
-        return 2
+        return 0
     if args.draft_gate and calls == 0:
         preflight_attempt = int(state.get("preflights", 0)) + 1
         max_preflight_attempts = 3
@@ -362,7 +362,7 @@ def main() -> int:
                 save_stop_state(state_path, draft, state)
             else:
                 save_state(state_path, state)
-            return 2 if preflight_attempt >= max_preflight_attempts else 3
+            return 0 if preflight_attempt >= max_preflight_attempts else 3
 
     call_number = calls + 1
     state["calls"] = call_number
@@ -395,6 +395,7 @@ def main() -> int:
             "Do not edit, split, merge, compare, or run another checker. "
             "Read draft.md once and output it unchanged, even if errors remain."
         )
+        return 0
     else:
         print("CLEAN_RUN_NOTE: checker call 1/2. One repair pass remains before final output.")
     return result.returncode

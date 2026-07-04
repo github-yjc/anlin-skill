@@ -187,7 +187,19 @@ Resolve `<skill-dir>` from the directory that contains this `SKILL.md`. Do not m
 
 If the wrapper prints `CLEAN_RUN_PREFLIGHT`, revise before the first checker call is consumed. Do not inspect checker source or tests for hidden tokens.
 
+Use the preflight message as a shape diagnosis, not as permission to thrash between prose blocks and tiny grids:
+
+- `body_lines < 45` or `prose_block_shape=compressed`: first run `python <skill-dir>/scripts/split_long_lines.py draft.md --in-place --target-lines 58`, read once, then add only the missing concrete action/body/social/off-axis material.
+- `body_lines > 90`, `short_line_grid`, or `long_lines < 4`: first run `python <skill-dir>/scripts/merge_short_lines.py draft.md --in-place --target-lines 68`, read once, then keep several longer action/speech/thought lines.
+- `early_comma_ratio`: run `python <skill-dir>/scripts/soften_line_endings.py draft.md --in-place` or manually break ongoing actions after visible line-final `，`; internal comma chains do not count.
+- `binary_reframe`: delete the `不是X，是Y` move and let the physical fact, body reaction, money action, or plain social line carry the turn.
+- `body_chinese_chars < 950`: expand within the existing line-broken shape; do not collapse the whole article back into 8-15 prose paragraphs.
+
+After any rewrite of `draft.md`, prior rhythm script work no longer applies. Run the relevant script again before the next wrapper call if the current file has the same shape problem.
+
 If the wrapper prints `CLEAN_RUN_PREFLIGHT_STOP`, the draft still is not ready after the bounded preflight attempts. Stop repair work for this clean-eval run, read the current `draft.md` once, and output it unchanged. The controller should mark that run invalid or failed; do not keep rewriting until the preflight disappears. Do not decide that this was ordinary user mode after all, and do not switch to `check_anlin_violations.py` in the same directory.
+
+`CLEAN_RUN_PREFLIGHT_STOP` and `CLEAN_RUN_STOP` are stop signals even when the wrapper exits with status 0. Status 0 at a stop boundary only means the protocol message was delivered; it does not mean the article passed. The controller will read the state file and validation reports.
 
 In clean-eval mode, use at most two clean-run checker calls. If the first actual checker reports severe line grid, over-fragmentation, dialogue ladder, reference contamination, underbuilt length, background stuffing, or more than three errors, rewrite once from a new scene slate. Repair by replacement, not deletion.
 

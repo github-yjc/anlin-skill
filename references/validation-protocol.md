@@ -115,6 +115,8 @@ If a test draft only succeeds because the prompt itself supplied style rules, cl
 
 Generator-side preflight is allowed only through `clean_run_checker.py`. `CLEAN_RUN_PREFLIGHT` means the draft was not ready and no formal checker call was consumed. `CLEAN_RUN_PREFLIGHT_STOP` means the generator did not reach a checker-ready article within the bounded preflight attempts; record the run as invalid or failed and do not let the same generation agent continue repairing indefinitely. This preserves the distinction between clean-eval mode and ordinary user mode.
 
+Do not use the wrapper process exit code as the bounded checkpoint result. Stop boundaries such as `CLEAN_RUN_PREFLIGHT_STOP` and `CLEAN_RUN_STOP` may exit with status 0 so generation agents do not mistake a protocol stop for a command failure. The controller must read `.anlin-clean-run-state.json`, the trace audit, strict hard gate, and style-profile report.
+
 After each automated generation, run the trace checker on the captured agent log:
 
 ```powershell
