@@ -129,7 +129,7 @@ It flags clean-eval contamination such as loading repair/critic references befor
 
 Development tests must measure source guidance, limited checker repair, and final repair convergence. Do not collapse them into one score.
 
-The first checkpoint is deliberately bounded: it is the result after natural source guidance and limited checker-driven repair, frozen at the clean-eval boundary. Within that checkpoint, distinguish the first-submission snapshot from the later checker-call boundary snapshots. The second checkpoint is deliberately open-ended: it starts from a copied bounded draft and tests whether the skill's ordinary repair path can converge. These answer different failure questions. A clean finalized draft cannot retroactively make the bounded draft a success, and a failed finalized draft means the final article itself is still unresolved.
+The first checkpoint is deliberately bounded: it is the result after natural source guidance and limited checker-driven repair, frozen at the clean-eval boundary. Within that checkpoint, distinguish three signals: first-submission source guidance, preflight readiness before any formal checker call, and the two-call checker boundary if the draft reaches it. A run stopped at `CLEAN_RUN_PREFLIGHT_STOP` is a source/preflight failure with no evidence that the two actual checker calls were tested. A run with `calls=2` tests the limited checker repair boundary. The second checkpoint is deliberately open-ended: it starts from a copied bounded draft and tests whether the skill's ordinary repair path can converge. These answer different failure questions. A clean finalized draft cannot retroactively make the bounded draft a success, and a failed finalized draft means the final article itself is still unresolved.
 
 For each serious generation case, create two external artifacts outside `<skill-dir>`:
 
@@ -144,6 +144,7 @@ Finalized checkpoint pass gate:
 - Style-profile `yellow` with zero errors is acceptable for the finalized checkpoint; record the yellow families, but do not keep rewriting solely to remove yellow warnings. Blind rounds and placebo calibration decide whether those remaining cues matter.
 - If corpus is available, run copy-overlap comparison with `--corpus-dir <corpus-dir>`.
 - Record repair iteration count and whether the final repair changed scene source, rhythm, title, background specificity, or only patched local wording.
+- If finalized repair improves one rhythm metric by creating the opposite failure, such as 80+ uniform lines becoming 30-40 compressed prose lines, classify it as unresolved repair-path drift. Run `rebalance_line_rhythm.py` once as a corridor reset, then inspect scene function; do not continue metric ping-pong.
 - If bounded fails but finalized passes, treat it as a source-guidance gap. If finalized also fails, treat it as a systemic or repair-path gap and inspect architecture before adding another detector.
 
 After both artifacts exist, run the controller summary from the external case workspace:

@@ -443,10 +443,21 @@ def bounded_answer(checkpoint: CheckpointReport) -> str:
     preflights = "unknown" if gate.clean_preflights is None else str(gate.clean_preflights)
     first_audit = next((item for item in checkpoint.stage_audits if item.name == "first_submission"), None)
     first_status = first_audit.status if first_audit else "not recorded"
+    if gate.clean_stop_reason == "preflight" and gate.clean_calls == 0:
+        boundary = (
+            "It stopped at preflight before formal checker call 1/2, so this is source/preflight evidence, "
+            "not evidence that the two actual checker corrections were tested."
+        )
+    elif gate.clean_calls == 2:
+        boundary = "It reached the two-call checker boundary, so limited checker-driven repair was tested."
+    elif gate.clean_calls == 1:
+        boundary = "It reached only checker call 1/2, so limited checker repair evidence is partial."
+    else:
+        boundary = "Checker-boundary evidence is incomplete; inspect trace and clean-run state."
     return (
         f"Natural-guidance checkpoint: first-submission snapshot is {first_status}; bounded clean-eval checkpoint is {gate.status} "
         f"after {calls}/2 actual clean-eval checker calls and {preflights} preflight attempt(s). "
-        "This separates source guidance from the frozen two-call checker boundary."
+        f"{boundary} This separates source guidance from the frozen two-call checker boundary."
     )
 
 
@@ -658,7 +669,7 @@ def main() -> int:
         finalized=finalized,
         diagnosis=diagnosis,
         blind_round_readiness=blind_round_readiness(diagnosis),
-        bounded_question="Did the skill naturally guide a fresh generator after at most two clean-eval checker calls?",
+        bounded_question="Did the skill naturally guide a fresh generator to a checker-ready article, and what happened by the two-call clean-eval boundary?",
         finalized_question=(
             "Can ordinary multi-round repair converge under strict hard-gate and style-profile validation?"
             if finalized

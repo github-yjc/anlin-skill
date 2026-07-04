@@ -37,11 +37,14 @@ For a standard diary blind-evaluation draft:
 - body shape: roughly 45-70 non-empty lines
 - at least six naturally longer lines above about 24 Chinese characters
 - mixed comma-led continuation lines and hard stop lines
+- a middle rhythm corridor: not 36 compressed paragraph lines, not 80 same-length sentence rows
 - line breaks keep punctuation when a clause needs it; do not remove commas or periods to make the page look broken
 - not 8-15 smooth prose blocks
 - not 100+ tiny rows
 
 If the candidate has 90+ body lines, no long lines, or mostly 4-10 character rows, merge lines before writing `draft.md`. If it is under 900 Chinese characters, expand through lived action, not adjectives.
+
+Do not make the first draft a case report where every detail proves the prompt topic. In delivery, illness, job, family, or game prompts, one pressure surface is enough at first; the rest of the article still needs accidental body/social/material movement. Too many correct details in a row can read more synthetic than one unsupported detail.
 
 ## Source Loop
 
@@ -106,6 +109,8 @@ If these readiness signals tempt you to add a game scene, recurring character, b
 
 Natural connector coverage should be solved before the checker by changing scene movement, not by sprinkling words. A draft with only `觉得/发现` usually means each line is a sealed observation. Make the narrator do something after noticing it: delay a reply, pay money, misread a screen, answer someone badly, move route, get interrupted by the body, or correct a thought halfway. The connector is then a trace of that movement.
 
+Keep connector spread rough. If one connector such as `觉得` or `可能` appears five or more times, it is probably doing the work that an action, bad reply, object movement, or body interruption should do. Replace the repeated connector by changing what happens next, not by swapping it for synonyms.
+
 Avoid an opening rhythm made of isolated short facts such as `下午两点。手机很烫。路很白。`. In this mode, early hard stops should land a joke, embarrassment, or retreat. Let some early physical/action lines run downward through commas when the next line continues the same thought or action.
 
 ## Anti-Synthetic Shape
@@ -152,11 +157,13 @@ Avoid:
 
 Before writing `draft.md`, scan the first 20 content lines. If nearly all end with `。`, change some ongoing action/thought lines into comma continuations. If most adjacent lines are 4-10 characters, merge them into rough spoken/action syntax.
 
-If the draft has more than about 90 content lines, or no naturally longer action/speech/thought lines, it is not a better Anlin surface; it is a generated short-line grid. Merge before checking. After merging, reread for broken facts and impossible object-action collisions.
+If the draft has more than about 90 content lines, or no naturally longer action/speech/thought lines, it is not a better Anlin surface; it is a generated short-line grid. Merge or rebalance before checking. After merging, reread for broken facts and impossible object-action collisions.
 
 Draft in breathing clusters, not sentence rows. A cluster can be 2-5 visible lines carrying one action/thought movement: one line may end with `，`, the next lands with `。`, then a short drop or ugly reply. Do not put a blank line after every sentence only to raise line count. Do not turn every line ending into `，` only to satisfy `行末逗号比例`. If a line break does not change breath, action, reply, body, or thought direction, it is formatting, not rhythm.
 
 Before the first `draft.md`, the first 20 content lines should usually contain several comma-ended continuation lines and several hard-stop lines. The whole body should not be mostly independent sentences. If you can read every line as a finished caption, the draft is still too AI-smooth even if the length is correct.
+
+If you need a mechanical rhythm repair, use it as a corridor reset, not a style source. `rebalance_line_rhythm.py` can move a draft back from prose-block compression or short-line grid toward 45-70 lines with several longer lines. It cannot supply the missing scene engine; after using it, inspect whether the lines still read like a report.
 
 ## Background And Game
 
@@ -204,8 +211,7 @@ If the wrapper prints `CLEAN_RUN_PREFLIGHT`, revise before the first checker cal
 
 Use the preflight message as a shape diagnosis, not as permission to thrash between prose blocks and tiny grids:
 
-- `body_lines < 45` or `prose_block_shape=compressed`: first run `python <skill-dir>/scripts/split_long_lines.py draft.md --in-place --target-lines 58`, read once, then add only the missing concrete action/body/social/off-axis material. Do not throw the draft away and rewrite it shorter.
-- `body_lines > 90`, `short_line_grid`, or `long_lines < 4`: first run `python <skill-dir>/scripts/merge_short_lines.py draft.md --in-place --target-lines 68`, read once, then keep several longer action/speech/thought lines.
+- `body_lines < 45`, `prose_block_shape=compressed`, `body_lines > 90`, `short_line_grid`, or `long_lines < 4`: first run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`, read once, then add only missing scene function or cut non-consequential texture. Do not let the repair bounce from short-line grid into 30-40 prose lines.
 - `early_comma_ratio`: run `python <skill-dir>/scripts/soften_line_endings.py draft.md --in-place` or manually break ongoing actions after visible line-final `，`; internal comma chains do not count.
 - `binary_reframe`: delete the `不是X，是Y` move and let the physical fact, body reaction, money action, or plain social line carry the turn.
 - `rough_self_damage`: pain, heat, and fatigue alone are too polite. Add one losing-face consequence: dirty clothing noticed by someone, stomach/urine/sweat trouble, being mistaken as ridiculous, a bad reply, a body failure that changes the next action, or a practical low-status cost.

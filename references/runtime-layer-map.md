@@ -128,7 +128,9 @@ The preferred developer move after a repeated blind-review failure is:
 
 During development evaluation, Layer 4 should record two checkpoints rather than one blended result:
 
-- bounded clean-eval checkpoint: the draft after the fresh generator's two-call clean-eval limit, measuring natural source guidance and limited checker repair. When `.anlin-clean-run-snapshots/` exists, read `first_submission` as the natural-guidance evidence and checker-call snapshots as the limited-repair evidence.
+- bounded clean-eval checkpoint: the draft after the fresh generator's bounded clean-eval limit, measuring natural source guidance and limited checker repair. When `.anlin-clean-run-snapshots/` exists, read `first_submission` as the natural-guidance evidence, preflight state as readiness evidence, and checker-call snapshots as limited-repair evidence. A preflight stop before call 1/2 is not the same failure as a draft that reaches call 2/2 and still fails.
 - finalized repair checkpoint: a copied draft in a separate `finalized/` directory after ordinary multi-round repair, measuring whether the checker and repair references can converge without mutating the bounded result. It must pass strict hard-gate validation and style-profile audit when available; normal checker success alone is not a finalized pass.
 
 If only the finalized checkpoint passes, update Layer 0 or Layer 1 before celebrating the repair. If finalized is only `review`, it is still unresolved and must not be counted as "final no problem." If neither checkpoint cleanly passes, broaden the diagnosis across layers instead of only tightening the checker.
+
+For rhythm failures, prefer a corridor reset over single-metric ping-pong. `rebalance_line_rhythm.py` belongs to Layer 4 tooling, but the source lesson belongs earlier: a good draft should not need to bounce between prose-block compression and short-line grid repair.

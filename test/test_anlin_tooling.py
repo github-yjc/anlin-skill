@@ -26,6 +26,7 @@ SUMMARY_CHECKPOINTS = ROOT / "scripts" / "summarize_dev_checkpoints.py"
 MERGE_SHORT_LINES = ROOT / "scripts" / "merge_short_lines.py"
 SOFTEN_LINE_ENDINGS = ROOT / "scripts" / "soften_line_endings.py"
 SPLIT_LONG_LINES = ROOT / "scripts" / "split_long_lines.py"
+REBALANCE_LINE_RHYTHM = ROOT / "scripts" / "rebalance_line_rhythm.py"
 CARDS = ROOT / "references" / "corpus-cards"
 STYLE_PROFILE = ROOT / "references" / "style-profile.json"
 BACKGROUND_FACT_CLASSES = ROOT / "references" / "background-fact-classes.json"
@@ -526,7 +527,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("body_lines=120 > 90", preflight.stdout)
             self.assertIn("long_lines=0 < 4", preflight.stdout)
             self.assertIn("short_line_grid=", preflight.stdout)
-            self.assertIn("merge overfragmented short-line grids", preflight.stdout)
+            self.assertIn("rebalance_line_rhythm.py", preflight.stdout)
+            self.assertIn("short-grid drift", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
@@ -573,7 +575,7 @@ class AnlinToolingTests(unittest.TestCase):
             second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             third = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertEqual(first.returncode, 3)
-            self.assertIn("split_long_lines.py", first.stdout)
+            self.assertIn("rebalance_line_rhythm.py", first.stdout)
             self.assertIn("pain or heat alone is too polite", first.stdout)
             self.assertEqual(second.returncode, 3)
             self.assertEqual(third.returncode, 0)
@@ -900,11 +902,52 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             payload = json.loads(result.stdout)
             self.assertIn("first-submission snapshot", payload["bounded_checkpoint_answer"])
+            self.assertIn("two-call checker boundary", payload["bounded_checkpoint_answer"])
             names = [item["name"] for item in payload["bounded"]["stage_audits"]]
             self.assertIn("first_submission", names)
             self.assertIn("checker_call_2_submission", names)
             self.assertIn("bounded_final", names)
             self.assertTrue((case_dir / "controller-audit" / "stage-first_submission-draft.md").is_file())
+
+    def test_dev_checkpoint_summary_distinguishes_preflight_stop_from_two_call_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            case_dir.mkdir(parents=True)
+            draft = case_dir / "draft.md"
+            draft.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 60)]), encoding="utf-8")
+            (case_dir / ".anlin-clean-run-state.json").write_text(
+                json.dumps(
+                    {
+                        "draft": str(draft.resolve()),
+                        "calls": 0,
+                        "preflights": 3,
+                        "stopped": True,
+                        "stop_reason": "preflight",
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(draft),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            self.assertIn("stopped at preflight before formal checker call 1/2", payload["bounded_checkpoint_answer"])
+            self.assertIn("not evidence that the two actual checker corrections were tested", payload["bounded_checkpoint_answer"])
 
     def test_dev_checkpoint_summary_fails_when_finalized_still_fails(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -2196,8 +2239,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("no group/comment chain markers", clean)
         self.assertIn("one coarse body/social/self-own consequence", clean)
         self.assertIn("Use the preflight message as a shape diagnosis", clean)
-        self.assertIn("split_long_lines.py draft.md --in-place --target-lines 58", clean)
-        self.assertIn("merge_short_lines.py draft.md --in-place --target-lines 68", clean)
+        self.assertIn("rebalance_line_rhythm.py draft.md --in-place", clean)
+        self.assertIn("Do not let the repair bounce from short-line grid into 30-40 prose lines", clean)
         self.assertIn("Status 0 at a stop boundary only means the protocol message was delivered", clean)
         self.assertIn("several different natural small connectors", skill)
         self.assertIn("repeating `其实/已经/当时` as glue", skill)
@@ -2334,7 +2377,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Finalized repair checkpoint", validation)
         self.assertIn("natural source guidance and limited checker-driven repair", validation)
         self.assertIn(".anlin-clean-run-snapshots", skill)
-        self.assertIn("first-submission snapshot", validation)
+        self.assertIn("first-submission source guidance", validation)
         self.assertIn("stage snapshots", readme)
         self.assertIn("first_submission", eval_readme)
         self.assertIn("A clean finalized draft cannot retroactively make the bounded draft a success", validation)
@@ -2368,7 +2411,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Generated articles do not belong in the skill directory", runtime)
         self.assertIn("Natural connector coverage should be solved before the checker", clean)
         self.assertIn("Do not turn many hard-stop lines into one huge comma chain", runtime)
-        self.assertIn("do not create line breaks by deleting punctuation", skill)
+        self.assertIn("Do not create line breaks by deleting punctuation", skill)
         self.assertIn("Line-final comma means the visible content line itself ends with", clean)
         self.assertIn("A draft with many short rows and no visible punctuation is a generated line grid", runtime)
         self.assertIn("actual line endings, not comma count inside long lines", runtime)
@@ -3456,6 +3499,94 @@ class AnlinToolingTests(unittest.TestCase):
                 any(any(rule in item["rule"] for rule in line_rules) for item in findings),
                 [item["rule"] for item in findings],
             )
+
+    def test_rebalance_line_rhythm_repairs_short_grid_without_prose_compression(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                *(
+                    [
+                        "我坐着",
+                        "屏幕亮了",
+                        "杯子没洗",
+                        "我没动",
+                        "楼下很吵",
+                    ]
+                    * 22
+                ),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(REBALANCE_LINE_RHYTHM),
+                    str(draft),
+                    "--in-place",
+                    "--target-min-lines",
+                    "45",
+                    "--target-max-lines",
+                    "70",
+                    "--preferred-lines",
+                    "58",
+                    "--min-long-lines",
+                    "6",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(result.stdout)
+            after = report["after"]
+            self.assertGreaterEqual(after["body_lines"], 45)
+            self.assertLessEqual(after["body_lines"], 70)
+            self.assertGreaterEqual(after["long_lines"], 6)
+            self.assertNotIn("still_prose_compressed", report["unresolved"])
+
+    def test_rebalance_line_rhythm_repairs_prose_blocks_without_short_grid(self) -> None:
+        long_line = (
+            "手机电量从百分之三十七掉到二十八，我把充电线按在接口上，手指按得发酸，"
+            "室友在旁边问我是不是还没吃饭，我说吃了，其实只吃了半个冷包子，胃里像有个塑料袋。"
+        )
+        body = "\n".join(["# 日寄", "", *([long_line] * 16)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(REBALANCE_LINE_RHYTHM),
+                    str(draft),
+                    "--in-place",
+                    "--target-min-lines",
+                    "45",
+                    "--target-max-lines",
+                    "70",
+                    "--preferred-lines",
+                    "58",
+                    "--min-long-lines",
+                    "6",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(result.stdout)
+            after = report["after"]
+            self.assertGreaterEqual(after["body_lines"], 45)
+            self.assertLessEqual(after["body_lines"], 70)
+            self.assertGreaterEqual(after["long_lines"], 6)
+            self.assertLess(after["mean_line_chars"], 30)
+            self.assertNotIn("still_prose_compressed", report["unresolved"])
 
     def test_checker_accepts_low_body_roughness_as_self_damage_signal(self) -> None:
         body = "\n".join(

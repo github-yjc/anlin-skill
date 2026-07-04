@@ -26,6 +26,7 @@ CHECKER = ROOT / "scripts" / "check_anlin_violations.py"
 SPLIT_LONG_LINES = ROOT / "scripts" / "split_long_lines.py"
 SOFTEN_LINE_ENDINGS = ROOT / "scripts" / "soften_line_endings.py"
 MERGE_SHORT_LINES = ROOT / "scripts" / "merge_short_lines.py"
+REBALANCE_LINE_RHYTHM = ROOT / "scripts" / "rebalance_line_rhythm.py"
 SNAPSHOT_DIR_NAME = ".anlin-clean-run-snapshots"
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_anlin_violations import (  # noqa: E402
@@ -126,6 +127,25 @@ def normalize_before_final_check(draft: Path) -> None:
             check=False,
         )
     rebalance_medium_grid(draft)
+    subprocess.run(
+        [
+            sys.executable,
+            str(REBALANCE_LINE_RHYTHM),
+            str(draft),
+            "--in-place",
+            "--target-min-lines",
+            "45",
+            "--target-max-lines",
+            "70",
+            "--preferred-lines",
+            "58",
+            "--min-long-lines",
+            "6",
+        ],
+        text=True,
+        encoding="utf-8",
+        check=False,
+    )
     subprocess.run(
         [sys.executable, str(SOFTEN_LINE_ENDINGS), str(draft), "--in-place"],
         text=True,
@@ -307,11 +327,11 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     )
     if compressed_shape:
         repair_hints.append(
-            "for prose compression or body_lines < 45, first run `python <skill-dir>/scripts/split_long_lines.py draft.md --in-place --target-lines 58`; inspect once, then add missing lived content only if still short"
+            "for prose compression or body_lines < 45, first run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`; inspect once, then add missing lived content only if still short"
         )
     if overfragmented_shape:
         repair_hints.append(
-            "for overfragmented grids or too few long lines, run `python <skill-dir>/scripts/merge_short_lines.py draft.md --in-place --target-lines 68`; do not rewrite into many tiny rows"
+            "for overfragmented grids or too few long lines, run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`; do not rewrite into many tiny rows or 30-line prose blocks"
         )
     if "early_comma_ratio=" in joined_messages:
         repair_hints.append(
@@ -339,7 +359,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             f"CLEAN_RUN_PREFLIGHT: draft is not ready for checker call {call_number}/2 "
             f"(preflight {attempt}/{max_attempts}); "
             + joined_messages
-            + ". Revise toward a complete but not overfilled article: write a line-broken article first, merge overfragmented short-line grids, keep punctuation at line endings, add concrete action/body/social/off-axis material only when short, or cut unsupported/non-consequential texture when long; then run this wrapper again."
+            + ". Revise toward a complete but not overfilled article: write a line-broken article first, use rebalance_line_rhythm.py for prose-block or short-grid drift, keep punctuation at line endings, add concrete action/body/social/off-axis material only when short, or cut unsupported/non-consequential texture when long; then run this wrapper again."
             + hint_text
             + " "
             "This preflight did not consume a checker call."

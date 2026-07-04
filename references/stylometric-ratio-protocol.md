@@ -179,6 +179,8 @@ After drafting, use the profile audit to make targeted repairs.
 Examples:
 
 - short-line ratio too high: merge where thought/action naturally runs longer; do not randomly lengthen lines
+- line rhythm red after a prior split/merge repair: run `scripts/rebalance_line_rhythm.py draft.md --in-place` once as a corridor reset, then inspect whether the scene still reads like lived action rather than a report
+- body lines below 45 after repair: treat it as prose-block compression, not as a successful fix for short-line grid
 - comma density too low: add actual spoken/thought continuation, not decorative punctuation
 - title length or title contract outlier: weaken diagnostic title rather than inventing a clever one
 - connector density too high: remove explanatory glue and let adjacent scenes jump by object or action
