@@ -74,6 +74,8 @@ class DevelopmentSummary:
     blind_round_readiness: str
     bounded_question: str
     finalized_question: str | None
+    bounded_checkpoint_scope: str
+    finalized_checkpoint_scope: str | None
     bounded_checkpoint_answer: str
     finalized_checkpoint_answer: str | None
     repair_implication: str
@@ -352,6 +354,22 @@ def finalized_answer(checkpoint: CheckpointReport | None) -> str | None:
     )
 
 
+def bounded_scope() -> str:
+    return (
+        "Fresh generator, realistic prompt, normal access to this skill, bounded preflight, and at most two actual "
+        "clean-eval checker calls. This measures source guidance plus limited checker-driven repair, not final polish."
+    )
+
+
+def finalized_scope(has_finalized: bool) -> str | None:
+    if not has_finalized:
+        return None
+    return (
+        "Copied bounded draft in a separate finalized directory, ordinary multi-round repair, then strict hard-gate "
+        "and style-profile validation. This measures repair convergence and cannot retroactively improve bounded status."
+    )
+
+
 def implication_for(diagnosis: str) -> str:
     if diagnosis == "ready_for_blind_rounds":
         return "Both checkpoints are clean; proceed to isolated blind rounds and placebo calibration before reporting rates."
@@ -414,6 +432,8 @@ def format_markdown(report: DevelopmentSummary) -> str:
         f"- blind_round_readiness: `{report.blind_round_readiness}`",
         f"- bounded_question: {report.bounded_question}",
         f"- finalized_question: {report.finalized_question or 'not run'}",
+        f"- bounded_checkpoint_scope: {report.bounded_checkpoint_scope}",
+        f"- finalized_checkpoint_scope: {report.finalized_checkpoint_scope or 'not run'}",
         f"- bounded_checkpoint_answer: {report.bounded_checkpoint_answer}",
         f"- finalized_checkpoint_answer: {report.finalized_checkpoint_answer or 'not run'}",
         f"- repair_implication: {report.repair_implication}",
@@ -517,6 +537,8 @@ def main() -> int:
             if finalized
             else None
         ),
+        bounded_checkpoint_scope=bounded_scope(),
+        finalized_checkpoint_scope=finalized_scope(finalized is not None),
         bounded_checkpoint_answer=bounded_answer(bounded),
         finalized_checkpoint_answer=finalized_answer(finalized),
         repair_implication=implication_for(diagnosis),

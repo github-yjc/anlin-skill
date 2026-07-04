@@ -268,8 +268,8 @@ def preflight_messages(draft: Path) -> list[str]:
         )
     if len(first_twenty) >= 8 and comma_ratio < 0.15:
         messages.append(f"early_comma_ratio={comma_ratio:.2f} < 0.15")
-    if len(connectors) < 5:
-        messages.append(f"connectors={connectors} < 5")
+    if len(connectors) < 3:
+        messages.append(f"connectors={connectors} < 3")
     if len(engine_hits) < 3:
         messages.append("paragraph_engine=weak (add a scene-level misread, bodily interruption, social wound, or ugly self-own; do not inspect checker source/tests)")
     if not rough_terms and not rough_patterns:

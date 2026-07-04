@@ -129,9 +129,11 @@ It flags clean-eval contamination such as loading repair/critic references befor
 
 Development tests must measure both source guidance and repair convergence. Do not collapse them into one score.
 
+The first checkpoint is deliberately bounded: it is the result after natural source guidance and limited checker-driven repair, frozen at the clean-eval boundary. The second checkpoint is deliberately open-ended: it starts from a copied bounded draft and tests whether the skill's ordinary repair path can converge. These answer different failure questions. A clean finalized draft cannot retroactively make the bounded draft a success, and a failed finalized draft means the final article itself is still unresolved.
+
 For each serious generation case, create two external artifacts outside `<skill-dir>`:
 
-1. **Bounded clean-eval checkpoint**: the fresh generator receives only the realistic prompt plus normal access to `anlin-writing`. It may use `clean_run_checker.py` according to clean-eval rules, with at most two actual checker calls and bounded preflight. Save the resulting `draft.md`, checker state, hard-check report, style-profile report when available, and controller notes under the case workspace. This checkpoint answers: did the skill naturally guide the agent close enough before open-ended repair?
+1. **Bounded clean-eval checkpoint**: the fresh generator receives only the realistic prompt plus normal access to `anlin-writing`. It may use `clean_run_checker.py` according to clean-eval rules, with bounded preflight and at most two actual checker calls. Save the resulting `draft.md`, checker state, hard-check report, style-profile report when available, and controller notes under the case workspace. This checkpoint answers: did the skill naturally guide the agent close enough after limited checker-driven repair, before open-ended repair begins?
 2. **Finalized repair checkpoint**: copy the bounded checkpoint draft into a separate `finalized/` case directory, then start from that copy and its visible checker results. Allow ordinary-user style repair loops, including multiple checker calls, rewrites from a new scene slate, and targeted profile/corpus review. Save the final article and full validation reports separately from the bounded checkpoint. This checkpoint answers: can the skill plus its checker/references converge to a usable final article in a realistic user workflow?
 
 Finalized checkpoint pass gate:
@@ -139,6 +141,7 @@ Finalized checkpoint pass gate:
 - Normal `check_anlin_violations.py draft.md` success is not sufficient.
 - Run `check_anlin_violations.py <finalized-draft> --strict --draft-gate` and require zero `error` findings.
 - Run `check_style_profile.py <finalized-draft> --profile <skill-dir>/references/style-profile.json --draft-gate --strict` when the bundled profile is available. A `revise` status means finalized repair failed. A missing profile makes the result `review`, not ready for blind rounds.
+- Style-profile `yellow` with zero errors is acceptable for the finalized checkpoint; record the yellow families, but do not keep rewriting solely to remove yellow warnings. Blind rounds and placebo calibration decide whether those remaining cues matter.
 - If corpus is available, run copy-overlap comparison with `--corpus-dir <corpus-dir>`.
 - Record repair iteration count and whether the final repair changed scene source, rhythm, title, background specificity, or only patched local wording.
 - If bounded fails but finalized passes, treat it as a source-guidance gap. If finalized also fails, treat it as a systemic or repair-path gap and inspect architecture before adding another detector.
@@ -162,7 +165,7 @@ The summary script exits nonzero unless both checkpoints are ready for blind rou
 
 Interpretation:
 
-- bounded fails, finalized passes: strengthen Layer 0/Layer 1 generation guidance; the checker and repair path can recover, but the source loop is still weak.
+- bounded fails, finalized passes: strengthen Layer 0/Layer 1 generation guidance and clean-eval repair instructions; the ordinary repair path can recover, but the source loop is still weak.
 - bounded passes, finalized does not pass: investigate repair instructions, style-profile drift, validator setup, or checker blind spots; repair may be making the draft worse or failing to resolve the real issue.
 - bounded fails, finalized does not pass: treat it as a broader skill issue; inspect architecture, fact gates, voice model, repair instructions, style-profile assumptions, and deterministic checks before adding more local lint.
 - bounded passes and finalized passes: run blind rounds and placebo calibration before reporting rates; still do not claim authorship or indistinguishability.

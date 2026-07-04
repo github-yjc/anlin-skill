@@ -566,6 +566,31 @@ class AnlinToolingTests(unittest.TestCase):
             errors_after_delete = [item for item in findings_after_delete if item["severity"] == "error"]
             self.assertTrue(any(item["rule"] == "clean-eval停止边界越过" for item in errors_after_delete))
 
+    def test_clean_run_checker_allows_near_miss_connector_draft_to_reach_checker(self) -> None:
+        lines = [
+            "其实我把杯子拿去洗，水龙头先咳了一下喷到裤子上，",
+            "觉得这事有点丢人，鞋底还粘着菜市场的汤，差点跪在门口，",
+            "好像脚趾头也露在外面，缩了一下还是被楼道灯照见，还以为自己没躲过去，",
+            "于是把手机翻过去，假装没看到那条快超时的提醒。",
+        ] * 12
+        body = "\n".join(["# 日寄", "", *lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertNotIn("CLEAN_RUN_PREFLIGHT", result.stdout)
+            self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", result.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 1)
+            self.assertEqual(state["preflights"], 0)
+
     def test_clean_run_checker_surface_preflight_blocks_high_risk_forms_without_consuming_call(self) -> None:
         filler = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"
         cases = [
@@ -716,6 +741,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(payload["blind_round_readiness"], "not_ready_for_blind_rounds")
             self.assertIn("naturally guide", payload["bounded_question"])
             self.assertIsNone(payload["finalized_question"])
+            self.assertIn("limited checker-driven repair", payload["bounded_checkpoint_scope"])
+            self.assertIsNone(payload["finalized_checkpoint_scope"])
             self.assertIn("Natural-guidance checkpoint", payload["bounded_checkpoint_answer"])
             self.assertIsNone(payload["finalized_checkpoint_answer"])
             self.assertIn("bounded result alone is incomplete evidence", payload["repair_implication"])
@@ -755,6 +782,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(payload["diagnosis"], "systemic_gap")
             self.assertEqual(payload["blind_round_readiness"], "not_ready_for_blind_rounds")
             self.assertIn("strict hard-gate", payload["finalized_question"])
+            self.assertIn("cannot retroactively improve bounded status", payload["finalized_checkpoint_scope"])
             self.assertIn("Only `pass` means", payload["finalized_checkpoint_answer"])
             self.assertIn("final article is not clean", payload["repair_implication"])
             self.assertIn(payload["finalized"]["gate"]["status"], {"fail", "review"})
@@ -2088,13 +2116,22 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Developer Two-Checkpoint Evaluation", validation)
         self.assertIn("Bounded clean-eval checkpoint", validation)
         self.assertIn("Finalized repair checkpoint", validation)
+        self.assertIn("natural source guidance and limited checker-driven repair", validation)
+        self.assertIn("A clean finalized draft cannot retroactively make the bounded draft a success", validation)
         self.assertIn("Normal `check_anlin_violations.py draft.md` success is not sufficient", validation)
         self.assertIn("A `revise` status means finalized repair failed", validation)
+        self.assertIn("Style-profile `yellow` with zero errors is acceptable for the finalized checkpoint", validation)
+        self.assertIn("style-profile `yellow` 可作为 finalized checkpoint 的通过条件之一", eval_readme)
+        self.assertIn("它衡量自然引导能力加有限检查器修复能力", eval_readme)
+        self.assertIn("不要只看“最后有没有修好”", eval_readme)
+        self.assertIn("Style-profile `yellow` with zero errors and no red-family stop is acceptable", skill)
+        self.assertIn("Clean-eval freezes the fresh-agent result after bounded preflight and limited checker-driven repair", skill)
         self.assertIn("`finalized=review` is not a clean final success", validation)
         self.assertIn("exits nonzero unless both checkpoints are ready for blind rounds", validation)
         self.assertIn("separate `finalized/` case directory", validation)
         self.assertIn("direct normal-checker use in that directory is a protocol violation", validation)
         self.assertIn("bounded failure with a finalized pass means source guidance should be strengthened", readme)
+        self.assertIn("natural guidance plus limited checker-driven repair", readme)
         self.assertIn("finalized `review/fail/invalid` means the final article is still unresolved", readme)
         self.assertIn("blind_round_readiness", readme)
         self.assertIn("双检查点记录", eval_readme)

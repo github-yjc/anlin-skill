@@ -20,7 +20,7 @@ Additional architecture audit found a source-load conflict: `SKILL.md` said clea
 
 Clean-eval preflight now blocks obvious non-article drafts before they consume a formal checker call: too short, too overfilled, fewer than 45 body lines, prose-block compression, missing connector/engine/rough self-damage signals, or high-risk AI/background surfaces. Preflight is bounded; if it prints `CLEAN_RUN_PREFLIGHT_STOP`, the generation run should stop and the external controller should mark it invalid or failed instead of letting the generator repair indefinitely.
 
-Development validation now uses two checkpoints per serious case. The bounded checkpoint records the fresh-agent result after clean-eval limits, and the finalized checkpoint records the result after ordinary multi-round repair from a separate copied draft. The finalized checkpoint is not allowed to pass on the normal checker alone; it must clear strict hard-gate validation and the bundled style-profile audit when the profile is available. A bounded failure with a finalized pass means source guidance should be strengthened; bounded failure with finalized `review/fail/invalid` means the final article is still unresolved and diagnosis must broaden across source guidance, repair references, fact gates, profile assumptions, and checker behavior.
+Development validation now uses two checkpoints per serious case. The bounded checkpoint records the fresh-agent result after clean-eval limits, including bounded preflight and limited checker-driven repair. The finalized checkpoint records the result after ordinary multi-round repair from a separate copied draft. The finalized checkpoint is not allowed to pass on the normal checker alone; it must clear strict hard-gate validation and the bundled style-profile audit when the profile is available. A bounded failure with a finalized pass means source guidance should be strengthened; bounded failure with finalized `review/fail/invalid` means the final article is still unresolved and diagnosis must broaden across source guidance, repair references, fact gates, profile assumptions, and checker behavior.
 
 Latest source-level tightening: clean-eval first draft may only use `clean-generation-brief.md` plus phase/date handling when needed. Repair, title, structure, anti-slop, corpus-card, judge, and ratio references are explicitly post-draft materials for this mode.
 
@@ -35,6 +35,8 @@ Follow-up retest `iteration-20260704-11/eval-02-food-delivery-heatstroke` trigge
 Follow-up retest `iteration-20260704-12/eval-02-food-delivery-heatstroke` correctly checked the clean-eval marker first and used `clean_run_checker.py`, but still stopped at bounded preflight (`calls=0`, `preflights=3`). Controller audit exposed two tooling issues that could distort diagnosis: `矿泉水` was falsely matched as unsupported game `泉水`, and real low-body/status material such as exposed toes, stomach trouble, and falling/being mistaken for碰瓷 was not counted as rough self-damage. Those checker issues are now covered by regression tests; the run itself still does not prove readiness for blind rounds.
 
 Follow-up retest `iteration-20260704-13/eval-02-food-delivery-heatstroke` produced a clearer two-checkpoint diagnosis: bounded clean-eval was invalid because the generator kept writing after `CLEAN_RUN_PREFLIGHT_STOP`, while finalized repair from a copied draft passed strict hard gate and style-profile validation. Root fix from that run: stop boundaries in `clean_run_checker.py` now return a successful process status while still recording invalid/stopped state for the controller. This reduces the chance that a generation agent treats a protocol stop as a command failure to repair.
+
+Follow-up retest `iteration-20260704-14/eval-02-food-delivery-heatstroke` confirmed the stop-boundary fix: trace audit was clean and the generator stopped after `CLEAN_RUN_PREFLIGHT_STOP`. The remaining bounded failure was more specific: preflight blocked before the first actual checker call because the draft had four distinct connector signals instead of the full draft-gate target. The preflight threshold is now limited to severe connector starvation, so near-miss drafts can enter the first real checker pass and use the bounded repair opportunity. The same pass also clarified that style-profile `yellow` is acceptable for finalized checkpoint pass; do not keep rewriting only to remove yellow warnings.
 
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
@@ -96,7 +98,7 @@ The practical ownership rule is:
 
 For development testing, the controller must keep the bounded clean-eval draft and the finalized repair draft as separate artifacts. The finalized draft should start from a copy in a separate `finalized/` directory; continuing to edit the bounded directory after clean-eval stop contaminates the source-guidance measurement. The finalized draft can show that the repair path works, but it cannot be used to claim the first-pass natural guidance succeeded. If only finalized passes, update the source guidance layer next; if finalized is `review`, `fail`, or `invalid`, treat the final article as still problematic and inspect architecture and repair path before adding another checker rule.
 
-Read the two checkpoints as two separate questions, not one averaged score: bounded clean-eval answers whether natural guidance gets close under the two-checker-call limit; finalized repair answers whether ordinary multi-round repair can converge afterward. A bounded failure with a finalized pass means the source guidance still needs improvement. A finalized failure or `review` means the final article is not clean yet, even if some local checker problems were fixed.
+Read the two checkpoints as two separate questions, not one averaged score: bounded clean-eval answers whether natural guidance plus limited checker-driven repair gets close under the two-checker-call limit; finalized repair answers whether ordinary multi-round repair can converge afterward. A bounded failure with a finalized pass means the source guidance still needs improvement. A finalized failure or `review` means the final article is not clean yet, even if some local checker problems were fixed.
 
 ## Technique Sources
 
@@ -113,7 +115,7 @@ The old README-level technique summary is now mapped to maintained references:
 
 ## Runtime Flow
 
-For ordinary formal article generation:
+For clean-eval formal article generation:
 
 1. Load `references/clean-generation-brief.md` first and use its source loop for the first complete draft.
 2. Start from a small lived friction, not from a checklist.
@@ -124,6 +126,8 @@ For ordinary formal article generation:
 7. If `CLEAN_RUN_PREFLIGHT` appears, revise before the first checker call is consumed; if `CLEAN_RUN_PREFLIGHT_STOP` appears, output the current draft unchanged and let the controller record failure.
 8. Do at most one repair/rewrite and at most two clean-eval checker calls.
 9. After the second checker call, output the current `draft.md` exactly.
+
+For ordinary user generation, use the same scene-first drafting principles but do not apply the clean-eval two-call stop rule. Continue repairing hard errors and obvious process leakage until the article is usable or the user stops, while avoiding mechanical ratio chasing.
 
 For controller validation, use the full validation layer after generation:
 
