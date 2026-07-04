@@ -393,6 +393,7 @@ class AnlinToolingTests(unittest.TestCase):
             preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertEqual(preflight.returncode, 3)
             self.assertIn("CLEAN_RUN_PREFLIGHT", preflight.stdout)
+            self.assertIn("do not mine checker source", preflight.stdout)
             draft.write_text("\n".join(["# 日寄", "", *([ready_line] * 32)]), encoding="utf-8")
             first = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", first.stdout)
@@ -419,6 +420,36 @@ class AnlinToolingTests(unittest.TestCase):
             draft.write_text("\n".join(["# 日寄", "", *([ready_line] * 38)]), encoding="utf-8")
             first = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", first.stdout)
+
+    def test_clean_run_checker_merges_uniform_medium_grid_before_second_call(self) -> None:
+        fragments = [
+            "其实厕所灯坏了我站着很丢人",
+            "觉得杯子好像也脏我又拿回去",
+            "突然发现手机没电屏幕黑着",
+            "于是我又去厕所洗了手",
+            "因为尿急没躲过电梯里那眼神",
+        ]
+        body = "\n".join(["# 日寄", "", *(fragments * 16)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            state = draft.parent / ".anlin-clean-run-state.json"
+            state.write_text(
+                json.dumps({"draft": str(draft.resolve()), "calls": 1}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertIn("CLEAN_RUN_STOP: this was checker call 2/2", second.stdout)
+            lines = [line for line in draft.read_text(encoding="utf-8").splitlines() if line.strip()]
+            body_lines = [line for line in lines[1:] if not line.lstrip().startswith("#")]
+            self.assertLess(len(body_lines), 80)
 
     def test_clean_run_checker_normalizes_rhythm_before_second_call(self) -> None:
         long_line = (

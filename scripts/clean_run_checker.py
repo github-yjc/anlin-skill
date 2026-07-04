@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import statistics
 import subprocess
 import sys
 from pathlib import Path
@@ -60,7 +61,9 @@ def normalize_before_final_check(draft: Path) -> None:
     visible = [line for line in content_lines if line.strip() and not line.strip().startswith("<!--")]
     lengths = [chinese_len(line) for line in visible]
     short_ratio = (sum(1 for length in lengths if length <= 12) / len(lengths)) if lengths else 0.0
-    if len(visible) > 75 or short_ratio >= 0.40:
+    long_count = sum(1 for length in lengths if length >= 28)
+    line_stdev = statistics.pstdev(lengths) if len(lengths) > 1 else 0.0
+    if len(visible) > 75 or short_ratio >= 0.40 or (len(visible) >= 72 and (long_count < 4 or line_stdev <= 6.0)):
         subprocess.run(
             [
                 sys.executable,
@@ -106,7 +109,7 @@ def preflight_before_check(draft: Path, call_number: int) -> bool:
     if len(engine_hits) < 3:
         messages.append(f"engine_hits={engine_hits} < 3")
     if not rough_terms and not rough_patterns:
-        messages.append("rough_self_damage=[]")
+        messages.append("rough_self_damage=[] (organic examples if the scene supports them: 丢人/尿/塞牙/狗屎/油蹭/痔疮/傻逼; do not mine checker source)")
     if not messages:
         return False
     print(
