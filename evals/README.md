@@ -102,7 +102,7 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 每个正式开发用例必须保存两个结果，且都放在外部评测工作区，不写入 skill 目录：
 
 - `bounded clean-eval checkpoint`：全新 agent 只拿 `realistic_prompt` + anlin-writing skill，最多两次实际 `clean_run_checker.py` 调用，保存两次限制内得到的 `draft.md` 和检查报告。它衡量自然引导能力。
-- `finalized repair checkpoint`：把 bounded 草稿复制到单独的 `finalized/` 用例目录，再从这份复制稿和公开检查结果继续，允许普通用户模式下多轮修复、重写和复检，保存最终稿和检查报告。它衡量 checker / repair references 能否收敛。
+- `finalized repair checkpoint`：把 bounded 草稿复制到单独的 `finalized/` 用例目录，再从这份复制稿和公开检查结果继续，允许普通用户模式下多轮修复、重写和复检，保存最终稿和检查报告。它衡量 checker / repair references 能否收敛。最终稿不能只凭普通检查器通过；必须运行 strict/draft-gate 硬门禁和 style-profile 审计，profile 为 `revise` 时仍算 finalized 失败。
 
 推荐每个用例最终都运行一次控制器汇总：
 
@@ -123,6 +123,8 @@ python <skill-dir>/scripts/summarize_dev_checkpoints.py <case-dir> `
 - `repair_path_gap` / `repair_or_validator_gap`：自然引导可用但修复路径或验证器出了问题。
 - `systemic_gap`：两阶段都没过；不要只改检查器，回查架构、事实门禁、声音模型和修复流程。
 - `ready_for_blind_rounds`：两阶段都过；进入盲评和 placebo，不直接宣称目标达成。
+
+`summary.json` 中的 `blind_round_readiness` 才是是否可以进入盲评的控制字段。除 `ready_for_blind_rounds` 外，汇总脚本会返回非零退出码；这表示还不能进入正式盲评，不表示报告生成失败。
 
 判读规则：
 

@@ -8,7 +8,7 @@ filenames, and written to a clean output directory.  A mapping.json records
 which sample is the draft so the controller can later check the verdict.
 
 Example:
-    python prepare_blind_test.py regenerated-draft.md C:/Users/34025/Desktop/Anlin \
+    python prepare_blind_test.py regenerated-draft.md <corpus-dir> \
         --num-samples 5 --output-dir blind-test
 """
 

@@ -44,7 +44,7 @@ python scripts/compare_anlin_corpus.py draft.md --corpus-dir <corpus-dir>
 
 ```powershell
 python scripts/build_style_profile.py <corpus-dir> --output references/style-profile.json
-python scripts/check_style_profile.py draft.md --profile references/style-profile.json --phase <A|B|C|D> --genre <standard|sincere|micro-hope|surreal> --draft-gate
+python scripts/check_style_profile.py draft.md --profile references/style-profile.json --phase <A|B|C|D> --genre <standard|sincere|micro-hope|surreal> --draft-gate --strict
 ```
 
 4. Review using `review-rubric.md`.
@@ -61,7 +61,7 @@ python scripts/check_anlin_violations.py draft.md
 python scripts/check_anlin_violations.py draft.md --strict --draft-gate --corpus-dir <corpus-dir>
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir <corpus-dir>
 python scripts/build_style_profile.py <corpus-dir> --output references/style-profile.json
-python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate
+python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate --strict
 python scripts/calibrate_style_profile.py <corpus-dir> --profile references/style-profile.json
 python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 ```
@@ -132,6 +132,15 @@ For each serious generation case, create two external artifacts outside `<skill-
 1. **Bounded clean-eval checkpoint**: the fresh generator receives only the realistic prompt plus normal access to `anlin-writing`. It may use `clean_run_checker.py` according to clean-eval rules, with at most two actual checker calls and bounded preflight. Save the resulting `draft.md`, checker state, hard-check report, style-profile report when available, and controller notes under the case workspace. This checkpoint answers: did the skill naturally guide the agent close enough before open-ended repair?
 2. **Finalized repair checkpoint**: copy the bounded checkpoint draft into a separate `finalized/` case directory, then start from that copy and its visible checker results. Allow ordinary-user style repair loops, including multiple checker calls, rewrites from a new scene slate, and targeted profile/corpus review. Save the final article and full validation reports separately from the bounded checkpoint. This checkpoint answers: can the skill plus its checker/references converge to a usable final article in a realistic user workflow?
 
+Finalized checkpoint pass gate:
+
+- Normal `check_anlin_violations.py draft.md` success is not sufficient.
+- Run `check_anlin_violations.py <finalized-draft> --strict --draft-gate` and require zero `error` findings.
+- Run `check_style_profile.py <finalized-draft> --profile <skill-dir>/references/style-profile.json --draft-gate --strict` when the bundled profile is available. A `revise` status means finalized repair failed. A missing profile makes the result `review`, not ready for blind rounds.
+- If corpus is available, run copy-overlap comparison with `--corpus-dir <corpus-dir>`.
+- Record repair iteration count and whether the final repair changed scene source, rhythm, title, background specificity, or only patched local wording.
+- If bounded fails but finalized passes, treat it as a source-guidance gap. If finalized also fails, treat it as a systemic or repair-path gap and inspect architecture before adding another detector.
+
 After both artifacts exist, run the controller summary from the external case workspace:
 
 ```powershell
@@ -146,6 +155,8 @@ python <skill-dir>/scripts/summarize_dev_checkpoints.py <case-dir> `
 ```
 
 The summary script copies drafts into `<case-dir>/controller-audit/` before running the normal hard checker, so the controller can audit a stopped bounded draft without mutating the bounded generation directory or bypassing the clean-eval stop rule. If the finalized checkpoint is not available yet, omit `--finalized-draft`; the result is a partial development summary and must not be treated as final convergence evidence.
+
+The summary script exits nonzero unless both checkpoints are ready for blind rounds. This is intentional: a generated report is evidence, not a pass. Read `diagnosis`, `blind_round_readiness`, bounded status, finalized status, hard-error counts, style-profile status, and trace findings before deciding the next change.
 
 Interpretation:
 

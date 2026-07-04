@@ -675,11 +675,49 @@ class AnlinToolingTests(unittest.TestCase):
                 encoding="utf-8",
                 check=False,
             )
-            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotEqual(result.returncode, 0)
             payload = json.loads(result.stdout)
             self.assertEqual(payload["diagnosis"], "bounded_fail_finalized_missing")
+            self.assertEqual(payload["blind_round_readiness"], "not_ready_for_blind_rounds")
+            self.assertIn("naturally guide", payload["bounded_question"])
+            self.assertIsNone(payload["finalized_question"])
             self.assertTrue((case_dir / "controller-audit" / "bounded-draft.md").is_file())
             self.assertTrue((case_dir / "controller-audit" / "summary.json").is_file())
+
+    def test_dev_checkpoint_summary_fails_when_finalized_still_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            finalized_dir = case_dir / "finalized"
+            finalized_dir.mkdir(parents=True)
+            body = "\n".join(["# 春招日寄", "", *(["杯子脏了。"] * 90)])
+            bounded = case_dir / "draft.md"
+            finalized = finalized_dir / "draft.md"
+            bounded.write_text(body, encoding="utf-8")
+            finalized.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(bounded),
+                    "--finalized-draft",
+                    str(finalized),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["diagnosis"], "systemic_gap")
+            self.assertEqual(payload["blind_round_readiness"], "not_ready_for_blind_rounds")
+            self.assertIn("strict hard-gate", payload["finalized_question"])
+            self.assertIn(payload["finalized"]["gate"]["status"], {"fail", "review"})
 
     def test_clean_run_checker_merges_uniform_medium_grid_before_second_call(self) -> None:
         fragments = [
@@ -1878,7 +1916,16 @@ class AnlinToolingTests(unittest.TestCase):
                 if path.suffix.lower() not in {".md", ".py", ".json"}:
                     continue
                 text = path.read_text(encoding="utf-8")
-                if "C:\\Users\\" in text or "Desktop\\Anlin" in text or ".claude\\skills\\anlin-writing" in text:
+                local_path_markers = (
+                    "C:\\Users\\",
+                    "C:/Users/",
+                    "Desktop\\Anlin",
+                    "Desktop/Anlin",
+                    ".claude\\skills\\anlin-writing",
+                    ".codex\\skills",
+                    ".codex/skills",
+                )
+                if any(marker in text for marker in local_path_markers):
                     offenders.append(str(path.relative_to(ROOT)))
         self.assertEqual(offenders, [])
 
@@ -1941,12 +1988,18 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Developer Two-Checkpoint Evaluation", validation)
         self.assertIn("Bounded clean-eval checkpoint", validation)
         self.assertIn("Finalized repair checkpoint", validation)
+        self.assertIn("Normal `check_anlin_violations.py draft.md` success is not sufficient", validation)
+        self.assertIn("A `revise` status means finalized repair failed", validation)
+        self.assertIn("exits nonzero unless both checkpoints are ready for blind rounds", validation)
         self.assertIn("separate `finalized/` case directory", validation)
         self.assertIn("direct normal-checker use in that directory is a protocol violation", validation)
         self.assertIn("bounded failure with a finalized pass means source guidance should be strengthened", readme)
+        self.assertIn("blind_round_readiness", readme)
         self.assertIn("双检查点记录", eval_readme)
+        self.assertIn("最终稿不能只凭普通检查器通过", eval_readme)
         self.assertIn("bounded clean-eval checkpoint", layer_map)
         self.assertIn("finalized repair checkpoint", layer_map)
+        self.assertIn("normal checker success alone is not a finalized pass", layer_map)
         self.assertIn("Generated articles do not belong in the skill directory", runtime)
 
     def test_title_model_prevents_universal_ri_default(self) -> None:

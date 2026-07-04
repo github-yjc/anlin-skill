@@ -71,6 +71,9 @@ class DevelopmentSummary:
     bounded: CheckpointReport
     finalized: CheckpointReport | None
     diagnosis: str
+    blind_round_readiness: str
+    bounded_question: str
+    finalized_question: str | None
     next_action: str
     principle: str
 
@@ -321,6 +324,12 @@ def classify_development_result(bounded_status: str, finalized_status: str | Non
     )
 
 
+def blind_round_readiness(diagnosis: str) -> str:
+    if diagnosis == "ready_for_blind_rounds":
+        return "ready_for_blind_rounds"
+    return "not_ready_for_blind_rounds"
+
+
 def build_checkpoint(
     *,
     name: str,
@@ -366,6 +375,9 @@ def format_markdown(report: DevelopmentSummary) -> str:
         "",
         f"- case_dir: `{report.case_dir}`",
         f"- diagnosis: `{report.diagnosis}`",
+        f"- blind_round_readiness: `{report.blind_round_readiness}`",
+        f"- bounded_question: {report.bounded_question}",
+        f"- finalized_question: {report.finalized_question or 'not run'}",
         f"- next_action: {report.next_action}",
         f"- principle: {report.principle}",
         "",
@@ -459,6 +471,13 @@ def main() -> int:
         bounded=bounded,
         finalized=finalized,
         diagnosis=diagnosis,
+        blind_round_readiness=blind_round_readiness(diagnosis),
+        bounded_question="Did the skill naturally guide a fresh generator after at most two clean-eval checker calls?",
+        finalized_question=(
+            "Can ordinary multi-round repair converge under strict hard-gate and style-profile validation?"
+            if finalized
+            else None
+        ),
         next_action=next_action,
         principle="Bounded checkpoint measures natural guidance; finalized checkpoint measures repair convergence. Do not merge the scores.",
     )
@@ -474,7 +493,7 @@ def main() -> int:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
     else:
         print(markdown)
-    return 1 if diagnosis in {"systemic_gap", "repair_or_validator_gap", "repair_path_gap"} else 0
+    return 0 if summary.blind_round_readiness == "ready_for_blind_rounds" else 1
 
 
 if __name__ == "__main__":

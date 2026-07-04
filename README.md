@@ -20,11 +20,11 @@ Additional architecture audit found a source-load conflict: `SKILL.md` said clea
 
 Clean-eval preflight now blocks obvious non-article drafts before they consume a formal checker call: too short, too overfilled, fewer than 45 body lines, prose-block compression, missing connector/engine/rough self-damage signals, or high-risk AI/background surfaces. Preflight is bounded; if it prints `CLEAN_RUN_PREFLIGHT_STOP`, the generation run should stop and the external controller should mark it invalid or failed instead of letting the generator repair indefinitely.
 
-Development validation now uses two checkpoints per serious case. The bounded checkpoint records the fresh-agent result after clean-eval limits, and the finalized checkpoint records the result after ordinary multi-round repair from a separate copied draft. A bounded failure with a finalized pass means source guidance should be strengthened; failures in both checkpoints indicate a broader skill problem, not just a stricter checker need.
+Development validation now uses two checkpoints per serious case. The bounded checkpoint records the fresh-agent result after clean-eval limits, and the finalized checkpoint records the result after ordinary multi-round repair from a separate copied draft. The finalized checkpoint is not allowed to pass on the normal checker alone; it must clear strict hard-gate validation and the bundled style-profile audit when the profile is available. A bounded failure with a finalized pass means source guidance should be strengthened; failures in both checkpoints indicate a broader skill problem, not just a stricter checker need.
 
 Latest source-level tightening: clean-eval first draft may only use `clean-generation-brief.md` plus phase/date handling when needed. Repair, title, structure, anti-slop, corpus-card, judge, and ratio references are explicitly post-draft materials for this mode.
 
-Latest controller tooling update: `scripts/summarize_dev_checkpoints.py` now summarizes bounded and finalized checkpoints separately, copies drafts into an external `controller-audit/` directory before normal checker runs, and classifies the development result as source guidance gap, repair path gap, systemic gap, or ready for blind rounds.
+Latest controller tooling update: `scripts/summarize_dev_checkpoints.py` now summarizes bounded and finalized checkpoints separately, copies drafts into an external `controller-audit/` directory before normal checker runs, classifies the development result as source guidance gap, repair path gap, systemic gap, or ready for blind rounds, and reports `blind_round_readiness`. The script exits nonzero for any state that is not ready for blind rounds; the JSON/Markdown report is still the evidence to read.
 
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
@@ -84,7 +84,7 @@ The practical ownership rule is:
 - Controller: corpus/profile/blind/placebo validation and documentation.
 - Developer: when controller failures repeat, rewrite the earliest generation lens that caused the failure; do not merely add a new detection rule.
 
-For development testing, the controller must keep the bounded clean-eval draft and the finalized repair draft as separate artifacts. The finalized draft should start from a copy in a separate `finalized/` directory; continuing to edit the bounded directory after clean-eval stop contaminates the source-guidance measurement. The finalized draft can show that the repair path works, but it cannot be used to claim the first-pass natural guidance succeeded.
+For development testing, the controller must keep the bounded clean-eval draft and the finalized repair draft as separate artifacts. The finalized draft should start from a copy in a separate `finalized/` directory; continuing to edit the bounded directory after clean-eval stop contaminates the source-guidance measurement. The finalized draft can show that the repair path works, but it cannot be used to claim the first-pass natural guidance succeeded. If only finalized passes, update the source guidance layer next; if finalized also fails, inspect architecture and repair path before adding another checker rule.
 
 ## Technique Sources
 
