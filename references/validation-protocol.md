@@ -115,7 +115,7 @@ If a test draft only succeeds because the prompt itself supplied style rules, cl
 
 Generator-side preflight is allowed only through `clean_run_checker.py`. `CLEAN_RUN_PREFLIGHT` means the draft was not ready and no formal checker call was consumed. `CLEAN_RUN_PREFLIGHT_STOP` means the generator did not reach a checker-ready article within the bounded preflight attempts; record the run as invalid or failed and do not let the same generation agent continue repairing indefinitely. This preserves the distinction between clean-eval mode and ordinary user mode.
 
-Do not use the wrapper process exit code as the bounded checkpoint result. Stop boundaries such as `CLEAN_RUN_PREFLIGHT_STOP` and `CLEAN_RUN_STOP` may exit with status 0 so generation agents do not mistake a protocol stop for a command failure. The controller must read `.anlin-clean-run-state.json`, the trace audit, strict hard gate, and style-profile report.
+Do not use the wrapper process exit code as the bounded checkpoint result. Stop boundaries such as `CLEAN_RUN_PREFLIGHT_STOP` and `CLEAN_RUN_STOP` may exit with status 0 so generation agents do not mistake a protocol stop for a command failure. The controller must read `.anlin-clean-run-state.json`, the trace audit, strict hard gate, and style-profile report. When `.anlin-clean-run-snapshots/` exists, the controller must also inspect stage snapshots rather than relying only on the final bounded `draft.md`.
 
 After each automated generation, run the trace checker on the captured agent log:
 
@@ -127,13 +127,13 @@ It flags clean-eval contamination such as loading repair/critic references befor
 
 ## Developer Two-Checkpoint Evaluation
 
-Development tests must measure both source guidance and repair convergence. Do not collapse them into one score.
+Development tests must measure source guidance, limited checker repair, and final repair convergence. Do not collapse them into one score.
 
-The first checkpoint is deliberately bounded: it is the result after natural source guidance and limited checker-driven repair, frozen at the clean-eval boundary. The second checkpoint is deliberately open-ended: it starts from a copied bounded draft and tests whether the skill's ordinary repair path can converge. These answer different failure questions. A clean finalized draft cannot retroactively make the bounded draft a success, and a failed finalized draft means the final article itself is still unresolved.
+The first checkpoint is deliberately bounded: it is the result after natural source guidance and limited checker-driven repair, frozen at the clean-eval boundary. Within that checkpoint, distinguish the first-submission snapshot from the later checker-call boundary snapshots. The second checkpoint is deliberately open-ended: it starts from a copied bounded draft and tests whether the skill's ordinary repair path can converge. These answer different failure questions. A clean finalized draft cannot retroactively make the bounded draft a success, and a failed finalized draft means the final article itself is still unresolved.
 
 For each serious generation case, create two external artifacts outside `<skill-dir>`:
 
-1. **Bounded clean-eval checkpoint**: the fresh generator receives only the realistic prompt plus normal access to `anlin-writing`. It may use `clean_run_checker.py` according to clean-eval rules, with bounded preflight and at most two actual checker calls. Save the resulting `draft.md`, checker state, hard-check report, style-profile report when available, and controller notes under the case workspace. This checkpoint answers: did the skill naturally guide the agent close enough after limited checker-driven repair, before open-ended repair begins?
+1. **Bounded clean-eval checkpoint**: the fresh generator receives only the realistic prompt plus normal access to `anlin-writing`. It may use `clean_run_checker.py` according to clean-eval rules, with bounded preflight and at most two actual checker calls. Save the resulting `draft.md`, checker state, hard-check report, style-profile report when available, stage snapshots, and controller notes under the case workspace. This checkpoint has two internal reads: first, did the first submitted complete article show enough natural source guidance before checker feedback; second, did the two-call checker boundary improve it enough before open-ended repair begins?
 2. **Finalized repair checkpoint**: copy the bounded checkpoint draft into a separate `finalized/` case directory, then start from that copy and its visible checker results. Allow ordinary-user style repair loops, including multiple checker calls, rewrites from a new scene slate, and targeted profile/corpus review. Save the final article and full validation reports separately from the bounded checkpoint. This checkpoint answers: can the skill plus its checker/references converge to a usable final article in a realistic user workflow?
 
 Finalized checkpoint pass gate:
@@ -159,9 +159,9 @@ python <skill-dir>/scripts/summarize_dev_checkpoints.py <case-dir> `
   --output-md <case-dir>/controller-audit/summary.md
 ```
 
-The summary script copies drafts into `<case-dir>/controller-audit/` before running the normal hard checker, so the controller can audit a stopped bounded draft without mutating the bounded generation directory or bypassing the clean-eval stop rule. If the finalized checkpoint is not available yet, omit `--finalized-draft`; the result is a partial development summary and must not be treated as final convergence evidence.
+The summary script copies drafts and available clean-run stage snapshots into `<case-dir>/controller-audit/` before running the normal hard checker, so the controller can audit a stopped bounded draft without mutating the bounded generation directory or bypassing the clean-eval stop rule. If the finalized checkpoint is not available yet, omit `--finalized-draft`; the result is a partial development summary and must not be treated as final convergence evidence.
 
-The summary script exits nonzero unless both checkpoints are ready for blind rounds. This is intentional: a generated report is evidence, not a pass. Read `diagnosis`, `blind_round_readiness`, bounded status, finalized status, hard-error counts, style-profile status, and trace findings before deciding the next change.
+The summary script exits nonzero unless both checkpoints are ready for blind rounds. This is intentional: a generated report is evidence, not a pass. Read `diagnosis`, `blind_round_readiness`, bounded status, finalized status, stage audit statuses, hard-error counts, style-profile status, and trace findings before deciding the next change.
 
 Interpretation:
 

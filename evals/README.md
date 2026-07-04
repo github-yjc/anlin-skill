@@ -101,10 +101,10 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 
 每个正式开发用例必须保存两个结果，且都放在外部评测工作区，不写入 skill 目录：
 
-- `bounded clean-eval checkpoint`：全新 agent 只拿 `realistic_prompt` + anlin-writing skill，经过 bounded preflight 和最多两次实际 `clean_run_checker.py` 调用后冻结，保存限制内得到的 `draft.md`、检查状态和控制器报告。它衡量自然引导能力加有限检查器修复能力，不衡量最终开放修复成果。
+- `bounded clean-eval checkpoint`：全新 agent 只拿 `realistic_prompt` + anlin-writing skill，经过 bounded preflight 和最多两次实际 `clean_run_checker.py` 调用后冻结，保存限制内得到的 `draft.md`、检查状态、stage snapshots 和控制器报告。它衡量自然引导能力加有限检查器修复能力，不衡量最终开放修复成果。stage snapshots 中的 `first_submission` 用来验收自然首稿，`checker_call_1_submission` / `checker_call_2_submission` 用来验收两次 checker 边界上的稿件变化，`bounded_final` 是该关口冻结结果。
 - `finalized repair checkpoint`：把 bounded 草稿复制到单独的 `finalized/` 用例目录，再从这份复制稿和公开检查结果继续，允许普通用户模式下多轮修复、重写和复检，保存最终稿和检查报告。它衡量 checker / repair references 能否收敛。最终稿不能只凭普通检查器通过；必须运行 strict/draft-gate 硬门禁和 style-profile 审计，profile 为 `revise` 时仍算 finalized 失败。
 
-这两个 checkpoint 回答不同问题，不能合并成一个“通过率”：bounded 是自然引导验收，finalized 是最终修复验收。开发时应先看 bounded 是否在两次实际 checker 调用限制内接近合格，再看 finalized 在普通多轮修复后是否真的清掉 strict/profile 风险。只有 finalized `pass` 才能说最终稿进入盲评候选；只有 bounded `pass` 才能说自然引导本身已足够强。
+这两个 checkpoint 回答不同问题，不能合并成一个“通过率”：bounded 内部先看 `first_submission` 判断自然引导，再看两次 checker 边界判断有限修复；finalized 是最终修复验收。开发时应先看 bounded 是否在两次实际 checker 调用限制内接近合格，再看 finalized 在普通多轮修复后是否真的清掉 strict/profile 风险。只有 finalized `pass` 才能说最终稿进入盲评候选；只有 bounded `pass` 才能说自然引导本身已足够强。
 
 判读时不要只看“最后有没有修好”：如果 bounded 失败但 finalized 通过，下一轮优先改生成源头、clean-eval 修复说明和早期引导；如果 finalized 仍失败或只是 `review`，说明最终成果本身还有问题，需要同时检查 skill 架构、事实边界、修复路径、style-profile 和 checker 假设。
 
@@ -123,7 +123,7 @@ python <skill-dir>/scripts/summarize_dev_checkpoints.py <case-dir> `
   --output-md <case-dir>/controller-audit/summary.md
 ```
 
-`summary.json` 中的 `diagnosis` 是开发归因，不是风格证明：
+`summary.json` 中的 `bounded.stage_audits` 是 bounded 内部阶段证据，`diagnosis` 是开发归因，不是风格证明：
 
 - `source_guidance_gap`：两次检查器边界稿没过，但最终稿过了；优先改源头引导。
 - `repair_path_gap` / `repair_or_validator_gap`：自然引导可用但修复路径或验证器出了问题。

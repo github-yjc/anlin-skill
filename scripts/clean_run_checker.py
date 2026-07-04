@@ -26,6 +26,7 @@ CHECKER = ROOT / "scripts" / "check_anlin_violations.py"
 SPLIT_LONG_LINES = ROOT / "scripts" / "split_long_lines.py"
 SOFTEN_LINE_ENDINGS = ROOT / "scripts" / "soften_line_endings.py"
 MERGE_SHORT_LINES = ROOT / "scripts" / "merge_short_lines.py"
+SNAPSHOT_DIR_NAME = ".anlin-clean-run-snapshots"
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_anlin_violations import (  # noqa: E402
     BACKGROUND_DISPLAY_GROUPS,
@@ -74,6 +75,22 @@ def load_stop_lock(draft: Path) -> dict[str, Any]:
     if state.get("draft") == str(draft.resolve()) and state.get("stopped"):
         return state
     return {}
+
+
+def snapshot_path(draft: Path, key: str) -> Path:
+    safe_key = re.sub(r"[^A-Za-z0-9_.-]+", "-", key).strip("-") or "snapshot"
+    return draft.parent / SNAPSHOT_DIR_NAME / f"{safe_key}.md"
+
+
+def record_snapshot(draft: Path, state: dict[str, Any], key: str, *, overwrite: bool = False) -> None:
+    snapshots = state.setdefault("snapshots", {})
+    path = snapshot_path(draft, key)
+    if not overwrite and key in snapshots and Path(str(snapshots[key])).is_file():
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    shutil_text = draft.read_text(encoding="utf-8")
+    path.write_text(shutil_text, encoding="utf-8", newline="\n")
+    snapshots[key] = str(path.resolve())
 
 
 def normalize_before_final_check(draft: Path) -> None:
@@ -360,11 +377,14 @@ def main() -> int:
         state = locked_state
     if state.get("draft") != draft_key:
         state = {"draft": draft_key, "calls": 0, "preflights": 0}
+    if not state.get("stopped"):
+        record_snapshot(draft, state, "first_submission")
     calls = int(state.get("calls", 0))
     preflights = int(state.get("preflights", 0))
     if state.get("stopped") or (calls == 0 and preflights >= 3):
         state["stopped"] = True
         state.setdefault("stop_reason", "preflight")
+        record_snapshot(draft, state, "bounded_final", overwrite=True)
         save_stop_state(state_path, draft, state)
         print(
             "CLEAN_RUN_STOP: FINAL BOUNDARY already reached for this draft. "
@@ -375,6 +395,7 @@ def main() -> int:
     if calls >= 2:
         state["stopped"] = True
         state["stop_reason"] = "checker-limit"
+        record_snapshot(draft, state, "bounded_final", overwrite=True)
         save_stop_state(state_path, draft, state)
         print(
             "CLEAN_RUN_STOP: FINAL BOUNDARY, checker call limit already reached for this draft. "
@@ -384,11 +405,13 @@ def main() -> int:
     if args.draft_gate and calls == 0:
         preflight_attempt = int(state.get("preflights", 0)) + 1
         max_preflight_attempts = 3
+        record_snapshot(draft, state, f"preflight_{preflight_attempt}", overwrite=True)
         if preflight_before_check(draft, calls + 1, attempt=preflight_attempt, max_attempts=max_preflight_attempts):
             state["preflights"] = min(preflight_attempt, max_preflight_attempts)
             if preflight_attempt >= max_preflight_attempts:
                 state["stopped"] = True
                 state["stop_reason"] = "preflight"
+                record_snapshot(draft, state, "bounded_final", overwrite=True)
             if state.get("stopped"):
                 save_stop_state(state_path, draft, state)
             else:
@@ -398,9 +421,10 @@ def main() -> int:
     call_number = calls + 1
     state["calls"] = call_number
     state["preflights"] = int(state.get("preflights", 0))
-    save_state(state_path, state)
     if args.draft_gate and call_number == 2:
         normalize_before_final_check(draft)
+    record_snapshot(draft, state, f"checker_call_{call_number}_submission", overwrite=True)
+    save_state(state_path, state)
 
     command = [sys.executable, str(CHECKER), str(draft)]
     if args.strict:
@@ -420,6 +444,7 @@ def main() -> int:
         state["preflights"] = int(state.get("preflights", 0))
         state["stopped"] = True
         state["stop_reason"] = "checker-limit"
+        record_snapshot(draft, state, "bounded_final", overwrite=True)
         save_stop_state(state_path, draft, state)
         print(
             "CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2. "

@@ -53,6 +53,21 @@ class GateSummary:
 
 
 @dataclass(frozen=True)
+class StageAudit:
+    name: str
+    purpose: str
+    draft: str
+    audit_draft: str
+    status: str
+    hard_errors: int
+    hard_warnings: int
+    style_status: str | None
+    style_red_families: list[str]
+    style_yellow_families: list[str]
+    notes: list[str]
+
+
+@dataclass(frozen=True)
 class CheckpointReport:
     name: str
     draft: str
@@ -63,6 +78,7 @@ class CheckpointReport:
     corpus_report: dict[str, Any] | None
     trace_findings: list[dict[str, Any]]
     clean_state: dict[str, Any]
+    stage_audits: list[StageAudit]
 
 
 @dataclass(frozen=True)
@@ -271,6 +287,93 @@ def summarize_gate(
     )
 
 
+STAGE_PURPOSES = {
+    "first_submission": "natural first draft before checker feedback; this is the source-guidance signal",
+    "checker_call_1_submission": "draft admitted to the first clean-eval checker call",
+    "checker_call_2_submission": "draft after the limited checker-driven repair, submitted to the second call",
+    "bounded_final": "frozen bounded result after preflight stop or two-call checker boundary",
+}
+
+
+def snapshot_candidates(clean_state: dict[str, Any]) -> list[tuple[str, Path]]:
+    snapshots = clean_state.get("snapshots") if isinstance(clean_state, dict) else None
+    if not isinstance(snapshots, dict):
+        return []
+    ordered: list[tuple[str, Path]] = []
+    for key in (
+        "first_submission",
+        "checker_call_1_submission",
+        "checker_call_2_submission",
+        "bounded_final",
+    ):
+        value = snapshots.get(key)
+        if not value:
+            continue
+        path = Path(str(value))
+        if path.is_file():
+            ordered.append((key, path))
+    return ordered
+
+
+def stage_status_for(hard_errors: int, style_report: dict[str, Any] | None) -> tuple[str, str | None, list[str], list[str], list[str]]:
+    summary = style_report.get("summary") if style_report else {}
+    profile_status = summary.get("status") if isinstance(summary, dict) else None
+    red_families = summary.get("red_families", []) if isinstance(summary, dict) else []
+    yellow_families = summary.get("yellow_families", []) if isinstance(summary, dict) else []
+    notes: list[str] = []
+    if hard_errors:
+        status = "fail"
+    elif profile_status == "revise":
+        status = "fail"
+    elif profile_status == "review":
+        status = "review"
+    elif profile_status is None:
+        status = "review"
+        notes.append("style-profile audit unavailable")
+    else:
+        status = "pass"
+    return status, profile_status, list(red_families), list(yellow_families), notes
+
+
+def build_stage_audits(
+    *,
+    clean_state: dict[str, Any],
+    audit_root: Path,
+    corpus_dir: Path | None,
+    profile: Path | None,
+    phase: str | None,
+    genre: str | None,
+) -> list[StageAudit]:
+    audits: list[StageAudit] = []
+    seen: set[Path] = set()
+    for key, path in snapshot_candidates(clean_state):
+        resolved = path.resolve()
+        if resolved in seen:
+            continue
+        seen.add(resolved)
+        audit_draft = copy_for_controller(resolved, audit_root, f"stage-{key}")
+        hard_findings, _hard_command = run_hard_gate(audit_draft, corpus_dir)
+        hard_errors, hard_warnings = summarize_hard_findings(hard_findings)
+        style_report_data, _style_command = run_style_gate(audit_draft, profile, phase, genre)
+        status, profile_status, red_families, yellow_families, notes = stage_status_for(hard_errors, style_report_data)
+        audits.append(
+            StageAudit(
+                name=key,
+                purpose=STAGE_PURPOSES.get(key, "bounded clean-eval stage snapshot"),
+                draft=str(resolved),
+                audit_draft=str(audit_draft),
+                status=status,
+                hard_errors=hard_errors,
+                hard_warnings=hard_warnings,
+                style_status=profile_status,
+                style_red_families=red_families,
+                style_yellow_families=yellow_families,
+                notes=notes,
+            )
+        )
+    return audits
+
+
 def classify_development_result(bounded_status: str, finalized_status: str | None) -> tuple[str, str]:
     bounded_good = bounded_status == "pass"
     bounded_usable = bounded_status in {"pass", "review"}
@@ -338,9 +441,12 @@ def bounded_answer(checkpoint: CheckpointReport) -> str:
     gate = checkpoint.gate
     calls = "unknown" if gate.clean_calls is None else str(gate.clean_calls)
     preflights = "unknown" if gate.clean_preflights is None else str(gate.clean_preflights)
+    first_audit = next((item for item in checkpoint.stage_audits if item.name == "first_submission"), None)
+    first_status = first_audit.status if first_audit else "not recorded"
     return (
-        f"Natural-guidance checkpoint is {gate.status} after {calls}/2 actual clean-eval checker calls "
-        f"and {preflights} preflight attempt(s). This checkpoint is frozen at the clean-eval stop boundary."
+        f"Natural-guidance checkpoint: first-submission snapshot is {first_status}; bounded clean-eval checkpoint is {gate.status} "
+        f"after {calls}/2 actual clean-eval checker calls and {preflights} preflight attempt(s). "
+        "This separates source guidance from the frozen two-call checker boundary."
     )
 
 
@@ -403,6 +509,18 @@ def build_checkpoint(
     corpus_report_data, _corpus_command = run_corpus_compare(audit_draft, corpus_dir)
     trace_findings, _trace_command = run_trace_gate(trace_log if bounded else None)
     clean_state = load_clean_state(draft) if bounded else {}
+    stage_audits = (
+        build_stage_audits(
+            clean_state=clean_state,
+            audit_root=audit_root,
+            corpus_dir=corpus_dir,
+            profile=profile,
+            phase=phase,
+            genre=genre,
+        )
+        if bounded
+        else []
+    )
     gate = summarize_gate(
         hard_findings=hard_findings,
         style_report=style_report_data,
@@ -420,6 +538,7 @@ def build_checkpoint(
         corpus_report=corpus_report_data,
         trace_findings=trace_findings,
         clean_state=clean_state,
+        stage_audits=stage_audits,
     )
 
 
@@ -453,23 +572,31 @@ def format_gate(checkpoint: CheckpointReport) -> str:
     notes = "; ".join(gate.notes or []) or "none"
     red = ", ".join(gate.style_red_families or []) or "none"
     yellow = ", ".join(gate.style_yellow_families or []) or "none"
-    return "\n".join(
-        [
-            f"- draft: `{checkpoint.draft}`",
-            f"- audit_draft: `{checkpoint.audit_draft}`",
-            f"- status: `{gate.status}`",
-            f"- hard_errors: {gate.hard_errors}",
-            f"- hard_warnings: {gate.hard_warnings}",
-            f"- style_status: `{gate.style_status}`",
-            f"- style_red_families: {red}",
-            f"- style_yellow_families: {yellow}",
-            f"- trace_errors: {gate.trace_errors}",
-            f"- clean_calls: {gate.clean_calls}",
-            f"- clean_preflights: {gate.clean_preflights}",
-            f"- clean_stop_reason: `{gate.clean_stop_reason}`",
-            f"- notes: {notes}",
-        ]
-    )
+    lines = [
+        f"- draft: `{checkpoint.draft}`",
+        f"- audit_draft: `{checkpoint.audit_draft}`",
+        f"- status: `{gate.status}`",
+        f"- hard_errors: {gate.hard_errors}",
+        f"- hard_warnings: {gate.hard_warnings}",
+        f"- style_status: `{gate.style_status}`",
+        f"- style_red_families: {red}",
+        f"- style_yellow_families: {yellow}",
+        f"- trace_errors: {gate.trace_errors}",
+        f"- clean_calls: {gate.clean_calls}",
+        f"- clean_preflights: {gate.clean_preflights}",
+        f"- clean_stop_reason: `{gate.clean_stop_reason}`",
+        f"- notes: {notes}",
+    ]
+    if checkpoint.stage_audits:
+        lines.append("- stage_audits:")
+        for audit in checkpoint.stage_audits:
+            stage_red = ", ".join(audit.style_red_families) or "none"
+            stage_yellow = ", ".join(audit.style_yellow_families) or "none"
+            lines.append(
+                f"  - `{audit.name}`: status={audit.status}, hard_errors={audit.hard_errors}, "
+                f"style_status={audit.style_status}, red={stage_red}, yellow={stage_yellow}"
+            )
+    return "\n".join(lines)
 
 
 def main() -> int:

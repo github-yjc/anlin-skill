@@ -128,7 +128,7 @@ The preferred developer move after a repeated blind-review failure is:
 
 During development evaluation, Layer 4 should record two checkpoints rather than one blended result:
 
-- bounded clean-eval checkpoint: the draft after the fresh generator's two-call clean-eval limit, measuring natural source guidance.
+- bounded clean-eval checkpoint: the draft after the fresh generator's two-call clean-eval limit, measuring natural source guidance and limited checker repair. When `.anlin-clean-run-snapshots/` exists, read `first_submission` as the natural-guidance evidence and checker-call snapshots as the limited-repair evidence.
 - finalized repair checkpoint: a copied draft in a separate `finalized/` directory after ordinary multi-round repair, measuring whether the checker and repair references can converge without mutating the bounded result. It must pass strict hard-gate validation and style-profile audit when available; normal checker success alone is not a finalized pass.
 
 If only the finalized checkpoint passes, update Layer 0 or Layer 1 before celebrating the repair. If finalized is only `review`, it is still unresolved and must not be counted as "final no problem." If neither checkpoint cleanly passes, broaden the diagnosis across layers instead of only tightening the checker.

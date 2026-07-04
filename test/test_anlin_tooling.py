@@ -391,6 +391,48 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(third.returncode, 0)
             self.assertIn("FINAL BOUNDARY already reached", third.stdout)
 
+    def test_clean_run_checker_records_stage_snapshots(self) -> None:
+        ready_lines = [
+            "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",
+            "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
+            "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
+            "不过镜子里那张脸像没睡醒，还以为自己要去面试。",
+        ] * 12
+        repaired_lines = [
+            "其实第二次我把厕所灯看成面试通知，站在门口有点丢人，",
+            "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
+            "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
+            "不过镜子里那张脸像没睡醒，还以为自己要去面试。",
+        ] * 12
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 日寄", "", *ready_lines]), encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            first = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertIn("checker call 1/2", first.stdout)
+            draft.write_text("\n".join(["# 日寄", "", *repaired_lines]), encoding="utf-8")
+            second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertIn("FINAL BOUNDARY", second.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            snapshots = state["snapshots"]
+            for key in [
+                "first_submission",
+                "checker_call_1_submission",
+                "checker_call_2_submission",
+                "bounded_final",
+            ]:
+                self.assertIn(key, snapshots)
+                self.assertTrue(Path(snapshots[key]).is_file())
+            self.assertIn("厕所灯坏了以后", Path(snapshots["first_submission"]).read_text(encoding="utf-8"))
+            self.assertIn("其实第二次", Path(snapshots["checker_call_2_submission"]).read_text(encoding="utf-8"))
+            self.assertIn("其实第二次", Path(snapshots["bounded_final"]).read_text(encoding="utf-8"))
+
     def test_clean_run_checker_preflight_does_not_consume_checker_call(self) -> None:
         short_body = "\n".join(["# 日寄", "", "杯子脏了。"])
         ready_line = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"
@@ -796,6 +838,64 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("bounded result alone is incomplete evidence", payload["repair_implication"])
             self.assertTrue((case_dir / "controller-audit" / "bounded-draft.md").is_file())
             self.assertTrue((case_dir / "controller-audit" / "summary.json").is_file())
+
+    def test_dev_checkpoint_summary_reports_clean_run_stage_audits(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            snapshot_dir = case_dir / ".anlin-clean-run-snapshots"
+            snapshot_dir.mkdir(parents=True)
+            first = snapshot_dir / "first_submission.md"
+            second = snapshot_dir / "checker_call_2_submission.md"
+            final = snapshot_dir / "bounded_final.md"
+            first.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 90)]), encoding="utf-8")
+            second.write_text("\n".join(["# 日寄", "", *(["其实我觉得杯子脏了，于是洗手差点吐出来，丢人。"] * 50)]), encoding="utf-8")
+            final.write_text(second.read_text(encoding="utf-8"), encoding="utf-8")
+            draft = case_dir / "draft.md"
+            draft.write_text(final.read_text(encoding="utf-8"), encoding="utf-8")
+            (case_dir / ".anlin-clean-run-state.json").write_text(
+                json.dumps(
+                    {
+                        "draft": str(draft.resolve()),
+                        "calls": 2,
+                        "preflights": 0,
+                        "stopped": True,
+                        "stop_reason": "checker-limit",
+                        "snapshots": {
+                            "first_submission": str(first.resolve()),
+                            "checker_call_2_submission": str(second.resolve()),
+                            "bounded_final": str(final.resolve()),
+                        },
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(draft),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                    "--output-json",
+                    str(case_dir / "controller-audit" / "summary.json"),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            self.assertIn("first-submission snapshot", payload["bounded_checkpoint_answer"])
+            names = [item["name"] for item in payload["bounded"]["stage_audits"]]
+            self.assertIn("first_submission", names)
+            self.assertIn("checker_call_2_submission", names)
+            self.assertIn("bounded_final", names)
+            self.assertTrue((case_dir / "controller-audit" / "stage-first_submission-draft.md").is_file())
 
     def test_dev_checkpoint_summary_fails_when_finalized_still_fails(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -2176,6 +2276,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Bounded clean-eval checkpoint", validation)
         self.assertIn("Finalized repair checkpoint", validation)
         self.assertIn("natural source guidance and limited checker-driven repair", validation)
+        self.assertIn(".anlin-clean-run-snapshots", skill)
+        self.assertIn("first-submission snapshot", validation)
+        self.assertIn("stage snapshots", readme)
+        self.assertIn("first_submission", eval_readme)
         self.assertIn("A clean finalized draft cannot retroactively make the bounded draft a success", validation)
         self.assertIn("Normal `check_anlin_violations.py draft.md` success is not sufficient", validation)
         self.assertIn("A `revise` status means finalized repair failed", validation)
