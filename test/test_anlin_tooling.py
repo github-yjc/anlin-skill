@@ -925,6 +925,30 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: AI二元解释句式" for item in findings))
 
+    def test_checker_draft_gate_rejects_cross_line_binary_reframe(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "其实不是没投，",
+                "是投完之后连已读都等不来，",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: AI二元解释句式" for item in findings))
+
     def test_checker_draft_gate_rejects_unsupported_background_specifics(self) -> None:
         body = "\n".join(
             [

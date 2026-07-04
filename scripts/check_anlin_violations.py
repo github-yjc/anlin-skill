@@ -855,6 +855,14 @@ def check_not_x_is_y(findings: list[Finding], lines: list[str]) -> None:
         for line_number, line in enumerate(lines, start=1)
         if any(pattern.search(line) for pattern in patterns)
     ]
+    for index in range(len(lines) - 1):
+        left = lines[index].strip()
+        right = lines[index + 1].strip()
+        if (
+            re.search(r"不是[^。！？\n]{1,28}[，,]?$", left)
+            and re.match(r"^(?:而是|是|就是|只是)[^。！？\n]{1,40}", right)
+        ):
+            matches.append((index + 1, f"{left} / {right}"))
     for line_number, line in matches:
         findings.append(
             Finding(
