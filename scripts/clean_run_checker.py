@@ -26,7 +26,10 @@ SOFTEN_LINE_ENDINGS = ROOT / "scripts" / "soften_line_endings.py"
 MERGE_SHORT_LINES = ROOT / "scripts" / "merge_short_lines.py"
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_anlin_violations import (  # noqa: E402
+    BACKGROUND_DISPLAY_GROUPS,
+    COMMENT_CHAIN_FORMULA_MARKERS,
     ENGINE_SIGNAL_TERMS,
+    PROCESS_LEAK_TERMS,
     HIGH_FREQUENCY_TERMS,
     ROUGH_SELF_DAMAGE_PATTERNS,
     ROUGH_SELF_DAMAGE_TERMS,
@@ -89,9 +92,52 @@ def normalize_before_final_check(draft: Path) -> None:
     )
 
 
+def has_binary_reframe(lines: list[str]) -> bool:
+    patterns = [
+        re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:而|只|也|这|那)?(?:才)?是"),
+        re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:就是|只是)"),
+        re.compile(r"不是[^。！？\n]{1,28}[。！？]\s*(?:就是|只是)"),
+        re.compile(r"其实不是[,，]?(?:好像|就是|只是|而是|是)"),
+        re.compile(r"像[^。！？\n]{1,32}其实不是"),
+    ]
+    for line in lines:
+        if any(pattern.search(line) for pattern in patterns):
+            return True
+    for index in range(len(lines) - 1):
+        left = lines[index].strip()
+        right = lines[index + 1].strip()
+        if (
+            re.search(r"不是[^。！？\n]{1,28}[，,]?$", left)
+            and re.match(r"^(?:而是|是|就是|只是|这是|那是|才是)[^。！？\n]{1,40}", right)
+        ):
+            return True
+    return False
+
+
+def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]:
+    messages: list[str] = []
+    leaked_terms = [term for term in PROCESS_LEAK_TERMS if term in article_text]
+    if leaked_terms:
+        messages.append(f"process_leak_terms={leaked_terms[:3]}")
+    comment_markers = [term for term in COMMENT_CHAIN_FORMULA_MARKERS if term in article_text]
+    if comment_markers:
+        messages.append(f"comment_chain_markers={comment_markers[:4]}")
+    if has_binary_reframe(lines):
+        messages.append("binary_reframe=present")
+    background_hits = {
+        group: [term for term in terms if term in article_text][:3]
+        for group, terms in BACKGROUND_DISPLAY_GROUPS.items()
+        if any(term in article_text for term in terms)
+    }
+    if len(background_hits) >= 4:
+        messages.append(f"background_display_groups={json.dumps(background_hits, ensure_ascii=False)}")
+    return messages
+
+
 def preflight_before_check(draft: Path, call_number: int) -> bool:
     text = draft.read_text(encoding="utf-8")
     _, content_lines = split_title_and_content_lines(text.splitlines())
+    article_lines = [line.strip() for line in text.splitlines() if line.strip() and not line.strip().startswith("<!--")]
     visible_lines = [line for line in content_lines if line.strip() and not line.strip().startswith("<!--")]
     body = "\n".join(visible_lines)
     body_chars = chinese_len(body)
@@ -110,6 +156,7 @@ def preflight_before_check(draft: Path, call_number: int) -> bool:
         messages.append(f"engine_hits={engine_hits} < 3")
     if not rough_terms and not rough_patterns:
         messages.append("rough_self_damage=[] (organic examples if the scene supports them: 丢人/尿/塞牙/狗屎/油蹭/痔疮/傻逼; do not mine checker source)")
+    messages.extend(surface_preflight_messages(article_lines, "\n".join(article_lines)))
     if not messages:
         return False
     print(

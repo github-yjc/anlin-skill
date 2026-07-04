@@ -421,6 +421,38 @@ class AnlinToolingTests(unittest.TestCase):
             first = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", first.stdout)
 
+    def test_clean_run_checker_surface_preflight_blocks_high_risk_forms_without_consuming_call(self) -> None:
+        filler = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"
+        cases = [
+            ("binary_reframe=present", ["不是包装袋漏，是电动车前面那个篮子。"]),
+            ("comment_chain_markers=", ["评论区有一行字写着展示给谁看。"]),
+            ("process_leak_terms=", ["final article"]),
+            (
+                "background_display_groups=",
+                [
+                    "211毕业之后我在云南送外卖，狗哥发消息问我王者打不打。",
+                    "我点开知乎，又想起自己被裁之后痛风，脚踝还疼。",
+                ],
+            ),
+        ]
+        for expected_message, risky_lines in cases:
+            with self.subTest(expected_message=expected_message):
+                with tempfile.TemporaryDirectory() as temp:
+                    draft = Path(temp) / "draft.md"
+                    draft.write_text("\n".join(["# 日寄", "", *risky_lines, *([filler] * 30)]), encoding="utf-8")
+                    command = [
+                        sys.executable,
+                        str(CLEAN_RUN_CHECKER),
+                        str(draft),
+                        "--strict",
+                        "--draft-gate",
+                    ]
+                    preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+                    self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
+                    self.assertIn("CLEAN_RUN_PREFLIGHT", preflight.stdout)
+                    self.assertIn(expected_message, preflight.stdout)
+                    self.assertFalse((draft.parent / ".anlin-clean-run-state.json").exists())
+
     def test_clean_run_checker_merges_uniform_medium_grid_before_second_call(self) -> None:
         fragments = [
             "其实厕所灯坏了我站着很丢人",
