@@ -42,6 +42,8 @@ Follow-up run `iteration-20260704-15/eval-02-food-delivery-heatstroke` did not p
 
 Follow-up retest `iteration-20260704-16/eval-02-food-delivery-heatstroke` used the correct relative path and had a clean trace, but bounded clean-eval still stopped at preflight (`calls=0`, `preflights=3`). The draft stayed compressed at 30 body lines, had zero early line-final comma continuations, retained a binary reframe, and lacked a rough losing-face body/social consequence. Finalized repair cleared the strict hard gate but timed out while mechanically chasing punctuation; style-profile remained `revise` with red `line_rhythm`, `punctuation`, and `ngram_texture`. Diagnosis is `systemic_gap`. Root fixes from this case: preflight now names the exact rhythm scripts to run, clean generation explains breathing clusters instead of sentence rows, and finalized repair now requires a rhythm-reset rewrite rather than repeated percentage tweaking.
 
+Follow-up run `iteration-20260704-17/eval-02-food-delivery-heatstroke` triggered the skill but did not enter clean-eval mode: it wrote before checking the marker and used the normal checker repeatedly, then ran `split_long_lines.py` directly. The run is invalid for bounded measurement. Root fix: the skill description now exposes the `.anlin-clean-eval-mode` marker and `clean_run_checker.py` route so the model sees the clean-eval hard entry even if it under-loads the full body.
+
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
 ## Install Path

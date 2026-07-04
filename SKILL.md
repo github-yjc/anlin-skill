@@ -1,6 +1,6 @@
 ---
 name: "anlin-writing"
-description: "Generate, review, or evaluate Anlin/日寄-style anonymous blind-evaluation prose against the Anlin corpus. Use ONLY when the user explicitly mentions anlin-writing, anlinwriting, Anlin, 日寄, Anlin-style, 像Anlin那样写, 模拟日寄, 盲评, or asks for Anlin corpus evaluation."
+description: "Generate, review, or evaluate Anlin/日寄-style anonymous blind-evaluation prose against the Anlin corpus. Use ONLY when the user explicitly mentions anlin-writing, anlinwriting, Anlin, 日寄, Anlin-style, 像Anlin那样写, 模拟日寄, 盲评, or asks for Anlin corpus evaluation. In any workspace containing `.anlin-clean-eval-mode`, check that marker before drafting and use `clean_run_checker.py`, not the normal checker."
 ---
 
 # anlin-writing

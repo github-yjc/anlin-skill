@@ -2131,6 +2131,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", clean)
         self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", runtime)
         self.assertIn("cannot be switched back to ordinary user mode", skill)
+        self.assertIn("In any workspace containing `.anlin-clean-eval-mode`", skill)
+        self.assertIn("use `clean_run_checker.py`, not the normal checker", skill)
         self.assertIn("At task start, check whether the current task workspace contains `.anlin-clean-eval-mode`", skill)
         self.assertIn("the first tool action should be a lightweight current-directory marker check", skill)
         self.assertIn("A first `Write draft.md` before this marker check is a contaminated clean-eval run", skill)
