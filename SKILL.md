@@ -29,22 +29,25 @@ When the user asks for a complete Anlin/日寄 article, keep this minimum protoc
 
 ## Load Order
 
-Always start with these four files:
+Skill references are bundled local files, not MCP resources. Do not call `read_mcp_resource` for `anlin-writing`; read the local files directly from this skill directory when needed. Do not announce reference loading to the user.
 
-1. `references/runtime-brief.md`
-2. `references/feature-budget.md`
-3. `references/anti-ai-slop.md`
-4. `references/generation-modes.md`
+For ordinary or formal article generation, start with one file only:
+
+1. `references/clean-generation-brief.md`
 
 For ordinary article generation, use the minimal generation pack:
 
-1. `references/runtime-brief.md`
-2. `references/feature-budget.md`
-3. `references/anti-ai-slop.md`
-4. `references/generation-modes.md`
-5. `references/era-state.md` only if date/phase matters
-6. `references/structure-patterns.md`
-7. `references/vocabulary-rules.md` only for review or uncertain wording
+1. `references/clean-generation-brief.md`
+2. `references/era-state.md` only if date/phase matters
+3. `references/generation-modes.md` only if the scene slate is stuck or the first checker fails
+4. `references/vocabulary-rules.md` only for review or uncertain wording
+
+Use detailed references after the first draft/checker pass fails, for explicit analysis, or for validation:
+
+- `references/runtime-brief.md`
+- `references/feature-budget.md`
+- `references/anti-ai-slop.md`
+- `references/structure-patterns.md`
 
 `references/anlin-background.md` and `references/background-fact-classes.json` are contradiction boundaries, not feature checklists. Do not load them as source material before scene selection. Load them only after the candidate scene slate exists, or when the user supplied a concrete background fact that must be verified. Use them to verify, classify, lower, or delete facts about place/game/platform/body/phase; never use them to find extra nouns to add. Do not add 王者、云南、狗哥、痛风、外卖、知乎, or AI/GPT merely because they are listed there. Game can appear when the user's material, current action, memory trigger, or scene consequence naturally calls for it; it must not become mandatory or decorative.
 

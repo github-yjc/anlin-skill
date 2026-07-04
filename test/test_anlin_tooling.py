@@ -1454,6 +1454,7 @@ class AnlinToolingTests(unittest.TestCase):
     def test_skill_runtime_docs_do_not_depend_on_external_stop_slop_skill(self) -> None:
         files = [
             ROOT / "SKILL.md",
+            ROOT / "references" / "clean-generation-brief.md",
             ROOT / "references" / "anti-ai-slop.md",
             ROOT / "references" / "feature-budget.md",
             ROOT / "references" / "generation-modes.md",
@@ -1474,6 +1475,8 @@ class AnlinToolingTests(unittest.TestCase):
         minimal_pack = skill.split("For ordinary article generation, use the minimal generation pack:", 1)[1].split(
             "`references/anlin-background.md` and", 1
         )[0]
+        self.assertIn("references/clean-generation-brief.md", always_start)
+        self.assertIn("Do not call `read_mcp_resource`", always_start)
         self.assertNotIn("references/anlin-background.md", always_start)
         self.assertNotIn("references/anlin-background.md", minimal_pack)
         self.assertNotIn("references/background-fact-classes.json", always_start)
@@ -1483,6 +1486,17 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("background-fact-classes.json", skill)
         self.assertIn("If the first actual checker reports `背景展示堆砌`", skill)
         self.assertIn("remove one or two whole families before the second checker", skill)
+
+    def test_clean_generation_brief_carries_core_runtime_gates(self) -> None:
+        brief = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        self.assertIn("Skill references are local bundled files", brief)
+        self.assertIn("Do not call `read_mcp_resource`", brief)
+        self.assertIn("about 950-1150 Chinese characters", brief)
+        self.assertIn("45-70 non-empty lines", brief)
+        self.assertIn("not 100+ tiny rows", brief)
+        self.assertIn("negative list, not subject material", brief)
+        self.assertIn("Game is allowed, not required", brief)
+        self.assertIn("clean_run_checker.py draft.md --strict --draft-gate", brief)
 
     def test_background_fact_classes_are_boundaries_not_requirements(self) -> None:
         table = json.loads(BACKGROUND_FACT_CLASSES.read_text(encoding="utf-8"))
