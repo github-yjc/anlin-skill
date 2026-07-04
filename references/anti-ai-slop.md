@@ -8,6 +8,8 @@ This file is the complete runtime anti-AI layer for this skill. Do not depend on
 
 The strongest human-reader tells are not rare words. They are visible decisions: a sentence announces its own meaning, a paragraph obeys the prompt too completely, a title and ending form a clean contract, or the middle looks inserted to satisfy a rubric. Treat those as drafting constraints, not only as post-draft lint.
 
+Important: this file is a negative list, not a topic bank. In ordinary article generation, do not write scenes about AI tools, AI article detectors, generated text, model answers, GPT chat windows, or someone teaching how to identify AI writing unless the user supplied that as real material. If the subject entered the draft because this file mentioned it, remove the subject entirely. Replacing "AI" with a synonym does not fix the contamination; choose a day-produced object, body problem, payment, route, food, social misfire, or screen surface instead.
+
 ## High-Risk AI Surfaces
 
 ### 1. Binary Explanation

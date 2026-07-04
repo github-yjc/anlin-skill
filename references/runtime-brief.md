@@ -8,6 +8,10 @@ The target is anonymous blind-evaluation performance: a generated text should no
 
 The prose body itself should read as ordinary prose. Do not insert methodology labels such as AI, generated, imitation, validation, corpus, sample, or blind test.
 
+## Reference Contamination Guard
+
+This skill contains anti-AI-writing vocabulary because it is teaching what to avoid. Those words are negative constraints, not scene material. Unless the user explicitly asks for AI/GPT/model/text-detection content, do not create scenes about AI写周报, AI文章识别, AI对话窗口, 模型生成, or similar topics. If those subjects appear only because you read this skill, delete the whole local move and replace it with body, money, route, food, family, social, or ordinary screen friction that belongs to the day.
+
 ## Starting Point
 
 Do not start from a checklist. Start from friction.

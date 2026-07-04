@@ -179,6 +179,23 @@ THERAPEUTIC_HUMANIZER_TERMS = [
     "善待自己",
     "自我接纳",
 ]
+META_AI_TOPIC_TERMS = [
+    "AI写",
+    "AI 写",
+    "AI写的文章",
+    "AI文章",
+    "AI对话",
+    "识别AI",
+    "识别 AI",
+    "检测AI",
+    "检测 AI",
+    "生成文本",
+    "机器生成",
+    "模型写",
+    "模型生成",
+    "大模型",
+    "人工智能写",
+]
 ORDERED_EXPLAINER_TERMS = ["首先", "其次", "最后", "综上"]
 ABSTRACT_EMOTION_TERMS = [
     "放松",
@@ -612,6 +629,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "游戏复盘细节",
     "Offer具体化编造",
     "AI治疗式人类化",
+    "反AI参考污染",
     "背景展示堆砌",
     "具体纹理堆叠过密",
     "逗号密度过高",
@@ -962,6 +980,29 @@ def check_therapeutic_humanizer_surface(findings: list[Finding], lines: list[str
                     )
                 )
                 break
+
+
+def meta_ai_topic_hits(text: str) -> list[str]:
+    hits = [term for term in META_AI_TOPIC_TERMS if term in text]
+    ai_count = len(re.findall(r"\b(?:AI|ai|GPT|gpt)\b|人工智能|大模型", text))
+    if ai_count >= 3:
+        hits.append(f"ai_topic_count={ai_count}")
+    return hits
+
+
+def check_meta_ai_topic_contamination(findings: list[Finding], text: str) -> None:
+    hits = meta_ai_topic_hits(text)
+    if not hits:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "反AI参考污染",
+            0,
+            ", ".join(hits[:6]),
+            "生成稿高风险：反AI规则里的AI/识别/生成词被吸收到正文主题。除非用户明确要求或场景有原文锚点，删除AI/GPT/识别文章/模型写作话题，换成本日自然产生的物、身体、钱、路线、社交或屏幕表面。",
+        )
+    )
 
 
 def check_literary_ai_surface(findings: list[Finding], lines: list[str]) -> None:
@@ -1962,6 +2003,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_ai_slop_terms(findings, lines)
     check_pseudo_humanizer_surface(findings, lines, text)
     check_therapeutic_humanizer_surface(findings, lines)
+    check_meta_ai_topic_contamination(findings, text)
     check_literary_ai_surface(findings, lines)
     check_ai_variable_placeholders(findings, lines)
     check_background_fact_specificity(findings, lines)

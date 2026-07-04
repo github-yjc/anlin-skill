@@ -37,6 +37,7 @@ These apply to all normal generation:
 27. No ratio-matching as composition: corpus priors and predictive intervals are post-draft audit tools, not quotas. Do not add a connector, game cue, body symptom, dialogue line, comma, or short line merely to satisfy a measured ratio. If a measured feature drifts, repair the lived function that caused it.
 28. No overfilled completeness: a formal standard-diary draft above about 1250 body Chinese characters should be checked for padding; 1350+ should be treated as generated-draft overfill unless the material is truly consequence-bearing. Delete non-consequential texture instead of adding another body/screen/object detail.
 29. No texture saturation: body, phone/screen, route/object, money, platform, and background facts are not six boxes to tick. If three texture families are all frequent, keep only details that change what the narrator does, what someone says, what the body interrupts, or what the next scene can become.
+30. No anti-AI-reference contamination: anti-slop terms in this skill are negative examples, not content prompts. Unless the user supplied it, do not write AI/GPT/model/text-detection scenes or advice about identifying generated prose.
 
 ## Strong Defaults
 
