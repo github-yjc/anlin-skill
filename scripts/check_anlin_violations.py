@@ -226,6 +226,11 @@ BACKGROUND_DISPLAY_GROUPS = {
     "body": ["痛风", "脚踝", "尿急", "口腔溃疡", "褪黑素", "胸口痛"],
     "place": ["云南", "小城市", "五线", "老家", "学校门口"],
 }
+TEXTURE_OVERFILL_GROUPS = {
+    "body": ["脚", "脚踝", "尿", "厕所", "胃", "胸口", "疼", "肿", "汗", "痔疮", "痛风", "口腔", "牙", "眼睛", "手", "裤子"],
+    "screen": ["手机", "屏幕", "消息", "群", "评论", "帖子", "视频", "小红书", "知乎", "微博", "B站", "抖音", "贴吧", "NGA", "boss", "Boss", "直聘", "GPT", "AI"],
+    "route_object": ["楼下", "门口", "路上", "电动车", "车", "公交", "地铁", "楼道", "快递", "钥匙", "塑料袋", "水龙头", "杯子", "充电", "空调", "冰箱"],
+}
 UNSUPPORTED_GAME_ROLE_TERMS = [
     "排位",
     "星耀一",
@@ -583,6 +588,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "题面诊断型标题",
     "标准日寄完整文章篇幅偏短",
     "标准日寄完整文章篇幅缓冲不足",
+    "标准日寄完整文章过满",
     "单主题词密度偏高",
     "题面链条过于完整",
     "评论链公式化转述",
@@ -605,6 +611,8 @@ DRAFT_GATE_RULE_PREFIXES = (
     "Offer具体化编造",
     "AI治疗式人类化",
     "背景展示堆砌",
+    "具体纹理堆叠过密",
+    "逗号密度过高",
     "行末逗号比例",
     "节奏过度均匀",
     "中段旁逸不足",
@@ -622,6 +630,7 @@ DRAFT_GATE_RULE_NAMES: set[str] = set()
 
 STANDARD_DIARY_FORMAL_MIN_CHARS = 650
 STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS = 900
+STANDARD_DIARY_DRAFT_OVERFULL_CHARS = 1350
 
 
 def clean_excerpt(line: str) -> str:
@@ -1299,6 +1308,48 @@ def check_standard_diary_length(findings: list[Finding], lines: list[str], text:
                 "650-899字容易在生成波动和修复中变成长度识别点；正式生成稿应补到900字以上，并优先接近950-1150字，增加行动链、社交误伤、身体/金钱后果或无用日常残留。",
             )
         )
+    elif chars > STANDARD_DIARY_DRAFT_OVERFULL_CHARS:
+        findings.append(
+            Finding(
+                "warning",
+                "标准日寄完整文章过满",
+                0,
+                f"body_chinese_chars={chars}",
+                "正式标准日寄生成稿过长时常是为了过检查而堆身体、屏幕、物件和解释。优先删掉不改变行动、社交位置、身体后果或下一场景的材料，收回到约950-1250字。",
+            )
+        )
+
+
+def check_generated_texture_overfill(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    style = detect_style(text)
+    if style != "standard" or "日寄" not in title:
+        return
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS or len(visible_lines) < 35:
+        return
+    group_hits: dict[str, int] = {}
+    for group, terms in TEXTURE_OVERFILL_GROUPS.items():
+        group_hits[group] = sum(1 for line in visible_lines if any(term in line for term in terms))
+    active_groups = {group: count for group, count in group_hits.items() if count >= 9}
+    any_texture_lines = sum(
+        1
+        for line in visible_lines
+        if any(any(term in line for term in terms) for terms in TEXTURE_OVERFILL_GROUPS.values())
+    )
+    texture_ratio = any_texture_lines / len(visible_lines)
+    if body_chars > 1150 and len(active_groups) >= 3 and texture_ratio >= 0.50:
+        findings.append(
+            Finding(
+                "warning",
+                "具体纹理堆叠过密",
+                0,
+                f"body_chars={body_chars}, texture_ratio={texture_ratio:.2f}, group_hits={json.dumps(active_groups, ensure_ascii=False)}",
+                "生成稿高风险：身体、屏幕、路物细节同时过密，容易像把生活气味清单塞满。删掉不改变动作、社交位置、身体后果或下一场景的具体名词，保留有后果的两三处。",
+            )
+        )
 
 
 def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str], text: str) -> None:
@@ -1623,6 +1674,29 @@ def check_period_comma_ratio(findings: list[Finding], lines: list[str]) -> None:
         )
 
 
+def check_global_comma_density(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    style = detect_style(text)
+    if style != "standard" or "日寄" not in title:
+        return
+    body = "\n".join(line for line in content_lines if line.strip() and not line.startswith("<!--"))
+    chars = chinese_len(body)
+    if chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
+        return
+    comma_count = body.count("，") + body.count(",")
+    comma_per_1k = comma_count / chars * 1000 if chars else 0.0
+    if comma_per_1k > 100:
+        findings.append(
+            Finding(
+                "warning",
+                "逗号密度过高",
+                0,
+                f"body_chars={chars}, comma_count={comma_count}, comma_per_1k={comma_per_1k:.2f}",
+                "生成稿高风险：过多逗号会像模型为了制造口语呼吸而持续拖句。改成动作切断、对话切断或直接删去解释尾巴，不要继续撒标点。",
+            )
+        )
+
+
 def check_prose_block_compression(findings: list[Finding], lines: list[str], text: str) -> None:
     style = detect_style(text)
     if style != "standard":
@@ -1906,6 +1980,8 @@ def collect_findings(text: str) -> list[Finding]:
     check_engine_signal_density(findings, text)
     check_sealed_nocturne(findings, text)
     check_period_comma_ratio(findings, lines)
+    check_global_comma_density(findings, lines, text)
+    check_generated_texture_overfill(findings, lines, text)
     check_prose_block_compression(findings, lines, text)
     check_short_line_poem_surface(findings, lines, text)
     check_line_length_uniformity(findings, lines, text)

@@ -358,7 +358,7 @@ class AnlinToolingTests(unittest.TestCase):
 
     def test_clean_run_checker_enforces_two_call_limit(self) -> None:
         line = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"
-        body = "\n".join(["# 日寄", "", *([line] * 60)])
+        body = "\n".join(["# 日寄", "", *([line] * 32)])
         with tempfile.TemporaryDirectory() as temp:
             draft = Path(temp) / "draft.md"
             draft.write_text(body, encoding="utf-8")
@@ -393,7 +393,30 @@ class AnlinToolingTests(unittest.TestCase):
             preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertEqual(preflight.returncode, 3)
             self.assertIn("CLEAN_RUN_PREFLIGHT", preflight.stdout)
-            draft.write_text("\n".join(["# 日寄", "", *([ready_line] * 60)]), encoding="utf-8")
+            draft.write_text("\n".join(["# 日寄", "", *([ready_line] * 32)]), encoding="utf-8")
+            first = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", first.stdout)
+
+    def test_clean_run_checker_preflight_blocks_overfull_without_consuming_call(self) -> None:
+        long_line = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"
+        ready_line = "其实我觉得厕所灯坏了，于是发现杯子好像脏，因为我差点吐出来，丢人。"
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 日寄", "", *([long_line] * 46)]), encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3)
+            self.assertIn("body_chinese_chars=", preflight.stdout)
+            self.assertIn("> 1350", preflight.stdout)
+            self.assertIn("cut unsupported/non-consequential texture", preflight.stdout)
+            self.assertFalse((draft.parent / ".anlin-clean-run-state.json").exists())
+            draft.write_text("\n".join(["# 日寄", "", *([ready_line] * 38)]), encoding="utf-8")
             first = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", first.stdout)
 
@@ -402,7 +425,7 @@ class AnlinToolingTests(unittest.TestCase):
             "其实我摸了摸手机，觉得六条未读有点多，突然发现三条是运营商的催缴短信，"
             "于是去厕所洗了把脸，因为差点吐出来，丢人得很，好像还是没躲过去。"
         )
-        body = "\n".join(["# 日寄", "", *([long_line] * 22)])
+        body = "\n".join(["# 日寄", "", *([long_line] * 18)])
         with tempfile.TemporaryDirectory() as temp:
             draft = Path(temp) / "draft.md"
             draft.write_text(body, encoding="utf-8")
@@ -651,7 +674,6 @@ class AnlinToolingTests(unittest.TestCase):
                 encoding="utf-8",
                 check=False,
             )
-            self.assertEqual(strict_result.returncode, 0, strict_result.stderr)
             self.assertNotEqual(draft_gate_result.returncode, 0)
             strict_findings = json.loads(strict_result.stdout)
             draft_gate_findings = json.loads(draft_gate_result.stdout)
@@ -666,6 +688,48 @@ class AnlinToolingTests(unittest.TestCase):
                     item["rule"] == "strict: 标准日寄完整文章篇幅缓冲不足"
                     for item in draft_gate_findings
                 )
+            )
+
+    def test_checker_draft_gate_rejects_overfull_standard_article(self) -> None:
+        filler_line = "我把杯子拿到楼下水龙头旁边手机屏幕亮了我又放回去"
+        body = "\n".join(["# 日寄", "", *([filler_line] * 62)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            draft_gate_result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(draft_gate_result.returncode, 0)
+            findings = json.loads(draft_gate_result.stdout)
+            self.assertTrue(
+                any(item["rule"] == "strict: 标准日寄完整文章过满" for item in findings)
+            )
+
+    def test_checker_draft_gate_rejects_texture_overfill(self) -> None:
+        body_lines = (
+            ["脚踝一疼我就想去厕所其实手机还在裤兜里震着丢人"] * 20
+            + ["屏幕上群消息一直亮我觉得杯子也脏于是没回"] * 20
+            + ["楼下水龙头旁边电动车钥匙掉进塑料袋里好像很响"] * 20
+        )
+        body = "\n".join(["# 日寄", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(
+                any(item["rule"] == "strict: 具体纹理堆叠过密" for item in findings)
             )
 
     def test_checker_draft_gate_rejects_formulaic_comment_chain(self) -> None:

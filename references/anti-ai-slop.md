@@ -149,6 +149,8 @@ AI prose often has one temperature. Watch for:
 
 Add roughness by changing what the narrator must do, not by adding adjectives.
 
+The opposite failure is also AI-like: overfilling a draft with too many body, screen, route, object, money, and platform cues after seeing a checklist. A complete standard diary should feel lived, not saturated. If the draft passes because every line contains a concrete texture noun, cut details that do not change action, social position, body consequence, or the next scene.
+
 ### 6. Portable Humanizer Smell
 
 Do not replace obvious AI prose with visible "humanizer" tricks:
@@ -231,6 +233,20 @@ If the middle still repeats the prompt's main nouns, the draft is not drifting; 
 ### Rhythm Lens
 
 Do not create a grid of equal short lines to avoid prose blocks. Vary line length because the mind is interrupted: a longer spoken sentence, a stupid explanation that runs too far, a blunt two-character retreat, a comma-led continuation, a payment/action line. If rhythm variation can be described as a pattern, it is probably visible to a judge.
+
+Do not repair rhythm by spraying commas through the whole body. Several early comma-led continuations can help, but high comma density across a long draft reads like a model simulating breath. Replace excess comma chains with action cuts, quoted plain speech, a body interruption, or deletion.
+
+### Density Lens
+
+Before the final checker, count by feel:
+
+- if the article is already beyond about 1250 body Chinese characters, delete before adding
+- if it crosses 1350, assume overfill until proven otherwise
+- if body, screen, and route/object details are all frequent, ask which ones change the day
+- if a detail only proves "there is life texture here," cut it
+- if deleting a supported background noun changes nothing, cut it
+
+The target is not sparse prose. The target is consequential texture: fewer details that actually make the narrator move, reply, pay, limp, stop, misread, or lose face.
 
 ### Background Lens
 

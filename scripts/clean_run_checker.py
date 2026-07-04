@@ -29,6 +29,7 @@ from check_anlin_violations import (  # noqa: E402
     HIGH_FREQUENCY_TERMS,
     ROUGH_SELF_DAMAGE_PATTERNS,
     ROUGH_SELF_DAMAGE_TERMS,
+    STANDARD_DIARY_DRAFT_OVERFULL_CHARS,
     chinese_len,
     split_title_and_content_lines,
 )
@@ -88,7 +89,8 @@ def normalize_before_final_check(draft: Path) -> None:
 def preflight_before_check(draft: Path, call_number: int) -> bool:
     text = draft.read_text(encoding="utf-8")
     _, content_lines = split_title_and_content_lines(text.splitlines())
-    body = "\n".join(line for line in content_lines if line.strip() and not line.strip().startswith("<!--"))
+    visible_lines = [line for line in content_lines if line.strip() and not line.strip().startswith("<!--")]
+    body = "\n".join(visible_lines)
     body_chars = chinese_len(body)
     connectors = [term for term in HIGH_FREQUENCY_TERMS if term in body]
     engine_hits = [term for term in ENGINE_SIGNAL_TERMS if term in body]
@@ -97,6 +99,8 @@ def preflight_before_check(draft: Path, call_number: int) -> bool:
     messages: list[str] = []
     if body_chars < 950:
         messages.append(f"body_chinese_chars={body_chars} < 950")
+    if body_chars > STANDARD_DIARY_DRAFT_OVERFULL_CHARS:
+        messages.append(f"body_chinese_chars={body_chars} > {STANDARD_DIARY_DRAFT_OVERFULL_CHARS}")
     if len(connectors) < 5:
         messages.append(f"connectors={connectors} < 5")
     if len(engine_hits) < 3:
@@ -108,7 +112,7 @@ def preflight_before_check(draft: Path, call_number: int) -> bool:
     print(
         f"CLEAN_RUN_PREFLIGHT: draft is not ready for checker call {call_number}/2; "
         + "; ".join(messages)
-        + ". Continue writing concrete action/body/social/off-axis material, then run this wrapper again. "
+        + ". Revise toward a complete but not overfilled article: add concrete action/body/social/off-axis material only when short, or cut unsupported/non-consequential texture when long; then run this wrapper again. "
         "This preflight did not consume a checker call."
     )
     return True

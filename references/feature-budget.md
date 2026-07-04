@@ -35,6 +35,8 @@ These apply to all normal generation:
 25. No over-specific inference: corpus-supported inference may lower specificity, but it must not invent current city, current game rank, match tactics, employer, local policy, or platform fact.
 26. No helpful clarification sentence: if a line explains why the scene matters, helps the reader understand the theme, or repairs ambiguity, delete it unless a person/app in the scene literally produced that line.
 27. No ratio-matching as composition: corpus priors and predictive intervals are post-draft audit tools, not quotas. Do not add a connector, game cue, body symptom, dialogue line, comma, or short line merely to satisfy a measured ratio. If a measured feature drifts, repair the lived function that caused it.
+28. No overfilled completeness: a formal standard-diary draft above about 1250 body Chinese characters should be checked for padding; 1350+ should be treated as generated-draft overfill unless the material is truly consequence-bearing. Delete non-consequential texture instead of adding another body/screen/object detail.
+29. No texture saturation: body, phone/screen, route/object, money, platform, and background facts are not six boxes to tick. If three texture families are all frequent, keep only details that change what the narrator does, what someone says, what the body interrupts, or what the next scene can become.
 
 ## Strong Defaults
 
@@ -63,6 +65,7 @@ Recommended budget:
 
 - 5-10 scene units depending on phase and length.
 - Usually 900-1100 body Chinese characters for generated full blind evaluation; always include a title; if shorter than 850, judge only against matched short originals or revise before submission.
+- Avoid drifting past about 1250 body Chinese characters. If the draft reaches 1350+, cut material first; do not treat extra length as safer completeness.
 - 2-4 emotional registers: laugh, sting, tenderness, deflection, absurdity, analysis.
 - 1-2 central motifs at most.
 - 0-2 recurring characters. Use none if the material is body, solitude, or observation driven.
