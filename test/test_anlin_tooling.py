@@ -646,9 +646,11 @@ class AnlinToolingTests(unittest.TestCase):
     def test_dev_checkpoint_classifier_keeps_bounded_and_finalized_separate(self) -> None:
         self.assertEqual(classify_development_result("fail", "pass")[0], "source_guidance_gap")
         self.assertEqual(classify_development_result("invalid", "pass")[0], "source_guidance_gap")
+        self.assertEqual(classify_development_result("fail", "review")[0], "systemic_gap")
         self.assertEqual(classify_development_result("fail", "fail")[0], "systemic_gap")
         self.assertEqual(classify_development_result("pass", "pass")[0], "ready_for_blind_rounds")
         self.assertEqual(classify_development_result("pass", "fail")[0], "repair_or_validator_gap")
+        self.assertEqual(classify_development_result("pass", "review")[0], "repair_or_validator_gap")
         self.assertEqual(classify_development_result("fail", None)[0], "bounded_fail_finalized_missing")
 
     def test_dev_checkpoint_summary_creates_controller_audit_copy(self) -> None:
@@ -681,6 +683,9 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(payload["blind_round_readiness"], "not_ready_for_blind_rounds")
             self.assertIn("naturally guide", payload["bounded_question"])
             self.assertIsNone(payload["finalized_question"])
+            self.assertIn("Natural-guidance checkpoint", payload["bounded_checkpoint_answer"])
+            self.assertIsNone(payload["finalized_checkpoint_answer"])
+            self.assertIn("bounded result alone is incomplete evidence", payload["repair_implication"])
             self.assertTrue((case_dir / "controller-audit" / "bounded-draft.md").is_file())
             self.assertTrue((case_dir / "controller-audit" / "summary.json").is_file())
 
@@ -717,6 +722,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(payload["diagnosis"], "systemic_gap")
             self.assertEqual(payload["blind_round_readiness"], "not_ready_for_blind_rounds")
             self.assertIn("strict hard-gate", payload["finalized_question"])
+            self.assertIn("Only `pass` means", payload["finalized_checkpoint_answer"])
+            self.assertIn("final article is not clean", payload["repair_implication"])
             self.assertIn(payload["finalized"]["gate"]["status"], {"fail", "review"})
 
     def test_clean_run_checker_merges_uniform_medium_grid_before_second_call(self) -> None:
@@ -2019,17 +2026,23 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Finalized repair checkpoint", validation)
         self.assertIn("Normal `check_anlin_violations.py draft.md` success is not sufficient", validation)
         self.assertIn("A `revise` status means finalized repair failed", validation)
+        self.assertIn("`finalized=review` is not a clean final success", validation)
         self.assertIn("exits nonzero unless both checkpoints are ready for blind rounds", validation)
         self.assertIn("separate `finalized/` case directory", validation)
         self.assertIn("direct normal-checker use in that directory is a protocol violation", validation)
         self.assertIn("bounded failure with a finalized pass means source guidance should be strengthened", readme)
+        self.assertIn("finalized `review/fail/invalid` means the final article is still unresolved", readme)
         self.assertIn("blind_round_readiness", readme)
         self.assertIn("双检查点记录", eval_readme)
         self.assertIn("最终稿不能只凭普通检查器通过", eval_readme)
+        self.assertIn("finalized 仍为 review/fail/invalid", eval_readme)
         self.assertIn("bounded clean-eval checkpoint", layer_map)
         self.assertIn("finalized repair checkpoint", layer_map)
         self.assertIn("normal checker success alone is not a finalized pass", layer_map)
+        self.assertIn("finalized is only `review`, it is still unresolved", layer_map)
         self.assertIn("Generated articles do not belong in the skill directory", runtime)
+        self.assertIn("Natural connector coverage should be solved before the checker", clean)
+        self.assertIn("Do not turn many hard-stop lines into one huge comma chain", runtime)
 
     def test_title_model_prevents_universal_ri_default(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

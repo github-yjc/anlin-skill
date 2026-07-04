@@ -103,6 +103,8 @@ Use at most one checker-driven repair loop and call `scripts/clean_run_checker.p
 
 If the file/checker tool flow itself fails, do not end the response with logs or process text. Manually apply the strict gate, rewrite once, and output the article only. This fallback is only for execution failure such as file creation, overwrite, missing interpreter, or checker command not running. It is never for checker findings, hard-rule errors, or a failed style grade. The validation controller will validate afterward.
 
+For finalized repair, a clean metric is not enough if the text now shows the repair. Do not turn many hard-stop lines into one huge comma chain or add connector words as visible glue. If a repair line becomes an unnaturally long first paragraph, or if `其实/因为/所以/然后/已经` start carrying transitions by themselves, return to the scene source: split the action, add a body/social interruption, or replace one on-theme line with a practical consequence. A finalized `review` status still means the final article has unresolved risk; do not label it as "only source guidance" unless strict hard gate and style-profile both pass.
+
 ## Prompt Material Handling
 
 Before drafting, split the user's prompt nouns into four buckets:

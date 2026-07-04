@@ -74,6 +74,9 @@ class DevelopmentSummary:
     blind_round_readiness: str
     bounded_question: str
     finalized_question: str | None
+    bounded_checkpoint_answer: str
+    finalized_checkpoint_answer: str | None
+    repair_implication: str
     next_action: str
     principle: str
 
@@ -270,7 +273,6 @@ def classify_development_result(bounded_status: str, finalized_status: str | Non
     bounded_good = bounded_status == "pass"
     bounded_usable = bounded_status in {"pass", "review"}
     finalized_good = finalized_status == "pass"
-    finalized_usable = finalized_status in {"pass", "review"}
 
     if finalized_status is None:
         if bounded_good:
@@ -296,27 +298,27 @@ def classify_development_result(bounded_status: str, finalized_status: str | Non
     if not bounded_good and finalized_good:
         return (
             "source_guidance_gap",
-            "Final repair can recover, so improve Layer 0/Layer 1 generation guidance before adding more detector rules.",
+            "Finalized repair cleanly passes, so improve Layer 0/Layer 1 generation guidance before adding more detector rules.",
         )
-    if bounded_good and not finalized_usable:
+    if bounded_good and not finalized_good:
         return (
             "repair_or_validator_gap",
-            "Bounded output was acceptable but final repair failed; inspect ordinary repair instructions, profile thresholds, and validator setup.",
+            "Bounded output was acceptable but finalized repair did not cleanly pass; inspect ordinary repair instructions, profile thresholds, and validator setup.",
         )
-    if not bounded_usable and not finalized_usable:
+    if not bounded_usable and finalized_status == "review":
+        return (
+            "systemic_gap",
+            "Finalized repair is still review-only, so do not treat this as a source-guidance-only result. Inspect generation, repair, profile drift, and checker assumptions.",
+        )
+    if not bounded_usable and not finalized_good:
         return (
             "systemic_gap",
             "Both checkpoints failed. Inspect architecture across generation, fact gates, repair references, checker, and blind-review assumptions.",
         )
-    if bounded_usable and not finalized_usable:
+    if bounded_usable and not finalized_good:
         return (
             "repair_path_gap",
-            "Natural guidance reached review status but ordinary repair worsened or failed; constrain repair loops and avoid metric-chasing edits.",
-        )
-    if not bounded_usable and finalized_usable:
-        return (
-            "source_guidance_gap",
-            "The bounded run did not naturally reach review status, but repair did; strengthen first-draft guidance and keep the checker path.",
+            "Natural guidance reached at least review status but ordinary repair did not cleanly pass; constrain repair loops and avoid metric-chasing edits.",
         )
     return (
         "mixed_review",
@@ -328,6 +330,40 @@ def blind_round_readiness(diagnosis: str) -> str:
     if diagnosis == "ready_for_blind_rounds":
         return "ready_for_blind_rounds"
     return "not_ready_for_blind_rounds"
+
+
+def bounded_answer(checkpoint: CheckpointReport) -> str:
+    gate = checkpoint.gate
+    calls = "unknown" if gate.clean_calls is None else str(gate.clean_calls)
+    preflights = "unknown" if gate.clean_preflights is None else str(gate.clean_preflights)
+    return (
+        f"Natural-guidance checkpoint is {gate.status} after {calls}/2 actual clean-eval checker calls "
+        f"and {preflights} preflight attempt(s). This checkpoint is frozen at the clean-eval stop boundary."
+    )
+
+
+def finalized_answer(checkpoint: CheckpointReport | None) -> str | None:
+    if checkpoint is None:
+        return None
+    gate = checkpoint.gate
+    return (
+        f"Finalized-repair checkpoint is {gate.status} under strict hard-gate plus style-profile validation. "
+        "Only `pass` means the final article is clean enough to attribute the remaining gap mainly to source guidance."
+    )
+
+
+def implication_for(diagnosis: str) -> str:
+    if diagnosis == "ready_for_blind_rounds":
+        return "Both checkpoints are clean; proceed to isolated blind rounds and placebo calibration before reporting rates."
+    if diagnosis == "source_guidance_gap":
+        return "The final article can converge, so strengthen the first-draft source loop and natural guidance; do not only tune the checker."
+    if diagnosis == "systemic_gap":
+        return "The final article is not clean, so broaden diagnosis across source guidance, repair references, fact gates, style profile, and checker design."
+    if diagnosis in {"repair_path_gap", "repair_or_validator_gap"}:
+        return "The repair/final-validation path is suspect; inspect repair instructions, metric-chasing behavior, and validator thresholds before changing generation."
+    if diagnosis.endswith("_finalized_missing"):
+        return "The bounded result alone is incomplete evidence; run the finalized repair checkpoint before deciding what to change."
+    return "The result is mixed or review-only; do not claim progress until the unresolved checkpoint is diagnosed."
 
 
 def build_checkpoint(
@@ -378,6 +414,9 @@ def format_markdown(report: DevelopmentSummary) -> str:
         f"- blind_round_readiness: `{report.blind_round_readiness}`",
         f"- bounded_question: {report.bounded_question}",
         f"- finalized_question: {report.finalized_question or 'not run'}",
+        f"- bounded_checkpoint_answer: {report.bounded_checkpoint_answer}",
+        f"- finalized_checkpoint_answer: {report.finalized_checkpoint_answer or 'not run'}",
+        f"- repair_implication: {report.repair_implication}",
         f"- next_action: {report.next_action}",
         f"- principle: {report.principle}",
         "",
@@ -478,6 +517,9 @@ def main() -> int:
             if finalized
             else None
         ),
+        bounded_checkpoint_answer=bounded_answer(bounded),
+        finalized_checkpoint_answer=finalized_answer(finalized),
+        repair_implication=implication_for(diagnosis),
         next_action=next_action,
         principle="Bounded checkpoint measures natural guidance; finalized checkpoint measures repair convergence. Do not merge the scores.",
     )

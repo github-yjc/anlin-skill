@@ -131,4 +131,4 @@ During development evaluation, Layer 4 should record two checkpoints rather than
 - bounded clean-eval checkpoint: the draft after the fresh generator's two-call clean-eval limit, measuring natural source guidance.
 - finalized repair checkpoint: a copied draft in a separate `finalized/` directory after ordinary multi-round repair, measuring whether the checker and repair references can converge without mutating the bounded result. It must pass strict hard-gate validation and style-profile audit when available; normal checker success alone is not a finalized pass.
 
-If only the finalized checkpoint passes, update Layer 0 or Layer 1 before celebrating the repair. If neither checkpoint passes, broaden the diagnosis across layers instead of only tightening the checker.
+If only the finalized checkpoint passes, update Layer 0 or Layer 1 before celebrating the repair. If finalized is only `review`, it is still unresolved and must not be counted as "final no problem." If neither checkpoint cleanly passes, broaden the diagnosis across layers instead of only tightening the checker.

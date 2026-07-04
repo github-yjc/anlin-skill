@@ -161,9 +161,11 @@ The summary script exits nonzero unless both checkpoints are ready for blind rou
 Interpretation:
 
 - bounded fails, finalized passes: strengthen Layer 0/Layer 1 generation guidance; the checker and repair path can recover, but the source loop is still weak.
-- bounded passes, finalized fails: investigate checker blind spots, style-profile drift, blind-judge angles, or high-level voice/structure issues.
-- bounded fails, finalized fails: treat it as a broader skill issue; inspect architecture, fact gates, voice model, repair instructions, and deterministic checks before adding more local lint.
+- bounded passes, finalized does not pass: investigate repair instructions, style-profile drift, validator setup, or checker blind spots; repair may be making the draft worse or failing to resolve the real issue.
+- bounded fails, finalized does not pass: treat it as a broader skill issue; inspect architecture, fact gates, voice model, repair instructions, style-profile assumptions, and deterministic checks before adding more local lint.
 - bounded passes and finalized passes: run blind rounds and placebo calibration before reporting rates; still do not claim authorship or indistinguishability.
+
+`finalized=review` is not a clean final success. It means the article may be locally usable for discussion but is not ready for blind rounds and must not be used to conclude "only source guidance is weak." Only `finalized=pass` supports that narrower diagnosis.
 
 The finalized checkpoint is not allowed to retroactively improve the bounded checkpoint. Do not keep editing the bounded `draft.md` after `CLEAN_RUN_PREFLIGHT_STOP` or `CLEAN_RUN_STOP`; direct normal-checker use in that directory is a protocol violation. The checker records stop state both beside the draft and in a system temporary lock keyed by draft path, so deleting the local state file does not make the bounded run valid again. Report both results, including checker-call counts, preflight stop status, number of repair iterations, model/surface, prompt, skill commit, corpus availability, recognition rate, and false-accusation rate.
 

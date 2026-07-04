@@ -121,7 +121,7 @@ python <skill-dir>/scripts/summarize_dev_checkpoints.py <case-dir> `
 
 - `source_guidance_gap`：两次检查器边界稿没过，但最终稿过了；优先改源头引导。
 - `repair_path_gap` / `repair_or_validator_gap`：自然引导可用但修复路径或验证器出了问题。
-- `systemic_gap`：两阶段都没过；不要只改检查器，回查架构、事实门禁、声音模型和修复流程。
+- `systemic_gap`：bounded 没过且 finalized 也没有 clean pass；不要只改检查器，回查架构、事实门禁、声音模型、修复流程和 profile 假设。
 - `ready_for_blind_rounds`：两阶段都过；进入盲评和 placebo，不直接宣称目标达成。
 
 `summary.json` 中的 `blind_round_readiness` 才是是否可以进入盲评的控制字段。除 `ready_for_blind_rounds` 外，汇总脚本会返回非零退出码；这表示还不能进入正式盲评，不表示报告生成失败。
@@ -129,7 +129,8 @@ python <skill-dir>/scripts/summarize_dev_checkpoints.py <case-dir> `
 判读规则：
 
 - bounded 失败但 finalized 通过：优先加强源头引导。
-- bounded 和 finalized 都失败：深入检查 skill 架构、背景事实、声音模型、检查器和盲评角度。
+- bounded 失败且 finalized 仍为 review/fail/invalid：最终成果仍有问题，深入检查 skill 架构、背景事实、声音模型、修复方式、检查器和盲评角度。
+- bounded 通过但 finalized 没通过：重点检查 repair loop 是否追指标、profile 是否误伤、修复是否破坏自然文本。
 - 两者都通过：再进入完整盲评和 placebo 校准，不能直接宣称目标达成。
 
 ### 手动聚合

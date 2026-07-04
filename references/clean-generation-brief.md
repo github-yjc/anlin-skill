@@ -92,6 +92,10 @@ Before writing `draft.md`, do a private source preflight:
 
 If these readiness signals tempt you to add a game scene, recurring character, body symptom, app platform, or background fact only because a reference mentions it, do not add it. Rework an existing scene so the function appears through its own action.
 
+Natural connector coverage should be solved before the checker by changing scene movement, not by sprinkling words. A draft with only `觉得/发现` usually means each line is a sealed observation. Make the narrator do something after noticing it: delay a reply, pay money, misread a screen, answer someone badly, move route, get interrupted by the body, or correct a thought halfway. The connector is then a trace of that movement.
+
+Avoid an opening rhythm made of isolated short facts such as `下午两点。手机很烫。路很白。`. In this mode, early hard stops should land a joke, embarrassment, or retreat. Let some early physical/action lines run downward through commas when the next line continues the same thought or action.
+
 ## Anti-Synthetic Shape
 
 The anti-AI material in this skill is a negative list, not subject material. Unless the user explicitly asked for it, do not write scenes about AI, GPT, model output, generated text, article detection, or advice on identifying machine writing. If one appears because the reference mentioned it, delete the whole local move and replace it with body, money, route, food, social, family, or ordinary screen friction.
