@@ -672,6 +672,32 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings))
 
+    def test_checker_accepts_v35_like_low_body_and_social_self_own_as_engine(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "我打了两个字又删了，觉得自己确实不是东西。",
+                "趴在马桶边干呕了几声，什么也没吐出来。",
+                "老太太拽了小孩一下说不能吃脏东西，我嚼了几口吞了。",
+                "站到一半腿又麻了，差点跪在地上。",
+                *(["其实我觉得杯子有点脏，因为水龙头咳了一下喷到裤子上，"] * 30),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+            self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings))
+
     def test_checker_draft_gate_rejects_over_dense_long_line_prose(self) -> None:
         long_line = "其实我觉得杯子有点脏，因为水龙头咳了一下喷到裤子上，后来发现自己差点吐出来，还是没躲过那一下。"
         body = "\n".join(["# 日寄", "", *([long_line] * 42)])
