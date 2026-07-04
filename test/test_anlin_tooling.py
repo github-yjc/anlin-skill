@@ -384,7 +384,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", first.stdout)
             self.assertIn("CLEAN_RUN_STOP: this was checker call 2/2", second.stdout)
             self.assertEqual(third.returncode, 2)
-            self.assertIn("CLEAN_RUN_STOP: checker call limit already reached", third.stdout)
+            self.assertIn("clean-eval stop boundary already reached", third.stdout)
 
     def test_clean_run_checker_preflight_does_not_consume_checker_call(self) -> None:
         short_body = "\n".join(["# 日寄", "", "杯子脏了。"])
@@ -500,6 +500,22 @@ class AnlinToolingTests(unittest.TestCase):
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 3)
+            self.assertTrue(state["stopped"])
+            self.assertEqual(state["stop_reason"], "preflight")
+            fourth = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(fourth.returncode, 2)
+            self.assertIn("clean-eval stop boundary already reached", fourth.stdout)
+            bypass = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(bypass.returncode, 0)
+            findings = json.loads(bypass.stdout)
+            errors = [item for item in findings if item["severity"] == "error"]
+            self.assertTrue(any(item["rule"] == "clean-eval停止边界越过" for item in errors))
 
     def test_clean_run_checker_surface_preflight_blocks_high_risk_forms_without_consuming_call(self) -> None:
         filler = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"
@@ -1781,9 +1797,13 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", skill)
         self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", clean)
         self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", runtime)
+        self.assertIn("cannot be switched back to ordinary user mode", skill)
+        self.assertIn("Do not switch to `check_anlin_violations.py`", runtime)
         self.assertIn("Developer Two-Checkpoint Evaluation", validation)
         self.assertIn("Bounded clean-eval checkpoint", validation)
         self.assertIn("Finalized repair checkpoint", validation)
+        self.assertIn("separate `finalized/` case directory", validation)
+        self.assertIn("direct normal-checker use in that directory is a protocol violation", validation)
         self.assertIn("bounded failure with a finalized pass means source guidance should be strengthened", readme)
         self.assertIn("双检查点记录", eval_readme)
         self.assertIn("bounded clean-eval checkpoint", layer_map)

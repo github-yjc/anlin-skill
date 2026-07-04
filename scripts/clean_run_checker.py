@@ -291,7 +291,21 @@ def main() -> int:
     if state.get("draft") != draft_key:
         state = {"draft": draft_key, "calls": 0, "preflights": 0}
     calls = int(state.get("calls", 0))
+    preflights = int(state.get("preflights", 0))
+    if state.get("stopped") or (calls == 0 and preflights >= 3):
+        state["stopped"] = True
+        state.setdefault("stop_reason", "preflight")
+        save_state(state_path, state)
+        print(
+            "CLEAN_RUN_STOP: clean-eval stop boundary already reached for this draft. "
+            "Do not switch to the normal checker, edit, or repair in this directory. "
+            "Read draft.md once and output it unchanged; use a separate finalized checkpoint directory for ordinary repair."
+        )
+        return 2
     if calls >= 2:
+        state["stopped"] = True
+        state["stop_reason"] = "checker-limit"
+        save_state(state_path, state)
         print(
             "CLEAN_RUN_STOP: checker call limit already reached for this draft. "
             "Do not run another checker or repair command. Read draft.md once and output it unchanged."
@@ -301,7 +315,10 @@ def main() -> int:
         preflight_attempt = int(state.get("preflights", 0)) + 1
         max_preflight_attempts = 3
         if preflight_before_check(draft, calls + 1, attempt=preflight_attempt, max_attempts=max_preflight_attempts):
-            state["preflights"] = preflight_attempt
+            state["preflights"] = min(preflight_attempt, max_preflight_attempts)
+            if preflight_attempt >= max_preflight_attempts:
+                state["stopped"] = True
+                state["stop_reason"] = "preflight"
             save_state(state_path, state)
             return 2 if preflight_attempt >= max_preflight_attempts else 3
 
@@ -324,6 +341,13 @@ def main() -> int:
 
     result = subprocess.run(command, text=True, encoding="utf-8", check=False)
     if call_number == 2:
+        state = load_state(state_path)
+        state["draft"] = draft_key
+        state["calls"] = call_number
+        state["preflights"] = int(state.get("preflights", 0))
+        state["stopped"] = True
+        state["stop_reason"] = "checker-limit"
+        save_state(state_path, state)
         print(
             "CLEAN_RUN_STOP: this was checker call 2/2. "
             "Do not edit, split, merge, compare, or run another checker. "

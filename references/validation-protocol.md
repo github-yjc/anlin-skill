@@ -121,7 +121,7 @@ Development tests must measure both source guidance and repair convergence. Do n
 For each serious generation case, create two external artifacts outside `<skill-dir>`:
 
 1. **Bounded clean-eval checkpoint**: the fresh generator receives only the realistic prompt plus normal access to `anlin-writing`. It may use `clean_run_checker.py` according to clean-eval rules, with at most two actual checker calls and bounded preflight. Save the resulting `draft.md`, checker state, hard-check report, style-profile report when available, and controller notes under the case workspace. This checkpoint answers: did the skill naturally guide the agent close enough before open-ended repair?
-2. **Finalized repair checkpoint**: start from the bounded checkpoint draft and its visible checker results, then allow ordinary-user style repair loops, including multiple checker calls, rewrites from a new scene slate, and targeted profile/corpus review. Save the final article and full validation reports separately from the bounded checkpoint. This checkpoint answers: can the skill plus its checker/references converge to a usable final article in a realistic user workflow?
+2. **Finalized repair checkpoint**: copy the bounded checkpoint draft into a separate `finalized/` case directory, then start from that copy and its visible checker results. Allow ordinary-user style repair loops, including multiple checker calls, rewrites from a new scene slate, and targeted profile/corpus review. Save the final article and full validation reports separately from the bounded checkpoint. This checkpoint answers: can the skill plus its checker/references converge to a usable final article in a realistic user workflow?
 
 Interpretation:
 
@@ -130,7 +130,7 @@ Interpretation:
 - bounded fails, finalized fails: treat it as a broader skill issue; inspect architecture, fact gates, voice model, repair instructions, and deterministic checks before adding more local lint.
 - bounded passes and finalized passes: run blind rounds and placebo calibration before reporting rates; still do not claim authorship or indistinguishability.
 
-The finalized checkpoint is not allowed to retroactively improve the bounded checkpoint. Report both results, including checker-call counts, preflight stop status, number of repair iterations, model/surface, prompt, skill commit, corpus availability, recognition rate, and false-accusation rate.
+The finalized checkpoint is not allowed to retroactively improve the bounded checkpoint. Do not keep editing the bounded `draft.md` after `CLEAN_RUN_PREFLIGHT_STOP` or `CLEAN_RUN_STOP`; direct normal-checker use in that directory is a protocol violation. Report both results, including checker-call counts, preflight stop status, number of repair iterations, model/surface, prompt, skill commit, corpus availability, recognition rate, and false-accusation rate.
 
 ## Blind Test Design
 

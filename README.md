@@ -20,7 +20,7 @@ Additional architecture audit found a source-load conflict: `SKILL.md` said clea
 
 Clean-eval preflight now blocks obvious non-article drafts before they consume a formal checker call: too short, too overfilled, fewer than 45 body lines, prose-block compression, missing connector/engine/rough self-damage signals, or high-risk AI/background surfaces. Preflight is bounded; if it prints `CLEAN_RUN_PREFLIGHT_STOP`, the generation run should stop and the external controller should mark it invalid or failed instead of letting the generator repair indefinitely.
 
-Development validation now uses two checkpoints per serious case. The bounded checkpoint records the fresh-agent result after clean-eval limits, and the finalized checkpoint records the result after ordinary multi-round repair. A bounded failure with a finalized pass means source guidance should be strengthened; failures in both checkpoints indicate a broader skill problem, not just a stricter checker need.
+Development validation now uses two checkpoints per serious case. The bounded checkpoint records the fresh-agent result after clean-eval limits, and the finalized checkpoint records the result after ordinary multi-round repair from a separate copied draft. A bounded failure with a finalized pass means source guidance should be strengthened; failures in both checkpoints indicate a broader skill problem, not just a stricter checker need.
 
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
@@ -80,7 +80,7 @@ The practical ownership rule is:
 - Controller: corpus/profile/blind/placebo validation and documentation.
 - Developer: when controller failures repeat, rewrite the earliest generation lens that caused the failure; do not merely add a new detection rule.
 
-For development testing, the controller must keep the bounded clean-eval draft and the finalized repair draft as separate artifacts. The finalized draft can show that the repair path works, but it cannot be used to claim the first-pass natural guidance succeeded.
+For development testing, the controller must keep the bounded clean-eval draft and the finalized repair draft as separate artifacts. The finalized draft should start from a copy in a separate `finalized/` directory; continuing to edit the bounded directory after clean-eval stop contaminates the source-guidance measurement. The finalized draft can show that the repair path works, but it cannot be used to claim the first-pass natural guidance succeeded.
 
 ## Technique Sources
 

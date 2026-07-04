@@ -100,7 +100,7 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 每个正式开发用例必须保存两个结果，且都放在外部评测工作区，不写入 skill 目录：
 
 - `bounded clean-eval checkpoint`：全新 agent 只拿 `realistic_prompt` + anlin-writing skill，最多两次实际 `clean_run_checker.py` 调用，保存两次限制内得到的 `draft.md` 和检查报告。它衡量自然引导能力。
-- `finalized repair checkpoint`：从 bounded 草稿和公开检查结果继续，允许普通用户模式下多轮修复、重写和复检，保存最终稿和检查报告。它衡量 checker / repair references 能否收敛。
+- `finalized repair checkpoint`：把 bounded 草稿复制到单独的 `finalized/` 用例目录，再从这份复制稿和公开检查结果继续，允许普通用户模式下多轮修复、重写和复检，保存最终稿和检查报告。它衡量 checker / repair references 能否收敛。
 
 判读规则：
 

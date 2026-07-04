@@ -2217,6 +2217,31 @@ def check_corpus_overlap(
         )
 
 
+def check_clean_run_stop_boundary(findings: list[Finding], draft_path: Path) -> None:
+    """Block normal-checker bypass after the bounded clean-eval wrapper has stopped."""
+    state_path = draft_path.resolve().parent / ".anlin-clean-run-state.json"
+    if not state_path.exists():
+        return
+    try:
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    if state.get("draft") != str(draft_path.resolve()):
+        return
+    stopped = bool(state.get("stopped")) or (int(state.get("calls", 0)) == 0 and int(state.get("preflights", 0)) >= 3)
+    if not stopped:
+        return
+    findings.append(
+        Finding(
+            "error",
+            "clean-eval停止边界越过",
+            0,
+            f"stop_reason={state.get('stop_reason')}, calls={state.get('calls')}, preflights={state.get('preflights')}",
+            "当前 draft 已触发 clean-run 停止边界；不能切换到普通 checker 或继续修稿。若要做 finalized repair，请复制草稿到新的 finalized 工作目录并单独记录。",
+        )
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check deterministic Anlin-style hard-rule violations.")
     parser.add_argument("file", type=Path, help="Draft markdown/text file to inspect")
@@ -2231,6 +2256,7 @@ def main() -> int:
 
     text = read_text_flexible(args.file)
     findings = collect_findings(text)
+    check_clean_run_stop_boundary(findings, args.file)
     check_corpus_overlap(
         findings,
         draft_path=args.file,

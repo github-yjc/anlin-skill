@@ -160,7 +160,7 @@ Resolve `<skill-dir>` from the directory that contains this `SKILL.md`. Do not m
 
 If the wrapper prints `CLEAN_RUN_PREFLIGHT`, revise before the first checker call is consumed. Do not inspect checker source or tests for hidden tokens.
 
-If the wrapper prints `CLEAN_RUN_PREFLIGHT_STOP`, the draft still is not ready after the bounded preflight attempts. Stop repair work for this clean-eval run, read the current `draft.md` once, and output it unchanged. The controller should mark that run invalid or failed; do not keep rewriting until the preflight disappears.
+If the wrapper prints `CLEAN_RUN_PREFLIGHT_STOP`, the draft still is not ready after the bounded preflight attempts. Stop repair work for this clean-eval run, read the current `draft.md` once, and output it unchanged. The controller should mark that run invalid or failed; do not keep rewriting until the preflight disappears. Do not decide that this was ordinary user mode after all, and do not switch to `check_anlin_violations.py` in the same directory.
 
 In clean-eval mode, use at most two clean-run checker calls. If the first actual checker reports severe line grid, over-fragmentation, dialogue ladder, reference contamination, underbuilt length, background stuffing, or more than three errors, rewrite once from a new scene slate. Repair by replacement, not deletion.
 
