@@ -38,6 +38,14 @@ Do not start from a checklist or the user's clean topic. Start from one small th
 
 The first five body lines should still make sense if the user's prompt topic disappeared.
 
+Use this source order before drafting:
+
+1. Pick one daily friction that would exist without the assignment.
+2. Let one pressure item from the prompt arrive late or sideways.
+3. Give the middle one off-axis branch that changes an action, body state, reply, route, payment, or social position.
+4. Keep one useless residue that does not symbolize the theme.
+5. Only then check facts. Do not open background files to hunt for extra nouns.
+
 ## Scene Gates
 
 Pick the smallest scene set that carries the piece. For standard diary, use several fragments rather than one closed short story.

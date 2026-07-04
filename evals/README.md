@@ -50,7 +50,7 @@ evals/
 ### 步骤 2：运行硬规则脚本
 
 ```powershell
-python C:\Users\34025\.config\opencode\skills\Anlin\scripts\check_anlin_violations.py draft.md
+python C:\Users\34025\.config\opencode\skills\anlin-writing\scripts\check_anlin_violations.py draft.md
 ```
 
 - 退出码 0：没有检测到 error 级违规；warning 仍需人工复核
@@ -105,7 +105,7 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 瓶颈门禁 = 最常未通过的门禁类型
 ```
 
-### 自动化脚本（待建）
+### 自动化脚本（部分已建；真实生成仍需独立 agent/controller 编排）
 
 未来可用控制器脚本自动完成全流程：
 1. 读取 evals.json 的 `realistic_prompt`

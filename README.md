@@ -1,142 +1,124 @@
-# Anlin Skill
+# anlin-writing
 
-> A writing discipline disguised as a skill. Reverse-engineered from 38 original articles through systematic corpus analysis, blind audits, and iterative refinement.
+This OpenCode skill generates, reviews, and evaluates Anlin/日寄-style Chinese prose for anonymous blind evaluation. The target is narrow: reduce stable identification as generated text under documented test conditions, while reporting only conditions, sample size, recognition/pass rates, false accusations, invalid rounds, and limits.
 
-This skill helps agents generate, review, and blind-test Anlin-style Chinese prose for anonymous evaluation. It does not claim real authorship or objective indistinguishability. The output is characterized by defensive humor layered over genuine pain, fragment-montage structure, and the signature **Bathos** technique: retreating from completeness at the last possible moment.
+It must not claim real authorship, provenance, or objective indistinguishability.
 
-## Why This Exists
+## Current Status
 
-Most agent writing reads like an agent wrote it. Complete. Polished. Emotionally safe. Anlin's writing is none of these things — it halts unexpectedly, undermines its own seriousness, and leaves the reader to fill the silence.
+The skill is not yet proven to meet the `<=10%` stable impostor-identification target. The latest documented clean-run sample before this architecture pass cleared the hard generated-draft checker but still failed the style-profile audit, with drift in period density, short-line share, line-length variance, and connector balance. No current report yet contains 15 clean generation runs plus calibrated `3 impostor + 1 placebo` style rounds sufficient to claim the target.
 
-This skill doesn't teach the agent to "be Anlin" — it constrains the agent away from its natural tendencies toward completeness, explanation, and emotional resolution. Quality claims are reported only as blind-evaluation conditions, sample sizes, and recognition rates.
+This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes.
 
-## Quick Setup
+## Install Path
 
-1. Copy the `Anlin` directory to your skills folder:
-   - **OpenCode**: `C:\Users\<user>\.config\opencode\skills\Anlin\`
-   - **Claude Code**: `~/.claude/skills/Anlin/`
+Current installed skill path:
 
-2. Restart your agent. The skill will auto-load when triggered.
-
-3. Trigger: ask for "Anlin" / "日寄" / "像Anlin那样写" / "模仿日寄" / "知乎摆烂写手风格".
-
-## How It Works
-
-```
-┌───────────────────────────────────────────────┐
-│                  SKILL.md                     │
-│         runtime routing pipeline              │
-│      state card → feature budget →            │
-│      scene modes → separate review            │
-└─────────────────────┬─────────────────────────┘
-                      │
-    ┌─────────────────┼─────────────────┐
-    ▼                 ▼                  ▼
-┌─────────┐  ┌──────────────┐  ┌──────────────┐
-│ voice-  │  │  structure-  │  │   writing-   │
-│ model   │  │  patterns    │  │  checklist   │
-│ (269L)  │  │  (204L)      │  │  (29 rules)  │
-└─────────┘  └──────────────┘  └──────────────┘
-    │              │                  │
-    └──────┬───────┴────────┬─────────┘
-           ▼                ▼
-    ┌────────────┐  ┌──────────────┐
-    │  era-state │  │  vocabulary- │
-    │  (86L)     │  │  rules (162L)│
-    └────────────┘  └──────────────┘
-           │                │
-           ▼                ▼
-    ┌────────────────────────────┐
-    │  reference files +         │
-    │  validation scripts        │
-│  = runtime + review layers │
-    └────────────────────────────┘
+```text
+C:\Users\34025\.config\opencode\skills\anlin-writing
 ```
 
-## What Makes This Different
+Trigger phrases include `Anlin`, `日寄`, `Anlin-style`, `像Anlin那样写`, `模拟日寄`, and requests for Anlin corpus evaluation. The OpenCode skill name is `anlin-writing`; `Anlin` remains a trigger alias because users naturally ask for that name.
 
-Unlike prompt-based imitation, this skill operates at the **architecture level**. Every rule lives in a reference file the agent reads at decision time — not in a prompt that gets compressed, forgotten, or worked around.
+## Architecture
 
-### Core Techniques
+The important design choice is separation of layers. The generation agent should not read every file before writing; that turns review categories into visible article ingredients.
 
-| Technique | Description |
-|---|---|
-| **Voice Model** | 12-dimension character operating system: perception, emotion, humor, social position, dialogue, thought patterns, reader relationship, auto-ethnographic stance |
-| **Bathos (撤退)** | The signature move — escalate toward profundity, then retreat into the body or the absurd. Five retreat forms catalogued. |
-| **Fragment Montage** | 5-12 scenes per article, connected by associative leaps, not logic. Each scene: setup → punchline → (optional) tag. |
-| **Pseudo-Academic Concepts** | Create → define → apply to 3+ scenes → destroy. "应届生廉价定理", "湿气重诊断体系", "A3.1". |
-| **Cognitive Path** | Five-step mental sequence embedded in the writing step: concrete detail → deliberate misinterpretation → self-sabotage → defense → land and leave. |
-| **Corpus-verified** | All frequency claims audited against 38 original articles. Deletion of fabricated quotes. Recalibration of character appearances, vocabulary counts, and structural patterns. |
-
-### What the Agent Learns NOT to Do
-
-- Don't summarize or conclude
-- Don't explain why something is funny
-- Don't resolve emotional tension
-- Don't use "然后...然后..." sequencing
-- Don't write complete sentences where fragments work better
-- Don't write "金句" that belongs on a motivational poster
-- Don't let sincerity exceed 5 lines without a joke
-
-## Directory Structure
-
-```
-Anlin/
-├── SKILL.md                      # Entry point
-├── README.md                     # This file
+```text
+anlin-writing/
+├── SKILL.md                         # routing, clean-run boundary, output rules
 ├── references/
-│   ├── runtime-brief.md           # Core generation runtime
-│   ├── feature-budget.md          # Hard requirements and genre budgets
-│   ├── generation-modes.md        # Scene mode library
-│   ├── review-rubric.md           # Separate critique gates
-│   ├── anti-pastiche.md           # Source overlap and copying guardrails
-│   ├── corpus-cards/              # Generated lightweight cards from 38 originals
-│   ├── voice-model.md             # Detailed role model
-│   ├── writing-checklist.md       # 30 rules: identity + dialogue + text + role budget
-│   ├── structure-patterns.md      # Structure, spine, Bathos, endings (204 lines)
-│   ├── vocabulary-rules.md        # Negative space: what Anlin never writes (162 lines)
-│   ├── era-state.md               # Four-phase evolution model (86 lines)
-│   ├── anlin-characters.md        # Character system with deployment rules (96 lines)
-│   ├── role-orchestration.md      # Role budget, frequency, random-name rules
-│   ├── anlin-reference-library.md # 11-dimension reference samples
-│   ├── samples-index.md          # 8-10 original text samples for calibration
-│   ├── self-check.md             # Post-writing self-audit
-│   ├── evals.md                  # Multi-agent blind evaluation protocol
-│   ├── validation-protocol.md    # Blind test workflow
-│   ├── blind-judge-angles.md     # Multi-angle judge matrix and required reason format
-│   ├── portable-corpus.md        # Corpus fragments for offline use
-│   └── subagent-prompts.md       # Agent delegation templates
-├── scripts/
-│   ├── check_anlin_violations.py  # Automated rule violation scanner
-│   ├── compare_anlin_corpus.py    # Corpus surface-overlap comparison
-│   ├── analyze_anlin_roles.py     # Role frequency analysis (38-article corpus)
-│   ├── build_corpus_cards.py      # Corpus-card generator
-│   ├── prepare_blind_test.py      # Single blind-test round preparation
-│   └── run_blind_test.py          # Multi-round blind-test preparation
-├── test/
-│   └── test_anlin_tooling.py
-├── evals/
-│   ├── evals.json
-│   └── README.md
-└── audits/
-    └── checker-smoke-draft.md
+│   ├── clean-generation-brief.md     # first-draft contract
+│   ├── runtime-layer-map.md          # maintainer architecture map
+│   ├── runtime-brief.md              # compact generation theory
+│   ├── generation-modes.md           # scene modes and prompt-displacement lenses
+│   ├── feature-budget.md             # feature budget, not shopping list
+│   ├── anti-ai-slop.md               # built-in anti-AI-writing layer
+│   ├── anlin-background.md           # post-scene fact gate
+│   ├── background-fact-classes.json  # machine-readable fact classes
+│   ├── voice-model.md                # deeper persona/cognition model for repair
+│   ├── structure-patterns.md         # montage, title, ending, Bathos
+│   ├── vocabulary-rules.md           # lexical and sentence-form boundaries
+│   ├── role-orchestration.md         # role budget and deployment
+│   ├── anlin-characters.md           # character facts and constraints
+│   ├── review-rubric.md              # post-draft review gates
+│   ├── writing-checklist.md          # critique card, not pre-draft recipe
+│   ├── self-check.md                 # post-draft human/agent checklist
+│   ├── stylometric-ratio-protocol.md # corpus-prior audit method
+│   ├── style-profile.json            # generated profile from 38 originals
+│   ├── validation-protocol.md        # clean generation and blind testing protocol
+│   ├── blind-judge-angles.md         # multi-angle judge matrix
+│   ├── corpus-cards/                 # compact calibration cards, repair only
+│   └── portable-corpus.md            # fallback when originals are unavailable
+├── scripts/                          # deterministic gates and validation helpers
+├── test/                             # tooling regression tests
+├── evals/                            # 15 realistic and diagnostic prompts
+└── audits/                           # smoke drafts for checker tests
 ```
 
-## Quality Assurance
+Detailed layer ownership lives in `references/runtime-layer-map.md`.
 
-This skill was developed through an adversarial refinement loop:
+## Technique Sources
 
-1. **Corpus Analysis**: 38 articles → structural patterns, character frequencies, vocabulary domain
-2. **Blind Testing**: Human readers judge generated vs. original; agent self-identification tests
-3. **Reverse Audits**: Systematic cross-checking of every claim in the skill against the original corpus
-4. **Iterative Fixes**: Each audit round surfaces gaps → fix → re-test
+The old README-level technique summary is now mapped to maintained references:
 
-The skill does not claim indistinguishability from the original. It claims methodological rigor in the attempt.
+| Technique | Source |
+|---|---|
+| Voice/persona model | `references/voice-model.md` |
+| Bathos / retreat timing | `references/structure-patterns.md` |
+| Fragment montage and associative hooks | `references/structure-patterns.md`, `references/generation-modes.md` |
+| Pseudo-academic concepts and crooked analysis | `references/structure-patterns.md`, `references/voice-model.md` |
+| Cognitive path | `references/generation-modes.md`, `references/voice-model.md`, `references/stylometric-ratio-protocol.md` |
+| Corpus-verified frequency and ratio claims | `references/style-profile.json`, `scripts/build_style_profile.py`, `scripts/calibrate_style_profile.py` |
 
-## Author
+## Runtime Flow
 
-Maintained as part of the [github-yjc](https://github.com/github-yjc) skill collection.
+For ordinary formal article generation:
 
-## License
+1. Load `references/clean-generation-brief.md` first.
+2. Start from a small lived friction, not from a checklist.
+3. Select scenes from action, body, screen, money, route, social misfire, memory trigger, or useless residue.
+4. Open `anlin-background.md` only after selected scenes already contain facts that need checking.
+5. Write a complete titled `draft.md` before the first checker.
+6. Run `scripts/clean_run_checker.py draft.md --strict --draft-gate`.
+7. Do at most one repair/rewrite and at most two clean-run checker calls.
+8. After the second checker call, output the current `draft.md` exactly.
 
-MIT
+For controller validation, use the full validation layer after generation:
+
+```powershell
+python scripts/check_anlin_violations.py draft.md --strict --draft-gate --corpus-dir "C:\Users\34025\Desktop\Anlin"
+python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
+python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate --strict
+python scripts/calibrate_style_profile.py "C:\Users\34025\Desktop\Anlin" --profile references/style-profile.json
+python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --placebo-rounds 2 --min-fragment-chars 550
+```
+
+## Core Principles
+
+- Background facts are contradiction boundaries, not article ingredients.
+- Game is allowed, not required. Corpus evidence supports broad 王者/游戏 facts, not current match reports, roles, lanes, ranks, tactical calls, or scoreboards.
+- Anti-AI-writing behavior is built into this skill. Runtime generation must not depend on any external anti-slop or personal writing skill.
+- Corpus ratios are post-draft audit tools, not pre-draft quotas.
+- Blind judges must be open-set and may answer `NONE`.
+- Placebo all-original rounds are mandatory for serious claims.
+- If a failure repeats, improve the earliest responsible generation layer, not only the checker.
+
+## Verification
+
+Recommended local checks after edits:
+
+```powershell
+python -m py_compile scripts\*.py
+python -m unittest discover -s test -p test_anlin_tooling.py
+python scripts\build_style_profile.py "C:\Users\34025\Desktop\Anlin" --output references\style-profile.json
+python scripts\calibrate_style_profile.py "C:\Users\34025\Desktop\Anlin" --profile references\style-profile.json
+```
+
+Fresh pass/fail claims should quote the exact command results. Older results in this README are status boundaries, not current verification.
+
+## Development Notes
+
+`work/` contains local iterative outputs and is intentionally ignored by git unless a specific artifact is promoted into `audits/`, `evals/`, or `references/`. Do not delete process artifacts until information-loss review confirms they are no longer needed.
+
+The skill is maintained as part of the `github-yjc` skill collection under the MIT license.

@@ -36,6 +36,8 @@ For ordinary or formal article generation, start with one file only:
 
 1. `references/clean-generation-brief.md`
 
+For architecture audits, maintainer refactors, or repeated-failure diagnosis, read `references/runtime-layer-map.md`. Do not load it during ordinary generation; it is a map of responsibilities, not a drafting aid.
+
 For ordinary article generation, use the minimal generation pack:
 
 1. `references/clean-generation-brief.md`

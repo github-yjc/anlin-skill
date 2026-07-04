@@ -1565,6 +1565,31 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("prompt silence does not ban", combined)
         self.assertNotIn("缺一条就不是", combined)
 
+    def test_runtime_layer_map_keeps_generation_and_validation_separate(self) -> None:
+        layer_map = (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("Layer 0: Entry Contract", layer_map)
+        self.assertIn("Layer 4: Controller Validation", layer_map)
+        self.assertIn("background facts are contradiction boundaries", layer_map.lower())
+        self.assertIn("Do not solve a generation failure only by adding a new checker rule", layer_map)
+        self.assertIn("runtime-layer-map.md", readme)
+        self.assertIn("runtime-layer-map.md", skill)
+        self.assertIn("not a drafting aid", skill)
+
+    def test_readme_uses_current_opencode_skill_path(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn(r"C:\Users\34025\.config\opencode\skills\anlin-writing", readme)
+        self.assertNotIn(r"skills\Anlin", readme)
+        self.assertNotIn("Claude Code", readme)
+        self.assertIn("not yet proven", readme)
+
+    def test_voice_model_summary_does_not_use_must_include_recipe(self) -> None:
+        voice = (ROOT / "references" / "voice-model.md").read_text(encoding="utf-8")
+        self.assertNotIn("写作必含", voice)
+        self.assertIn("高价值候选，不是必含配方", voice)
+        self.assertIn("不要把背景、游戏、平台、熟人或身体标签当配料", voice)
+
     def test_skill_load_order_keeps_background_as_post_scene_fact_gate(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         always_start = skill.split("For ordinary article generation", 1)[0]
@@ -2606,6 +2631,9 @@ class AnlinToolingTests(unittest.TestCase):
     def test_realistic_eval_prompts_do_not_carry_style_hints(self) -> None:
         data = json.loads(EVALS.read_text(encoding="utf-8"))
         self.assertEqual(data["version"], "2.2")
+        self.assertEqual(data["skill_name"], "anlin-writing")
+        self.assertIn("Anlin", data["trigger_aliases"])
+        self.assertTrue(data["installed_skill_path"].endswith(r"skills\anlin-writing"))
         banned_helpers = (
             "蒙太奇",
             "不总结",

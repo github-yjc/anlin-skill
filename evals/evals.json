@@ -1,5 +1,7 @@
 {
-  "skill_name": "Anlin",
+  "skill_name": "anlin-writing",
+  "trigger_aliases": ["Anlin", "日寄", "Anlin-style"],
+  "installed_skill_path": "C:\\Users\\34025\\.config\\opencode\\skills\\anlin-writing",
   "version": "2.2",
   "description": "Structured evaluation prompts for Anlin-style 日寄 generation. Use realistic_prompt for formal blind evaluation because it gives a fresh agent only the user-facing request and relies on the skill for writing method. The richer prompt field is retained for stress testing and diagnostics. Generated prose must not contain methodology labels. The generated article is then checked against objective review signals via check_anlin_violations.py and subjective criteria via a separate Style Critic.",
   "corpus_path": "C:\\Users\\34025\\Desktop\\Anlin",
