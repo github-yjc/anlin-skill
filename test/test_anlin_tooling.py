@@ -1341,6 +1341,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("after the candidate scene slate exists", skill)
         self.assertIn("Do not make background facts into candidate scenes by themselves", skill)
         self.assertIn("background-fact-classes.json", skill)
+        self.assertIn("If the first actual checker reports `背景展示堆砌`", skill)
+        self.assertIn("remove one or two whole families before the second checker", skill)
 
     def test_background_fact_classes_are_boundaries_not_requirements(self) -> None:
         table = json.loads(BACKGROUND_FACT_CLASSES.read_text(encoding="utf-8"))
