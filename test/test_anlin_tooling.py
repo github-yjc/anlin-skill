@@ -429,6 +429,7 @@ class AnlinToolingTests(unittest.TestCase):
             ("comment_chain_markers=", ["评论区有一行字写着展示给谁看。"]),
             ("process_leak_terms=", ["final article"]),
             ("meta_ai_topic_hits=", ["驿站老板刷短视频，说怎么识别AI写的文章。", "我又打开AI对话窗口。"]),
+            ("current_office_persona=", ["到了公司，同事小李喊我张哥，领导说KPI和营收都要看。"]),
             (
                 "background_display_groups=",
                 [
@@ -967,6 +968,42 @@ class AnlinToolingTests(unittest.TestCase):
             )
             self.assertTrue(
                 any(item["rule"] == "strict: 反AI参考污染" for item in draft_gate_findings)
+            )
+
+    def test_checker_draft_gate_rejects_unsupported_current_office_persona(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "到了公司，同事小李喊我张哥，领导说部门KPI和营收都要看。",
+                "我坐回工位，财务又发了个表。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            strict_result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            draft_gate_result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            strict_findings = json.loads(strict_result.stdout)
+            draft_gate_findings = json.loads(draft_gate_result.stdout)
+            self.assertFalse(
+                any(item["rule"] == "strict: 无依据当前职场身份" for item in strict_findings)
+            )
+            self.assertTrue(
+                any(item["rule"] == "strict: 无依据当前职场身份" for item in draft_gate_findings)
             )
 
     def test_checker_draft_gate_rejects_missing_title(self) -> None:
@@ -1529,12 +1566,14 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("not 100+ tiny rows", brief)
         self.assertIn("negative list, not subject material", brief)
         self.assertIn("Game is allowed, not required", brief)
+        self.assertIn("Do not invent a current office-worker identity", brief)
         self.assertIn("clean_run_checker.py draft.md --strict --draft-gate", brief)
 
     def test_background_fact_classes_are_boundaries_not_requirements(self) -> None:
         table = json.loads(BACKGROUND_FACT_CLASSES.read_text(encoding="utf-8"))
         self.assertIn("王者荣耀", table["classes"]["supported"]["game"])
         self.assertIn("打野教学", table["classes"]["unsupported"]["game_specifics"])
+        self.assertIn("KPI", table["classes"]["unsupported"]["current_office_persona"])
         self.assertIn("Background facts are contradiction boundaries", table["principle"])
         self.assertIn("does not change action", table["runtime_rule"])
 

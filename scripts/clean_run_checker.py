@@ -35,6 +35,7 @@ from check_anlin_violations import (  # noqa: E402
     ROUGH_SELF_DAMAGE_TERMS,
     STANDARD_DIARY_DRAFT_OVERFULL_CHARS,
     chinese_len,
+    current_office_persona_hits,
     meta_ai_topic_hits,
     split_title_and_content_lines,
 )
@@ -193,6 +194,9 @@ def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]
     meta_ai_hits = meta_ai_topic_hits(article_text)
     if meta_ai_hits:
         messages.append(f"meta_ai_topic_hits={meta_ai_hits[:4]}")
+    office_hits = current_office_persona_hits(article_text)
+    if office_hits:
+        messages.append(f"current_office_persona={office_hits[:4]}")
     background_hits = {
         group: [term for term in terms if term in article_text][:3]
         for group, terms in BACKGROUND_DISPLAY_GROUPS.items()

@@ -102,6 +102,8 @@ Named districts, current cities, company parks, local policies, current game-rol
 
 Load `references/anlin-background.md` and `references/background-fact-classes.json` only after a scene already contains a fact that must be checked.
 
+Do not invent a current office-worker identity. Unless the user gives a phase/date or concrete material that supports it, avoid first-person scenes built around `到了公司`, `同事小X`, `张哥`, `工位`, `领导`, `KPI`, `营收`, `财务`, meetings,饭卡, or quarterly office reporting. Work/company material is phase-bound and often belongs to other people, old work, interviews, layoffs, or screen pressure; default current generation should lower it to old coworker, recruitment surface, someone else's company, or ordinary daily life.
+
 ## Ending
 
 Do not summarize, heal, or neatly explain the article. Avoid learned buttons such as `哦。`, `算了。`, `睡了。`, `屏幕暗了。`, or a pure sound ending unless the scene forces it.

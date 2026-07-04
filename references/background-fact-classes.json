@@ -24,7 +24,8 @@
     "unsupported": {
       "district_or_city": ["黄埔区", "天河区", "南山区", "福田区", "浦东新区", "西湖区", "海淀区", "朝阳区", "广州", "深圳", "上海", "杭州", "成都", "重庆", "武汉", "南京", "天津", "苏州", "珠海", "东莞", "佛山", "长沙", "湖南", "昆明"],
       "game_specifics": ["排位", "星耀一", "星耀二", "星耀三", "星耀四", "星耀段", "晋级赛", "打野教学", "打野", "辅助位", "补了个辅助", "中路被抓", "秒选法师", "队友秒选", "压血线", "战令", "福利局", "撤退信号", "二塔", "团战", "三换二", "结算界面", "MVP", "复活点", "加血", "加盾", "奶不到", "输出全靠", "队友全死", "退出匹配", "阵容", "泉水", "经济面板", "输出比辅助", "干得漂亮", "硬辅", "下路", "装备", "adc", "ADC", "AD", "上单", "中单", "射手", "法师", "辅助装"],
-      "employer_compensation": ["签字费", "股票", "base", "住房补贴", "租房补贴", "到手", "月薪", "年薪"]
+      "employer_compensation": ["签字费", "股票", "base", "住房补贴", "租房补贴", "到手", "月薪", "年薪"],
+      "current_office_persona": ["到了公司", "工位", "部门", "KPI", "营收", "财务", "领导", "王总", "同事小", "张哥", "饭卡", "实习生"]
     }
   },
   "runtime_rule": "Load after scene selection only. If deleting a supported fact does not change action, body, money, social relation, memory trigger, or the next scene, delete it. If a specific fact is unsupported, lower it to generic or remove it."

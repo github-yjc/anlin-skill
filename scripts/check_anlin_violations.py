@@ -304,6 +304,29 @@ UNSUPPORTED_GAME_ROLE_TERMS = [
     "法师",
     "辅助装",
 ]
+CURRENT_OFFICE_PERSONA_TERMS = [
+    "到了公司",
+    "到公司",
+    "下班的时候",
+    "上班",
+    "下班",
+    "工位",
+    "部门",
+    "KPI",
+    "kpi",
+    "营收",
+    "财务",
+    "领导",
+    "王总",
+    "同事小",
+    "张哥",
+    "开会",
+    "散会",
+    "饭卡",
+    "实习生",
+    "季度",
+]
+CURRENT_OFFICE_HIGH_SPECIFIC_TERMS = ["到了公司", "工位", "KPI", "kpi", "营收", "王总", "同事小", "张哥"]
 HOLLOW_OBSERVATION_TERMS = [
     "其实不知道在吵什么",
     "好像也没什么区别",
@@ -624,6 +647,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "破折号稀有连接",
     "无依据具体地名",
     "无依据游戏角色细节",
+    "无依据当前职场身份",
     "日常对话引号",
     "对话接力过密",
     "游戏复盘细节",
@@ -1127,7 +1151,30 @@ def check_game_match_report_surface(findings: list[Finding], lines: list[str]) -
                     clean_excerpt(line),
                     "生成稿高风险：游戏段变成比赛复盘会暴露无依据 MOBA 细节。只保留王者、5000局、最高星耀五、ELO、蔡文姬/补血心理等粗表面，把结果转成状态伤口或实际动作。",
                 )
-            )
+                )
+
+
+def current_office_persona_hits(text: str) -> list[str]:
+    hits = [term for term in CURRENT_OFFICE_PERSONA_TERMS if term in text]
+    high_specific = [term for term in CURRENT_OFFICE_HIGH_SPECIFIC_TERMS if term in text]
+    if len(set(hits)) >= 4 or high_specific:
+        return hits[:8]
+    return []
+
+
+def check_current_office_persona(findings: list[Finding], text: str) -> None:
+    hits = current_office_persona_hits(text)
+    if not hits:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "无依据当前职场身份",
+            0,
+            f"terms={hits}",
+            "生成稿高风险：默认当前日期/无用户事实时，不要把叙述者写成办公室职员、公司同事、领导/KPI/营收叙事。公司和同事在语料中有阶段/人称边界；若无明确日期或用户材料，降级为招聘、旧同事、他人公司、屏幕消息或普通生活场景。",
+        )
+    )
 
 
 def check_offer_specificity_surface(findings: list[Finding], lines: list[str]) -> None:
@@ -2008,6 +2055,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_ai_variable_placeholders(findings, lines)
     check_background_fact_specificity(findings, lines)
     check_game_match_report_surface(findings, lines)
+    check_current_office_persona(findings, text)
     check_offer_specificity_surface(findings, lines)
     check_background_display_stuffing(findings, text)
     check_money_suffix(findings, lines)
