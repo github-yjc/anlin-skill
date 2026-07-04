@@ -21,6 +21,7 @@ BUILD_PROFILE = ROOT / "scripts" / "build_style_profile.py"
 CHECK_PROFILE = ROOT / "scripts" / "check_style_profile.py"
 CALIBRATE_PROFILE = ROOT / "scripts" / "calibrate_style_profile.py"
 CLEAN_RUN_CHECKER = ROOT / "scripts" / "clean_run_checker.py"
+CHECK_TRACE = ROOT / "scripts" / "check_clean_eval_trace.py"
 MERGE_SHORT_LINES = ROOT / "scripts" / "merge_short_lines.py"
 SOFTEN_LINE_ENDINGS = ROOT / "scripts" / "soften_line_endings.py"
 SPLIT_LONG_LINES = ROOT / "scripts" / "split_long_lines.py"
@@ -564,6 +565,59 @@ class AnlinToolingTests(unittest.TestCase):
                     state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
                     self.assertEqual(state["calls"], 0)
                     self.assertEqual(state["preflights"], 1)
+
+    def test_clean_eval_trace_flags_pre_draft_refs_and_stop_escape(self) -> None:
+        log = """
+        → Read C:/skill/references/clean-generation-brief.md
+        → Read C:/skill/references/anti-ai-slop.md
+        ← Write draft.md
+        CLEAN_RUN_PREFLIGHT_STOP: draft is still not ready
+        ← Write draft.md
+        Remove-Item "case/.anlin-clean-run-state.json"
+        python scripts/check_anlin_violations.py draft.md
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval首稿前加载修复/评审引用", rules)
+            self.assertIn("stop后继续写稿", rules)
+            self.assertIn("stop后删除状态", rules)
+            self.assertIn("stop后切普通checker", rules)
+
+    def test_clean_eval_trace_accepts_minimal_clean_flow(self) -> None:
+        log = """
+        → Read C:/skill/references/clean-generation-brief.md
+        → Read C:/skill/references/era-state.md
+        ← Write draft.md
+        python scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_NOTE: checker call 1/2
+        ← Write draft.md
+        python scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_STOP: this was checker call 2/2
+        → Read draft.md
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(json.loads(result.stdout), [])
 
     def test_clean_run_checker_merges_uniform_medium_grid_before_second_call(self) -> None:
         fragments = [

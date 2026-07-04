@@ -118,6 +118,7 @@ python scripts/compare_anlin_corpus.py draft.md --corpus-dir $env:ANLIN_CORPUS_D
 python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate --strict
 python scripts/calibrate_style_profile.py $env:ANLIN_CORPUS_DIR --profile references/style-profile.json
 python scripts/run_blind_test.py draft.md $env:ANLIN_CORPUS_DIR --rounds 8 --placebo-rounds 2 --min-fragment-chars 550
+python scripts/check_clean_eval_trace.py <case-dir>/opencode-output.txt --json
 ```
 
 ## Core Principles

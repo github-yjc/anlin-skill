@@ -114,6 +114,14 @@ If a test draft only succeeds because the prompt itself supplied style rules, cl
 
 Generator-side preflight is allowed only through `clean_run_checker.py`. `CLEAN_RUN_PREFLIGHT` means the draft was not ready and no formal checker call was consumed. `CLEAN_RUN_PREFLIGHT_STOP` means the generator did not reach a checker-ready article within the bounded preflight attempts; record the run as invalid or failed and do not let the same generation agent continue repairing indefinitely. This preserves the distinction between clean-eval mode and ordinary user mode.
 
+After each automated generation, run the trace checker on the captured agent log:
+
+```powershell
+python <skill-dir>/scripts/check_clean_eval_trace.py <case-dir>/opencode-output.txt --json
+```
+
+It flags clean-eval contamination such as loading repair/critic references before the first draft, continuing to write after `CLEAN_RUN_PREFLIGHT_STOP` / `CLEAN_RUN_STOP`, deleting `.anlin-clean-run-state.json`, switching to the normal checker in the bounded directory, or reading checker source for hidden terms.
+
 ## Developer Two-Checkpoint Evaluation
 
 Development tests must measure both source guidance and repair convergence. Do not collapse them into one score.

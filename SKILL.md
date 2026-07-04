@@ -245,6 +245,7 @@ python scripts/compare_anlin_corpus.py draft.md --corpus-dir <corpus-dir>
 python scripts/build_style_profile.py <corpus-dir> --output references/style-profile.json
 python scripts/check_style_profile.py draft.md --profile references/style-profile.json --phase <A|B|C|D> --genre <standard|sincere|micro-hope|surreal> --draft-gate
 python scripts/calibrate_style_profile.py <corpus-dir> --profile references/style-profile.json
+python scripts/check_clean_eval_trace.py <case-dir>/opencode-output.txt --json
 python scripts/prepare_blind_test.py draft.md <corpus-dir> --min-fragment-chars 550 --seed 1
 python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 python -m unittest discover -s test
