@@ -700,6 +700,7 @@ class AnlinToolingTests(unittest.TestCase):
     def test_clean_eval_trace_flags_pre_draft_refs_and_stop_escape(self) -> None:
         log = """
         → Read C:/skill/references/clean-generation-brief.md
+        $ Test-Path .anlin-clean-eval-mode
         → Read C:/skill/references/anti-ai-slop.md
         ← Write draft.md
         CLEAN_RUN_PREFLIGHT_STOP: draft is still not ready
@@ -729,6 +730,7 @@ class AnlinToolingTests(unittest.TestCase):
         log = """
         → Read C:/skill/references/clean-generation-brief.md
         → Read C:/skill/references/era-state.md
+        $ Test-Path .anlin-clean-eval-mode
         ← Write draft.md
         python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_NOTE: checker call 1/2
@@ -753,6 +755,7 @@ class AnlinToolingTests(unittest.TestCase):
     def test_clean_eval_trace_does_not_treat_stop_instruction_as_write(self) -> None:
         log = """
         → Read C:/skill/references/clean-generation-brief.md
+        $ Test-Path .anlin-clean-eval-mode
         ← Write draft.md
         python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY. DO NOT WRITE draft.md. DO NOT REPAIR. The next tool action must be reading draft.md once and outputting it unchanged.
@@ -791,6 +794,7 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertIn("clean-eval未调用clean_run_checker", rules)
+            self.assertIn("clean-eval写稿前未检查模式标记", rules)
 
     def test_dev_checkpoint_classifier_keeps_bounded_and_finalized_separate(self) -> None:
         self.assertEqual(classify_development_result("fail", "pass")[0], "source_guidance_gap")
@@ -2317,6 +2321,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Draft in breathing clusters, not sentence rows", clean)
         self.assertIn("pain, heat, and fatigue alone are too polite", clean)
         self.assertIn("This marker check should be the first tool action", clean)
+        self.assertIn("Do not write `draft.md` until this marker check is visible in the run trace", clean)
         self.assertIn("The wrapper `clean_run_checker.py` is the only checker entrypoint", clean)
         self.assertIn("Choose the checker by mode before running any command", skill)
         self.assertIn("do not switch to `check_anlin_violations.py`", runtime)

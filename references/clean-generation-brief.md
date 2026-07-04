@@ -8,6 +8,14 @@ Do not announce that you are loading references or building a state card. Do not
 
 Skill references are local bundled files. Do not call `read_mcp_resource` for this skill. Read local files directly only when this brief tells you to.
 
+First tool action for any formal draft workspace:
+
+```powershell
+Test-Path .anlin-clean-eval-mode
+```
+
+If this returns true, choose clean-eval mode before drafting. Do not write `draft.md` until this marker check is visible in the run trace. In clean-eval mode, `clean_run_checker.py` is the only checker entrypoint; `check_anlin_violations.py` belongs to ordinary user repair, finalized repair, or controller validation, not the bounded generation directory.
+
 For clean-eval generation, do not print the article to chat before the checker flow. First write the complete article to `draft.md` in the task workspace, run the bounded checker flow, then read `draft.md` once and output that exact content. A visible pre-check article followed by tools contaminates the run.
 
 Use the relative path `draft.md` or `.\draft.md` for the article file in the current task workspace. Do not construct an absolute path from memory, from a previous evaluation directory, or from a date-stamped folder. If the current directory is unclear, run `Get-Location` / `pwd`; do not guess.

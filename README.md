@@ -46,6 +46,8 @@ Follow-up run `iteration-20260704-17/eval-02-food-delivery-heatstroke` triggered
 
 Follow-up retest `iteration-20260704-18/eval-02-food-delivery-heatstroke` restored clean-eval routing: marker check happened first, the wrapper ran, and `split_long_lines.py` was used after the first preflight. The run still became invalid because the generator continued writing after `CLEAN_RUN_PREFLIGHT_STOP`, then hit `CLEAN_RUN_STOP`. Root fix: wrapper stop output and runtime docs now place `FINAL BOUNDARY`, `DO NOT WRITE draft.md`, and read-only next-action language at the start of the stop message.
 
+Follow-up retest `iteration-20260704-23/eval-02-food-delivery-heatstroke` used the realistic prompt with `longcat/LongCat-2.0` after commit `4be07ac`. The bounded run again produced a complete titled article but was invalid: the generator wrote `draft.md` before checking `.anlin-clean-eval-mode` and used the normal checker instead of `clean_run_checker.py`. The copied `finalized/` repair then passed strict hard gate and style-profile validation (`yellow`, zero errors), so the controller diagnosis is `source_guidance_gap`: the final article can converge, but the first-draft/limited-checker path is still too weak. Root fix from this case: `clean-generation-brief.md` now puts the marker check at the top as the first tool action, and `check_clean_eval_trace.py` separately flags `clean-eval写稿前未检查模式标记` so future reports identify the entry failure directly.
+
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
 ## Install Path

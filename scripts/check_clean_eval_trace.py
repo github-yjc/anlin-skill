@@ -64,6 +64,15 @@ def collect_findings(text: str) -> list[TraceFinding]:
         )
     first_write = first_index(normalized, ["Write draft.md", "filesystem_write_file", "write_file"])
     pre_draft = normalized[:first_write] if first_write >= 0 else normalized
+    if first_write >= 0 and ".anlin-clean-eval-mode" not in pre_draft:
+        findings.append(
+            TraceFinding(
+                "error",
+                "clean-eval写稿前未检查模式标记",
+                clean_excerpt(normalized, max(0, first_write - 80)),
+                "The first generation tool action in a bounded clean-eval workspace must check `.anlin-clean-eval-mode` before writing `draft.md`; otherwise the generator may use ordinary checker flow.",
+            )
+        )
     for reference in FORBIDDEN_PRE_DRAFT_REFERENCES:
         index = pre_draft.find(reference)
         if index >= 0:
