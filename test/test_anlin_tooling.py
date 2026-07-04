@@ -1303,6 +1303,32 @@ class AnlinToolingTests(unittest.TestCase):
                 any(item["rule"] == "strict: 无依据当前职场身份" for item in draft_gate_findings)
             )
 
+    def test_checker_draft_gate_rejects_unsupported_family_identity(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "上周连续中暑两天，老婆让我去医院看看。",
+                "我说不用，孩子他妈就不理我了。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any(rule == "strict: 无依据家庭身份: 老婆" for rule in rules))
+            self.assertTrue(any(rule == "strict: 无依据家庭身份: 孩子他妈" for rule in rules))
+
     def test_checker_draft_gate_rejects_missing_title(self) -> None:
         body = "\n".join(
             [
@@ -1984,6 +2010,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", clean)
         self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", runtime)
         self.assertIn("cannot be switched back to ordinary user mode", skill)
+        self.assertIn("At task start, check whether the current task workspace contains `.anlin-clean-eval-mode`", skill)
+        self.assertIn("The wrapper `clean_run_checker.py` is the only checker entrypoint", clean)
+        self.assertIn("Choose the checker by mode before running any command", skill)
         self.assertIn("Do not switch to `check_anlin_violations.py`", runtime)
         self.assertIn("Developer Two-Checkpoint Evaluation", validation)
         self.assertIn("Bounded clean-eval checkpoint", validation)
@@ -2066,6 +2095,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("negative list, not subject material", brief)
         self.assertIn("Game is allowed, not required", brief)
         self.assertIn("Do not invent a current office-worker identity", brief)
+        self.assertIn("Do not convert delivery work into a different biography", brief)
+        self.assertIn("wife, spouse, child", brief)
         self.assertIn("clean_run_checker.py draft.md --strict --draft-gate", brief)
 
     def test_background_fact_classes_are_boundaries_not_requirements(self) -> None:
@@ -2073,6 +2104,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("王者荣耀", table["classes"]["supported"]["game"])
         self.assertIn("打野教学", table["classes"]["unsupported"]["game_specifics"])
         self.assertIn("KPI", table["classes"]["unsupported"]["current_office_persona"])
+        self.assertIn("老婆", table["classes"]["unsupported"]["family_identity"])
         self.assertIn("Background facts are contradiction boundaries", table["principle"])
         self.assertIn("does not change action", table["runtime_rule"])
 

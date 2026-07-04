@@ -12,6 +12,8 @@ For clean-eval generation, do not print the article to chat before the checker f
 
 For ordinary user mode, the same quiet drafting rule applies, but the checker loop may continue until hard errors are cleared or the user is satisfied. The two-call stop rule belongs to clean-eval only.
 
+Before writing, check whether the current task workspace contains `.anlin-clean-eval-mode`. If it exists, use clean-eval mode and do not call `check_anlin_violations.py` directly in that bounded directory. The wrapper `clean_run_checker.py` is the only checker entrypoint for clean-eval.
+
 For clean-eval, this brief already contains the distilled anti-AI, title, rhythm, background, and scene constraints needed for the first draft. Do not open `anti-ai-slop.md`, `structure-patterns.md`, `title-model.md`, `generation-modes.md`, `runtime-brief.md`, corpus cards, judge rubrics, or style-ratio files before the first complete `draft.md`. Extra pre-draft files contaminate the source-guidance measurement and often cause checklist writing.
 
 ## Target
@@ -142,6 +144,8 @@ Named districts, current cities, company parks, local policies, current game-rol
 Load `references/anlin-background.md` and `references/background-fact-classes.json` only after a scene already contains a fact that must be checked.
 
 Do not invent a current office-worker identity. Unless the user gives a phase/date or concrete material that supports it, avoid first-person scenes built around `到了公司`, `同事小X`, `张哥`, `工位`, `领导`, `KPI`, `营收`, `财务`, meetings,饭卡, or quarterly office reporting. Work/company material is phase-bound and often belongs to other people, old work, interviews, layoffs, or screen pressure; default current generation should lower it to old coworker, recruitment surface, someone else's company, or ordinary daily life.
+
+Do not convert delivery work into a different biography. 2022 delivery work is supported as a pressure/work surface, but the narrator is still the corpus-bounded young graduate. Do not invent a wife, spouse, child, full-time rider family life, or older married-provider identity unless the user explicitly supplies that fact. If the prompt says `送外卖`, keep it as route, app, customer, heat, money, body, family pressure, or class-rank pressure; do not make it a marriage story.
 
 ## Ending
 

@@ -253,6 +253,16 @@ UNSUPPORTED_CITY_REVIEW_TERMS = [
     "湖南",
     "昆明",
 ]
+UNSUPPORTED_FAMILY_IDENTITY_TERMS = [
+    "老婆",
+    "妻子",
+    "媳妇",
+    "太太",
+    "我儿子",
+    "我女儿",
+    "孩子他妈",
+    "我家孩子",
+]
 BACKGROUND_DISPLAY_GROUPS = {
     "school_work": ["211", "春招", "外卖", "送外卖", "程序员", "被裁", "失业"],
     "game": ["王者", "王者荣耀", "星耀五", "ELO", "elo", "蔡文姬"],
@@ -681,6 +691,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "无依据具体地名",
     "无依据游戏角色细节",
     "无依据当前职场身份",
+    "无依据家庭身份",
     "日常对话引号",
     "对话接力过密",
     "游戏复盘细节",
@@ -1158,6 +1169,18 @@ def check_background_fact_specificity(findings: list[Finding], lines: list[str])
                         line_number,
                         clean_excerpt(line),
                         "城市名不一定错误，但必须来自用户背景、检索或语料锚点；否则优先降级为小城/那边/一个园区/学校门口等低断言表面。",
+                    )
+                )
+                break
+        for term in UNSUPPORTED_FAMILY_IDENTITY_TERMS:
+            if term in line:
+                findings.append(
+                    Finding(
+                        "warning",
+                        f"无依据家庭身份: {term}",
+                        line_number,
+                        clean_excerpt(line),
+                        "生成稿高风险：语料不支持把叙述者默认写成已婚、有配偶或有子女。送外卖、家庭、父母可以出现，但不要把提示里的职业/压力改写成另一个人的婚育传记；除非用户明确提供，删除或降级为父母/朋友/室友/路人关系。",
                     )
                 )
                 break

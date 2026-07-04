@@ -62,6 +62,8 @@ These are broad coordinates a generator may use to prevent contradictions. They 
 
 Negative evidence matters. A fact can be plausible and still unsupported. In the searched 38 originals, the narrator is not default-located in 湖南/长沙, 广州/深圳, 上海/杭州, 成都/重庆, 武汉/南京, 天津/苏州, 珠海/东莞/佛山, or a named district. 北京 appears often as a contrast or other person's space; do not turn it into narrator residence without user evidence. Yunnan does not automatically mean Kunming.
 
+The searched corpus does not support default spouse or child identity for the narrator. Do not write `老婆`, `妻子`, `媳妇`, `孩子`, `儿子`, `女儿`, or older married-provider family life unless the user explicitly provides it. Delivery work can be first-person, but it remains bounded by the 2022 graduate / spring-recruitment / family-and-class-rank context, not a new married rider persona.
+
 ## Phase Boundaries
 
 - 2022-04 to 2022-05: spring recruitment failure, graduation, delivery work, small-city/Yunnan weather, Java大哥/狗哥/室友/我姐/parents are strongest. Game and delivery jokes are natural, but still optional.

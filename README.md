@@ -26,6 +26,8 @@ Latest source-level tightening: clean-eval first draft may only use `clean-gener
 
 Latest controller tooling update: `scripts/summarize_dev_checkpoints.py` now summarizes bounded and finalized checkpoints separately, copies drafts into an external `controller-audit/` directory before normal checker runs, classifies the development result as source guidance gap, repair path gap, systemic gap, or ready for blind rounds, and reports `blind_round_readiness`. The script exits nonzero for any state that is not ready for blind rounds; the JSON/Markdown report is still the evidence to read.
 
+Latest development case after that update: `2022-food-delivery-heatstroke` was run as a bounded clean-eval case with a realistic prompt. The generated run was marked invalid because it read the correct skill but called the normal checker instead of `clean_run_checker.py`. The finalized repair checkpoint also did not pass strict/profile validation. Root fixes from that case: the checker route is now mode-first rather than normal-checker-first, and delivery prompts now explicitly forbid drifting into an unsupported married-rider biography.
+
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
 ## Install Path
