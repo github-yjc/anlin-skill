@@ -33,7 +33,7 @@ Do not write generated articles into the skill directory. Use these locations:
 
 If the current task workspace contains `.anlin-clean-eval-mode`, treat the request as clean-eval mode even if the user prompt itself reads like an ordinary article request. The marker is a mode selector, not writing advice; do not mention it in the article.
 
-At task start, check whether the current task workspace contains `.anlin-clean-eval-mode` before writing any draft or running any checker. In clean-eval mode, never call `check_anlin_violations.py` directly in the bounded case directory; the only checker entrypoint is `clean_run_checker.py`.
+At task start, check whether the current task workspace contains `.anlin-clean-eval-mode` before writing any draft or running any checker. For any request that will write `draft.md`, the first tool action should be a lightweight current-directory marker check such as `Test-Path .anlin-clean-eval-mode`, `Get-ChildItem -Force .anlin-clean-eval-mode`, or equivalent. A first `Write draft.md` before this marker check is a contaminated clean-eval run when the marker exists. In clean-eval mode, never call `check_anlin_violations.py` directly in the bounded case directory; the only checker entrypoint is `clean_run_checker.py`.
 
 ## Clean-Eval Minimum
 

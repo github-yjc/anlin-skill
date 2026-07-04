@@ -12,7 +12,7 @@ For clean-eval generation, do not print the article to chat before the checker f
 
 For ordinary user mode, the same quiet drafting rule applies, but the checker loop may continue until hard errors are cleared or the user is satisfied. The two-call stop rule belongs to clean-eval only.
 
-Before writing, check whether the current task workspace contains `.anlin-clean-eval-mode`. If it exists, use clean-eval mode and do not call `check_anlin_violations.py` directly in that bounded directory. The wrapper `clean_run_checker.py` is the only checker entrypoint for clean-eval.
+Before writing, check whether the current task workspace contains `.anlin-clean-eval-mode`. This marker check should be the first tool action before any `draft.md` write or checker command. If it exists, use clean-eval mode and do not call `check_anlin_violations.py` directly in that bounded directory. The wrapper `clean_run_checker.py` is the only checker entrypoint for clean-eval.
 
 For clean-eval, this brief already contains the distilled anti-AI, title, rhythm, background, and scene constraints needed for the first draft. Do not open `anti-ai-slop.md`, `structure-patterns.md`, `title-model.md`, `generation-modes.md`, `runtime-brief.md`, corpus cards, judge rubrics, or style-ratio files before the first complete `draft.md`. Extra pre-draft files contaminate the source-guidance measurement and often cause checklist writing.
 

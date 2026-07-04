@@ -30,6 +30,8 @@ Latest development case after that update: `2022-food-delivery-heatstroke` was r
 
 Latest two-checkpoint retest after `e80e3d2`: `iteration-20260704-10/eval-02-food-delivery-heatstroke` used the realistic prompt with `longcat/LongCat-2.0`. Trace audit was clean, but bounded clean-eval stopped at preflight (`calls=0`, `preflights=3`) because the draft became a 148-line no-punctuation short-line grid with binary reframe residue. Finalized repair improved the binary reframe and line count but still failed strict hard gate (`粗粝自毁信号不足`, `段落发动机信号偏弱`, `行末逗号比例`) and style-profile stayed `review`, so the controller diagnosis is `systemic_gap`, not source-guidance-only. Root fixes from this case: preflight now flags overfragmented grids directly, runtime guidance distinguishes line-final commas from internal comma chains, and repair guidance requires semantic reread after mechanical merging.
 
+Follow-up retest `iteration-20260704-11/eval-02-food-delivery-heatstroke` triggered the correct skill but wrote `draft.md` before checking `.anlin-clean-eval-mode` and then used the normal checker instead of `clean_run_checker.py`; trace checker marked the bounded run invalid. Root fix: the entry contract and clean generation brief now require a lightweight marker check as the first tool action before any `draft.md` write or checker command.
+
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
 ## Install Path
