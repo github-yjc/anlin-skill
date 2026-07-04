@@ -28,6 +28,8 @@ Latest controller tooling update: `scripts/summarize_dev_checkpoints.py` now sum
 
 Latest development case after that update: `2022-food-delivery-heatstroke` was run as a bounded clean-eval case with a realistic prompt. The generated run was marked invalid because it read the correct skill but called the normal checker instead of `clean_run_checker.py`. The finalized repair checkpoint also did not pass strict/profile validation. Root fixes from that case: the checker route is now mode-first rather than normal-checker-first, and delivery prompts now explicitly forbid drifting into an unsupported married-rider biography.
 
+Latest two-checkpoint retest after `e80e3d2`: `iteration-20260704-10/eval-02-food-delivery-heatstroke` used the realistic prompt with `longcat/LongCat-2.0`. Trace audit was clean, but bounded clean-eval stopped at preflight (`calls=0`, `preflights=3`) because the draft became a 148-line no-punctuation short-line grid with binary reframe residue. Finalized repair improved the binary reframe and line count but still failed strict hard gate (`粗粝自毁信号不足`, `段落发动机信号偏弱`, `行末逗号比例`) and style-profile stayed `review`, so the controller diagnosis is `systemic_gap`, not source-guidance-only. Root fixes from this case: preflight now flags overfragmented grids directly, runtime guidance distinguishes line-final commas from internal comma chains, and repair guidance requires semantic reread after mechanical merging.
+
 This README should be updated whenever the runtime architecture, validation protocol, or latest evidence boundary changes. A fresh pass/fail claim still requires new verification and fresh clean-eval generations after the latest commit.
 
 ## Install Path

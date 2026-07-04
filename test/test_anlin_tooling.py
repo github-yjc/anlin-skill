@@ -455,6 +455,39 @@ class AnlinToolingTests(unittest.TestCase):
             first = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", first.stdout)
 
+    def test_clean_run_checker_preflight_blocks_overfragmented_grid_without_consuming_call(self) -> None:
+        fragments = [
+            "车把是烫的",
+            "手套也是烫的",
+            "其实我觉得腿麻了",
+            "突然发现杯子脏",
+            "于是洗手",
+            "因为裤子湿了",
+            "好像要吐",
+            "但是没吐出来",
+            "丢人得很",
+            "反正也没人看",
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 下午三点半", "", *(fragments * 12)]), encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3)
+            self.assertIn("body_lines=120 > 90", preflight.stdout)
+            self.assertIn("long_lines=0 < 4", preflight.stdout)
+            self.assertIn("short_line_grid=", preflight.stdout)
+            self.assertIn("merge overfragmented short-line grids", preflight.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+
     def test_clean_run_checker_preflight_blocks_compressed_prose_shape(self) -> None:
         long_line = (
             "其实我摸了摸手机，觉得六条未读有点多，突然发现三条是运营商的催缴短信，"
@@ -2043,6 +2076,11 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Generated articles do not belong in the skill directory", runtime)
         self.assertIn("Natural connector coverage should be solved before the checker", clean)
         self.assertIn("Do not turn many hard-stop lines into one huge comma chain", runtime)
+        self.assertIn("do not create line breaks by deleting punctuation", skill)
+        self.assertIn("Line-final comma means the visible content line itself ends with", clean)
+        self.assertIn("A draft with many short rows and no visible punctuation is a generated line grid", runtime)
+        self.assertIn("actual line endings, not comma count inside long lines", runtime)
+        self.assertIn("reread for semantic damage", skill)
 
     def test_title_model_prevents_universal_ri_default(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

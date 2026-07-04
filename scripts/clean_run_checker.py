@@ -240,6 +240,7 @@ def preflight_messages(draft: Path) -> list[str]:
     body_line_count = len(line_lengths)
     mean_line = statistics.mean(line_lengths) if line_lengths else 0.0
     long_line_count = sum(1 for length in line_lengths if length >= 28)
+    short_line_ratio = (sum(1 for length in line_lengths if length <= 12) / len(line_lengths)) if line_lengths else 0.0
     first_twenty = visible_lines[:20]
     comma_ratio = (sum(1 for line in first_twenty if line.endswith("，")) / len(first_twenty)) if first_twenty else 0.0
     connectors = [term for term in HIGH_FREQUENCY_TERMS if term in body]
@@ -253,6 +254,14 @@ def preflight_messages(draft: Path) -> list[str]:
         messages.append(f"body_chinese_chars={body_chars} > {STANDARD_DIARY_DRAFT_OVERFULL_CHARS}")
     if body_line_count < 45:
         messages.append(f"body_lines={body_line_count} < 45 (write a line-broken article, not prose paragraphs)")
+    if body_line_count > 90:
+        messages.append(
+            f"body_lines={body_line_count} > 90 (overfragmented short-line grid; merge adjacent action/speech lines before checking)"
+        )
+    if body_line_count > 75 and long_line_count < 4:
+        messages.append(f"long_lines={long_line_count} < 4 (keep several rough longer action/speech/thought lines)")
+    if body_line_count >= 70 and short_line_ratio >= 0.45:
+        messages.append(f"short_line_grid={short_line_ratio:.2f} (do not create line breaks by deleting punctuation)")
     if body_chars >= 900 and (body_line_count <= 20 or mean_line >= 42 or long_line_count >= max(6, int(body_line_count * 0.65))):
         messages.append(
             f"prose_block_shape=compressed (body_lines={body_line_count}, mean_line={mean_line:.1f}, long_lines={long_line_count})"
@@ -286,7 +295,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             f"CLEAN_RUN_PREFLIGHT: draft is not ready for checker call {call_number}/2 "
             f"(preflight {attempt}/{max_attempts}); "
             + "; ".join(messages)
-            + ". Revise toward a complete but not overfilled article: write a line-broken article first, add concrete action/body/social/off-axis material only when short, or cut unsupported/non-consequential texture when long; then run this wrapper again. "
+            + ". Revise toward a complete but not overfilled article: write a line-broken article first, merge overfragmented short-line grids, keep punctuation at line endings, add concrete action/body/social/off-axis material only when short, or cut unsupported/non-consequential texture when long; then run this wrapper again. "
             "This preflight did not consume a checker call."
         )
     return True

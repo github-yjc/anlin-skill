@@ -27,6 +27,7 @@ For a standard diary blind-evaluation draft:
 - body shape: roughly 45-70 non-empty lines
 - at least six naturally longer lines above about 24 Chinese characters
 - mixed comma-led continuation lines and hard stop lines
+- line breaks keep punctuation when a clause needs it; do not remove commas or periods to make the page look broken
 - not 8-15 smooth prose blocks
 - not 100+ tiny rows
 
@@ -126,9 +127,12 @@ Use:
 - blunt short drops only when they land something
 - several rough connectors from `其实/觉得/发现/好像/不过/突然/于是/因为/所以`, distributed across actual turns instead of one repeated glue word
 
+Line-final comma means the visible content line itself ends with `，` because the next line continues the same action or thought. Internal commas inside a long line do not solve that rhythm. Keep punctuation at the line break instead of deleting it.
+
 Avoid:
 
 - every line ending with `。`
+- every line ending with no punctuation
 - all lines around the same length
 - one clause per line across the whole article
 - decorative comma spraying
@@ -136,6 +140,8 @@ Avoid:
 - 100+ body lines in a normal-length draft
 
 Before writing `draft.md`, scan the first 20 content lines. If nearly all end with `。`, change some ongoing action/thought lines into comma continuations. If most adjacent lines are 4-10 characters, merge them into rough spoken/action syntax.
+
+If the draft has more than about 90 content lines, or no naturally longer action/speech/thought lines, it is not a better Anlin surface; it is a generated short-line grid. Merge before checking. After merging, reread for broken facts and impossible object-action collisions.
 
 ## Background And Game
 

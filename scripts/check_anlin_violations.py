@@ -1845,7 +1845,7 @@ def check_period_comma_ratio(findings: list[Finding], lines: list[str]) -> None:
                 "行末逗号比例",
                 0,
                 f"first_{len(sample)}_lines_ratio={ratio:.2f}",
-                "参考区间约60-75%；偏离时人工检查节奏。",
+                "这里检查的是内容行实际以中文逗号结尾的比例，不是行内逗号数量。把仍在继续的动作/想法断在逗号后面；不要只把多行合成内部逗号长句。",
             )
         )
 
