@@ -318,6 +318,8 @@ PROCESS_LEAK_TERMS = [
     "per protocol",
     "current `draft.md`",
     "Here is the article",
+    "Now let me",
+    "write the draft article",
     "final article",
     "首段 preflight",
     "校验通过",
@@ -844,7 +846,7 @@ def check_isolated_punctuation(findings: list[Finding], lines: list[str]) -> Non
 
 def check_not_x_is_y(findings: list[Finding], lines: list[str]) -> None:
     patterns = [
-        re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:而|只|也)?是"),
+        re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:而|只|也|这|那)?(?:才)?是"),
         re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:就是|只是)"),
         re.compile(r"不是[^。！？\n]{1,28}[。！？]\s*(?:就是|只是)"),
         re.compile(r"其实不是[,，]?(?:好像|就是|只是|而是|是)"),
@@ -860,7 +862,7 @@ def check_not_x_is_y(findings: list[Finding], lines: list[str]) -> None:
         right = lines[index + 1].strip()
         if (
             re.search(r"不是[^。！？\n]{1,28}[，,]?$", left)
-            and re.match(r"^(?:而是|是|就是|只是)[^。！？\n]{1,40}", right)
+            and re.match(r"^(?:而是|是|就是|只是|这是|那是|才是)[^。！？\n]{1,40}", right)
         ):
             matches.append((index + 1, f"{left} / {right}"))
     for line_number, line in matches:

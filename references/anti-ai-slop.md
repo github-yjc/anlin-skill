@@ -18,6 +18,7 @@ Avoid explanatory contrast frames:
 - `不是X，而是Y`
 - `不是因为X，而是因为Y`
 - `X不是问题，Y才是`
+- `这不是X，这是Y`
 - `真正的X不是Y，而是Z`
 - `表面上X，实际上Y`
 - `像X，其实不是，好像就是Y`

@@ -183,7 +183,7 @@ Required wording:
 ## Output Rules
 
 - If the user asks for prose, output prose only unless they asked for process notes. The first visible line must be the article title, usually `日寄` or `# 日寄`; never print `State Card`, prompt buckets, scene slate, validation notes, Jaccard scores, checker summaries, or `草拟`.
-- Never prepend protocol explanations such as `This is the second checker call`, `per protocol`, `Here is the article`, or comments about `draft.md`. The first visible line must be the title.
+- Never prepend protocol explanations such as `This is the second checker call`, `per protocol`, `Here is the article`, `Now let me write the draft article`, or comments about `draft.md`. The first visible line must be the title.
 - Never announce clean-generation steps in Chinese either: no `现在构建状态卡`, `开始写草稿`, `检查器发现`, `需要重写`, `最后一次修复`, or similar process lines.
 - Do not narrate reference loading, file checks, or internal decisions to the user. Tool use and validation stay internal unless validation reporting was requested.
 - Do not include methodology labels inside the prose.
