@@ -8,6 +8,8 @@ Do not announce that you are loading references or building a state card. Do not
 
 Skill references are local bundled files. Do not call `read_mcp_resource` for this skill. Read local files directly only when this brief tells you to.
 
+For formal clean generation, do not print the article to chat before the checker flow. First write the complete article to `draft.md`, run the bounded checker flow, then read `draft.md` once and output that exact content. A visible pre-check article followed by tools contaminates the run.
+
 ## Target
 
 The goal is anonymous blind-evaluation robustness under reported conditions. Do not claim real authorship, provenance, or indistinguishability. The article itself must not mention validation, corpus, generated text, or methodology.

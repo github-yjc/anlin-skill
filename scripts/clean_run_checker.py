@@ -85,12 +85,77 @@ def normalize_before_final_check(draft: Path) -> None:
             encoding="utf-8",
             check=False,
         )
+    rebalance_medium_grid(draft)
     subprocess.run(
         [sys.executable, str(SOFTEN_LINE_ENDINGS), str(draft), "--in-place"],
         text=True,
         encoding="utf-8",
         check=False,
     )
+
+
+def is_title_candidate(line: str) -> bool:
+    stripped = line.strip()
+    if not stripped:
+        return False
+    if stripped.startswith("# "):
+        return True
+    return not re.search(r"[。！？!?，,：:；;]", stripped) and chinese_len(stripped) <= 24
+
+
+def content_line_indices(lines: list[str]) -> list[int]:
+    indices: list[int] = []
+    first_nonempty_seen = False
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if not first_nonempty_seen:
+            first_nonempty_seen = True
+            if is_title_candidate(stripped):
+                continue
+        if stripped.startswith("<!--"):
+            continue
+        indices.append(index)
+    return indices
+
+
+def join_for_rebalance(left: str, right: str) -> str:
+    left = left.rstrip()
+    right = right.strip()
+    return left + right
+
+
+def rebalance_medium_grid(draft: Path, *, min_long_lines: int = 6, min_body_lines: int = 45) -> None:
+    text = draft.read_text(encoding="utf-8")
+    lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    changed = False
+    while True:
+        indices = content_line_indices(lines)
+        lengths = [chinese_len(lines[index]) for index in indices]
+        long_lines = sum(1 for length in lengths if length >= 28)
+        if long_lines >= min_long_lines or len(indices) <= min_body_lines:
+            break
+        candidates: list[tuple[int, int]] = []
+        index_set = set(indices)
+        for left_index in indices:
+            right_index = left_index + 1
+            if right_index not in index_set:
+                continue
+            left_len = chinese_len(lines[left_index])
+            right_len = chinese_len(lines[right_index])
+            combined_len = chinese_len(join_for_rebalance(lines[left_index], lines[right_index]))
+            if left_len <= 23 and right_len <= 23 and 24 <= combined_len <= 48:
+                candidates.append((abs(combined_len - 32), left_index))
+        if not candidates:
+            break
+        _, left_index = min(candidates)
+        right_index = left_index + 1
+        lines[left_index] = join_for_rebalance(lines[left_index], lines[right_index])
+        del lines[right_index]
+        changed = True
+    if changed:
+        draft.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8", newline="\n")
 
 
 def has_binary_reframe(lines: list[str]) -> bool:
@@ -157,9 +222,9 @@ def preflight_before_check(draft: Path, call_number: int) -> bool:
     if len(connectors) < 5:
         messages.append(f"connectors={connectors} < 5")
     if len(engine_hits) < 3:
-        messages.append(f"engine_hits={engine_hits} < 3")
+        messages.append("paragraph_engine=weak (add a scene-level misread, bodily interruption, social wound, or ugly self-own; do not inspect checker source/tests)")
     if not rough_terms and not rough_patterns:
-        messages.append("rough_self_damage=[] (organic examples if the scene supports them: 丢人/尿/塞牙/狗屎/油蹭/痔疮/傻逼; do not mine checker source)")
+        messages.append("rough_self_damage=missing (add one organic ugly body/social/self-own consequence in your own words; do not inspect checker source/tests)")
     messages.extend(surface_preflight_messages(article_lines, "\n".join(article_lines)))
     if not messages:
         return False
