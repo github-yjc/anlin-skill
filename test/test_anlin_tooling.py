@@ -2172,7 +2172,7 @@ class AnlinToolingTests(unittest.TestCase):
         CLEAN_RUN_PREFLIGHT_STOP: draft is still not ready
         ← Write draft.md
         Remove-Item "case/.anlin-clean-run-state.json"
-        python scripts/check_anlin_violations.py draft.md
+        $ python scripts/check_anlin_violations.py draft.md
         """
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "opencode-output.txt"
@@ -2198,10 +2198,10 @@ class AnlinToolingTests(unittest.TestCase):
         → Read C:/skill/references/era-state.md
         $ Test-Path .anlin-clean-eval-mode
         ← Write draft.md
-        python scripts/clean_run_checker.py draft.md --strict --draft-gate
+        $ python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_NOTE: checker call 1/2
         ← Write draft.md
-        python scripts/clean_run_checker.py draft.md --strict --draft-gate
+        $ python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2
         → Read draft.md
         """
@@ -2218,6 +2218,31 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             findings = json.loads(result.stdout)
             self.assertFalse(any(item["severity"] == "error" for item in findings), findings)
+
+    def test_clean_eval_trace_rejects_missing_persisted_draft_even_if_reference_mentions_checker(self) -> None:
+        log = """
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        → Read C:/skill/references/clean-generation-brief.md
+        The brief says run python scripts/clean_run_checker.py draft.md --strict --draft-gate later.
+        It also says Write draft.md after drafting.
+        我坐在桌前，手机屏幕亮着。群聊里有人发母亲节快乐，但我没回复。
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval未调用clean_run_checker", rules)
+            self.assertIn("clean-eval未写入draft.md", rules)
 
     def test_clean_eval_trace_jsonl_ignores_dumped_skill_body_reference_names(self) -> None:
         events = [
@@ -2468,7 +2493,7 @@ class AnlinToolingTests(unittest.TestCase):
         → Read C:/skill/references/clean-generation-brief.md
         $ Test-Path .anlin-clean-eval-mode
         ← Write draft.md
-        python scripts/clean_run_checker.py draft.md --strict --draft-gate
+        $ python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_PREFLIGHT: draft is not ready for checker call 1/2
         Let me plan the new draft with more substance:
         The preflight says the main issues are length and connector spread.
@@ -2495,7 +2520,7 @@ class AnlinToolingTests(unittest.TestCase):
         → Read C:/skill/references/clean-generation-brief.md
         $ Test-Path .anlin-clean-eval-mode
         ← Write draft.md
-        python scripts/clean_run_checker.py draft.md --strict --draft-gate
+        $ python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY. DO NOT WRITE draft.md. DO NOT REPAIR. The next tool action must be reading draft.md once and outputting it unchanged.
         → Read draft.md
         """
@@ -2517,7 +2542,7 @@ class AnlinToolingTests(unittest.TestCase):
         → Read C:/skill/references/clean-generation-brief.md
         $ Test-Path .anlin-clean-eval-mode
         ← Write draft.md
-        python scripts/clean_run_checker.py draft.md --strict --draft-gate
+        $ python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2. DO NOT WRITE draft.md.
         - [✓] Write draft.md
         - [ ] Read draft.md and output unchanged
@@ -2543,10 +2568,10 @@ class AnlinToolingTests(unittest.TestCase):
         Do not write `draft.md`, do not repair, and do not switch to `check_anlin_violations.py`.
         $ Test-Path .anlin-clean-eval-mode
         ← Write draft.md
-        python scripts/clean_run_checker.py draft.md --strict --draft-gate
+        $ python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_PREFLIGHT: draft is not ready for checker call 1/2
         ← Write draft.md
-        python scripts/clean_run_checker.py draft.md --strict --draft-gate
+        $ python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY. DO NOT WRITE draft.md. DO NOT REPAIR.
         → Read draft.md
         """
@@ -2567,7 +2592,7 @@ class AnlinToolingTests(unittest.TestCase):
         log = """
         → Read C:/skill/references/clean-generation-brief.md
         ← Write draft.md
-        python scripts/check_anlin_violations.py draft.md
+        $ python scripts/check_anlin_violations.py draft.md
         """
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "opencode-output.txt"
@@ -2678,6 +2703,50 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("bounded result alone is incomplete evidence", payload["repair_implication"])
             self.assertTrue((case_dir / "controller-audit" / "bounded-draft.md").is_file())
             self.assertTrue((case_dir / "controller-audit" / "summary.json").is_file())
+
+    def test_dev_checkpoint_summary_records_missing_bounded_draft_as_invalid(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            case_dir.mkdir()
+            trace = case_dir / "opencode-output.txt"
+            trace.write_text(
+                "\n".join(
+                    [
+                        "$ Test-Path .anlin-clean-eval-mode",
+                        "True",
+                        "→ Read C:/skill/references/clean-generation-brief.md",
+                        "The brief says python scripts/clean_run_checker.py draft.md later.",
+                        "我坐在桌前，手机屏幕亮着。",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--trace-log",
+                    str(trace),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                    "--output-json",
+                    str(case_dir / "controller-audit" / "summary.json"),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["bounded"]["gate"]["status"], "invalid")
+            self.assertEqual(payload["bounded"]["gate"]["clean_stop_reason"], "missing_draft")
+            self.assertIn("never persisted a draft.md artifact", payload["bounded_checkpoint_answer"])
+            self.assertTrue((case_dir / "controller-audit" / "bounded-draft-missing.md").is_file())
+            trace_rules = [item["rule"] for item in payload["bounded"]["trace_findings"]]
+            self.assertIn("clean-eval未写入draft.md", trace_rules)
 
     def test_dev_checkpoint_summary_reports_clean_run_stage_audits(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -4787,6 +4856,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("cut one whole packet before adding any new material", skill)
         self.assertIn("This marker check should be the first tool action", clean)
         self.assertIn("Do not write `draft.md` until this marker check is visible in the run trace", clean)
+        self.assertIn("marker check -> read this brief -> write one complete `draft.md` -> run `clean_run_checker.py`", clean)
+        self.assertIn("visible scratch article without `draft.md` is a failed run", clean)
         self.assertIn("The wrapper `clean_run_checker.py` is the only checker entrypoint", clean)
         self.assertIn("Choose the checker by mode before running any command", skill)
         self.assertIn("do not switch to `check_anlin_violations.py`", runtime)
@@ -4827,7 +4898,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("最终稿不能只凭普通检查器通过", eval_readme)
         self.assertIn("artifact failure", eval_readme)
         self.assertIn("terminal/log-only final prose is an artifact failure", layer_map)
-        self.assertIn("finalized draft unchanged from bounded input", (ROOT / "scripts" / "summarize_dev_checkpoints.py").read_text(encoding="utf-8"))
+        summary_script = (ROOT / "scripts" / "summarize_dev_checkpoints.py").read_text(encoding="utf-8")
+        self.assertIn("finalized draft unchanged from bounded input", summary_script)
+        self.assertIn("Missing Draft Artifact", summary_script)
         self.assertIn("finalized 仍为 review/fail/invalid", eval_readme)
         self.assertIn("bounded clean-eval checkpoint", layer_map)
         self.assertIn("finalized repair checkpoint", layer_map)

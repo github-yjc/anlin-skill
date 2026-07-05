@@ -127,6 +127,35 @@ def first_index(text: str, patterns: list[str]) -> int:
     return min(indices) if indices else -1
 
 
+def actual_clean_run_checker_index(text: str) -> int:
+    patterns = [
+        r"(?im)^\s*\$\s+[^\n]*clean_run_checker\.py\b",
+        r"(?im)^\s*TITLE\s+[^\n]*clean_run_checker\.py\b",
+        r"(?im)^\s*INPUT\s+[^\n]*(?:command|cmd)[^\n]*clean_run_checker\.py\b",
+    ]
+    indices: list[int] = []
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if match:
+            indices.append(match.start())
+    return min(indices) if indices else -1
+
+
+def actual_draft_write_index(text: str) -> int:
+    patterns = [
+        r"(?im)^\s*(?:←\s*)?Write\s+draft\.md\b",
+        r"(?im)^\s*TITLE\s+Write\s+draft\.md\b",
+        r"(?im)^\s*TOOL\s+filesystem_write_file\b[^\n]*(?:\n[^\n]*){0,3}draft\.md\b",
+        r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*draft\.md[^\n]*(?:content|write)",
+    ]
+    indices: list[int] = []
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if match:
+            indices.append(match.start())
+    return min(indices) if indices else -1
+
+
 def actual_reference_action_index(text: str, reference: str) -> int:
     """Return the index of a real pre-draft reference load.
 
@@ -173,7 +202,7 @@ def clean_excerpt(text: str, start: int, width: int = 180) -> str:
 def collect_findings(text: str) -> list[TraceFinding]:
     normalized = normalize_log(text)
     findings: list[TraceFinding] = []
-    if "clean_run_checker.py" not in normalized:
+    if actual_clean_run_checker_index(normalized) < 0:
         findings.append(
             TraceFinding(
                 "error",
@@ -182,7 +211,16 @@ def collect_findings(text: str) -> list[TraceFinding]:
                 "Bounded clean-eval generation must use clean_run_checker.py. A run that uses only the normal checker belongs to ordinary/finalized repair, not the bounded checkpoint.",
             )
         )
-    first_write = first_index(normalized, ["Write draft.md", "filesystem_write_file", "write_file"])
+    first_write = actual_draft_write_index(normalized)
+    if first_write < 0:
+        findings.append(
+            TraceFinding(
+                "error",
+                "clean-eval未写入draft.md",
+                clean_excerpt(normalized, 0),
+                "Bounded clean-eval generation must persist one complete titled article to draft.md before checker flow. Visible scratch prose in the terminal does not count.",
+            )
+        )
     pre_draft = normalized[:first_write] if first_write >= 0 else normalized
     if first_write >= 0 and ".anlin-clean-eval-mode" not in pre_draft:
         findings.append(
@@ -216,7 +254,7 @@ def collect_findings(text: str) -> list[TraceFinding]:
             ),
             (
                 "stop后切普通checker",
-                r"(?m)^\s*(?:python|py|uv|bash|powershell|cmd|INPUT|TITLE)\b[^\n]{0,220}check_anlin_violations\.py",
+                r"(?m)^\s*(?:\$\s*)?(?:python|py|uv|bash|powershell|cmd|INPUT|TITLE)\b[^\n]{0,220}check_anlin_violations\.py",
                 re.IGNORECASE,
             ),
             ("stop后删除状态", r"(Remove-Item|rm\s+|del\s+).{0,120}\.anlin-clean-run-state\.json", re.IGNORECASE),

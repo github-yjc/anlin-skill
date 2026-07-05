@@ -502,6 +502,11 @@ def bounded_answer(checkpoint: CheckpointReport) -> str:
             "It stopped at preflight before formal checker call 1/2, so this is source/preflight evidence, "
             "not evidence that the two actual checker corrections were tested."
         )
+    elif gate.clean_stop_reason == "missing_draft":
+        boundary = (
+            "It never persisted a draft.md artifact, so neither preflight nor the two-call checker boundary was tested. "
+            "Visible terminal prose or reasoning is an execution/protocol failure, not a reviewable article."
+        )
     elif gate.clean_calls == 2:
         boundary = "It reached the two-call checker boundary, so limited checker-driven repair was tested."
     elif gate.clean_calls == 1:
@@ -604,6 +609,64 @@ def build_checkpoint(
         trace_findings=trace_findings,
         clean_state=clean_state,
         stage_audits=stage_audits,
+    )
+
+
+def build_missing_draft_checkpoint(
+    *,
+    name: str,
+    draft: Path,
+    audit_root: Path,
+    bounded: bool,
+    trace_log: Path | None,
+) -> CheckpointReport:
+    audit_root.mkdir(parents=True, exist_ok=True)
+    audit_draft = audit_root / f"{name}-draft-missing.md"
+    audit_draft.write_text(
+        "\n".join(
+            [
+                "# Missing Draft Artifact",
+                "",
+                f"Expected draft path: {draft}",
+                "The generation run did not persist a draft.md artifact, so hard-gate, style-profile, corpus, and blind-review checks cannot be run for this checkpoint.",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    trace_findings, _trace_command = run_trace_gate(trace_log if bounded else None)
+    trace_errors = sum(1 for item in trace_findings if item.get("severity") == "error")
+    trace_warnings = sum(1 for item in trace_findings if item.get("severity") == "warning")
+    notes = [
+        "draft.md artifact missing; visible terminal prose or reasoning does not count as a bounded clean-eval draft",
+    ]
+    if bounded:
+        notes.append("bounded run never reached persisted draft/checker checkpoint")
+    gate = GateSummary(
+        status="invalid",
+        hard_errors=0,
+        hard_warnings=0,
+        style_status=None,
+        style_checkpoint_decision=None,
+        style_red_families=[],
+        style_yellow_families=[],
+        trace_errors=trace_errors,
+        trace_warnings=trace_warnings,
+        clean_calls=None,
+        clean_preflights=None,
+        clean_stop_reason="missing_draft",
+        notes=notes,
+    )
+    return CheckpointReport(
+        name=name,
+        draft=str(draft),
+        audit_draft=str(audit_draft),
+        gate=gate,
+        hard_findings=[],
+        style_report=None,
+        corpus_report=None,
+        trace_findings=trace_findings,
+        clean_state={},
+        stage_audits=[],
     )
 
 
@@ -714,8 +777,6 @@ def main() -> int:
 
     case_dir = args.case_dir.resolve()
     bounded_draft = (args.bounded_draft or (case_dir / "draft.md")).resolve()
-    if not bounded_draft.is_file():
-        parser.error(f"bounded draft not found: {bounded_draft}")
     finalized_draft = args.finalized_draft.resolve() if args.finalized_draft else None
     if finalized_draft is not None and not finalized_draft.is_file():
         parser.error(f"finalized draft not found: {finalized_draft}")
@@ -723,17 +784,26 @@ def main() -> int:
     audit_root = case_dir / "controller-audit"
     effective_genre = args.genre or infer_genre_from_case_dir(case_dir)
 
-    bounded = build_checkpoint(
-        name="bounded",
-        draft=bounded_draft,
-        audit_root=audit_root,
-        bounded=True,
-        corpus_dir=args.corpus_dir,
-        profile=args.profile,
-        phase=args.phase,
-        genre=effective_genre,
-        trace_log=args.trace_log,
-    )
+    if bounded_draft.is_file():
+        bounded = build_checkpoint(
+            name="bounded",
+            draft=bounded_draft,
+            audit_root=audit_root,
+            bounded=True,
+            corpus_dir=args.corpus_dir,
+            profile=args.profile,
+            phase=args.phase,
+            genre=effective_genre,
+            trace_log=args.trace_log,
+        )
+    else:
+        bounded = build_missing_draft_checkpoint(
+            name="bounded",
+            draft=bounded_draft,
+            audit_root=audit_root,
+            bounded=True,
+            trace_log=args.trace_log,
+        )
     finalized = None
     if finalized_draft is not None:
         finalized = build_checkpoint(

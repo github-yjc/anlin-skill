@@ -20,6 +20,8 @@ If this returns true, choose clean-eval mode before drafting. Do not write `draf
 
 For clean-eval generation, do not print the article to chat before the checker flow. First write the complete article to `draft.md` in the task workspace, run the bounded checker flow, then read `draft.md` once and output that exact content. A visible pre-check article followed by tools contaminates the run.
 
+Clean-eval tool order is part of the test, not a suggestion: marker check -> read this brief -> write one complete `draft.md` -> run `clean_run_checker.py`. After this brief is loaded, do not draft trial paragraphs, scene plans, or repeated scratch versions in the terminal. If the article is imperfect, persist the best complete titled candidate to `draft.md` and let the wrapper diagnose it; a visible scratch article without `draft.md` is a failed run.
+
 Use the relative path `draft.md` or `.\draft.md` for the article file in the current task workspace. Do not construct an absolute path from memory, from a previous evaluation directory, or from a date-stamped folder. If the current directory is unclear, run `Get-Location` / `pwd`; do not guess.
 
 For ordinary user mode, the same quiet drafting rule applies, but the checker loop may continue until hard errors are cleared or the user is satisfied. The two-call stop rule belongs to clean-eval only.
