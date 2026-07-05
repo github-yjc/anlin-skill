@@ -636,6 +636,84 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("短体裁整齐散文", rules)
             self.assertFalse(any("标准日寄完整文章篇幅" in rule for rule in error_rules), error_rules)
 
+    def test_checker_warns_on_short_sincere_literary_story_closure(self) -> None:
+        body = "\n".join(
+            [
+                "# 鸡蛋",
+                "",
+                "手机从早上亮到中午，朋友圈里全是康乃馨和月亮表情。",
+                "我把屏幕扣在桌上，没给我妈发消息，",
+                "因为手上还有洗洁精的味道，",
+                "碗里那点油被冷水冲了半天还在。",
+                "",
+                "冰箱里有她上次塞给我的鸡蛋，",
+                "塑料袋打了两个结，像怕我在路上把生活过碎一样。",
+                "我拆的时候有一个壳裂了，",
+                "蛋清没有流出来，",
+                "只是裂缝卡了一点灰。",
+                "",
+                "小时候下雨，她骑车送我上学，雨衣罩在我身上，",
+                "我坐在后座，觉得自己像一袋要被退货的米。",
+                "到校门口她裤腿湿了一半，",
+                "还让我快进去，",
+                "我那时候只嫌她车铃太响。",
+                "",
+                "中午水烧开了，",
+                "鸡蛋在锅里碰来碰去，",
+                "手机又亮了一次。",
+                "我看见输入框里只剩一个节日快乐，",
+                "删掉以后，",
+                "厨房反而安静了。",
+                "",
+                "裤子上的水印还在，拖鞋也是反的。",
+                "我没有换。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertIn("短真诚小小说闭合", rules)
+            self.assertFalse(any("标准日寄完整文章篇幅" in rule for rule in rules), rules)
+
+    def test_clean_run_preflight_flags_short_sincere_literary_story_closure(self) -> None:
+        body = "\n".join(
+            [
+                "# 鸡蛋",
+                "",
+                "手机屏幕亮着，朋友圈里有人发康乃馨，",
+                "我看了几秒，没有给妈妈发消息。",
+                "上次回家，她煮了一袋鸡蛋让我带走，塑料袋在背包里晃了一路。",
+                "袋子口打得很紧，",
+                "我拆的时候还把指甲掰了一下。",
+                "小时候下雨，她骑自行车送我上学，雨衣罩在我身上，风一吹就鼓起来。",
+                "到了校门口，她头发全湿了，还让我快进去。",
+                "我那时候只觉得雨衣太丑，",
+                "像一只被批发来的青蛙。",
+                "我现在想给她发点什么，手指停在发送键旁边，又放下了。",
+                "冰箱里的鸡蛋还剩四个，有一个裂了，蛋壳上有一小块灰。",
+                "水烧开以后，厨房里全是白汽。",
+                "锅盖被顶得咔咔响，",
+                "我站在旁边看它响完。",
+                "裤子上的水印还在，拖鞋也是反的。",
+                "我没有换。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(any(message.startswith("short_genre_literary_story_closure=") for message in messages), messages)
+
     def test_checker_draft_gate_still_treats_plain_family_diary_as_standard_attempt(self) -> None:
         lines = [
             "我妈在饭桌上问我什么时候回去。",
@@ -3769,7 +3847,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("开发测试应轮换生成模型", eval_readme)
         self.assertIn("不要把某个模型上轮失败的分析追加给下轮生成 agent", eval_readme)
         validation_lower = validation.lower()
-        for provider_token in ["deepseek", "mimo", "minimax", "gpt-5.5", "bigzickle"]:
+        for provider_token in ["deepseek", "mimo", "minimax", "gpt-5.5", "big-pickle"]:
             self.assertNotIn(provider_token, validation_lower)
             self.assertNotIn(provider_token, runtime_combined)
 

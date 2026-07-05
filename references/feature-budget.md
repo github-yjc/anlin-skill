@@ -40,6 +40,7 @@ These apply to all normal generation:
 30. No anti-AI-reference contamination: anti-slop terms in this skill are negative examples, not content prompts. Unless the user supplied it, do not write AI/GPT/model/text-detection scenes or advice about identifying generated prose.
 31. No repeated texture-packet repair: if a draft keeps returning to the same body/object packet, such as hand dirt, white food, cutting board, garbage, route heat, payment, or dark room, do not add another proof-detail. Delete one packet and replace its function with a social or practical consequence that changes reply, payment, route, room position, or next action.
 32. No polished short-genre essay: sincere and micro-hope pieces can be short, but they still need uneven breathing, rough logistics, awkward reply/practical interruption, and factual retreat. Do not submit a 25-35-line smooth prose piece where every line completes the same feeling.
+33. No short sincere literary-story closure: a title object, mother/family memory, childhood rain, withheld message, and final tasteful residue must not all point to the same love/guilt argument. Cut one symbolic proof or add a present-day practical interruption before the article becomes a small designed story.
 
 ## Strong Defaults
 
@@ -135,6 +136,7 @@ Avoid:
 - writing every line as a finished emotional sentence
 - polished minimalism where every line is a complete emotional unit
 - mother/family memories arranged as a clean proof of love or guilt
+- one title object making the opening, memory, message, and ending all explain each other
 - titles that summarize the withheld confession
 - stretching into standard diary only to satisfy a global profile
 - adding game/body/route/background labels because the short genre feels too quiet

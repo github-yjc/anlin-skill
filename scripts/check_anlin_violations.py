@@ -15,6 +15,7 @@ import re
 import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -2003,6 +2004,142 @@ def check_short_genre_polished_minimalism(findings: list[Finding], lines: list[s
         )
 
 
+SHORT_GENRE_STORY_OBJECT_TERMS = [
+    "鸡蛋",
+    "蛋壳",
+    "塑料袋",
+    "雨衣",
+    "雨伞",
+    "伞",
+    "冰箱",
+    "油",
+    "碗",
+    "米饭",
+    "拖鞋",
+    "裤子",
+    "水印",
+    "水龙头",
+    "康乃馨",
+    "朋友圈",
+    "屏幕",
+    "消息",
+    "月亮",
+    "月亮表情",
+]
+
+SHORT_GENRE_MEMORY_ARC_TERMS = [
+    "小时候",
+    "以前",
+    "上次",
+    "那时候",
+    "当时",
+    "下雨",
+    "送我上学",
+    "校门口",
+    "回家",
+]
+
+SHORT_GENRE_MESSAGE_CLOSURE_TERMS = [
+    "没发",
+    "没有发",
+    "没回",
+    "没有回",
+    "发送键",
+    "发消息",
+    "翻过去",
+    "放下",
+    "没有换",
+    "还在",
+]
+
+
+def short_genre_literary_story_risk(lines: list[str], text: str) -> dict[str, Any] | None:
+    """Return a conservative risk summary for polished short-genre story closure.
+
+    This is intentionally a generated-draft warning, not an authorship claim.
+    It targets the repeated failure where a short sincere piece becomes a clean
+    memory story: one symbolic object, one mother-memory arc, one unsent message,
+    and a tasteful ending that closes the title.
+    """
+    style = detect_style(text)
+    if style == "standard":
+        return None
+    title, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [
+        line.strip()
+        for line in content_lines
+        if line.strip() and not line.strip().startswith("<!--")
+    ]
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < 220 or len(visible_lines) < 12:
+        return None
+
+    title_key = title.lstrip("#").strip()
+    title_key = re.sub(r"\s+", "", title_key)
+    if len(title_key) > 6:
+        title_key = ""
+
+    family_hits = [term for term in SINCERE_MOTHER_SUBJECT_MARKERS if term in body]
+    holiday_or_message_hits = [term for term in SINCERE_HOLIDAY_OR_MESSAGE_MARKERS if term in body]
+    care_hits = [term for term in SINCERE_CARE_MEMORY_MARKERS if term in body]
+    object_hits = [term for term in SHORT_GENRE_STORY_OBJECT_TERMS if term in body]
+    memory_hits = [term for term in SHORT_GENRE_MEMORY_ARC_TERMS if term in body]
+    closure_hits = [term for term in SHORT_GENRE_MESSAGE_CLOSURE_TERMS if term in body]
+    tail = "\n".join(visible_lines[-8:])
+
+    title_echo_count = body.count(title_key) if title_key else 0
+    title_tail_echo = bool(title_key and title_key in tail)
+    object_density = len(object_hits) / max(1, body_chars / 100)
+
+    risk_score = 0
+    reasons: list[str] = []
+    if family_hits and (holiday_or_message_hits or len(care_hits) >= 2):
+        risk_score += 2
+        reasons.append("mother_message_memory")
+    if len(memory_hits) >= 3:
+        risk_score += 1
+        reasons.append(f"linear_memory_terms={memory_hits[:4]}")
+    if len(object_hits) >= 6 or object_density >= 1.35:
+        risk_score += 1
+        reasons.append(f"object_density={object_density:.2f}")
+    if len(closure_hits) >= 2:
+        risk_score += 1
+        reasons.append(f"message_withholding={closure_hits[:4]}")
+    if title_echo_count >= 3 or title_tail_echo:
+        risk_score += 1
+        reasons.append(f"title_echo_count={title_echo_count},tail={title_tail_echo}")
+    if re.search(r"(?:我)?没有(?:换|回|发|点开)|(?:水印|拖鞋|鸡蛋|屏幕|消息)[^。！？\n]{0,18}还在", tail):
+        risk_score += 1
+        reasons.append("tasteful_tail_residue")
+
+    if risk_score < 4:
+        return None
+    return {
+        "style": style,
+        "body_chars": body_chars,
+        "body_lines": len(visible_lines),
+        "risk_score": risk_score,
+        "reasons": reasons[:6],
+        "title": title_key,
+    }
+
+
+def check_short_genre_literary_story_closure(findings: list[Finding], lines: list[str], text: str) -> None:
+    risk = short_genre_literary_story_risk(lines, text)
+    if not risk:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "短真诚小小说闭合",
+            0,
+            json.dumps(risk, ensure_ascii=False),
+            "短真诚/微小希望生成稿高风险：一个标题物件、母亲/记忆、未发消息和漂亮尾巴组成了完整小小说，盲评容易读成设计好的AI转写。不要加更多感官物件；删弱一个象征回环，加入已经在当天发生的笨拙回复、实际打断或不服务主题的生活残留，让结尾退到未完成动作而不是证明标题。",
+        )
+    )
+
+
 def check_connector_overuse(findings: list[Finding], text: str) -> None:
     style = detect_style(text)
     if style != "standard" or chinese_len(text) < 650:
@@ -2915,6 +3052,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_dialogue_stack(findings, lines)
     check_high_frequency_coverage(findings, text)
     check_short_genre_polished_minimalism(findings, lines, text)
+    check_short_genre_literary_story_closure(findings, lines, text)
     check_connector_overuse(findings, text)
     check_diagnostic_title(findings, lines)
     check_high_signal_opening(findings, lines)

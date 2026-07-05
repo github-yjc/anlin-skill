@@ -23,6 +23,7 @@ Rewrite or refuse the relevant part if any appears:
 - the ending uses `哦`, `算了`, `睡了`, a dark screen, or a lone sound effect as a decorative style marker rather than a forced consequence
 - formal blind-evaluation draft depends on extra style hints outside the skill and realistic user prompt
 - standard diary reads as a smooth realist short story: all scenes follow one emotional arc, every object serves the same wound, no lateral branch, no rough social misfire, and no crooked laugh
+- short sincere or micro-hope draft reads as a clean literary short story: one title object, one care memory, one withheld message, and one final residue all close the same emotional argument
 - ending is a tasteful withheld image that completes the emotional argument rather than a low consequence or interrupted action
 - standard diary is sealed inside one room/night/app chain and closes by neatly repaying an early object or debt
 - generated formal draft uses AI-reframe prose such as `不是X，是Y`, `不是因为X，而是因为Y`, `真正的问题是`, `本质上`, or other blog-like explanation that announces the insight
@@ -166,6 +167,12 @@ Registers include laugh, sting, tenderness, deflection, absurdity, analysis, bod
 - 2: final movement follows from an action, interruption, physical consequence, reply, route, payment, object, or unfinished chore
 - 1: ending is tonally plausible but uses a familiar short retreat
 - 0: ending behaves like a learned style button or completes the emotional argument
+
+### Short-Genre Story Closure
+
+- 2: short sincere/micro-hope piece has a title and emotional pressure, but current action, awkward interruption, or useless residue prevents a designed story closure
+- 1: title object or memory returns once with plausible force, but the ending does not fully explain it
+- 0: title object, family/memory proof, withheld message, and final residue all point to one neat love/guilt/hope argument
 
 ## Genre Adjustments
 

@@ -45,6 +45,7 @@ from check_anlin_violations import (  # noqa: E402
     detect_style,
     meta_ai_topic_hits,
     prompt_performing_dialogue_hits,
+    short_genre_literary_story_risk,
     split_title_and_content_lines,
 )
 
@@ -401,6 +402,12 @@ def preflight_messages(draft: Path) -> list[str]:
             messages.append(f"{style}_body_chinese_chars={body_chars} < 180")
         if body_line_count < 8:
             messages.append(f"{style}_body_lines={body_line_count} < 8")
+        short_story_risk = short_genre_literary_story_risk(text.splitlines(), text)
+        if short_story_risk:
+            messages.append(
+                "short_genre_literary_story_closure="
+                + json.dumps(short_story_risk, ensure_ascii=False)
+            )
         messages.extend(surface_preflight_messages(article_lines, "\n".join(article_lines)))
         return messages
     source_shape_weak = (
