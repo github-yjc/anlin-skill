@@ -454,6 +454,36 @@ CURRENT_OFFICE_PERSONA_TERMS = [
     "季度",
 ]
 CURRENT_OFFICE_HIGH_SPECIFIC_TERMS = ["到了公司", "工位", "KPI", "kpi", "营收", "王总", "同事小", "张哥"]
+WORK_CONSEQUENCE_CHAIN_TERMS = [
+    "领导",
+    "主管",
+    "组长",
+    "经理",
+    "同事",
+    "公司",
+    "上班",
+    "下班",
+    "请假",
+    "病假",
+    "扣钱",
+    "工资",
+    "考勤",
+    "打卡",
+    "周一",
+    "周报",
+    "文件",
+    "表格",
+    "汇报",
+    "开会",
+    "绩效",
+    "KPI",
+    "kpi",
+]
+WORK_CONSEQUENCE_CHAIN_PATTERNS = [
+    re.compile(r"(?:领导|主管|组长|经理)[^。！？\n]{0,50}(?:文件|表格|周一|明天|今天|请假|扣钱|上班|开会|汇报|KPI|kpi|绩效|打卡|考勤)"),
+    re.compile(r"(?:请假|病假)[^。！？\n]{0,35}(?:扣钱|工资|领导|主管|组长|经理|公司|上班|考勤|打卡)"),
+    re.compile(r"(?:周一|明天|今天)[^。！？\n]{0,35}(?:要交|要发|交材料|交表|交文件|汇报|开会)"),
+]
 THIRD_PERSON_OFFICE_SURFACE_MARKERS = [
     "朋友圈",
     "动态",
@@ -886,6 +916,10 @@ MATERIAL_ECHO_TERMS = [
     "奥美拉唑还剩最后一片",
     "明天记得买",
     "Type-C",
+    "空调外机还在响",
+    "空调外机一直响",
+    "空调外机嗡嗡",
+    "窗外的空调外机一直响着",
 ]
 PROMPT_CHAIN_TERMS = sorted(
     {
@@ -979,6 +1013,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "无依据具体地名",
     "无依据游戏角色细节",
     "无依据当前职场身份",
+    "无依据工作后果链",
     "无依据家庭身份",
     "日常对话引号",
     "对话接力过密",
@@ -1704,6 +1739,50 @@ def check_current_office_persona(findings: list[Finding], text: str) -> None:
             0,
             f"terms={hits}",
             "生成稿高风险：默认当前日期/无用户事实时，不要把叙述者写成办公室职员、公司同事、领导/KPI/营收叙事。公司和同事在语料中有阶段/人称边界；若无明确日期或用户材料，降级为招聘、旧同事、他人公司、屏幕消息或普通生活场景。",
+        )
+    )
+
+
+def work_consequence_chain_hits(lines: list[str]) -> list[str]:
+    hits: list[str] = []
+    for index, line in enumerate(lines):
+        if _is_third_person_office_surface(lines, index):
+            continue
+        for pattern in WORK_CONSEQUENCE_CHAIN_PATTERNS:
+            if pattern.search(line):
+                hits.append(clean_excerpt(line))
+                break
+
+    for index in range(len(lines)):
+        window_lines = lines[max(0, index - 1) : min(len(lines), index + 2)]
+        if not window_lines:
+            continue
+        if all(_is_third_person_office_surface(lines, i) for i in range(max(0, index - 1), min(len(lines), index + 2))):
+            continue
+        window = "".join(window_lines)
+        present = {term for term in WORK_CONSEQUENCE_CHAIN_TERMS if term in window}
+        has_work_authority = any(term in present for term in {"领导", "主管", "组长", "经理"})
+        has_leave_penalty = {"请假", "扣钱"}.issubset(present) or {"病假", "扣钱"}.issubset(present)
+        has_deadline_package = any(term in present for term in {"周一", "周报", "文件", "表格", "汇报"}) and any(
+            term in present for term in {"领导", "主管", "组长", "经理", "公司", "上班", "开会"}
+        )
+        if len(present) >= 3 and (has_work_authority or has_leave_penalty or has_deadline_package):
+            hits.append(clean_excerpt(window))
+
+    return list(dict.fromkeys(hits))[:5]
+
+
+def check_work_consequence_chain(findings: list[Finding], lines: list[str]) -> None:
+    hits = work_consequence_chain_hits(lines)
+    if not hits:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "无依据工作后果链",
+            0,
+            " | ".join(hits),
+            "生成稿高风险：为了给身体/疾病/现实压力找后果而凭空写领导、请假、扣钱、周一交文件、考勤或当前上班身份。除非用户提供，降级为屏幕表面、旧同事/他人公司、普通群消息、邻居/店员接触、路线或身体实际阻碍。",
         )
     )
 
@@ -2680,6 +2759,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_background_fact_specificity(findings, lines)
     check_game_match_report_surface(findings, lines)
     check_current_office_persona(findings, text)
+    check_work_consequence_chain(findings, lines)
     check_offer_specificity_surface(findings, lines)
     check_background_display_stuffing(findings, text)
     check_money_suffix(findings, lines)

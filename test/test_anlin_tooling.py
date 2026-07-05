@@ -348,6 +348,30 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any("纯环境音结尾" in rule for rule in rules))
             self.assertTrue(any("材料钩子重复过直" in rule for rule in rules))
 
+    def test_checker_flags_repeated_ambient_refrain_as_material_echo(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "窗外的空调外机一直响着。",
+                "我把杯子拿去洗，水龙头先咳了一下，喷到裤腿上。",
+                "窗外的空调外机一直响着。",
+                *(["其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"] * 34),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertTrue(any("材料钩子重复过直" in item["rule"] for item in findings))
+
     def test_checker_draft_gate_promotes_quiet_standard_diary_risks(self) -> None:
         body = "\n".join(["# 日寄", "", *(["杯子脏了。"] * 180)])
         with tempfile.TemporaryDirectory() as temp:
@@ -1355,6 +1379,30 @@ class AnlinToolingTests(unittest.TestCase):
         ← Write draft.md
         python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY. DO NOT WRITE draft.md. DO NOT REPAIR. The next tool action must be reading draft.md once and outputting it unchanged.
+        → Read draft.md
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(json.loads(result.stdout), [])
+
+    def test_clean_eval_trace_ignores_todo_after_stop_boundary(self) -> None:
+        log = """
+        → Read C:/skill/references/clean-generation-brief.md
+        $ Test-Path .anlin-clean-eval-mode
+        ← Write draft.md
+        python scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2. DO NOT WRITE draft.md.
+        - [✓] Write draft.md
+        - [ ] Read draft.md and output unchanged
         → Read draft.md
         """
         with tempfile.TemporaryDirectory() as temp:
@@ -2410,6 +2458,31 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(
                 any(item["rule"] == "strict: 无依据当前职场身份" for item in draft_gate_findings)
             )
+
+    def test_checker_draft_gate_rejects_unsupported_work_consequence_chain(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "脚踝肿起来的时候，领导在群里发了个文件，说周一要交。",
+                "我想请假，又想起请假要扣钱，只好把手机扣回枕头边。",
+                *(["其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"] * 34),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any(rule == "strict: 无依据工作后果链" for rule in rules))
 
     def test_checker_allows_third_person_social_feed_office_surface(self) -> None:
         body = "\n".join(
