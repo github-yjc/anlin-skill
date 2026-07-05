@@ -145,6 +145,8 @@ Natural connector coverage should be solved before the checker by changing scene
 
 Keep connector spread rough. If one connector such as `觉得` or `可能` appears five or more times, or if the whole article only has three familiar connector families, it is probably doing the work that an action, bad reply, object movement, or body interruption should do. Replace the repeated or thin connector pattern by changing what happens next, not by swapping it for synonyms.
 
+When repairing after a wrapper preflight, do not restate diagnostic words as a checklist. Do not write "the checker requires..." in notes or prose, and do not solve by adding one item per message. Either reset the visible rhythm corridor with the named script, or rewrite the middle from friction -> one off-axis consequence -> one losing-face body/social turn -> practical retreat. The visible article should change because the day changed, not because the metric names changed.
+
 Avoid an opening rhythm made of isolated short facts such as `下午两点。手机很烫。路很白。`. In this mode, early hard stops should land a joke, embarrassment, or retreat. Let some early physical/action lines run downward through commas when the next line continues the same thought or action.
 
 ## Anti-Synthetic Shape
@@ -166,6 +168,8 @@ Avoid these generated-draft surfaces:
 When a turn needs explanation, replace the explanation with a thing happening: food goes cold, a reply comes from the wrong person, money is paid, the body interrupts, the route changes, or someone says a plain ugly line.
 
 If the user prompt contains a group chat, forum, comment thread, class chat, or a short-video/social-media surface, convert it before drafting. Use one cropped surface, unread count, screenshot title, message preview, delayed reply, body reaction, scroll action, or practical consequence. Do not narrate multiple speakers. A rider video with `有人说...` is still a comment chain. Formal generated drafts should usually contain zero `有人/又有人/底下有人/另一个说` in those scenes.
+
+For 朋友圈, short-video feeds, or romantic/social comparison prompts, one surface is enough before the first checker. Do not write a feed montage: three posts, a caption quote, a like/unlike gesture, and a final latest video usually reads as prompt coverage. Pick one cropped thing on the screen, then move away from the feed into a body, food, money, room, route, reply, or object consequence. If the feed returns later, it must change action or social position, not add another example of the same pressure.
 
 ## Rhythm
 

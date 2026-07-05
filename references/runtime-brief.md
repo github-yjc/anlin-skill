@@ -148,6 +148,8 @@ For group chat, forum, or comment material, do not summarize a chain of speakers
 - one practical consequence such as delayed reply, changed route, payment, food, body interruption, or a missed task
 - a vague crowd texture without multiple quoted positions
 
+For 朋友圈, short-video, and social-comparison prompts, apply the same rule even when there is no explicit comment section. A feed is not a scene slate. Use at most one cropped post/photo/caption/video surface before the first checker, then leave the feed through a body, room, food, money, route, reply, or object consequence. Repeating `我点了赞又取消`, `最新那条`, `又刷到`, or several gift/photo examples usually turns the prompt into a tidy online montage. If the feed returns, it should change action or social position, not supply another proof of the same loneliness, envy, job pressure, or holiday pressure.
+
 If the checker reports `评论链公式化转述`, delete the chain. Do not repair it by adding more people or more comments.
 
 Also delete residue versions such as `底下跟了一串回答`, `底下追了一串问号`, or `被人回了个笑哭`; they are the same formula after compression.

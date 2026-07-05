@@ -472,6 +472,11 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         repair_hints.append(
             "for learned_ending_button, replace the tail button with an unfinished practical action, wrong object, payment, route, reply, or body interruption already earned by the scene"
         )
+    anti_todo_guard = (
+        " Do not summarize, quote, or enumerate these diagnostics as a TODO list. "
+        "Do not write process notes such as 'the checker requires' or solve one item per metric; "
+        "change scene movement, rhythm, or local surface only."
+    )
     hint_text = " Prioritized repair: " + " | ".join(repair_hints) + "." if repair_hints else ""
     if surface_only:
         revision_frame = (
@@ -517,6 +522,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             + ". "
             + revision_frame
             + hint_text
+            + anti_todo_guard
             + " "
             "This preflight did not consume a checker call."
         )
