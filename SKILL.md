@@ -35,6 +35,8 @@ Do not write generated articles into the skill directory. Use these locations:
 
 When the task workspace is already set by the controller or current shell, write and read the article using the relative path `draft.md` or `.\draft.md`. Do not invent, remember, normalize, or hand-compose an absolute output path. If the current location is uncertain, check it with `Get-Location` / `pwd`; never substitute a different date-stamped directory or a path from another run.
 
+`<skill-dir>` is only for resolving bundled references and scripts. It is not an output root. Never append the evaluation workspace name, iteration directory, case id, or `draft.md` under `<skill-dir>`; if `Get-Location` shows the case workspace, write exactly `draft.md` there.
+
 If the current task workspace contains `.anlin-clean-eval-mode`, treat the request as clean-eval mode even if the user prompt itself reads like an ordinary article request. The marker is a mode selector, not writing advice; do not mention it in the article.
 
 At task start, check whether the current task workspace contains `.anlin-clean-eval-mode` before writing any draft or running any checker. For any request that will write `draft.md`, the first tool action should be a lightweight current-directory marker check such as `Test-Path .anlin-clean-eval-mode`, `Get-ChildItem -Force .anlin-clean-eval-mode`, or equivalent. A first `Write draft.md` before this marker check is a contaminated clean-eval run when the marker exists. In clean-eval mode, never call `check_anlin_violations.py` directly in the bounded case directory; the only checker entrypoint is `clean_run_checker.py`.

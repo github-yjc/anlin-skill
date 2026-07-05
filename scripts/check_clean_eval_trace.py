@@ -156,6 +156,31 @@ def actual_draft_write_index(text: str) -> int:
     return min(indices) if indices else -1
 
 
+def actual_nonrelative_draft_write_index(text: str) -> int:
+    folded_text = re.sub(r"(?<=\S)\n\s*(?=\S)", "", text)
+    loose_text = re.sub(r"\s+", " ", text)
+    patterns = [
+        r"(?im)^\s*(?:←|\?)?\s*Write\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
+        r"(?im)^\s*TITLE\s+Write\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
+        r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*[A-Za-z]:/[^\n]*draft\.md[^\n]*(?:content|write)",
+        r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*/(?:skills|skill-dir|anlin-writing)/[^\n]*draft\.md[^\n]*(?:content|write)",
+    ]
+    loose_patterns = [
+        r"(?i)(?:←|\?|TITLE)\s*Write\s+(?!\.?[/\\]?draft\.md\b).{0,260}draft\.md\b",
+    ]
+    indices: list[int] = []
+    for haystack in (text, folded_text):
+        for pattern in patterns:
+            match = re.search(pattern, haystack)
+            if match:
+                indices.append(match.start())
+    for pattern in loose_patterns:
+        match = re.search(pattern, loose_text)
+        if match:
+            indices.append(match.start())
+    return min(indices) if indices else -1
+
+
 def actual_reference_action_index(text: str, reference: str) -> int:
     """Return the index of a real pre-draft reference load.
 
@@ -241,6 +266,16 @@ def collect_findings(text: str) -> list[TraceFinding]:
                 "clean-eval未写入draft.md",
                 clean_excerpt(normalized, 0),
                 "Bounded clean-eval generation must persist one complete titled article to draft.md before checker flow. Visible scratch prose in the terminal does not count.",
+            )
+        )
+    wrong_write = actual_nonrelative_draft_write_index(normalized)
+    if wrong_write >= 0:
+        findings.append(
+            TraceFinding(
+                "error",
+                "clean-eval写稿路径不是相对draft.md",
+                clean_excerpt(normalized, wrong_write),
+                "Clean-eval must write the article as relative `draft.md` in the current case workspace. Do not append the case path under the skill directory or invent an absolute output path.",
             )
         )
     pre_draft = normalized[:first_write] if first_write >= 0 else normalized

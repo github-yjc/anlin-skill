@@ -2268,6 +2268,32 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("clean-eval首稿前搜索父级skill目录", rules)
             self.assertIn("clean-eval未写入draft.md", rules)
 
+    def test_clean_eval_trace_flags_nonrelative_draft_write_path(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        → Read C:/skill/references/clean-generation-brief.md
+        ← Write C:/agent/config/opencode/skills/anlin-writing/iteration-44/eval-07-mothers-day-sin
+        cere/draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval写稿路径不是相对draft.md", rules)
+            self.assertIn("clean-eval未写入draft.md", rules)
+
     def test_clean_eval_trace_jsonl_ignores_dumped_skill_body_reference_names(self) -> None:
         events = [
             {
@@ -4872,6 +4898,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("never substitute a different date-stamped directory", skill)
         self.assertIn("Use the relative path `draft.md` or `.\\draft.md`", clean)
         self.assertIn("Do not construct an absolute path from memory", clean)
+        self.assertIn("`<skill-dir>` is only for resolving bundled references and scripts", skill)
+        self.assertIn("it must not appear in the article write path", clean)
+        self.assertIn("Do not write `<skill-dir>/<iteration-or-case>/draft.md`", clean)
         self.assertIn("Draft in breathing clusters, not sentence rows", clean)
         self.assertIn("pain, heat, and fatigue alone are too polite", clean)
         self.assertIn("private case-report chain", runtime)

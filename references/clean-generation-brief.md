@@ -26,6 +26,8 @@ Clean-eval tool order is part of the test, not a suggestion: marker check -> rea
 
 Use the relative path `draft.md` or `.\draft.md` for the article file in the current task workspace. Do not construct an absolute path from memory, from a previous evaluation directory, or from a date-stamped folder. If the current directory is unclear, run `Get-Location` / `pwd`; do not guess.
 
+Keep `<skill-dir>` separate from the output directory. `<skill-dir>` may appear in a checker command such as `python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate`, but it must not appear in the article write path. Do not write `<skill-dir>/<iteration-or-case>/draft.md`; write only `draft.md` in the current task workspace.
+
 For ordinary user mode, the same quiet drafting rule applies, but the checker loop may continue until hard errors are cleared or the user is satisfied. The two-call stop rule belongs to clean-eval only.
 
 Before writing, check whether the current task workspace contains `.anlin-clean-eval-mode`. This marker check should be the first tool action before any `draft.md` write or checker command. If it exists, use clean-eval mode and do not call `check_anlin_violations.py` directly in that bounded directory. The wrapper `clean_run_checker.py` is the only checker entrypoint for clean-eval.
