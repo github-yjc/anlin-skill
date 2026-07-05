@@ -1370,6 +1370,33 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(json.loads(result.stdout), [])
 
+    def test_clean_eval_trace_ignores_stop_token_in_raw_reference_dump(self) -> None:
+        log = """
+        → Read C:/skill/references/clean-generation-brief.md
+        If the wrapper prints `CLEAN_RUN_PREFLIGHT_STOP`, the draft still is not ready.
+        Do not write `draft.md`, do not repair, and do not switch to `check_anlin_violations.py`.
+        $ Test-Path .anlin-clean-eval-mode
+        ← Write draft.md
+        python scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_PREFLIGHT: draft is not ready for checker call 1/2
+        ← Write draft.md
+        python scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY. DO NOT WRITE draft.md. DO NOT REPAIR.
+        → Read draft.md
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(json.loads(result.stdout), [])
+
     def test_clean_eval_trace_rejects_missing_clean_run_checker(self) -> None:
         log = """
         → Read C:/skill/references/clean-generation-brief.md
@@ -3497,6 +3524,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Do not construct an absolute path from memory", clean)
         self.assertIn("Draft in breathing clusters, not sentence rows", clean)
         self.assertIn("pain, heat, and fatigue alone are too polite", clean)
+        self.assertIn("private case-report chain", runtime)
+        self.assertIn("symptom list -> search result -> food taboo -> refrigerator inventory -> ambient sound", skill)
+        self.assertIn("If the user gives `有人说痛风是富贵病`", runtime)
+        self.assertIn("cut one whole packet before adding any new material", skill)
         self.assertIn("This marker check should be the first tool action", clean)
         self.assertIn("Do not write `draft.md` until this marker check is visible in the run trace", clean)
         self.assertIn("The wrapper `clean_run_checker.py` is the only checker entrypoint", clean)

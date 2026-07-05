@@ -127,6 +127,20 @@ def first_index(text: str, patterns: list[str]) -> int:
     return min(indices) if indices else -1
 
 
+def actual_clean_stop_index(text: str) -> int:
+    """Find a real clean-run stop emitted by the wrapper.
+
+    Raw OpenCode logs can contain the full text of `clean-generation-brief.md`.
+    That reference file names `CLEAN_RUN_PREFLIGHT_STOP` while explaining what
+    to do later; treating that instruction text as an actual stop makes every
+    subsequent draft write look like a protocol escape. A real stop is emitted
+    as a standalone checker output line beginning with the stop token.
+    """
+    pattern = re.compile(r"(?m)^\s*(?:OUTPUT\s+)?(?:CLEAN_RUN_PREFLIGHT_STOP|CLEAN_RUN_STOP):")
+    match = pattern.search(text)
+    return match.start() if match else -1
+
+
 def clean_excerpt(text: str, start: int, width: int = 180) -> str:
     if start < 0:
         return ""
@@ -169,7 +183,7 @@ def collect_findings(text: str) -> list[TraceFinding]:
                 )
             )
 
-    stop_index = first_index(normalized, ["CLEAN_RUN_PREFLIGHT_STOP", "CLEAN_RUN_STOP"])
+    stop_index = actual_clean_stop_index(normalized)
     if stop_index >= 0:
         after_stop = normalized[stop_index:]
         post_stop_patterns = [
