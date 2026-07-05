@@ -1040,6 +1040,8 @@ DRAFT_GATE_RULE_PREFIXES = (
 DRAFT_GATE_RULE_NAMES: set[str] = {"呼吸点缺失"}
 
 STANDARD_DIARY_FORMAL_MIN_CHARS = 650
+STANDARD_DIARY_ATTEMPT_MIN_CHARS = 300
+STANDARD_DIARY_ATTEMPT_MIN_LINES = 12
 STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS = 900
 STANDARD_DIARY_DRAFT_OVERFULL_CHARS = 1350
 
@@ -2019,8 +2021,7 @@ def check_high_signal_opening(findings: list[Finding], lines: list[str]) -> None
 
 def check_standard_diary_length(findings: list[Finding], lines: list[str], text: str) -> None:
     title, content_lines = split_title_and_content_lines(lines)
-    style = detect_style(text)
-    if style != "standard" or "日寄" not in title:
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
         return
     body = "\n".join(line for line in content_lines if not line.startswith("<!--"))
     chars = chinese_len(body)
@@ -2058,8 +2059,7 @@ def check_standard_diary_length(findings: list[Finding], lines: list[str], text:
 
 def check_generated_texture_overfill(findings: list[Finding], lines: list[str], text: str) -> None:
     title, content_lines = split_title_and_content_lines(lines)
-    style = detect_style(text)
-    if style != "standard" or "日寄" not in title:
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
         return
     visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
     body = "\n".join(visible_lines)
@@ -2102,8 +2102,7 @@ def check_generated_texture_overfill(findings: list[Finding], lines: list[str], 
 
 def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str], text: str) -> None:
     title, content_lines = split_title_and_content_lines(lines)
-    style = detect_style(text)
-    if style != "standard" or "日寄" not in title:
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
         return
     visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
     lengths = [chinese_len(line) for line in visible_lines if chinese_len(line)]
@@ -2617,6 +2616,44 @@ def detect_style(text: str) -> str:
     if any(marker in lower_text for marker in ["真诚", "truthful", "sincere", "真心话"]):
         return "sincere"
     return "standard"
+
+
+NON_STANDARD_TITLE_HINTS = [
+    "真诚",
+    "希望",
+    "微小",
+    "梦",
+    "超现实",
+    "写不出来",
+    "母亲",
+]
+
+
+def looks_like_standard_diary_gate_target(title: str, content_lines: list[str], text: str) -> bool:
+    """Return whether generated-draft standard diary gates should apply.
+
+    Title selection is part of the generation task, so a standard diary draft
+    must not escape length/rhythm gates merely by choosing a non-`日寄` title.
+    Keep this conservative to avoid forcing short sincere/micro-hope pieces
+    into the standard-diary corridor.
+    """
+    if detect_style(text) != "standard":
+        return False
+    normalized_title = title.lstrip("#").strip()
+    if "日寄" in normalized_title:
+        return True
+    early_surface = normalized_title + "\n" + "\n".join(content_lines[:8])
+    if any(hint in early_surface for hint in NON_STANDARD_TITLE_HINTS):
+        return False
+    visible_lines = [
+        line.strip()
+        for line in content_lines
+        if line.strip() and not line.startswith("<!--")
+    ]
+    body_chars = chinese_len("\n".join(visible_lines))
+    if body_chars >= STANDARD_DIARY_FORMAL_MIN_CHARS and len(visible_lines) >= 35:
+        return True
+    return body_chars >= STANDARD_DIARY_ATTEMPT_MIN_CHARS and len(visible_lines) >= STANDARD_DIARY_ATTEMPT_MIN_LINES
 
 
 def check_scene_count(findings: list[Finding], lines: list[str], text: str) -> None:

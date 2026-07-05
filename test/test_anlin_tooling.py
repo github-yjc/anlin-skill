@@ -391,6 +391,61 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any(rule == "strict: 段落发动机信号偏弱" for rule in rules))
             self.assertTrue(any(rule == "strict: 短行诗化表面" for rule in rules))
 
+    def test_checker_draft_gate_rejects_short_standard_diary_even_without_riji_title(self) -> None:
+        lines = [
+            "空调外机又开始响了，脚踝从骨头缝里往外顶。",
+            "扶着柜子挪到厨房，冰箱里半瓶可乐，两盒腐乳。",
+            "灯管闪了一下才亮全，我把手机按亮，又按灭。",
+            "页面上写着富贵病三个字，问号被我看漏了。",
+            "女的在楼道里看了我一眼，又看了一眼我的拖鞋。",
+            "我拎着垃圾袋往下挪，汤水顺着墙往下淌。",
+        ] * 7
+        body = "\n".join(["# 半瓶可乐", "", *lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(
+                any(rule == "strict: 标准日寄完整文章篇幅缓冲不足" for rule in rules),
+                rules,
+            )
+
+    def test_checker_draft_gate_rejects_very_short_standard_attempt_without_riji_title(self) -> None:
+        lines = [
+            "脚踝在被子里动了一下，手机从枕头边滑下去。",
+            "楼下有人关门，我以为是我的骨头响。",
+            "冰箱里剩半瓶可乐，我看了很久。",
+            "屏幕上那个词又跳出来，像欠费通知。",
+            "我扶着墙去倒水，拖鞋把水踩成一条线。",
+        ] * 5
+        body = "\n".join(["# 半瓶可乐", "", *lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(
+                any(rule == "strict: 标准日寄完整文章篇幅偏短" for rule in rules),
+                rules,
+            )
+
     def test_clean_run_checker_enforces_two_call_limit(self) -> None:
         ready_lines = [
             "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",

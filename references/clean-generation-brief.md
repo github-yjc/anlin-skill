@@ -48,6 +48,8 @@ For a standard diary blind-evaluation draft:
 - not 8-15 smooth prose blocks
 - not 100+ tiny rows
 
+Title freedom is not length freedom. A standard diary with a side-object, phrase, question, or sentence title still needs the complete standard-diary corridor; only a deliberately sincere, micro-hope, or surreal short form should use a shorter matched evaluation.
+
 Do not write a prose version first and then promise to restructure it. In clean-eval mode, the first persisted `draft.md` is already part of the measurement. If the draft in your head is 8-15 paragraphs, stop before writing and rebuild it as breathing clusters.
 
 If the candidate has 90+ body lines, no long lines, or mostly 4-10 character rows, merge lines before writing `draft.md`. If it is under 900 Chinese characters, expand through lived action, not adjectives. If it is 900-949 Chinese characters, inspect the source shape before expanding: only add material when the middle engine, long action/speech/thought lines, connectors, or rough body/social turn are weak.
