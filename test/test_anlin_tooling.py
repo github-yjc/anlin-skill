@@ -744,6 +744,44 @@ class AnlinToolingTests(unittest.TestCase):
             messages = preflight_messages(draft)
             self.assertTrue(any(message.startswith("short_genre_literary_story_closure=") for message in messages), messages)
 
+    def test_clean_run_preflight_short_sincere_closure_demands_family_cut(self) -> None:
+        body = "\n".join(
+            [
+                "# 鸡蛋",
+                "",
+                "手机屏幕亮着，朋友圈里有人发康乃馨，",
+                "我看了几秒，没有给妈妈发消息。",
+                "上次回家，她煮了一袋鸡蛋让我带走，塑料袋在背包里晃了一路。",
+                "袋子口打得很紧，",
+                "我拆的时候还把指甲掰了一下。",
+                "小时候下雨她送我上学，雨衣给我穿，那把破伞断了一根。",
+                "雨水顺着伞骨漏到她背上，她说没事，马上到了学校。",
+                "我那时候只觉得雨衣太丑，",
+                "像一只被批发来的青蛙。",
+                "我现在想给她发点什么，手指停在发送键旁边，又放下了。",
+                "冰箱里的鸡蛋还剩四个，有一个裂了，蛋壳上有一小块灰。",
+                "水烧开以后，厨房里全是白汽。",
+                "锅盖被顶得咔咔响，",
+                "我站在旁边看它响完。",
+                "裤子上的水印还在，拖鞋也是反的。",
+                "我没有换。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CLEAN_RUN_CHECKER), str(draft), "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertIn("CLEAN_RUN_PREFLIGHT", result.stdout)
+            self.assertIn("cut one proof family completely", result.stdout)
+            self.assertIn("childhood-rain/raincoat/school line is still a full memory prop", result.stdout)
+            self.assertIn("no-message + eggs + childhood-rain", result.stdout)
+
     def test_checker_warns_on_short_sincere_missing_present_action_anchor(self) -> None:
         body = "\n".join(
             [
@@ -4851,6 +4889,22 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("without replacing the old spine", review)
         self.assertIn("abandon the existing memory-first spine", checker)
         self.assertNotIn("add one current detail around the same spine", combined)
+
+    def test_short_sincere_prop_budget_and_connector_sampler_are_source_guidance(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        checker = (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8")
+        combined = "\n".join([skill, clean, runtime, checker])
+        self.assertIn("`cropped trace` is stricter than \"write it briefly.\"", skill)
+        self.assertIn("One line with childhood rain", skill)
+        self.assertIn("a cropped trace means less than a scene", clean)
+        self.assertIn("childhood rain + raincoat + broken umbrella + school arrival", clean)
+        self.assertIn("do not mistake compression for deletion", runtime)
+        self.assertIn("connector sampler", runtime)
+        self.assertIn("one-each glue", clean)
+        self.assertIn("Keep one visible pressure family", checker)
+        self.assertNotIn("keep all three family props briefly", combined)
 
     def test_title_model_prevents_universal_ri_default(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

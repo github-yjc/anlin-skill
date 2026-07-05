@@ -608,6 +608,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             repair_hints.append(
                 "for short-genre prose compression, do not add one more paragraph; rewrite the visible page into about 28-55 actual body lines across 4-7 clusters, preserving punctuation at line ends and using a few longer clumsy lines plus short factual retreats"
             )
+        if "short_genre_literary_story_closure=" in joined_messages:
+            repair_hints.append(
+                "for short_genre_literary_story_closure, cut one proof family completely rather than making every family shorter: a childhood-rain/raincoat/school line is still a full memory prop, and an eggs/plastic-bag/home-trip line is still a full object-memory prop. Keep one visible pressure family, let at most one other become a partial residue, and do not preserve no-message + eggs + childhood-rain as the same designed argument"
+            )
         if "short_genre_repair_stuffing=" in joined_messages:
             repair_hints.append(
                 "for short_genre_repair_stuffing, delete the new food/gift/media packet and repair rhythm inside the existing object-message-room material; do not add delivery, branded food, gift boxes, video teaching, or variety-show texture to make the short genre look thicker"
