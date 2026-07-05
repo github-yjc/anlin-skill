@@ -346,6 +346,28 @@ def summarize_status(findings: list[ProfileFinding]) -> dict[str, Any]:
     }
 
 
+NON_STANDARD_GENRES = {"sincere", "micro-hope", "surreal"}
+
+
+def apply_profile_scope_limits(summary: dict[str, Any], profile_scope: dict[str, Any]) -> dict[str, Any]:
+    requested_genre = profile_scope.get("requested_genre")
+    fallback = bool(profile_scope.get("fallback"))
+    if requested_genre not in NON_STANDARD_GENRES or not fallback or summary.get("error_count", 0) > 0:
+        summary["profile_gate_applicable"] = True
+        return summary
+    limited = dict(summary)
+    limited["status"] = "inconclusive"
+    limited["checkpoint_decision"] = "profile_inconclusive_fallback"
+    limited["checkpoint_pass"] = True
+    limited["profile_gate_applicable"] = False
+    limited["decision_rule"] = (
+        "Non-standard genre requested but the matching stratum was too small, so the audit fell back to global priors. "
+        "Report drift families as review signals, but do not use this profile as a finalized pass/fail gate; rely on hard gates, matched originals, blind rounds, and placebo calibration."
+    )
+    limited["checkpoint_rule"] = "This profile result is non-blocking because the requested non-standard genre lacks enough corpus documents."
+    return limited
+
+
 def first_hit_line(lines: list[str], pattern: str) -> int | None:
     import re
 
@@ -461,6 +483,7 @@ def check_draft(
     cognitive = cognitive_audit(document, draft_path)
     findings.extend(cognitive_findings(cognitive, draft_gate))
     status = summarize_status(findings)
+    status = apply_profile_scope_limits(status, profile_scope)
     return {
         "draft": str(draft_path),
         "profile_version": profile.get("version"),
@@ -486,6 +509,7 @@ def format_report(report: dict[str, Any]) -> str:
         f"status: {report['summary']['status']}",
         f"checkpoint_decision: {report['summary']['checkpoint_decision']}",
         f"checkpoint_pass: {str(report['summary']['checkpoint_pass']).lower()}",
+        f"profile_gate_applicable: {str(report['summary'].get('profile_gate_applicable', True)).lower()}",
         f"errors: {report['summary']['error_count']}",
         f"warnings: {report['summary']['warning_count']}",
         f"red_families: {', '.join(report['summary']['red_families']) or '(none)'}",

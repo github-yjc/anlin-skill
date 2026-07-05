@@ -270,6 +270,9 @@ def summarize_gate(
         status = "fail"
     elif profile_status == "review":
         status = "review"
+    elif profile_status == "inconclusive":
+        status = "review"
+        notes.append("style-profile gate is inconclusive for the requested phase/genre; use hard gates and blind/placebo review before treating this checkpoint as clean")
     elif bounded and clean_calls is None:
         status = "review"
     elif profile_status is None:
@@ -336,6 +339,9 @@ def stage_status_for(hard_errors: int, style_report: dict[str, Any] | None) -> t
         status = "fail"
     elif profile_status == "review":
         status = "review"
+    elif profile_status == "inconclusive":
+        status = "review"
+        notes.append("style-profile gate is inconclusive for the requested phase/genre")
     elif profile_status is None:
         status = "review"
         notes.append("style-profile audit unavailable")

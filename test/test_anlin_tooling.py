@@ -34,7 +34,7 @@ BACKGROUND_FACT_CLASSES = ROOT / "references" / "background-fact-classes.json"
 EVALS = ROOT / "evals" / "evals.json"
 sys.path.insert(0, str(ROOT / "scripts"))
 from clean_run_checker import normalize_before_final_check, preflight_messages  # noqa: E402
-from summarize_dev_checkpoints import classify_development_result  # noqa: E402
+from summarize_dev_checkpoints import classify_development_result, summarize_gate  # noqa: E402
 
 
 class AnlinToolingTests(unittest.TestCase):
@@ -1671,6 +1671,27 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertEqual(classify_development_result("pass", "fail")[0], "repair_or_validator_gap")
         self.assertEqual(classify_development_result("pass", "review")[0], "repair_or_validator_gap")
         self.assertEqual(classify_development_result("fail", None)[0], "bounded_fail_finalized_missing")
+
+    def test_dev_checkpoint_treats_inconclusive_style_profile_as_review_not_pass(self) -> None:
+        gate = summarize_gate(
+            hard_findings=[],
+            style_report={
+                "summary": {
+                    "status": "inconclusive",
+                    "checkpoint_decision": "profile_inconclusive_fallback",
+                    "red_families": ["line_rhythm"],
+                    "yellow_families": ["punctuation"],
+                    "profile_gate_applicable": False,
+                }
+            },
+            trace_findings=[],
+            clean_state={},
+            bounded=False,
+        )
+        self.assertEqual(gate.status, "review")
+        self.assertEqual(gate.style_status, "inconclusive")
+        self.assertEqual(gate.style_checkpoint_decision, "profile_inconclusive_fallback")
+        self.assertTrue(any("inconclusive" in note for note in gate.notes or []))
 
     def test_dev_checkpoint_summary_creates_controller_audit_copy(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -4744,6 +4765,135 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(text_result.returncode, 0, text_result.stderr)
             self.assertIn("checkpoint_decision: not_pass_review_required", text_result.stdout)
             self.assertIn("checkpoint_pass: false", text_result.stdout)
+
+    def test_style_profile_nonstandard_fallback_is_inconclusive_not_strict_failure(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(
+                "\n".join(
+                    [
+                        "# 不想祝我妈母亲节快乐",
+                        "",
+                        "我妈发消息问我吃没吃饭。",
+                        "我说吃了，其实泡面还没拆。",
+                        "窗台上那个塑料袋被风吹了一下。",
+                        "我看了半天，最后把手机扣过去。",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            profile = Path(temp) / "profile.json"
+            yellow_summary = {
+                "min": 0.0,
+                "q05": 0.0,
+                "q10": 0.0,
+                "median": 0.0,
+                "q90": 0.0,
+                "q95": 0.0,
+                "max": 100000.0,
+                "mean": 0.0,
+                "mad": 0.0,
+            }
+            profile_payload = {
+                "version": "test",
+                "corpus_file_count": 38,
+                "expected_corpus_count": 38,
+                "value_summary": {
+                    "body_chars": yellow_summary,
+                    "title_chars": yellow_summary,
+                    "line_mean_chars": yellow_summary,
+                    "paragraph_blocks": yellow_summary,
+                    "punct_period_per_1k": yellow_summary,
+                },
+                "value_families": {
+                    "body_chars": "length",
+                    "title_chars": "title",
+                    "line_mean_chars": "line_rhythm",
+                    "paragraph_blocks": "structure",
+                    "punct_period_per_1k": "punctuation",
+                },
+                "count_summary": {},
+                "strata": {
+                    "genre": {
+                        "sincere": {
+                            "document_count": 2,
+                            "value_summary": {},
+                            "value_families": {},
+                            "count_summary": {},
+                        }
+                    }
+                },
+            }
+            profile.write_text(json.dumps(profile_payload, ensure_ascii=False), encoding="utf-8")
+
+            global_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECK_PROFILE),
+                    str(draft),
+                    "--profile",
+                    str(profile),
+                    "--draft-gate",
+                    "--strict",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(global_result.returncode, 0)
+            global_report = json.loads(global_result.stdout)
+            self.assertEqual(global_report["summary"]["status"], "review")
+            self.assertTrue(global_report["summary"]["profile_gate_applicable"])
+
+            sincere_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECK_PROFILE),
+                    str(draft),
+                    "--profile",
+                    str(profile),
+                    "--draft-gate",
+                    "--strict",
+                    "--genre",
+                    "sincere",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(sincere_result.returncode, 0, sincere_result.stderr)
+            sincere_report = json.loads(sincere_result.stdout)
+            self.assertEqual(sincere_report["profile_scope"]["scope"], "global")
+            self.assertTrue(sincere_report["profile_scope"]["fallback"])
+            self.assertIn("genre:sincere: document_count=2 < 4", sincere_report["profile_scope"]["skipped"])
+            self.assertEqual(sincere_report["summary"]["status"], "inconclusive")
+            self.assertEqual(sincere_report["summary"]["checkpoint_decision"], "profile_inconclusive_fallback")
+            self.assertTrue(sincere_report["summary"]["checkpoint_pass"])
+            self.assertFalse(sincere_report["summary"]["profile_gate_applicable"])
+
+            text_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECK_PROFILE),
+                    str(draft),
+                    "--profile",
+                    str(profile),
+                    "--draft-gate",
+                    "--strict",
+                    "--genre",
+                    "sincere",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(text_result.returncode, 0, text_result.stderr)
+            self.assertIn("profile_gate_applicable: false", text_result.stdout)
 
     def test_merge_short_lines_reduces_generated_line_grid(self) -> None:
         body = "\n".join(
