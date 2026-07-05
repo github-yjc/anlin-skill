@@ -72,7 +72,6 @@ COMMENT_CHAIN_FORMULA_MARKERS = [
     "另一个人说",
     "一个说",
     "又有人",
-    "又发了个",
     "发截图的人",
     "群里回",
     "跟了个",
@@ -119,7 +118,7 @@ COMMENT_CHAIN_CONTEXT_TERMS = [
     "另一个",
     "被人",
 ]
-CONTEXTUAL_COMMENT_CHAIN_MARKERS = ["跟了个", "被人回"]
+CONTEXTUAL_COMMENT_CHAIN_MARKERS = ["跟了个", "被人回", "又发了个"]
 LOW_FREQUENCY_TERMS = ["然而", "因此", "可是", "也许", "或许", "认为", "意识到"]
 HIGH_FREQUENCY_TERMS = ["其实", "觉得", "发现", "好像", "不过", "突然", "于是", "因为", "所以"]
 CONNECTOR_OVERUSE_TERMS = [

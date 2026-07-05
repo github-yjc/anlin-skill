@@ -32,6 +32,8 @@ For standard diary mode, treat the first visible sentence as a blind-review risk
 
 For multi-item prompts, do not turn the article into a route map through the prompt. A complete article may leave a supplied noun half-visible or unused. Shopping, parcel, wrong-size, coupon, delivery, or household-object material should become a consequence chain: the object changes body, payment, route, reply, room, or social position. If the draft merely discovers the object is wrong and then closes the app, it is still an assignment-shaped report, even when the details are concrete.
 
+For invitation, wedding, reunion, classmate-success, or similar message prompts, avoid the one-screen chronology failure. The article should not proceed as message arrives -> ticket/price ledger -> refusal -> photo -> old chat history. Start from a small body/object/app mismatch, let one message surface interrupt it, and move the middle away from the chat into a practical consequence. Limit price arithmetic to what changes the next action; a long ledger can be correct and still read like an assignment response. The rough social/body turn should belong to the narrator now, not only to a touching memory about another person.
+
 ## Quiet Execution
 
 Clean generation must look quiet from the outside. Do not print planning, checker summaries, state cards, repair notes, or "now I will" lines before the article. The first visible line returned to the user must be the title. If an internal note would be useful, keep it private or in tool-local reasoning; do not write it to chat or `draft.md`.

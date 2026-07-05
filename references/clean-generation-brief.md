@@ -131,6 +131,8 @@ Keep main-topic scenes under half the selected slate. If the prompt gives many p
 
 For shopping, parcel, wrong-size, coupon, delivery, or household-object prompts, the object inspection is not the scene engine. The failed object must change the narrator's body, reply, route, money, room, or social position: someone sees the bad object, a foot/hand cannot do the task, a return/payment action is abandoned in a humiliating way, or the wrong thing blocks the next ordinary action. If the draft only says the object is wrong and the narrator decides not to return it, it is still a tidy task report.
 
+For invitations, weddings, reunions, job announcements, or other social-comparison message prompts, the chat log is not the article. Do not start with the invitation unless an earlier body/object/app residue has already made the room crooked. Use at most one cropped message surface, keep the money calculation short, and force one off-chat consequence before the middle ends: a bad reply, unpaid food, a room object, a body interruption, an errand, or someone noticing a practical embarrassment. If the draft is only ticket price -> gift money -> refusal -> venue photo -> old memory, it is a sealed short story and the prompt is still too visible.
+
 Before writing `draft.md`, do a private source preflight:
 
 - body is already at least 950 Chinese characters and 45-70 body lines; for standard clean-eval aim nearer 55-68 rather than the exact boundary
@@ -143,6 +145,7 @@ Before writing `draft.md`, do a private source preflight:
 - no group/comment chain markers such as `有人发/有人说/有人问/又有人/底下有人/另一个说`
 - no invented spouse/child identity such as `老婆/妻子/媳妇/孩子`; delivery pressure is route, app, heat, money, body, customer, parent, landlord, or class comparison, not a married-rider biography
 - one coarse body/social/self-own consequence is present in the scene, not only a quiet mood or clean ache
+- social-message prompts have one off-chat consequence; they are not a chronological transcript of replies, prices, photos, and old messages
 - the last three visible body lines do not use `哦。` / `算了。` / `睡了。` / `屏幕暗了。` as a style button unless the prior scene has forced that exact reply; prefer the unfinished action, wrong object, route, payment, reply, or body interruption already present
 
 If these readiness signals tempt you to add a game scene, recurring character, body symptom, app platform, or background fact only because a reference mentions it, do not add it. Rework an existing scene so the function appears through its own action.

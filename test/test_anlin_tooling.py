@@ -2469,6 +2469,50 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertFalse(any("评论链公式化转述" in item["rule"] for item in findings))
 
+    def test_checker_does_not_treat_one_to_one_red_packet_as_comment_chain(self) -> None:
+        body = "\n".join(
+            [
+                "# 22日寄",
+                "",
+                "他隔了一会儿又发了个红包，说让我沾点喜气，我点开只有一块两毛五。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("评论链公式化转述" in item["rule"] for item in findings))
+
+    def test_checker_still_flags_group_redocument_reaction_surface(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "群里又发了个文档，下面跟了一排收到。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 评论链公式化转述" for item in findings))
+
     def test_checker_still_flags_contextual_followed_emoji_comment_surface(self) -> None:
         body = "\n".join(
             [
@@ -2992,6 +3036,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Natural connector coverage should be solved before the checker", clean)
         self.assertIn("For 朋友圈, short-video, and social-comparison prompts", runtime)
         self.assertIn("A feed is not a scene slate", runtime)
+        self.assertIn("For invitations, weddings, reunions", clean)
+        self.assertIn("one-screen chronology failure", runtime)
         self.assertIn("Do not turn many hard-stop lines into one huge comma chain", runtime)
         self.assertIn("Do not create line breaks by deleting punctuation", skill)
         self.assertIn("Line-final comma means the visible content line itself ends with", clean)
