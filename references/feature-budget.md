@@ -38,6 +38,7 @@ These apply to all normal generation:
 28. No overfilled completeness: a formal standard-diary draft above about 1250 body Chinese characters should be checked for padding; 1350+ should be treated as generated-draft overfill unless the material is truly consequence-bearing. Delete non-consequential texture instead of adding another body/screen/object detail.
 29. No texture saturation: body, phone/screen, route/object, money, platform, and background facts are not six boxes to tick. If three texture families are all frequent, keep only details that change what the narrator does, what someone says, what the body interrupts, or what the next scene can become.
 30. No anti-AI-reference contamination: anti-slop terms in this skill are negative examples, not content prompts. Unless the user supplied it, do not write AI/GPT/model/text-detection scenes or advice about identifying generated prose.
+31. No repeated texture-packet repair: if a draft keeps returning to the same body/object packet, such as hand dirt, white food, cutting board, garbage, route heat, payment, or dark room, do not add another proof-detail. Delete one packet and replace its function with a social or practical consequence that changes reply, payment, route, room position, or next action.
 
 ## Strong Defaults
 
@@ -76,6 +77,7 @@ Recommended budget:
 - main-domain scenes below half the selected slate; use side-pressure and off-axis scenes to prevent a single-topic essay.
 - at most two visible high-signal prompt items. If the request lists roommate offer, class group physical exam, rent subsidy, job app, and resume, do not include all of them.
 - background facts used as invisible rails. If a scene only exists to show "Anlin plays 王者" or "Anlin is in Yunnan", cut the scene. If game changes action, memory, status, social relation, or cognition, it is allowed; if it only satisfies a perceived label, it fails.
+- if a repair warning mentions n-gram texture, body texture, route/object texture, or low dialogue/social movement, reduce repeated local packets before adding anything. A social consequence is useful only when it changes action or status; it is not a new quota to insert a cashier, neighbor, or vendor into every article.
 
 Avoid:
 

@@ -1985,6 +1985,50 @@ class AnlinToolingTests(unittest.TestCase):
                 any(item["rule"] == "strict: 具体纹理堆叠过密" for item in findings)
             )
 
+    def test_checker_warns_when_body_object_texture_replaces_social_movement(self) -> None:
+        body_lines = (
+            ["手上有灰，裤子上也有灰，水龙头边的杯子放在楼道里，门口的塑料袋也湿了。"] * 14
+            + ["钥匙在门口掉了一下，塑料袋勒着手，冰箱里只有半个西瓜，楼道灯一直亮着。"] * 12
+            + ["其实我觉得这事也说不上什么，后来把手机扣在桌上，又去洗手。"] * 14
+        )
+        body = "\n".join(["# 日寄", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "纹理替代社交不足" for item in findings))
+            self.assertTrue(all(item["severity"] != "error" for item in findings))
+
+    def test_checker_does_not_warn_texture_replaces_social_when_social_movement_exists(self) -> None:
+        body_lines = (
+            ["手上有灰，老板看了我一眼，我把硬币又往回收了一点。"] * 6
+            + ["摊主问我要不要切，我说不用，声音小得像从塑料袋里出来。"] * 6
+            + ["邻居在楼道里说垃圾别堆门口，我嗯了一声，钥匙又掉到地上。"] * 6
+            + ["水龙头边的杯子放着，手机扣在桌上，冰箱里只有半个西瓜。"] * 18
+        )
+        body = "\n".join(["# 日寄", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            findings = json.loads(result.stdout)
+            self.assertFalse(any(item["rule"] == "纹理替代社交不足" for item in findings))
+
     def test_checker_draft_gate_rejects_formulaic_comment_chain(self) -> None:
         body = "\n".join(
             [
@@ -4811,6 +4855,52 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
             self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings))
+
+    def test_checker_counts_quiet_dirty_hand_reaction_as_paragraph_engine(self) -> None:
+        body = "\n".join(
+            [
+                "# 生瓜日寄",
+                "",
+                "付钱的时候手指甲缝里有灰，摊主接过去看了我手一眼，嘴角动了一下。",
+                "我把硬币往回收了一点，又放过去。",
+                "这事算不上什么，那个瓜白得像没睡醒。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings))
+
+    def test_checker_does_not_count_private_dirty_hand_as_paragraph_engine(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "手指甲缝里有灰，杯子边上也有灰。",
+                *(["其实我觉得杯子有点旧，洗的时候水龙头轻轻响了一下。"] * 38),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertTrue(any("段落发动机信号偏弱" in item["rule"] for item in findings))
 
     def test_checker_does_not_count_plain_dirty_room_as_rough_signal(self) -> None:
         body = "\n".join(

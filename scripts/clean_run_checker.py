@@ -31,6 +31,7 @@ SNAPSHOT_DIR_NAME = ".anlin-clean-run-snapshots"
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_anlin_violations import (  # noqa: E402
     BACKGROUND_DISPLAY_GROUPS,
+    ENGINE_SIGNAL_PATTERNS,
     ENGINE_SIGNAL_TERMS,
     PROCESS_LEAK_TERMS,
     HIGH_FREQUENCY_TERMS,
@@ -389,6 +390,7 @@ def preflight_messages(draft: Path) -> list[str]:
     comma_ratio = (sum(1 for line in first_twenty if line.endswith("，")) / len(first_twenty)) if first_twenty else 0.0
     connectors = [term for term in HIGH_FREQUENCY_TERMS if term in body]
     engine_hits = [term for term in ENGINE_SIGNAL_TERMS if term in body]
+    engine_hits.extend(pattern for pattern in ENGINE_SIGNAL_PATTERNS if re.search(pattern, body))
     rough_terms = [term for term in ROUGH_SELF_DAMAGE_TERMS if term in body]
     rough_patterns = [pattern for pattern in ROUGH_SELF_DAMAGE_PATTERNS if re.search(pattern, body)]
     messages: list[str] = []

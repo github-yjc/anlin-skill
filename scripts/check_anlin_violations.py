@@ -326,6 +326,28 @@ TEXTURE_OVERFILL_GROUPS = {
     "screen": ["手机", "屏幕", "消息", "群", "评论", "帖子", "视频", "小红书", "知乎", "微博", "B站", "抖音", "贴吧", "NGA", "boss", "Boss", "直聘", "GPT", "AI"],
     "route_object": ["楼下", "门口", "路上", "电动车", "车", "公交", "地铁", "楼道", "快递", "钥匙", "塑料袋", "水龙头", "杯子", "充电", "空调", "冰箱"],
 }
+TEXTURE_SOCIAL_TERMS = [
+    "我说",
+    "他说",
+    "她说",
+    "问我",
+    "回我",
+    "骂",
+    "笑",
+    "老板",
+    "摊主",
+    "店员",
+    "收银",
+    "保安",
+    "司机",
+    "邻居",
+    "室友",
+    "舍友",
+    "同学",
+    "朋友",
+    "我妈",
+    "我爸",
+]
 UNSUPPORTED_GAME_ROLE_TERMS = [
     "排位",
     "星耀一",
@@ -659,6 +681,12 @@ ENGINE_SIGNAL_TERMS = [
     "假装没听见",
     "纸巾擦",
     "擦了擦手",
+]
+ENGINE_SIGNAL_PATTERNS = [
+    # Public low-status reactions can drive a paragraph even when the surface
+    # words are quiet. Keep this narrow so private grime does not pass.
+    r"(?:老板|摊主|店员|收银|他|她)[^。！？\n]{0,30}(?:看|瞥)[^。！？\n]{0,18}(?:我的)?(?:手|手指|指甲|指甲缝)[^。！？\n]{0,40}(?:嘴角|停|顿|没接|纸巾|擦|零钱|硬币)",
+    r"(?:我的)?(?:手|手指|指甲|指甲缝)[^。！？\n]{0,24}(?:灰|黑|脏|泥|汁)[^。！？\n]{0,50}(?:老板|摊主|店员|收银|他|她)[^。！？\n]{0,35}(?:看|瞥|嘴角|停|顿|纸巾|擦|零钱|硬币)",
 ]
 SEALED_NIGHT_TERMS = ["失眠", "床", "枕", "闹钟", "睡", "手机", "通知", "群", "Boss", "直聘"]
 CLOSED_LOOP_TAIL_TERMS = ["到现在也没", "明天再", "还没请", "还没还", "又点开"]
@@ -1874,6 +1902,18 @@ def check_generated_texture_overfill(findings: list[Finding], lines: list[str], 
                 "生成稿高风险：身体、屏幕、路物细节同时过密，容易像把生活气味清单塞满。删掉不改变动作、社交位置、身体后果或下一场景的具体名词，保留有后果的两三处。",
             )
         )
+    social_lines = sum(1 for line in visible_lines if any(term in line for term in TEXTURE_SOCIAL_TERMS))
+    body_route_lines = group_hits.get("body", 0) + group_hits.get("route_object", 0)
+    if body_chars >= 900 and group_hits.get("body", 0) >= 10 and group_hits.get("route_object", 0) >= 8 and social_lines <= 3:
+        findings.append(
+            Finding(
+                "warning",
+                "纹理替代社交不足",
+                0,
+                f"body_chars={body_chars}, body_lines={group_hits.get('body', 0)}, route_object_lines={group_hits.get('route_object', 0)}, social_lines={social_lines}, body_route_lines={body_route_lines}",
+                "生成稿高风险：身体/物件纹理已经很多，但社交后果太少，修复时容易继续堆手、灰、案板、垃圾桶。删掉一个重复纹理簇，换成会改变回复、付款、路线、房间位置或社交处境的真实小动作。",
+            )
+        )
 
 
 def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str], text: str) -> None:
@@ -2156,13 +2196,14 @@ def check_engine_signal_density(findings: list[Finding], text: str) -> None:
     if style != "standard":
         return
     hits = [term for term in ENGINE_SIGNAL_TERMS if term in text]
-    if len(hits) < 3:
+    pattern_hits = [pattern for pattern in ENGINE_SIGNAL_PATTERNS if re.search(pattern, text)]
+    if len(hits) + len(pattern_hits) < 3:
         findings.append(
             Finding(
                 "warning",
                 "段落发动机信号偏弱",
                 0,
-                f"present={hits}",
+                f"present={hits + pattern_hits}",
                 "标准日寄不能只是安静低落；至少需要误读、自毁、社交误伤、身体降格或荒谬系统解释中的几种。",
             )
         )
