@@ -984,6 +984,31 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["preflights"], 1)
             self.assertEqual(state["last_preflight_messages"][0].split()[0], "binary_reframe=present")
 
+    def test_clean_run_checker_preflight_blocks_learned_ending_button_without_consuming_call(self) -> None:
+        cluster = [
+            "其实水龙头咳了一下，水从接口那边斜着喷出来，",
+            "我觉得裤脚湿得像刚从鱼摊回来。",
+            "丢人。",
+            "后来发现胶带粘不上，手上全是灰，老板还问我要不要换贵的那种。",
+            "不过我没换，因为手机余额看起来比水管还紧。",
+            "很冷。",
+        ]
+        body = "\n".join(["# 胶带", "", *(cluster * 10), "算了。"])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            command = [sys.executable, str(CLEAN_RUN_CHECKER), str(draft), "--strict", "--draft-gate"]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+
+            self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
+            self.assertIn("CLEAN_RUN_PREFLIGHT", preflight.stdout)
+            self.assertIn("learned_ending_button=present", preflight.stdout)
+            self.assertIn("unfinished practical action", preflight.stdout)
+
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+
     def test_clean_eval_trace_flags_pre_draft_refs_and_stop_escape(self) -> None:
         log = """
         → Read C:/skill/references/clean-generation-brief.md
@@ -4062,6 +4087,53 @@ class AnlinToolingTests(unittest.TestCase):
             )
             findings = json.loads(result.stdout)
             self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+
+    def test_checker_accepts_lockout_practical_failure_as_rough_signal(self) -> None:
+        body = "\n".join(
+            [
+                "# 胶带",
+                "",
+                "我试了试用一张没用的废卡插进门缝里想撬开，卡太软了，弯了一下就从中间断了。",
+                "站起来的时候膝盖响了一声，楼道里听得清清楚楚。",
+                "对门那个中年女的看到我的时候脚步顿了一下。",
+                "我站在门口，手里捏着胶带和一张断掉的卡。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+
+    def test_checker_does_not_count_plain_knee_pain_as_rough_signal(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "膝盖有点疼。",
+                *(["其实我觉得杯子有点脏，洗的时候水龙头轻轻响了一下。"] * 38),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertTrue(any("粗粝自毁信号不足" in item["rule"] for item in findings))
 
     @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_style_profile_uses_phase_genre_stratum_when_requested(self) -> None:

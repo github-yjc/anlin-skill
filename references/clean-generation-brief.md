@@ -137,6 +137,7 @@ Before writing `draft.md`, do a private source preflight:
 - no group/comment chain markers such as `有人发/有人说/有人问/又有人/底下有人/另一个说`
 - no invented spouse/child identity such as `老婆/妻子/媳妇/孩子`; delivery pressure is route, app, heat, money, body, customer, parent, landlord, or class comparison, not a married-rider biography
 - one coarse body/social/self-own consequence is present in the scene, not only a quiet mood or clean ache
+- the last three visible body lines do not use `哦。` / `算了。` / `睡了。` / `屏幕暗了。` as a style button unless the prior scene has forced that exact reply; prefer the unfinished action, wrong object, route, payment, reply, or body interruption already present
 
 If these readiness signals tempt you to add a game scene, recurring character, body symptom, app platform, or background fact only because a reference mentions it, do not add it. Rework an existing scene so the function appears through its own action.
 
