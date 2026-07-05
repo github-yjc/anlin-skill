@@ -119,18 +119,21 @@ When `ngram_texture` is red or a local packet repeats, do not keep the same scen
 
 When body and route/object texture are high but dialogue/social movement is low, do not add another body detail to satisfy roughness. Move the existing roughness outside the narrator: cashier sees the hand, neighbor comments on the object, landlord asks an ugly practical question, someone misrecognizes him, or payment/route/silence makes the status loss visible. Private grime stays texture; exposed grime becomes movement only when it changes the next action.
 
-If strict hard gate is clean but style-profile remains `revise`, or remains `review` with red `line_rhythm`, stop local punctuation chasing. Do one rhythm-reset rewrite: keep the same scene facts, target roughly 55-65 body lines and 950-1120 body Chinese characters, organize the article into breathing clusters of 2-5 visible lines, and make line breaks follow action/thought movement. In each cluster, one line can run on with `，`, another can land with `。`, and a short line can drop a body/social consequence. Do not solve `short_lines` by making 40 tiny rows, do not solve periods by turning the whole draft into comma chains, and do not solve commas by joining many clauses into one long line. If `short_lines` is too low, add a few earned blunt drops from existing action/body/social turns; do not add decorative one-word captions. Avoid 85+ one-sentence rows, avoid 30-line prose blocks, and avoid designing the first 20 lines by percentage alone. After that rhythm reset, validate once; if the same red families remain, record finalized failure instead of looping forever.
+If strict hard gate is clean but style-profile remains `revise`, or remains `review` with red `line_rhythm`, stop local punctuation chasing. Do one rhythm-reset rewrite: keep the same scene facts, target roughly 55-65 body lines and 950-1120 body Chinese characters, organize the article into breathing clusters of 2-5 visible lines, and make line breaks follow action/thought movement. In each cluster, one line can run on with `，`, another can land with `。`, and a short line can drop a body/social consequence. Do not solve `short_lines` by making 40 tiny rows, do not solve periods by turning the whole draft into comma chains, and do not solve commas by joining many clauses into one long line. If `short_lines` is too low, add a few earned blunt drops from existing action/body/social turns; do not add decorative one-word captions or split lines only because a count is low. Avoid 85+ one-sentence rows, avoid 30-line prose blocks, and avoid designing the first 20 lines by percentage alone. After that rhythm reset, validate once; if the same red families remain, record finalized failure instead of looping forever.
 
 If a finalized repair has already bounced between opposite profile failures, such as too few short lines -> too many short rows, too many periods -> no periods, or line length too high -> line length too low, stop rewriting by metrics. Preserve the best semantically coherent draft, note the unresolved profile families, and return control to the developer/controller. Further repair should change the source rhythm model in this skill, not keep producing new metric-shaped drafts.
 
 ## Prompt Material Handling
 
-Before drafting, split the user's prompt nouns into four buckets:
+Before drafting, split the user's prompt nouns into five buckets:
 
+- `forbidden`: any explicit "do not write" domain. This bucket outranks all other buckets.
 - `driver`: at most one item may visibly push the piece.
 - `pressure`: one or two items may appear later as consequences.
 - `background`: most items should be half-visible through another person's line, a phone surface, a receipt, an unfinished action, or a practical problem.
 - `discard`: remove anything that would make the article look like a complete answer to the prompt.
+
+Forbidden is not a softer prompt preference. If the user forbids money, consumption, or prices, delete the whole purchase/transaction family: no store checkout, buying water, receipt, amount, payment, balance, discount, takeout order, or price arithmetic. Do not keep `超市`, `收银台`, `矿泉水`, `付款`, or `外卖` just because no number appears. If the prompt itself contains a red packet, gift, coupon, or other money-adjacent object, crop it into a screen shape or discard it; do not turn it into spending, calculation, or shopping. Replace the scene function with body, route, room, weather, object failure, delayed reply, or social embarrassment.
 
 For formal standard-diary blind evaluation, use at most two high-signal prompt items visibly. Everything else must be discarded, merged into a low-signal consequence, or made invisible. More prompt coverage is worse, not better.
 

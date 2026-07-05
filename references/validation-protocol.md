@@ -147,6 +147,7 @@ Finalized checkpoint pass gate:
 - Style-profile `yellow` with zero errors is acceptable for the finalized checkpoint; record the yellow families, but do not keep rewriting solely to remove yellow warnings. Blind rounds and placebo calibration decide whether those remaining cues matter.
 - Style-profile `review` is not a finalized checkpoint pass, even when `red_families` is empty. Use the report's `checkpoint_decision`; only `checkpoint_decision=pass` can enter blind-round preparation.
 - If corpus is available, run copy-overlap comparison with `--corpus-dir <corpus-dir>`.
+- Manually audit explicit prompt prohibitions because the generic checker may not know the prompt. If the user forbids a domain such as money, consumption, prices, games, romance, or family, any visible same-domain replacement is a blocking prompt-compliance failure even when hard/style gates are clean.
 - Record repair iteration count and whether the final repair changed scene source, rhythm, title, background specificity, or only patched local wording.
 - If finalized repair improves one rhythm metric by creating the opposite failure, such as 80+ uniform lines becoming 30-40 compressed prose lines, classify it as unresolved repair-path drift. Run `rebalance_line_rhythm.py` once as a corridor reset, then inspect scene function; do not continue metric ping-pong.
 - If bounded fails but finalized passes, treat it as a source-guidance gap. If finalized also fails, treat it as a systemic or repair-path gap and inspect architecture before adding another detector.
@@ -328,6 +329,7 @@ If a judge sees `mapping.json`, original corpus filenames, skill files, previous
 - [ ] Blind rounds use isolated neutral judge directories whose paths do not reveal impostor/placebo status.
 - [ ] Titles retained and normalized for generated and original samples.
 - [ ] Draft is not a length outlier for the selected complete-article protocol.
+- [ ] Explicit prompt prohibitions were manually checked; forbidden domains were not reintroduced through adjacent details.
 - [ ] Judge prompts require detailed quoted evidence and alternative explanations.
 - [ ] Controller records confidence, evidence-family count, raw accusations, stable accusations, and placebo false accusations separately.
 - [ ] At least two placebo rounds included for serious evaluation.

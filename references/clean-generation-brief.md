@@ -103,6 +103,8 @@ This is source guidance, not a scorecard. The point is to make the first draft g
 
 `Complete article` does not mean complete prompt coverage. When the prompt gives several neat nouns, such as shopping discount + social feed + parcel + wrong object, do not allocate one scene to every noun in order. Pick one daily failure as the driver, let one prompt pressure interrupt it, and bury, weaken, or discard the rest unless it changes the next action. A blind judge spots assignment-shaped writing when the article visits every supplied item politely.
 
+Explicit negative constraints outrank scene instincts. If the user says not to write money, consumption, prices, shopping, romance, games, family, or any other domain, remove that whole domain before drafting; do not replace it with a neighboring version. For example, `不要写金钱、消费或价格` means no store checkout, buying water, delivery order, receipt, payment gesture, amount, balance, discount, or price arithmetic. If the prompt also contains a red-packet or social-feed surface, keep it as a cropped screen shape only when necessary, not as money, gift calculation, buying, or payment. Replace the forbidden function with body, route, room, weather, object failure, delayed reply, or social embarrassment.
+
 ## Start From Friction
 
 Do not start from a checklist or the user's clean topic. Start from one small thing that bothers the narrator:
@@ -121,7 +123,7 @@ Use this source order before drafting:
 2. Let one pressure item from the prompt arrive late or sideways.
 3. Give the middle one off-axis branch that changes an action, body state, reply, route, payment, or social position.
 4. Keep one useless residue that does not symbolize the theme.
-5. Only then check facts. Do not open background files to hunt for extra nouns.
+5. Apply explicit negative constraints and fact gates. Do not open background files to hunt for extra nouns.
 
 ## Scene Gates
 
@@ -159,6 +161,7 @@ Before writing `draft.md`, do a private source preflight:
 - no soft binary repair such as `也不是疼，就是...`, `不是认识，就是...`, `我不是叔叔，我只是...`, `最疼的不是X，是Y`, or `不是因为X，而是因为Y`
 - no stranger/vendor identity-probe line whose job is to deliver the prompt: `你是不是以前那个大学的，就是...`, then school/city/job/salary/success facts
 - no group/comment chain markers such as `有人发/有人说/有人问/又有人/底下有人/另一个说`
+- no prompt-forbidden domain leakage: if the prompt forbids money/consumption/price, there is no store purchase, checkout, receipt, payment, balance, amount, delivery order, or price-like replacement
 - no theatrical ordinary dialogue in quote marks; stranger/vendor/shopkeeper speech should usually be embedded without `“”` / `""`, and the encounter should leave through payment, wrong goods, dirty hands, body noise, route change, or silence
 - no polished simile caption after abstract pressure, such as a sentence that says the message, job pressure, crack, or memory is `像一颗钉子` or `像扔进井里`; keep the physical fact or next action instead
 - no invented spouse/child identity such as `老婆/妻子/媳妇/孩子`; delivery pressure is route, app, heat, money, body, customer, parent, landlord, or class comparison, not a married-rider biography

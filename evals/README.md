@@ -97,6 +97,8 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 
 边缘用例 15 除外：该用例的 `expected_behavior` 为 `agent_must_refuse_or_explicitly_mark_as_fictional`，通过标准为 agent 正确拒绝生成或明确标注为虚构。
 
+如果用例包含显式禁止项，控制器必须人工检查 prompt compliance。通用 checker 不一定知道用户禁止了什么；例如 `不要写金钱、消费或价格` 时，正文出现超市购买、收银台、矿泉水交易、付款、余额、折扣、金额或价格替代物，都应记为 blocking prompt-compliance failure，即使 hard gate 和 style-profile 没有 error。
+
 ## 批量聚合
 
 ### 双检查点记录
