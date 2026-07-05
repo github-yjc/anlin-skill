@@ -180,7 +180,7 @@ Registers include laugh, sting, tenderness, deflection, absurdity, analysis, bod
 
 - 2: short sincere/micro-hope piece is short but complete: enough current action, memory, interruption, and factual retreat to feel lived rather than abbreviated
 - 1: the piece is coherent but thin, with too few longer clumsy lines or too little present-day consequence
-- 0: the piece reads like a sketch or compressed prompt answer, especially below roughly 520 body Chinese characters
+- 0: the piece reads like a sketch or compressed prompt answer, especially below roughly 520 body Chinese characters; for formal complete-article clean-eval, 520-649 characters or 55+ mostly tiny rows should also be treated as incomplete unless there are strong longer clumsy lines and a real practical turn
 
 ## Genre Adjustments
 

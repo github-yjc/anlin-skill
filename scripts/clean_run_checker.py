@@ -412,9 +412,18 @@ def preflight_messages(draft: Path) -> list[str]:
             messages.append(
                 f"short_genre_underbuilt_complete_article=style:{style}, body_chars={body_chars} < 520"
             )
+        if 520 <= body_chars < 650:
+            messages.append(
+                f"short_genre_complete_article_buffer=style:{style}, body_chars={body_chars} < 650"
+            )
         if body_chars < 650 and body_line_count >= 18 and long_line_count == 0:
             messages.append(
                 f"short_genre_no_long_clumsy_lines=style:{style}, body_lines={body_line_count}, long_lines={long_line_count}"
+            )
+        if body_line_count >= 55 and short_line_ratio >= 0.45 and long_line_count < 3:
+            messages.append(
+                f"short_genre_short_line_grid=style:{style}, body_lines={body_line_count}, "
+                f"short_line_ratio={short_line_ratio:.2f}, long_lines={long_line_count}"
             )
         if body_chars >= 520 and (body_line_count <= 20 or mean_line >= 32 or comma_ratio < 0.08):
             messages.append(
@@ -532,7 +541,9 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     )
     underbuilt_short_genre = any(
         message.startswith("short_genre_underbuilt_complete_article=")
+        or message.startswith("short_genre_complete_article_buffer=")
         or message.startswith("short_genre_no_long_clumsy_lines=")
+        or message.startswith("short_genre_short_line_grid=")
         or message.startswith("short_genre_prose_block_compression=")
         or message.startswith("short_genre_diagnostic_date_title=")
         or message.startswith("short_genre_repair_stuffing=")
@@ -587,6 +598,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         if "short_genre_prompt_prop_too_early=" in joined_messages:
             repair_hints.append(
                 "for short_genre_prompt_prop_too_early, rebuild the first 8-12 body lines before any memory proof: make today's practical action fail and change the next move, then let only one mother/egg/rain/message trace leak in; do not open with the prompt-prop inventory"
+            )
+        if "short_genre_complete_article_buffer=" in joined_messages or "short_genre_short_line_grid=" in joined_messages:
+            repair_hints.append(
+                "for short-genre completion/rhythm, do not expand into standard diary or split into tiny rows; rebuild around 650-850 body Chinese characters, about 28-55 body lines, with 4-8 longer clumsy action/memory/reply lines and one practical consequence that changes the next move"
             )
         if "short_genre_repair_stuffing=" in joined_messages:
             repair_hints.append(

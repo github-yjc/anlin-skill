@@ -2030,7 +2030,11 @@ def check_short_genre_underbuilt_complete_article(findings: list[Finding], lines
     short_lines = sum(1 for length in lengths if length <= 12)
     short_line_ratio = short_lines / max(1, len(lengths))
     underbuilt = body_chars < 520
-    line_grid = body_chars < 650 and len(visible_lines) >= 18 and long_lines == 0 and short_line_ratio >= 0.35
+    line_grid = (
+        ((body_chars < 760 and len(visible_lines) >= 18) or len(visible_lines) >= 55)
+        and long_lines < 3
+        and short_line_ratio >= 0.45
+    )
     if not underbuilt and not line_grid:
         return
     findings.append(
@@ -3150,7 +3154,16 @@ SINCERE_BODY_MARKERS = [
     "陪我熬",
 ]
 SINCERE_MOTHER_SUBJECT_MARKERS = ["妈妈", "我妈", "母亲"]
-SINCERE_HOLIDAY_OR_MESSAGE_MARKERS = ["母亲节", "康乃馨", "祝福", "没发", "发消息", "朋友圈"]
+SINCERE_HOLIDAY_OR_MESSAGE_MARKERS = [
+    "母亲节",
+    "康乃馨",
+    "祝福",
+    "没发",
+    "发消息",
+    "朋友圈",
+    "五月十二",
+    "5月12",
+]
 SINCERE_CARE_MEMORY_MARKERS = [
     "鸡蛋",
     "雨衣",

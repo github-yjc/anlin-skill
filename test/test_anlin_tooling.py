@@ -33,6 +33,7 @@ STYLE_PROFILE = ROOT / "references" / "style-profile.json"
 BACKGROUND_FACT_CLASSES = ROOT / "references" / "background-fact-classes.json"
 EVALS = ROOT / "evals" / "evals.json"
 sys.path.insert(0, str(ROOT / "scripts"))
+from check_anlin_violations import detect_style  # noqa: E402
 from clean_run_checker import normalize_before_final_check, preflight_messages  # noqa: E402
 from summarize_dev_checkpoints import classify_development_result, infer_genre_from_case_dir, summarize_gate  # noqa: E402
 
@@ -1094,6 +1095,100 @@ class AnlinToolingTests(unittest.TestCase):
                 any(message.startswith("short_genre_no_long_clumsy_lines=") for message in messages),
                 messages,
             )
+
+    def test_detect_style_routes_mother_date_and_care_memory_to_sincere(self) -> None:
+        body = "\n".join(
+            [
+                "# 红痕",
+                "",
+                "晚上煮面，水放多了，",
+                "手背红了一小片。",
+                "屏幕顶端：五月十二号，",
+                "星期天。",
+                "上次回家冰箱里有一袋鸡蛋，",
+                "我妈说煮好了你带回去。",
+                "小时候下雨我妈骑自行车接我，",
+                "雨衣短，小腿全湿了。",
+            ]
+        )
+        self.assertEqual(detect_style(body), "sincere")
+
+    def test_clean_run_preflight_flags_short_sincere_tiny_row_grid(self) -> None:
+        body = "\n".join(
+            [
+                "# 红痕",
+                "",
+                "晚上煮面，水放多了，",
+                "扑出来的时候火苗闪了一下。",
+                "关了，端锅的时候耳朵烫了手，",
+                "缩了一下，锅差点翻。",
+                "捞面的时候滑了一下，",
+                "几根面条掉水槽里，",
+                "捡起来冲了冲，",
+                "手背红了一小片。",
+                "不疼，但是看着不舒服。",
+                "端上桌才想起没拿筷子，",
+                "回去拿。",
+                "灶台边有一层油灰，",
+                "拇指擦了擦，滑腻腻的，",
+                "懒得管了。",
+                "手机亮了一下，",
+                "运营商余额。",
+                "屏幕顶端：五月十二号，",
+                "星期天。",
+                "上次回家冰箱里有一袋鸡蛋，",
+                "我妈说煮好了你带回去。",
+                "塑料袋系了两个结，",
+                "一个死结扯不开。",
+                "我用牙咬了一下，撕了个口，",
+                "鸡蛋挤在一起，",
+                "有一个裂了缝，蛋清渗出来，",
+                "黏糊糊的。",
+                "我放回冰箱第二层，",
+                "后来每次拉开冰箱都看见它，",
+                "蛋白干了，发黄，",
+                "一直没吃。",
+                "小时候下雨我妈骑自行车接我，",
+                "雨衣短，小腿全湿了。",
+                "到学校她把雨衣给我，",
+                "自己推车回去，",
+                "背上深了一块，",
+                "也没说什么。",
+                "吃完想把碗洗了，",
+                "水龙头开了才发现没洗洁精，",
+                "又关上了。",
+                "碗泡在水槽里，",
+                "水面浮着一层油花，",
+                "那几根掉下去的面条泡发了，",
+                "漂在水上。",
+                "我突然觉得有点恶心，",
+                "走开了。",
+                "去楼下买洗洁精，",
+                "扫码的时候手滑了一下，",
+                "屏幕没反应。",
+                "又扫了一次，",
+                "收银员看了我一眼，又看了看我的手，",
+                "没说话。",
+                "塑料袋提手很细，",
+                "勒进那道红痕里，",
+                "有点疼，我换了一只手。",
+                "回来的时候楼道灯坏了，",
+                "踩着台阶边缘摸上去。",
+                "钥匙捅了半天，",
+                "锁有点涩，转不动，",
+                "用力拧了一下，",
+                "开了。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(
+                any(message.startswith("short_genre_short_line_grid=") for message in messages),
+                messages,
+            )
+            self.assertFalse(any(message.startswith("body_chinese_chars=") and "< 900" in message for message in messages), messages)
 
     def test_checker_warns_on_short_sincere_prose_block_and_date_title(self) -> None:
         body = short_sincere_prose_block_sample()
@@ -4584,6 +4679,10 @@ class AnlinToolingTests(unittest.TestCase):
         ]
         combined = "\n".join(path.read_text(encoding="utf-8") for path in files)
         self.assertIn("first 8-12 body lines", combined)
+        self.assertIn("650-850 body Chinese characters", combined)
+        self.assertIn("28-55 body lines", combined)
+        self.assertIn("poem-shaped grid", combined)
+        self.assertIn("520-649", combined)
         self.assertIn("short_genre_prompt_prop_too_early", (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8"))
         self.assertIn("短真诚题面物件过早", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
         self.assertIn("token-anchor openings", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))

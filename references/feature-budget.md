@@ -119,11 +119,12 @@ Recommended budget:
 - Low joke density.
 - Concrete actions and irreversible cost.
 - 4-7 uneven clusters rather than a single smooth paragraph or equal-length line grid.
-- Several longer clumsy memory/action/speech lines, plus one or two short fact-retreat drops.
+- For formal complete-article clean-eval, usually around 650-850 body Chinese characters and about 28-55 body lines; 55+ tiny rows is a poem-shaped grid, not restraint.
+- Several longer clumsy memory/action/speech/reply lines, plus one or two short fact-retreat drops.
 - One rough ordinary logistics detail or awkward reply that prevents the memory from becoming a clean proof of love.
 - One protected retreat near the end, but do not force a joke.
 - If used in blind evaluation, either expand to a comparable complete-article length or compare only against short sincere originals.
-- For clean-eval short sincere, keep a practical completeness floor: usually above roughly 520 body Chinese characters, with at least a few longer clumsy action/memory/speech lines. If the draft is shorter, add a current practical cluster that changes action or reply, not another proof-memory.
+- For clean-eval short sincere, keep a practical completeness floor: 520 is only a narrow matched-short-original buffer; when the user asks for a complete article, rebuild toward roughly 650-850 body Chinese characters unless the draft already has strong clumsy lines and a practical turn. If the draft is shorter or line-grid shaped, add a current practical cluster that changes action or reply, not another proof-memory.
 - For mother/family sincere, start from the current practical anchor. Let only one memory prop attach to that anchor; crop or discard the rest.
 - If a repair warning says the current-action anchor is missing, treat the old article spine as unusable. Rebuild from the present action instead of arranging the same proof chain more gracefully.
 
