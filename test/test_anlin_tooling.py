@@ -4260,12 +4260,59 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
             self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings))
 
+    def test_checker_accepts_public_body_noise_and_dirty_hand_reaction_as_rough_signal(self) -> None:
+        body = "\n".join(
+            [
+                "# 东窗",
+                "",
+                "五金店里很安静，站起来的时候胃响了一声，老板抬头看了看我。",
+                "找零的时候他手碰到我的手，全是拆箱子的灰，他拿纸巾擦了擦手才把零钱推过来。",
+                "我假装没听见。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+            self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings))
+
     def test_checker_does_not_count_plain_dirty_room_as_rough_signal(self) -> None:
         body = "\n".join(
             [
                 "# 日寄",
                 "",
                 "房间很脏，纸箱很多，地上有灰。",
+                *(["其实我觉得杯子有点旧，洗的时候水龙头轻轻响了一下。"] * 38),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertTrue(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+
+    def test_checker_does_not_count_private_stomach_noise_as_rough_signal(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "坐在房间里胃响了一声。",
                 *(["其实我觉得杯子有点旧，洗的时候水龙头轻轻响了一下。"] * 38),
             ]
         )
