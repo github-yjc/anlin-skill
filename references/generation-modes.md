@@ -54,6 +54,8 @@ Shape:
 
 Use sparingly in standard diaries. In sincere pieces this can be the main mode.
 
+Do not let Mode C become polished minimalism. A sincere piece can be short, but it still needs friction in the surface: a practical thing to do, an awkward reply not sent or sent badly, food/water/light/object logistics, or a small interruption that keeps the memory from becoming proof of love. Build it in uneven clusters rather than equal emotional lines. Keep a few longer clumsy action or memory lines and one or two short factual retreats. If every line sounds like it was chosen to be tender, merge lines, add the ordinary interruption already present in the day, and cut the explanatory feeling.
+
 ## Mode D: Body Intrusion
 
 Best for gout, sleep, pain, hunger, urine, stomach, heart, or fatigue.
@@ -328,6 +330,7 @@ Use this map when a blind judge identifies a draft.
 | no real laugh | build a small crooked explanation, self-own, or status collapse; do not add a meme punchline |
 | polite social dialogue | replace with a plausible misfire, over-share, misunderstanding, or sentence that wounds by accident |
 | polished micro-hope | add logistics, bad timing, and an unresolved body action; remove the final hopeful sentence |
+| short sincere polished minimalism | merge equal emotional lines into rougher memory/action syntax; add one awkward reply or practical interruption; keep a short factual retreat |
 | sincere piece too clean | keep one ugly practical detail and one awkward reply; do not let memory prove love too neatly |
 | surreal piece too symbolic | add a dumb object, a payment/log-in problem, or an ordinary bodily action that breaks the symbol chain |
 | short-line fragment poem | merge lines into uneven spoken syntax and add a longer clumsy clause |

@@ -39,6 +39,7 @@ These apply to all normal generation:
 29. No texture saturation: body, phone/screen, route/object, money, platform, and background facts are not six boxes to tick. If three texture families are all frequent, keep only details that change what the narrator does, what someone says, what the body interrupts, or what the next scene can become.
 30. No anti-AI-reference contamination: anti-slop terms in this skill are negative examples, not content prompts. Unless the user supplied it, do not write AI/GPT/model/text-detection scenes or advice about identifying generated prose.
 31. No repeated texture-packet repair: if a draft keeps returning to the same body/object packet, such as hand dirt, white food, cutting board, garbage, route heat, payment, or dark room, do not add another proof-detail. Delete one packet and replace its function with a social or practical consequence that changes reply, payment, route, room position, or next action.
+32. No polished short-genre essay: sincere and micro-hope pieces can be short, but they still need uneven breathing, rough logistics, awkward reply/practical interruption, and factual retreat. Do not submit a 25-35-line smooth prose piece where every line completes the same feeling.
 
 ## Strong Defaults
 
@@ -112,6 +113,9 @@ Recommended budget:
 - 1 core relationship or memory.
 - Low joke density.
 - Concrete actions and irreversible cost.
+- 4-7 uneven clusters rather than a single smooth paragraph or equal-length line grid.
+- Several longer clumsy memory/action/speech lines, plus one or two short fact-retreat drops.
+- One rough ordinary logistics detail or awkward reply that prevents the memory from becoming a clean proof of love.
 - One protected retreat near the end, but do not force a joke.
 - If used in blind evaluation, either expand to a comparable complete-article length or compare only against short sincere originals.
 
@@ -132,6 +136,8 @@ Avoid:
 - polished minimalism where every line is a complete emotional unit
 - mother/family memories arranged as a clean proof of love or guilt
 - titles that summarize the withheld confession
+- stretching into standard diary only to satisfy a global profile
+- adding game/body/route/background labels because the short genre feels too quiet
 
 ## Micro-Hope Piece
 
@@ -141,6 +147,7 @@ Recommended budget:
 - Hope must be material: a sound, a payment, a walk, a sentence, a body easing.
 - Keep the hope vulnerable and interruptible.
 - Add one rough logistics detail so it does not become a small prose poem.
+- Keep uneven breathing: a few longer practical lines and one short factual drop, not evenly polished emotional rows.
 
 Avoid:
 
@@ -150,6 +157,7 @@ Avoid:
 - a final sentence that completes the emotional argument
 - titles or endings that explicitly say the bad thing is still acceptable
 - clean object chains where every object supports hope
+- final repair that smooths away the bad timing, logistics, or body/action interruption
 
 ## Surreal Or Literary Experiment
 

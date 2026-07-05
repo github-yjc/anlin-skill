@@ -1968,6 +1968,41 @@ def check_high_frequency_coverage(findings: list[Finding], text: str) -> None:
         findings.append(Finding("warning", "高频词覆盖不足", 0, f"present={present}", "需要多个不同的自然连接信号；先让动作、对话、身体或屏幕移动产生连接词，不要在句尾硬撒。"))
 
 
+def check_short_genre_polished_minimalism(findings: list[Finding], lines: list[str], text: str) -> None:
+    style = detect_style(text)
+    if style == "standard":
+        return
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [
+        line.strip()
+        for line in content_lines
+        if line.strip() and not line.strip().startswith("<!--")
+    ]
+    body_chars = chinese_len("\n".join(visible_lines))
+    if body_chars < 300 or len(visible_lines) < 18:
+        return
+    lengths = [chinese_len(line) for line in visible_lines]
+    long_lines = sum(1 for length in lengths if length >= 24)
+    short_drops = sum(
+        1
+        for line, length in zip(visible_lines, lengths)
+        if 1 <= length <= 8 and re.search(r"[。！？]$", line)
+    )
+    mean_length = sum(lengths) / len(lengths)
+    variance = sum((length - mean_length) ** 2 for length in lengths) / len(lengths)
+    line_stdev = variance ** 0.5
+    if long_lines == 0 and short_drops <= 1 and line_stdev <= 5.5:
+        findings.append(
+            Finding(
+                "warning",
+                "短体裁整齐散文",
+                0,
+                f"style={style}, body_chars={body_chars}, body_lines={len(visible_lines)}, long_lines={long_lines}, short_drops={short_drops}, line_stdev={line_stdev:.2f}",
+                "短真诚/微小希望可以短，但不能变成每行长度相近的抛光散文。用现有动作或记忆制造不均匀呼吸：合并一两处为较长笨拙动作/口头句，保留一处很短的失败、沉默或事实后撤；不要拉长成标准日寄，也不要为指标硬切行。",
+            )
+        )
+
+
 def check_connector_overuse(findings: list[Finding], text: str) -> None:
     style = detect_style(text)
     if style != "standard" or chinese_len(text) < 650:
@@ -2879,6 +2914,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_dialogue_quotes(findings, lines)
     check_dialogue_stack(findings, lines)
     check_high_frequency_coverage(findings, text)
+    check_short_genre_polished_minimalism(findings, lines, text)
     check_connector_overuse(findings, text)
     check_diagnostic_title(findings, lines)
     check_high_signal_opening(findings, lines)

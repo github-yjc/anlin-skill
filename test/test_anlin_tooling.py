@@ -561,6 +561,81 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any(rule.startswith("短体裁主题集中: family") for rule in rules), rules)
             self.assertFalse(any(rule.startswith("strict: 单主题词密度偏高: family") for rule in error_rules), error_rules)
 
+    def test_checker_warns_on_short_sincere_polished_minimalism_without_standard_gate(self) -> None:
+        body = "\n".join(
+            [
+                "# 母亲节",
+                "",
+                "空调按了几下才关掉，",
+                "电池仓还是松的",
+                "我把后盖推回去，",
+                "房间里还是闷着",
+                "",
+                "米饭热了一遍",
+                "榨菜还剩半袋",
+                "我端着碗坐在床边，",
+                "手机亮了一下",
+                "朋友圈都是母亲节的图，",
+                "花和合照挤在一起",
+                "我划过去没有点开",
+                "米饭有一点硬",
+                "吃着想起上次回家，",
+                "我妈塞了一袋鸡蛋",
+                "塑料袋裹了两层",
+                "她说路上别压碎了，",
+                "我说好",
+                "她没提今天是什么日子，",
+                "",
+                "楼下有人跳广场舞，",
+                "喇叭声断断续续，",
+                "抽油烟机盖掉一半，",
+                "快递提醒又亮起来，",
+                "昨天就该取的，",
+                "我把它划掉，",
+                "",
+                "鸡蛋还剩四个，",
+                "有一个裂了，",
+                "蛋壳上有一小块灰，",
+                "应该是塑料袋磨的，",
+                "裂的那个也没坏，",
+                "我还是煮了，",
+                "水龙头开了很久，",
+                "热水才出来，",
+                "隔壁门响了一下，",
+                "钥匙转了两圈，",
+                "",
+                "小时候下雨，",
+                "她送我上学，",
+                "雨鞋在田埂上很滑，",
+                "她一直拉着我，",
+                "手掌上有裂口，",
+                "到校门口的时候，",
+                "她裤腿湿了一半，",
+                "她没说什么，",
+                "把我送进去就走了，",
+                "我那时候没有回头，",
+                "",
+                "手机又亮了，",
+                "我把屏幕翻过去。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            error_rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("短体裁整齐散文", rules)
+            self.assertFalse(any("标准日寄完整文章篇幅" in rule for rule in error_rules), error_rules)
+
     def test_checker_draft_gate_still_treats_plain_family_diary_as_standard_attempt(self) -> None:
         lines = [
             "我妈在饭桌上问我什么时候回去。",
@@ -3839,11 +3914,12 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("不要只看“最后有没有修好”", eval_readme)
         self.assertIn("Style-profile `yellow` with zero errors and no red-family stop is acceptable", skill)
         self.assertIn("Clean-eval freezes the fresh-agent result after bounded preflight and limited checker-driven repair", skill)
-        self.assertIn("do one rhythm-reset rewrite around 55-65 body lines", skill)
+        self.assertIn("standard diary around 55-65 body lines", skill)
+        self.assertIn("short sincere/micro-hope around 4-7 uneven clusters", skill)
         self.assertIn("repairs bounce between opposite profile failures", skill)
         self.assertIn("style-profile remains `revise`, or remains `review` with red `line_rhythm`", runtime)
         self.assertIn("five independent yellow drift families", skill)
-        self.assertIn("style-profile `review` is not", skill)
+        self.assertIn("style-profile `review` or `inconclusive` is not", skill)
         self.assertIn("thin the draft instead of decorating it", runtime)
         self.assertIn("breathing clusters of 2-5 visible lines", runtime)
         self.assertIn("`finalized=review` is not a clean final success", validation)

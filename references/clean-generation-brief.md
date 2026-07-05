@@ -43,6 +43,8 @@ Route genre before choosing length or rhythm:
 
 If genre is unspecified in clean-eval, infer the narrowest genre supported by the prompt and title/body plan. A Mother's Day direct-memory prompt should usually route to sincere mode rather than being stretched into a standard diary. A non-`日寄` title alone never proves short form; if the body is a standard diary attempt, keep standard length and rhythm.
 
+For sincere or micro-hope blind-evaluation drafts, shortness is allowed only when the shape is still a complete article. Do not write a polished 25-35-line prose essay where every line finishes an emotion. Use a short-genre breathing corridor: roughly 4-7 clusters, uneven visible line lengths, a few longer clumsy action/speech/memory lines, and one or two very short fact-retreat drops that the scene earns. The roughness should come from logistics, an awkward reply, a practical interruption, bad timing, or a plain object that refuses to symbolize the feeling. If the candidate feels smooth, repair the source movement before writing `draft.md`: combine adjacent memory/object facts into one rougher line, add a practical interruption already implied by the day, and delete the sentence that explains what the tenderness means. Do not expand it into standard diary length just to satisfy global ratios.
+
 For a standard diary blind-evaluation draft:
 
 - title required; choose from the completed body, not from a fixed default
