@@ -410,6 +410,14 @@ def preflight_messages(draft: Path) -> list[str]:
             messages.append(
                 f"short_genre_no_long_clumsy_lines=style:{style}, body_lines={body_line_count}, long_lines={long_line_count}"
             )
+        if body_chars >= 520 and (body_line_count <= 20 or mean_line >= 32 or comma_ratio < 0.08):
+            messages.append(
+                f"short_genre_prose_block_compression=style:{style}, body_lines={body_line_count}, mean_line={mean_line:.1f}, early_comma_ratio={comma_ratio:.2f}"
+            )
+        title, _ = split_title_and_content_lines(text.splitlines())
+        normalized_title = re.sub(r"[\s#]+", "", title)
+        if re.search(r"(?:母亲节|五月十二日|5月12日|五月十二|520)", normalized_title):
+            messages.append(f"short_genre_diagnostic_date_title={normalized_title}")
         short_story_risk = short_genre_literary_story_risk(text.splitlines(), text)
         if short_story_risk:
             messages.append(
@@ -498,6 +506,8 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     underbuilt_short_genre = any(
         message.startswith("short_genre_underbuilt_complete_article=")
         or message.startswith("short_genre_no_long_clumsy_lines=")
+        or message.startswith("short_genre_prose_block_compression=")
+        or message.startswith("short_genre_diagnostic_date_title=")
         for message in messages
     )
     missing_breath = any("short_breath_lines=" in message for message in messages)
@@ -541,7 +551,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         )
     if underbuilt_short_genre:
         repair_hints.append(
-            "for an underbuilt short genre, do not solve by deleting memory or shrinking further; add one present practical cluster that changes action or reply, keep a few longer clumsy lines, and discard or bury one prompt-supplied family prop instead of preserving every prompt noun"
+            "for a short-genre source failure, do not solve by deleting memory or shrinking further; rewrite into 4-7 uneven clusters, keep a few longer clumsy lines, add one present practical cluster that changes action or reply, use a side-action title, and discard or bury one prompt-supplied family prop instead of preserving every prompt noun"
         )
     if f"> {STANDARD_DIARY_DRAFT_OVERFULL_CHARS}" in joined_messages:
         repair_hints.append(
@@ -606,7 +616,8 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             revision_frame = (
                 "Rebuild the short-genre source, not the standard-diary length: keep 4-7 uneven clusters, add one "
                 "current practical interruption or awkward reply that changes the next action, keep several longer "
-                "clumsy lines, and drop one prompt-supplied memory/object proof before running this wrapper again."
+                "clumsy lines, use a side-action title, and drop one prompt-supplied memory/object proof before "
+                "running this wrapper again."
             )
         else:
             revision_frame = (

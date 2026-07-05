@@ -37,6 +37,32 @@ from clean_run_checker import normalize_before_final_check, preflight_messages  
 from summarize_dev_checkpoints import classify_development_result, summarize_gate  # noqa: E402
 
 
+def short_sincere_prose_block_sample() -> str:
+    return "\n".join(
+        [
+            "# 五月十二日",
+            "",
+            "手机屏幕亮着，微信对话框停在和妈妈的聊天界面，上一条消息还是她说天冷多穿点，我回了个好。",
+            "今天是母亲节，朋友圈里很多人在发红包截图，配文妈妈辛苦了，我划过去，没点赞，也没评论。",
+            "冰箱里还有上个月回家时她塞给我的一袋鸡蛋，塑料袋系得死紧，我到现在都没拆。",
+            "我伸手去拿的时候，袋子底下粘着一点水，冰箱门被我撞了一下，冷气贴在小腿上。",
+            "小时候下雨，她骑自行车送我上学，雨衣不够大，她把大半边让给我，自己肩膀全湿了。",
+            "那条路后来修过很多次，我已经记不清坑在哪里，只记得她下车推车的时候鞋里灌了水。",
+            "现在想想，那会儿她好像从来不觉得累，或者觉得累也不说，我只是坐在后座上嫌书包勒肩膀。",
+            "我盯着屏幕看了很久，手指在键盘上敲了又删，打了妈，又删掉，又打了节日快乐。",
+            "楼上有人拖椅子，声音很长，像一个人故意把家里的地板刮给全楼听。",
+            "我关上冰箱，又打开，想着把鸡蛋煮两个，锅里却还有昨晚没洗的碗，油花贴在边上。",
+            "她以前也会把这种碗泡很久，边泡边说等一下洗，最后还是自己站起来洗掉。",
+            "我把碗挪到水槽里，水龙头先空响了两下，出来的水很细，冲不掉碗边那圈油。",
+            "手机放在灶台旁边，输入框里还剩一个妈字，屏幕暗下去以后只剩一个黑边。",
+            "我想把这句话补完，手又伸去拧水，袖口沾到一点冷水，贴在手腕上很久。",
+            "窗外有车经过，声音很远，冰箱还在响，鸡蛋还在里面，塑料袋的结还是原来那个死结。",
+            "最后我站起来，去厨房把鸡蛋从冰箱里拿出来，放在台面上，塑料袋还是没拆。",
+            "明天吧，明天再说。",
+        ]
+    )
+
+
 class AnlinToolingTests(unittest.TestCase):
     @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_checker_has_no_hard_errors_on_original_corpus(self) -> None:
@@ -812,6 +838,32 @@ class AnlinToolingTests(unittest.TestCase):
                 any(message.startswith("short_genre_no_long_clumsy_lines=") for message in messages),
                 messages,
             )
+
+    def test_checker_warns_on_short_sincere_prose_block_and_date_title(self) -> None:
+        body = short_sincere_prose_block_sample()
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertIn("短体裁散文块压缩", rules)
+            self.assertIn("短体裁题面日期标题", rules)
+
+    def test_clean_run_preflight_flags_short_sincere_prose_block_and_date_title(self) -> None:
+        body = short_sincere_prose_block_sample()
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(any(message.startswith("short_genre_prose_block_compression=") for message in messages), messages)
+            self.assertTrue(any(message.startswith("short_genre_diagnostic_date_title=") for message in messages), messages)
 
     def test_checker_draft_gate_still_treats_plain_family_diary_as_standard_attempt(self) -> None:
         lines = [

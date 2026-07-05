@@ -2037,6 +2037,54 @@ def check_short_genre_underbuilt_complete_article(findings: list[Finding], lines
     )
 
 
+def check_short_genre_prose_block_compression(findings: list[Finding], lines: list[str], text: str) -> None:
+    style = detect_style(text)
+    if style == "standard":
+        return
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [
+        line.strip()
+        for line in content_lines
+        if line.strip() and not line.strip().startswith("<!--")
+    ]
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < 520 or not visible_lines:
+        return
+    lengths = [chinese_len(line) for line in visible_lines]
+    mean_line = sum(lengths) / max(1, len(lengths))
+    first_twenty = visible_lines[:20]
+    comma_ratio = (sum(1 for line in first_twenty if line.endswith("，")) / len(first_twenty)) if first_twenty else 0.0
+    if len(visible_lines) <= 20 or mean_line >= 32 or comma_ratio < 0.08:
+        findings.append(
+            Finding(
+                "warning",
+                "短体裁散文块压缩",
+                0,
+                f"style={style}, body_chars={body_chars}, body_lines={len(visible_lines)}, mean_line={mean_line:.1f}, early_comma_ratio={comma_ratio:.2f}",
+                "短真诚/微小希望不是顺滑散文段。保留短体裁，但要改成4-7个不均匀呼吸簇：有几条较长笨拙动作/记忆线，也有短事实后撤；不要把每个段落写成完整解释句。",
+            )
+        )
+
+
+def check_short_genre_diagnostic_date_title(findings: list[Finding], lines: list[str], text: str) -> None:
+    style = detect_style(text)
+    if style == "standard":
+        return
+    title, _ = split_title_and_content_lines(lines)
+    normalized = re.sub(r"[\s#]+", "", title)
+    if re.search(r"(?:母亲节|五月十二日|5月12日|五月十二|520)", normalized):
+        findings.append(
+            Finding(
+                "warning",
+                "短体裁题面日期标题",
+                0,
+                normalized,
+                "短真诚/微小希望标题不能把提示日期或节日直接端出来。选当前动作、错误物件、笨拙回复或不服务主题的生活残留作标题。",
+            )
+        )
+
+
 SHORT_GENRE_STORY_OBJECT_TERMS = [
     "鸡蛋",
     "蛋壳",
@@ -3085,6 +3133,8 @@ def collect_findings(text: str) -> list[Finding]:
     check_dialogue_stack(findings, lines)
     check_high_frequency_coverage(findings, text)
     check_short_genre_underbuilt_complete_article(findings, lines, text)
+    check_short_genre_prose_block_compression(findings, lines, text)
+    check_short_genre_diagnostic_date_title(findings, lines, text)
     check_short_genre_polished_minimalism(findings, lines, text)
     check_short_genre_literary_story_closure(findings, lines, text)
     check_connector_overuse(findings, text)
