@@ -32,6 +32,7 @@ STYLE_PROFILE = ROOT / "references" / "style-profile.json"
 BACKGROUND_FACT_CLASSES = ROOT / "references" / "background-fact-classes.json"
 EVALS = ROOT / "evals" / "evals.json"
 sys.path.insert(0, str(ROOT / "scripts"))
+from clean_run_checker import normalize_before_final_check  # noqa: E402
 from summarize_dev_checkpoints import classify_development_result  # noqa: E402
 
 
@@ -1008,6 +1009,36 @@ class AnlinToolingTests(unittest.TestCase):
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
+
+    def test_clean_run_final_normalize_preserves_existing_line_corridor(self) -> None:
+        cluster = [
+            "昨天搬到这边，搬家公司的人问我几楼，",
+            "他抬头看了一眼楼梯，像看见我欠他钱。其实也没有很多东西，只是每个袋子都很难看，",
+            "我说收。",
+            "很丢人。",
+            "小票后面粘着一点米粒，硬硬的，抠不下来。我突然想起以前租的那个房间，",
+            "输入框空了。",
+        ]
+        body = "\n".join(["# 朝东寄", "", *(cluster * 10)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            normalize_before_final_check(draft)
+            lines = draft.read_text(encoding="utf-8").splitlines()
+            content = []
+            seen_title = False
+            for line in lines:
+                stripped = line.strip()
+                if not seen_title and stripped:
+                    seen_title = True
+                    continue
+                if stripped and not stripped.startswith("<!--"):
+                    content.append(stripped)
+            lengths = [len("".join(ch for ch in line if "\u4e00" <= ch <= "\u9fff")) for line in content]
+            self.assertGreaterEqual(len(content), 55)
+            self.assertLessEqual(len(content), 70)
+            self.assertGreaterEqual(sum(1 for length in lengths if length <= 8), 10)
+            self.assertGreaterEqual(sum(1 for length in lengths if length >= 28), 10)
 
     def test_clean_eval_trace_flags_pre_draft_refs_and_stop_escape(self) -> None:
         log = """
@@ -4112,6 +4143,29 @@ class AnlinToolingTests(unittest.TestCase):
             )
             findings = json.loads(result.stdout)
             self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+
+    def test_checker_accepts_true_short_breath_drop_for_draft_gate(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "很丢人。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("呼吸点缺失" in item["rule"] for item in findings))
+            self.assertTrue(any(item["rule"] == "呼吸点" and item["excerpt"] == "很丢人。" for item in findings))
 
     def test_checker_does_not_count_plain_knee_pain_as_rough_signal(self) -> None:
         body = "\n".join(

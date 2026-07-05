@@ -2101,12 +2101,16 @@ def check_breathing_point(findings: list[Finding], lines: list[str], text: str) 
     style = detect_style(text)
     if style != "standard":
         return
-    pattern = re.compile(r"^[\u4e00-\u9fff]{1,2}[。，！？]$")
     for line_number, line in enumerate(lines, start=1):
-        if pattern.match(line.strip()):
+        stripped = line.strip()
+        if (
+            1 <= chinese_len(stripped) <= 8
+            and re.search(r"[。！？]$", stripped)
+            and not re.search(r"[，,；;：:]", stripped)
+        ):
             findings.append(Finding("info", "呼吸点", line_number, clean_excerpt(line), "发现短句呼吸点"))
             return
-    findings.append(Finding("warning", "呼吸点缺失", 0, "", "标准日寄建议至少保留一个1-2字独立短句作为呼吸点。"))
+    findings.append(Finding("warning", "呼吸点缺失", 0, "", "标准日寄建议保留真实<=8字独立短落点，落在失败决定、笨回复、身体/社交降低或实际撤退上。"))
 
 
 def check_metadata_comment(findings: list[Finding], text: str) -> None:

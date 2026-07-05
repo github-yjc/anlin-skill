@@ -96,20 +96,40 @@ def record_snapshot(draft: Path, state: dict[str, Any], key: str, *, overwrite: 
 
 
 def normalize_before_final_check(draft: Path) -> None:
-    subprocess.run(
-        [sys.executable, str(SPLIT_LONG_LINES), str(draft), "--in-place", "--target-lines", "58"],
-        text=True,
-        encoding="utf-8",
-        check=False,
+    def current_lengths() -> tuple[list[str], list[int], int, float, int, float]:
+        text = draft.read_text(encoding="utf-8")
+        _, content_lines = split_title_and_content_lines(text.splitlines())
+        visible_lines = [line for line in content_lines if line.strip() and not line.strip().startswith("<!--")]
+        current = [chinese_len(line) for line in visible_lines]
+        current_body_chars = sum(current)
+        current_mean = statistics.mean(current) if current else 0.0
+        current_long_count = sum(1 for length in current if length >= 28)
+        current_stdev = statistics.pstdev(current) if len(current) > 1 else 0.0
+        return visible_lines, current, current_body_chars, current_mean, current_long_count, current_stdev
+
+    visible, lengths, body_chars, mean_line, long_count, line_stdev = current_lengths()
+    prose_compressed = (
+        len(visible) < 45
+        or (body_chars >= 900 and mean_line >= 42)
+        or (len(visible) > 0 and long_count >= max(6, int(len(visible) * 0.65)))
     )
-    text = draft.read_text(encoding="utf-8")
-    _, content_lines = split_title_and_content_lines(text.splitlines())
-    visible = [line for line in content_lines if line.strip() and not line.strip().startswith("<!--")]
-    lengths = [chinese_len(line) for line in visible]
+    if prose_compressed:
+        subprocess.run(
+            [sys.executable, str(SPLIT_LONG_LINES), str(draft), "--in-place", "--target-lines", "58"],
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+        visible, lengths, body_chars, mean_line, long_count, line_stdev = current_lengths()
     short_ratio = (sum(1 for length in lengths if length <= 12) / len(lengths)) if lengths else 0.0
-    long_count = sum(1 for length in lengths if length >= 28)
-    line_stdev = statistics.pstdev(lengths) if len(lengths) > 1 else 0.0
-    if len(visible) > 75 or short_ratio >= 0.40 or (len(visible) >= 72 and (long_count < 4 or line_stdev <= 6.0)):
+    true_short_grid = (
+        len(visible) > 90
+        or (len(visible) > 75 and (short_ratio >= 0.40 or long_count < 4))
+        or (short_ratio >= 0.62 and long_count < 8)
+        or (short_ratio >= 0.55 and line_stdev <= 6.0)
+        or (len(visible) >= 72 and (long_count < 4 or line_stdev <= 6.0))
+    )
+    if true_short_grid:
         subprocess.run(
             [
                 sys.executable,
