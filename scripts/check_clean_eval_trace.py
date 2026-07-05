@@ -127,6 +127,28 @@ def first_index(text: str, patterns: list[str]) -> int:
     return min(indices) if indices else -1
 
 
+def actual_reference_action_index(text: str, reference: str) -> int:
+    """Return the index of a real pre-draft reference load.
+
+    Formatted OpenCode logs include visible reasoning that may quote the
+    skill's no-load list. Only command/tool/action lines are evidence that the
+    generator actually opened a forbidden reference.
+    """
+    escaped = re.escape(reference)
+    patterns = [
+        rf"(?im)^\s*(?:→\s*)?Read\s+[^\n]*{escaped}",
+        rf"(?im)^\s*TITLE\s+Read\s+[^\n]*{escaped}",
+        rf"(?im)^\s*INPUT\s+[^\n]*(?:path|file|command)[^\n]*{escaped}",
+        rf"(?im)^\s*\$\s+[^\n]*(?:Get-Content|gc|type|cat|Select-String|rg|python|py)[^\n]*{escaped}",
+    ]
+    indices: list[int] = []
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if match:
+            indices.append(match.start())
+    return min(indices) if indices else -1
+
+
 def actual_clean_stop_index(text: str) -> int:
     """Find a real clean-run stop emitted by the wrapper.
 
@@ -172,7 +194,7 @@ def collect_findings(text: str) -> list[TraceFinding]:
             )
         )
     for reference in FORBIDDEN_PRE_DRAFT_REFERENCES:
-        index = pre_draft.find(reference)
+        index = actual_reference_action_index(pre_draft, reference)
         if index >= 0:
             findings.append(
                 TraceFinding(

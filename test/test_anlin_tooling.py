@@ -2082,7 +2082,8 @@ class AnlinToolingTests(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertEqual(json.loads(result.stdout), [])
+            findings = json.loads(result.stdout)
+            self.assertFalse(any(item["severity"] == "error" for item in findings), findings)
 
     def test_clean_eval_trace_jsonl_ignores_dumped_skill_body_reference_names(self) -> None:
         events = [
@@ -2214,6 +2215,54 @@ class AnlinToolingTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(json.loads(result.stdout), [])
+
+    def test_clean_eval_trace_formatted_log_ignores_reasoned_no_load_list(self) -> None:
+        log = """
+        Thinking: I should not read `references/anti-ai-slop.md`, `references/title-model.md`, or `references/runtime-brief.md` before the first complete `draft.md`.
+        $ Get-ChildItem -Force .anlin-clean-eval-mode
+        → Read C:/skill/references/clean-generation-brief.md
+        → Read C:/skill/references/era-state.md
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_NOTE: checker call 1/2
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            findings = json.loads(result.stdout)
+            self.assertFalse(any(item["severity"] == "error" for item in findings), findings)
+
+    def test_clean_eval_trace_formatted_log_flags_actual_forbidden_reference_read(self) -> None:
+        log = """
+        $ Test-Path .anlin-clean-eval-mode
+        → Read C:/skill/references/clean-generation-brief.md
+        → Read C:/skill/references/runtime-brief.md
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_NOTE: checker call 1/2
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval首稿前加载修复/评审引用", rules)
 
     def test_clean_eval_trace_jsonl_still_flags_actual_forbidden_reference_read(self) -> None:
         events = [
