@@ -446,6 +446,63 @@ class AnlinToolingTests(unittest.TestCase):
                 rules,
             )
 
+    def test_checker_draft_gate_does_not_force_mothers_day_sincere_short_form_into_standard_length(self) -> None:
+        body = "\n".join(
+            [
+                "# 不想祝我妈母亲节快乐",
+                "",
+                "早上我妈发来一个表情。",
+                "一朵花，红得像楼下水果摊没卖完的塑料袋。",
+                "我看了半天，没回。",
+                "我知道可以回一句快乐。",
+                "手指停在键盘上，又退回去了。",
+                "她以前下雨天给我送伞，鞋底进水，",
+                "到教室门口还先把伞上的水甩干。",
+                "我那时候只觉得丢人。",
+                "现在想起来，丢人的地方还是我。",
+                "她如果没有生我，可能会过得轻一点。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertFalse(any("标准日寄完整文章篇幅" in rule for rule in rules), rules)
+            self.assertFalse(any("标准日寄行数" in rule for rule in rules), rules)
+
+    def test_checker_draft_gate_still_treats_plain_family_diary_as_standard_attempt(self) -> None:
+        lines = [
+            "我妈在饭桌上问我什么时候回去。",
+            "我把筷子放下来，又拿起来。",
+            "碗里那块肉肥得很认真，像一个不会看脸色的亲戚。",
+            "我说再看吧，她嗯了一声。",
+            "厨房的灯闪了一下，照得我指甲缝里全是酱油。",
+            "我去洗手，水龙头先咳了一口黄水。",
+        ] * 7
+        body = "\n".join(["# 半碗饭", "", *lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any(rule.startswith("strict: 标准日寄完整文章篇幅") for rule in rules), rules)
+
     def test_clean_run_checker_enforces_two_call_limit(self) -> None:
         ready_lines = [
             "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",

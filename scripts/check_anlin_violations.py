@@ -2470,8 +2470,7 @@ def check_period_comma_ratio(findings: list[Finding], lines: list[str]) -> None:
 
 def check_global_comma_density(findings: list[Finding], lines: list[str], text: str) -> None:
     title, content_lines = split_title_and_content_lines(lines)
-    style = detect_style(text)
-    if style != "standard" or "日寄" not in title:
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
         return
     body = "\n".join(line for line in content_lines if line.strip() and not line.startswith("<!--"))
     chars = chinese_len(body)
@@ -2610,10 +2609,42 @@ def content_scene_blocks(lines: list[str]) -> list[str]:
     return [block.strip() for block in re.split(r"\n\s*\n|\n\.\s*\n", text) if block.strip()]
 
 
+SINCERE_TITLE_MARKERS = [
+    "真诚",
+    "真心话",
+    "母亲节",
+    "谢谢你",
+    "陪我走过",
+    "不想祝",
+]
+SINCERE_BODY_MARKERS = [
+    "母亲节快乐",
+    "不做母亲",
+    "谢谢你",
+    "陪我走过",
+    "陪我熬",
+]
+MICRO_HOPE_TITLE_MARKERS = ["活着就是"]
+SURREAL_TITLE_MARKERS = ["存在主义", "迷失"]
+
+
 def detect_style(text: str) -> str:
-    """Detect 'sincere'/'truthful' style from title or metadata; default to standard."""
+    """Conservatively infer genre for draft-gate routing."""
     lower_text = text.lower()
-    if any(marker in lower_text for marker in ["真诚", "truthful", "sincere", "真心话"]):
+    if any(marker in lower_text for marker in ["truthful", "sincere"]):
+        return "sincere"
+
+    lines = text.splitlines()
+    title, content_lines = split_title_and_content_lines(lines)
+    surface = "\n".join([title, *content_lines[:12]])
+    if any(marker in title for marker in MICRO_HOPE_TITLE_MARKERS):
+        return "micro-hope"
+    if any(marker in title for marker in SURREAL_TITLE_MARKERS):
+        return "surreal"
+    if any(marker in title for marker in SINCERE_TITLE_MARKERS):
+        return "sincere"
+    sincere_hits = {marker for marker in SINCERE_BODY_MARKERS if marker in surface}
+    if len(sincere_hits) >= 2:
         return "sincere"
     return "standard"
 
@@ -2625,7 +2656,10 @@ NON_STANDARD_TITLE_HINTS = [
     "梦",
     "超现实",
     "写不出来",
-    "母亲",
+    "母亲节",
+    "谢谢你",
+    "陪我走过",
+    "不想祝",
 ]
 
 

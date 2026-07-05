@@ -26,11 +26,15 @@ Ask internally:
 
 If there is no friction, do not manufacture a grand theme. Use a small daily mismatch.
 
+Choose genre before applying length and rhythm targets. `日寄` or a broad daily montage means standard diary. Mother's Day, direct thanks/apology, companionship, or a family memory that would be cheapened by forced jokes can be sincere mode. Small acceptance can be micro-hope. Loosened causality can be surreal only when the scene earns it. Ordinary family pressure, family dinner, or `我妈` appearing in a standard daily montage does not automatically make the draft sincere.
+
 Do not start from the user's topic sentence. The topic is often too clean. Start from a small misfit that could have happened even if nobody had asked for the topic: a stuck app badge, a wrong condiment, a dirty charging cable, a half-finished reply, a body itch, a bad route, a household object in the wrong place, or another person's offhand line.
 
 For standard diary mode, treat the first visible sentence as a blind-review risk surface. If it contains the user's main pressure word, date event, relationship label, or requested object, rewrite the opening. The opening should usually be a body/object/app residue that only later lets the prompt pressure leak in.
 
 Do not use title variation to change the body standard. A standard diary titled with a side object, phrase, question, or sentence still needs complete standard-diary length and line rhythm. Shorter targets belong only to a deliberately selected sincere, micro-hope, or surreal short form with matched evaluation.
+
+For sincere mode, do not pad toward standard-diary length merely to look complete. The complete-article test is whether the piece has a title, concrete memory/current action, visible cost, restraint, one rough ordinary detail, and an ending that retreats into fact rather than a lesson. If a sincere draft becomes polished minimalism, add logistics or an awkward reply; do not add a game, route, or body packet only because a standard diary would need more fragments.
 
 For multi-item prompts, do not turn the article into a route map through the prompt. A complete article may leave a supplied noun half-visible or unused. Shopping, parcel, wrong-size, coupon, delivery, or household-object material should become a consequence chain: the object changes body, payment, route, reply, room, or social position. If the draft merely discovers the object is wrong and then closes the app, it is still an assignment-shaped report, even when the details are concrete.
 

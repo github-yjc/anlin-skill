@@ -1,6 +1,6 @@
 # Clean Generation Brief
 
-Use this file for the first draft of a formal standard diary article. It is a compact runtime contract distilled from the longer references. Detailed files remain available for repair, validation, and research, but the first draft should not load them as a checklist.
+Use this file for the first draft of a formal blind-evaluation article. It is a compact runtime contract distilled from the longer references. Detailed files remain available for repair, validation, and research, but the first draft should not load them as a checklist.
 
 ## Output Silence
 
@@ -33,6 +33,15 @@ After reading `clean-generation-brief.md` in clean-eval mode, stop reading refer
 ## Target
 
 The goal is anonymous blind-evaluation robustness under reported conditions. Do not claim real authorship, provenance, or indistinguishability. The article itself must not mention validation, corpus, generated text, or methodology.
+
+Route genre before choosing length or rhythm:
+
+- **Standard diary**: use when the user explicitly asks for `日寄`, asks for a broad daily montage, or gives several daily pressure surfaces. It needs the full broken-line corridor below.
+- **Sincere**: use when the prompt is mainly mother/family thanks, Mother's Day, direct gratitude, apology, companionship, or a memory that would be cheapened by forced jokes. It can be shorter, but still needs concrete cost, restraint, one rough ordinary detail, and a loose ending. Do not turn every family prompt into sincere mode; family dinner, family pressure, or social embarrassment can still be standard diary.
+- **Micro-hope**: use only when the prompt asks for small acceptance/hope or the body naturally turns that way. Keep logistics and bad timing; avoid encouragement slogans.
+- **Surreal**: use only when the prompt or selected scene truly supports loosened causality. Keep body, money, social, or object coordinates so it does not become symbolic prose.
+
+If genre is unspecified in clean-eval, infer the narrowest genre supported by the prompt and title/body plan. A Mother's Day direct-memory prompt should usually route to sincere mode rather than being stretched into a standard diary. A non-`日寄` title alone never proves short form; if the body is a standard diary attempt, keep standard length and rhythm.
 
 For a standard diary blind-evaluation draft:
 
