@@ -50,6 +50,10 @@ If the candidate has 90+ body lines, no long lines, or mostly 4-10 character row
 
 Do not make the first draft a case report where every detail proves the prompt topic. In delivery, illness, job, family, or game prompts, one pressure surface is enough at first; the rest of the article still needs accidental body/social/material movement. Too many correct details in a row can read more synthetic than one unsupported detail.
 
+Known failed source shape: a fluent 10-15 paragraph article, later line-broken by tools into 55-70 lines, still tends to keep prose logic, period-heavy rhythm, repeated connector glue, and binary reframe sentences. Do not use that path. Before saving the first `draft.md`, the visible article itself should already look like clusters of breath: one or two lines may run on with `，`, a longer action/speech/thought line may carry the load, then a short drop lands a bad reply, body lowering, failed decision, or practical retreat. The short drop is earned by the scene; it is not a caption row.
+
+Generated drafts often smuggle AI binary framing through ordinary self-correction. Treat these as unsafe before the checker, even when they sound colloquial: `也不是疼，就是...`, `不是认识，就是...`, `不是因为X，而是因为Y`, `不是X。是Y`, `最疼的不是X，是Y`, and similar cross-line forms. Replace them with the positive physical fact or social action: the knee softens, the hand has black dirt, the rider checks the phone first, someone says one ugly line.
+
 ## Source Loop
 
 Use this loop instead of opening the long runtime or review files before the first draft:
@@ -107,6 +111,7 @@ Before writing `draft.md`, do a private source preflight:
 - several rough long lines above about 28 Chinese characters are already present; do not let a rhythm script be the first source of long lines
 - several different connectors from `其实/觉得/发现/好像/不过/突然/于是/因为/所以` occur because the thought is moving; zero or one signal is too polished, but repeating one word such as `其实/已经/当时` as glue is also synthetic
 - no `不是X，是Y`, `不是X，而是Y`, `不是X。是Y`, `不是说X，是说Y`, or split-line equivalent
+- no soft binary repair such as `也不是疼，就是...`, `不是认识，就是...`, `最疼的不是X，是Y`, or `不是因为X，而是因为Y`
 - no group/comment chain markers such as `有人发/有人说/有人问/又有人/底下有人/另一个说`
 - no invented spouse/child identity such as `老婆/妻子/媳妇/孩子`; delivery pressure is route, app, heat, money, body, customer, parent, landlord, or class comparison, not a married-rider biography
 - one coarse body/social/self-own consequence is present in the scene, not only a quiet mood or clean ache
@@ -126,6 +131,7 @@ The anti-AI material in this skill is a negative list, not subject material. Unl
 Avoid these generated-draft surfaces:
 
 - `不是X，是Y`, `不是X，而是Y`, `不是X。是Y`, `这不是X，这是Y`
+- `也不是X，就是Y`, `不是认识，就是Y`, `最疼的不是X，是Y`, `不是因为X，而是因为Y`
 - `本质上`, `真正的问题是`, `这说明`, `这意味着`, `换句话说`, `总之`
 - `首先/其次/最后/综上`
 - `——那种...`, `终于可以...的放松`, `释然`, `自洽`, `真实感`

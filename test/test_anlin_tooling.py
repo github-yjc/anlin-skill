@@ -2264,6 +2264,11 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("no group/comment chain markers", clean)
         self.assertIn("one coarse body/social/self-own consequence", clean)
         self.assertIn("Use the preflight message as a shape diagnosis", clean)
+        self.assertIn("Known failed source shape", clean)
+        self.assertIn("fluent 10-15 paragraph article", clean)
+        self.assertIn("the visible article itself should already look like clusters of breath", clean)
+        self.assertIn("也不是疼，就是", clean)
+        self.assertIn("最疼的不是X，是Y", clean)
         self.assertIn("rebalance_line_rhythm.py draft.md --in-place", clean)
         self.assertIn("Do not let the repair bounce from short-line grid into 30-40 prose lines", clean)
         self.assertIn("Do not write a prose version first", clean)
@@ -2515,6 +2520,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("scan the candidate for `老婆/妻子/媳妇/孩子他妈/我儿子/我女儿`", brief)
         self.assertIn("A rider video with `有人说...` is still a comment chain", brief)
         self.assertIn("clean_run_checker.py draft.md --strict --draft-gate", brief)
+        self.assertIn("Known failed source shape", brief)
+        self.assertIn("soft binary repair", brief)
+        self.assertIn("not a caption row", brief)
 
     def test_background_fact_classes_are_boundaries_not_requirements(self) -> None:
         table = json.loads(BACKGROUND_FACT_CLASSES.read_text(encoding="utf-8"))
