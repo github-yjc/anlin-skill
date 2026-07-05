@@ -100,6 +100,26 @@ COMMENT_CHAIN_FORMULA_MARKERS = [
     "评论区",
     "谢邀人在美国刚下飞机",
 ]
+COMMENT_CHAIN_CONTEXT_TERMS = [
+    "底下",
+    "下面",
+    "评论",
+    "评论区",
+    "回复",
+    "热评",
+    "群里",
+    "群聊",
+    "帖子",
+    "视频",
+    "弹幕",
+    "第一条",
+    "第二条",
+    "有人",
+    "有个人",
+    "另一个",
+    "被人",
+]
+CONTEXTUAL_COMMENT_CHAIN_MARKERS = ["跟了个", "被人回"]
 LOW_FREQUENCY_TERMS = ["然而", "因此", "可是", "也许", "或许", "认为", "意识到"]
 HIGH_FREQUENCY_TERMS = ["其实", "觉得", "发现", "好像", "不过", "突然", "于是", "因为", "所以"]
 CONNECTOR_OVERUSE_TERMS = [
@@ -562,6 +582,14 @@ ENGINE_SIGNAL_TERMS = [
     "欠了",
     "没躲过",
     "没躲过去",
+    "拖鞋穿反",
+    "鼻涕差点",
+    "黏糊糊",
+    "脚后跟磨",
+    "大拇指快顶",
+    "裤腿上也脏",
+    "探头看",
+    "甩不掉",
 ]
 SEALED_NIGHT_TERMS = ["失眠", "床", "枕", "闹钟", "睡", "手机", "通知", "群", "Boss", "直聘"]
 CLOSED_LOOP_TAIL_TERMS = ["到现在也没", "明天再", "还没请", "还没还", "又点开"]
@@ -607,6 +635,12 @@ ROUGH_SELF_DAMAGE_TERMS = [
     "断掉的卡",
     "卡太软",
     "指甲缝里都是灰",
+    "拖鞋穿反",
+    "鼻涕差点",
+    "黏糊糊",
+    "脚后跟磨",
+    "大拇指快顶",
+    "裤腿上也脏",
 ]
 ROUGH_SELF_DAMAGE_PATTERNS = [
     r"(?<![一二两三四五六七八九十百千万\d])滚(?![一二两三四五六七八九十百千万\d年月日天点分秒])",
@@ -637,6 +671,14 @@ ROUGH_SELF_DAMAGE_PATTERNS = [
     r"指甲缝[^。！？\n]{0,18}(?:灰|脏|泥)",
     r"(?:裤子|裤脚|裤腿)[^。！？\n]{0,28}(?:灰|泥|脏)[^。！？\n]{0,48}(?:看得很清楚|看了我|收银|老板|店员|邻居|别人|走廊灯)",
     r"(?:收银|老板|店员|年轻女|中年女)[^。！？\n]{0,50}看了[^。！？\n]{0,18}(?:手|裤|鞋|脚)",
+    r"拖鞋[^。！？\n]{0,12}穿反",
+    r"鼻涕[^。！？\n]{0,12}(?:出来|擦|流)",
+    r"(?:手背|手上|手指)[^。！？\n]{0,24}(?:灰|黑|脏)[^。！？\n]{0,48}(?:裤腿|裤子|衣服|蹭)",
+    r"(?:水槽|下水道|地漏|洗手池)[^。！？\n]{0,60}(?:头发|黏糊糊|堵)",
+    r"头发[^。！？\n]{0,24}(?:黏糊糊|甩不掉)",
+    r"(?:袜子|袜)[^。！？\n]{0,40}(?:洞|脚后跟磨|大拇指快顶|露|破)",
+    r"(?:裤腿|裤子|裤脚)[^。！？\n]{0,35}(?:灰|泥|脏)[\s\S]{0,90}(?:阳台|邻居|中年女|别人|看了我|探头|瞥)",
+    r"(?:阳台|邻居|中年女|别人)[\s\S]{0,90}(?:看了我|探头看|瞥)[\s\S]{0,90}(?:裤腿|裤子|灰|脏|纸箱)",
 ]
 AMBIENT_ENDING_PATTERNS = [
     r"(空调|外机|风扇|雨|灯|屏幕|手机|机器|冰箱)[^。！？\n]{0,16}(嗡|响|亮|暗|黑|震)[^。！？\n]{0,8}[。！？]?$",
@@ -1702,11 +1744,29 @@ def check_theme_density(findings: list[Finding], text: str) -> None:
             )
 
 
+def comment_chain_formula_hits(line: str) -> list[str]:
+    """Return formulaic online-comment/group-chain markers for a single line."""
+    hits: list[str] = []
+    contextual_markers = set(CONTEXTUAL_COMMENT_CHAIN_MARKERS)
+    for marker in COMMENT_CHAIN_FORMULA_MARKERS:
+        if marker in contextual_markers:
+            continue
+        if marker in line:
+            hits.append(marker)
+    if any(context in line for context in COMMENT_CHAIN_CONTEXT_TERMS):
+        for marker in CONTEXTUAL_COMMENT_CHAIN_MARKERS:
+            if marker in line:
+                hits.append(marker)
+    actor_hits = len(re.findall(r"(?:有人|有个人|另一个人)(?:说|回|问|发|开始)", line))
+    if actor_hits >= 2:
+        hits.append("multi_actor_chain")
+    return hits
+
+
 def check_comment_chain_formula(findings: list[Finding], lines: list[str]) -> None:
     for line_number, line in enumerate(lines, start=1):
-        marker_hits = sum(line.count(marker) for marker in COMMENT_CHAIN_FORMULA_MARKERS)
-        actor_hits = len(re.findall(r"(?:有人|有个人|另一个人)(?:说|回|问|发|开始)", line))
-        if marker_hits >= 1 or actor_hits >= 2:
+        marker_hits = comment_chain_formula_hits(line)
+        if marker_hits:
             findings.append(
                 Finding(
                     "warning",

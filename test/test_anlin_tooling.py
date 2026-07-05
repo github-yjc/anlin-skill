@@ -2384,6 +2384,50 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: 评论链公式化转述" for item in findings))
 
+    def test_checker_does_not_treat_one_to_one_emoji_as_comment_chain(self) -> None:
+        body = "\n".join(
+            [
+                "# 灯泡",
+                "",
+                "房东回了句好的，后面跟了个笑脸，我看了没回，把手机扣在桌上。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("评论链公式化转述" in item["rule"] for item in findings))
+
+    def test_checker_still_flags_contextual_followed_emoji_comment_surface(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "下面跟了个表情，底下又追了一串问号。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 评论链公式化转述" for item in findings))
+
     def test_checker_draft_gate_rejects_standalone_daily_dialogue_quotes(self) -> None:
         body = "\n".join(
             [
@@ -4188,6 +4232,55 @@ class AnlinToolingTests(unittest.TestCase):
             )
             findings = json.loads(result.stdout)
             self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+
+    def test_checker_accepts_ordinary_mess_as_low_status_rough_and_engine_signal(self) -> None:
+        body = "\n".join(
+            [
+                "# 抽屉",
+                "",
+                "到门口才发现拖鞋穿反了。",
+                "打了个喷嚏，鼻涕差点出来，只好用手背擦。",
+                "手背上有灰，黑黑的，就在裤腿上蹭。",
+                "水槽里掏出一坨头发，黏糊糊的，甩了两下甩不掉。",
+                "袜子脚后跟磨了个洞，大拇指快顶出来了。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+            self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings))
+
+    def test_checker_does_not_count_plain_dirty_room_as_rough_signal(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "房间很脏，纸箱很多，地上有灰。",
+                *(["其实我觉得杯子有点旧，洗的时候水龙头轻轻响了一下。"] * 38),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertTrue(any("粗粝自毁信号不足" in item["rule"] for item in findings))
 
     def test_checker_accepts_true_short_breath_drop_for_draft_gate(self) -> None:
         body = "\n".join(

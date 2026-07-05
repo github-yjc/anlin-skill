@@ -152,7 +152,7 @@ If the checker reports `评论链公式化转述`, delete the chain. Do not repa
 
 Also delete residue versions such as `底下跟了一串回答`, `底下追了一串问号`, or `被人回了个笑哭`; they are the same formula after compression.
 
-For formal generated drafts, group chat and forum scenes should usually contain zero `有人` actors. Do not repair `有人发/有人说/有人问/有个人问/另一个人说` into a different `有人` sentence. Also avoid compressed reaction residue such as `跟了个捂脸`, `又发了个文档`, `发截图的人`, `群里回了两个人`, or `下面跟了个表情`. If a forum or group scene remains after repair, keep only the screen/action surface: unread count, screenshot crop, a blurred title, scroll action, delayed reply, body reaction, or the narrator closing it. Do not quote replies.
+For formal generated drafts, group chat and forum scenes should usually contain zero `有人` actors. Do not repair `有人发/有人说/有人问/有个人问/另一个人说` into a different `有人` sentence. Also avoid compressed reaction residue in crowd/comment contexts such as `跟了个捂脸`, `又发了个文档`, `发截图的人`, `群里回了两个人`, or `下面跟了个表情`. A one-to-one message can still have a small reaction surface when it changes the narrator's action, such as not replying after a landlord's smile emoji; do not turn that into a comment chain. If a forum or group scene remains after repair, keep only the screen/action surface: unread count, screenshot crop, a blurred title, scroll action, delayed reply, body reaction, or the narrator closing it. Do not quote replies.
 
 For ordinary dialogue, do not let people take turns delivering prompt facts. Five or more consecutive `我说/他说/他问/我回` lines read like a script. Compress the exchange into one or two rough narrated lines and interrupt it with a body action, misheard word, practical errand, or silence. Family chat is especially high-risk: `我妈问吃了没/我回面/她说少吃` should become one rough sentence plus the action of continuing to eat, not a turn-by-turn transcript.
 
@@ -179,7 +179,7 @@ For a standard diary, the scene slate must satisfy all four gates:
 3. **Social misfire gate**: include one rough social moment where somebody accidentally wounds, misunderstands, over-shares, or says the wrong thing. The line should sound possible in real life, not like a stand-up punchline.
 4. **Unhelpful residue gate**: keep one detail that does not symbolize the main theme and would be boring in a plot summary: wrong packaging, stale smell, a minor route problem, a useless app badge, someone else's errand, dirty object, neighbor sound, or a half-finished chore.
 
-For formal generated drafts, gates 2 and 3 are not optional. If the draft stays polite, quiet, and observational, rewrite before the first checker. Add an embarrassing self-own, bodily low point, or accidental social cut that changes the next action.
+For formal generated drafts, gates 2 and 3 are not optional. If the draft stays polite, quiet, and observational, rewrite before the first checker. Add an embarrassing self-own, bodily low point, or accidental social cut that changes the next action. This can be low and ordinary rather than dramatic: wrong slippers, snot, dirty pants seen by someone, sticky drain hair, or socks worn through are valid only when they alter action, reply, body position, or social exposure.
 
 If a draft can be summarized as one clean thesis, it fails. Replace one on-theme scene with a lateral branch connected by a small hook: a word, smell, body sensation, app notification, memory, bad object, or someone's unrelated line.
 

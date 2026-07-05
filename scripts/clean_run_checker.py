@@ -31,7 +31,6 @@ SNAPSHOT_DIR_NAME = ".anlin-clean-run-snapshots"
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_anlin_violations import (  # noqa: E402
     BACKGROUND_DISPLAY_GROUPS,
-    COMMENT_CHAIN_FORMULA_MARKERS,
     ENGINE_SIGNAL_TERMS,
     PROCESS_LEAK_TERMS,
     HIGH_FREQUENCY_TERMS,
@@ -40,6 +39,7 @@ from check_anlin_violations import (  # noqa: E402
     ROUGH_SELF_DAMAGE_TERMS,
     STANDARD_DIARY_DRAFT_OVERFULL_CHARS,
     chinese_len,
+    comment_chain_formula_hits,
     current_office_persona_hits,
     meta_ai_topic_hits,
     split_title_and_content_lines,
@@ -289,7 +289,13 @@ def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]
     leaked_terms = [term for term in PROCESS_LEAK_TERMS if term in article_text]
     if leaked_terms:
         messages.append(f"process_leak_terms={leaked_terms[:3]}")
-    comment_markers = [term for term in COMMENT_CHAIN_FORMULA_MARKERS if term in article_text]
+    comment_markers: list[str] = []
+    seen_comment_markers: set[str] = set()
+    for line in lines:
+        for marker in comment_chain_formula_hits(line):
+            if marker not in seen_comment_markers:
+                comment_markers.append(marker)
+                seen_comment_markers.add(marker)
     if comment_markers:
         messages.append(f"comment_chain_markers={comment_markers[:4]}")
     binary_matches = binary_reframe_matches(lines)
