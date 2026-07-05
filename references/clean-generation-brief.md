@@ -149,6 +149,8 @@ For stranger, shopkeeper, vendor, driver, customer, or passerby social-compariso
 
 For this encounter type, the first draft should usually contain zero quote marks in that scene. If the prompt itself gives a sentence, do not copy it as dialogue unless the exact wording changes the next action. Turn it into a rough narrated surface: the seller mentioned his son while weighing the melon; the cashier asked one ugly question while looking at the narrator's hand; the driver said a plain thing and the narrator failed to answer. Then leave the speech through money, object, body, or route. Do not let the stranger speak the prompt in a neat script, and do not write a clean recognition probe such as `你是不是以前那个大学的，就是后面有条小吃街那个` followed by a neat success comparison.
 
+For quiet interior prompts, especially phone/feed + room + food/order + bed, add one outside contact before the first `draft.md`. The contact can be tiny: a delivery handoff, hallway or stairwell interruption, cashier/neighbor line, leaking bag, wrong reply, or object mark that becomes visible under a light. The point is not to add a required delivery scene; it is to stop the article from becoming screen -> room -> bowl -> bed. A single glance from another person, a mirror face, or `我看起来挺差` is too soft unless it changes the next action, leaves a physical residue, or lowers the narrator in front of the world.
+
 Before writing `draft.md`, do a private source preflight:
 
 - body is already at least 950 Chinese characters and 45-70 body lines; for standard clean-eval aim nearer 55-68 rather than the exact boundary
@@ -166,6 +168,7 @@ Before writing `draft.md`, do a private source preflight:
 - no polished simile caption after abstract pressure, such as a sentence that says the message, job pressure, crack, or memory is `像一颗钉子` or `像扔进井里`; keep the physical fact or next action instead
 - no invented spouse/child identity such as `老婆/妻子/媳妇/孩子`; delivery pressure is route, app, heat, money, body, customer, parent, landlord, or class comparison, not a married-rider biography
 - one coarse body/social/self-own consequence is present in the scene, not only a quiet mood or clean ache
+- quiet interior prompts have one outside contact or practical handoff that changes action; they are not only phone, room, food, mirror, bed, and ambient sound
 - repeated body/object packets have been thinned: if hands, dirt, cutting board, fruit/food color, garbage, heat, and payment all recur, remove one packet before adding anything else
 - social-message prompts have one off-chat consequence; they are not a chronological transcript of replies, prices, photos, and old messages
 - the last three visible body lines do not use `哦。` / `算了。` / `睡了。` / `屏幕暗了。` as a style button unless the prior scene has forced that exact reply; prefer the unfinished action, wrong object, route, payment, reply, or body interruption already present
