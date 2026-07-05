@@ -33,7 +33,7 @@ STYLE_PROFILE = ROOT / "references" / "style-profile.json"
 BACKGROUND_FACT_CLASSES = ROOT / "references" / "background-fact-classes.json"
 EVALS = ROOT / "evals" / "evals.json"
 sys.path.insert(0, str(ROOT / "scripts"))
-from clean_run_checker import normalize_before_final_check  # noqa: E402
+from clean_run_checker import normalize_before_final_check, preflight_messages  # noqa: E402
 from summarize_dev_checkpoints import classify_development_result  # noqa: E402
 
 
@@ -477,6 +477,89 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings]
             self.assertFalse(any("标准日寄完整文章篇幅" in rule for rule in rules), rules)
             self.assertFalse(any("标准日寄行数" in rule for rule in rules), rules)
+
+    def test_checker_infers_sincere_from_mother_care_memory_cluster_without_diagnostic_title(self) -> None:
+        body = "\n".join(
+            [
+                "# 鸡蛋",
+                "",
+                "手机屏幕亮着，朋友圈里有人发康乃馨，",
+                "我看了几秒，没有给妈妈发消息。",
+                "上次回家，她煮了一袋鸡蛋让我带走，",
+                "背包侧面的网兜鼓起来，像长了个瘤子。",
+                "小时候下雨，她骑自行车送我上学，",
+                "我穿着她的雨衣，风一吹就鼓起来。",
+                "到了校门口，她头发全湿了，",
+                "还让我快进去。",
+                "我现在想给她发点什么，",
+                "手指停在发送键旁边，又放下了。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertFalse(any("标准日寄完整文章篇幅" in rule for rule in rules), rules)
+            self.assertFalse(any("高频词覆盖不足" in rule for rule in rules), rules)
+            self.assertFalse(any("呼吸点缺失" in rule for rule in rules), rules)
+            self.assertFalse(any("粗粝自毁信号不足" in rule for rule in rules), rules)
+
+    def test_clean_run_preflight_uses_short_genre_gate_for_sincere_mother_memory(self) -> None:
+        body = "\n".join(
+            [
+                "# 鸡蛋",
+                "",
+                "手机屏幕亮着，朋友圈里有人发康乃馨，",
+                "我看了几秒，没有给妈妈发消息。",
+                "上次回家，她煮了一袋鸡蛋让我带走，",
+                "背包侧面的网兜鼓起来，像长了个瘤子。",
+                "小时候下雨，她骑自行车送我上学，",
+                "我穿着她的雨衣，风一吹就鼓起来。",
+                "到了校门口，她头发全湿了，",
+                "还让我快进去。",
+                "我现在想给她发点什么，",
+                "手指停在发送键旁边，又放下了。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertFalse(any("< 900" in message for message in messages), messages)
+            self.assertFalse(any("short_breath" in message for message in messages), messages)
+            self.assertFalse(any("rough_self_damage" in message for message in messages), messages)
+
+    def test_checker_does_not_promote_sincere_family_theme_density_as_standard_diary_error(self) -> None:
+        lines = [
+            "手机屏幕亮着，朋友圈里有人发康乃馨，妈妈的头像还在下面。",
+            "上次回家，妈妈煮了一袋鸡蛋让我带走，鸡蛋在背包里一直晃。",
+            "小时候下雨，妈妈骑车送我上学，我穿着她的雨衣。",
+            "雨衣太大，风一吹就鼓起来，鸡蛋后来在桌上放凉。",
+        ] * 4
+        body = "\n".join(["# 鸡蛋", "", *lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            error_rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any(rule.startswith("短体裁主题集中: family") for rule in rules), rules)
+            self.assertFalse(any(rule.startswith("strict: 单主题词密度偏高: family") for rule in error_rules), error_rules)
 
     def test_checker_draft_gate_still_treats_plain_family_diary_as_standard_attempt(self) -> None:
         lines = [

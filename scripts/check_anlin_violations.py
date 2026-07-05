@@ -1950,7 +1950,20 @@ def check_dialogue_stack(findings: list[Finding], lines: list[str]) -> None:
 
 
 def check_high_frequency_coverage(findings: list[Finding], text: str) -> None:
+    style = detect_style(text)
     present = [term for term in HIGH_FREQUENCY_TERMS if term in text]
+    if style != "standard":
+        if chinese_len(text) >= 250 and len(present) < 2:
+            findings.append(
+                Finding(
+                    "warning",
+                    "短体裁连接信号偏少",
+                    0,
+                    f"style={style}, present={present}",
+                    "短真诚/微小希望/超现实不按标准日寄连接词配额修；只检查是否完全变成静态抒情。优先让动作或记忆自然转动，不要硬撒连接词。",
+                )
+            )
+        return
     if len(present) < 5:
         findings.append(Finding("warning", "高频词覆盖不足", 0, f"present={present}", "需要多个不同的自然连接信号；先让动作、对话、身体或屏幕移动产生连接词，不要在句尾硬撒。"))
 
@@ -2200,18 +2213,25 @@ def check_ambient_ending(findings: list[Finding], lines: list[str]) -> None:
 
 
 def check_theme_density(findings: list[Finding], text: str) -> None:
+    style = detect_style(text)
     lower_text = text.lower()
     for domain, terms in THEME_DOMAINS.items():
         matched_terms = [term for term in terms if term.lower() in lower_text]
         hit_count = sum(lower_text.count(term.lower()) for term in terms)
         if len(matched_terms) >= 7 or hit_count >= 12:
+            rule = f"单主题词密度偏高: {domain}" if style == "standard" else f"短体裁主题集中: {domain}"
+            suggestion = (
+                "盲评高风险：场景可能都在服务同一主轴。替换一段为由气味、身体、路线、无关社交或脏物件触发的旁逸分支。"
+                if style == "standard"
+                else "短真诚/微小希望/超现实允许主题更集中；只检查是否变成题面复述或 polished prose。保留具体代价、笨动作和非象征性细节，不要硬塞标准日寄旁逸。"
+            )
             findings.append(
                 Finding(
                     "warning",
-                    f"单主题词密度偏高: {domain}",
+                    rule,
                     0,
                     f"terms={matched_terms}, hits={hit_count}",
-                    "盲评高风险：场景可能都在服务同一主轴。替换一段为由气味、身体、路线、无关社交或脏物件触发的旁逸分支。",
+                    suggestion,
                 )
             )
 
@@ -2624,6 +2644,20 @@ SINCERE_BODY_MARKERS = [
     "陪我走过",
     "陪我熬",
 ]
+SINCERE_MOTHER_SUBJECT_MARKERS = ["妈妈", "我妈", "母亲"]
+SINCERE_HOLIDAY_OR_MESSAGE_MARKERS = ["母亲节", "康乃馨", "祝福", "没发", "发消息", "朋友圈"]
+SINCERE_CARE_MEMORY_MARKERS = [
+    "鸡蛋",
+    "雨衣",
+    "下雨",
+    "送我上学",
+    "撑着伞",
+    "书包",
+    "饭盒",
+    "头发全湿",
+    "发烧",
+    "摸我的额头",
+]
 MICRO_HOPE_TITLE_MARKERS = ["活着就是"]
 SURREAL_TITLE_MARKERS = ["存在主义", "迷失"]
 
@@ -2636,7 +2670,7 @@ def detect_style(text: str) -> str:
 
     lines = text.splitlines()
     title, content_lines = split_title_and_content_lines(lines)
-    surface = "\n".join([title, *content_lines[:12]])
+    surface = "\n".join([title, *content_lines[:40]])
     if any(marker in title for marker in MICRO_HOPE_TITLE_MARKERS):
         return "micro-hope"
     if any(marker in title for marker in SURREAL_TITLE_MARKERS):
@@ -2646,6 +2680,12 @@ def detect_style(text: str) -> str:
     sincere_hits = {marker for marker in SINCERE_BODY_MARKERS if marker in surface}
     if len(sincere_hits) >= 2:
         return "sincere"
+    if "日寄" not in title:
+        has_mother_subject = any(marker in surface for marker in SINCERE_MOTHER_SUBJECT_MARKERS)
+        message_hits = {marker for marker in SINCERE_HOLIDAY_OR_MESSAGE_MARKERS if marker in surface}
+        care_hits = {marker for marker in SINCERE_CARE_MEMORY_MARKERS if marker in surface}
+        if has_mother_subject and message_hits and len(care_hits) >= 2:
+            return "sincere"
     return "standard"
 
 

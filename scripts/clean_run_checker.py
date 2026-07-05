@@ -42,6 +42,7 @@ from check_anlin_violations import (  # noqa: E402
     chinese_len,
     comment_chain_formula_hits,
     current_office_persona_hits,
+    detect_style,
     meta_ai_topic_hits,
     prompt_performing_dialogue_hits,
     split_title_and_content_lines,
@@ -375,6 +376,7 @@ def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]
 def preflight_messages(draft: Path) -> list[str]:
     text = draft.read_text(encoding="utf-8")
     _, content_lines = split_title_and_content_lines(text.splitlines())
+    style = detect_style(text)
     article_lines = [line.strip() for line in text.splitlines() if line.strip() and not line.strip().startswith("<!--")]
     visible_lines = [line for line in content_lines if line.strip() and not line.strip().startswith("<!--")]
     body = "\n".join(visible_lines)
@@ -394,6 +396,13 @@ def preflight_messages(draft: Path) -> list[str]:
     rough_terms = [term for term in ROUGH_SELF_DAMAGE_TERMS if term in body]
     rough_patterns = [pattern for pattern in ROUGH_SELF_DAMAGE_PATTERNS if re.search(pattern, body)]
     messages: list[str] = []
+    if style != "standard":
+        if body_chars < 180:
+            messages.append(f"{style}_body_chinese_chars={body_chars} < 180")
+        if body_line_count < 8:
+            messages.append(f"{style}_body_lines={body_line_count} < 8")
+        messages.extend(surface_preflight_messages(article_lines, "\n".join(article_lines)))
+        return messages
     source_shape_weak = (
         body_line_count < 45
         or body_line_count > 90
