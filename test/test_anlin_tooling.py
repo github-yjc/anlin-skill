@@ -4467,6 +4467,95 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertFalse((output_dir / "portable-corpus.md").exists())
             self.assertFalse((output_dir / "vocabulary-rules.md").exists())
 
+    def test_blind_prep_can_match_short_sincere_genre_without_full_corpus(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            corpus = root / "corpus"
+            corpus.mkdir()
+            draft = root / "draft.md"
+            draft.write_text(
+                "# 母亲节\n\n"
+                + "\n".join(["我妈把鸡蛋塞进袋子里，我骑车到楼下才发现破了一个。"] * 18),
+                encoding="utf-8",
+            )
+            (corpus / "sincere-1.md").write_text(
+                "# 母亲节日寄\n\n" + "\n".join(["我妈说鸡蛋放久了不好，我说知道了。"] * 16),
+                encoding="utf-8",
+            )
+            (corpus / "sincere-2.md").write_text(
+                "# 谢谢你\n\n" + "\n".join(["下雨的时候她递过来一把伞，我把伞骨弄弯了。"] * 16),
+                encoding="utf-8",
+            )
+            (corpus / "standard-1.md").write_text(
+                "# 春招破防日寄\n\n" + "\n".join(["群里说体检，我看了一眼手机又放下。"] * 40),
+                encoding="utf-8",
+            )
+            (corpus / "standard-2.md").write_text(
+                "# 日寄\n\n" + "\n".join(["楼下风很大，外卖袋子贴在电动车把手上。"] * 40),
+                encoding="utf-8",
+            )
+
+            output_dir = root / "matched-round"
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(BLIND_PREP),
+                    str(draft),
+                    str(corpus),
+                    "--output-dir",
+                    str(output_dir),
+                    "--num-samples",
+                    "3",
+                    "--match-genre",
+                    "sincere",
+                    "--length-tolerance",
+                    "1.0",
+                    "--seed",
+                    "31",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            mapping = json.loads((output_dir / "mapping.json").read_text(encoding="utf-8"))
+            originals = [item for item in mapping.values() if not item["is_draft"]]
+            self.assertEqual(len(originals), 3)
+            self.assertEqual(sum(1 for item in originals if item["genre"] == "sincere"), 2)
+            self.assertTrue(all(item["match"]["target_genre"] == "sincere" for item in originals))
+            self.assertEqual(sum(1 for item in originals if item["match"]["selection_reason"].startswith("genre")), 2)
+
+            placebo_dir = root / "matched-placebo"
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(BLIND_PREP),
+                    str(draft),
+                    str(corpus),
+                    "--output-dir",
+                    str(placebo_dir),
+                    "--num-samples",
+                    "3",
+                    "--placebo",
+                    "--match-genre",
+                    "sincere",
+                    "--length-tolerance",
+                    "1.0",
+                    "--seed",
+                    "32",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            placebo_mapping = json.loads((placebo_dir / "mapping.json").read_text(encoding="utf-8"))
+            self.assertTrue(all(not item["is_draft"] for item in placebo_mapping.values()))
+            self.assertTrue(all(item["match"]["target_genre"] == "sincere" for item in placebo_mapping.values()))
+            self.assertEqual(sum(1 for item in placebo_mapping.values() if item["genre"] == "sincere"), 2)
+
     @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_blind_prep_keeps_titles_and_rejects_short_draft(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

@@ -60,6 +60,7 @@ def create_round(
     fragment_chars: int,
     min_fragment_chars: int,
     length_tolerance: float,
+    match_genre: str,
     placebo: bool,
     profile: str,
 ) -> RoundInfo:
@@ -76,6 +77,7 @@ def create_round(
         include_draft=not placebo,
         include_skill_context=False,
         include_titles=True,
+        match_genre=match_genre,
     )
     prompt = build_subagent_prompt(round_dir, len(mapping)).replace(
         "PROFILE: holistic-reader",
@@ -111,6 +113,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--fragment-chars", type=int, default=0, help="Legacy diagnostic mode; 0 keeps complete articles")
     parser.add_argument("--min-fragment-chars", type=int, default=0, help="Minimum Chinese characters required for generated samples")
     parser.add_argument("--length-tolerance", type=float, default=0.65, help="Allowed relative length difference for complete-article impostor rounds")
+    parser.add_argument("--match-genre", default="none", choices=("none", "auto", "standard", "sincere", "micro-hope", "surreal"), help="Optional genre/length matching anchor for impostor and placebo rounds")
     parser.add_argument("--include-placebo", action="store_true", help="Add one placebo round containing originals only")
     parser.add_argument("--placebo-rounds", type=int, default=0, help="Number of all-original placebo calibration rounds")
     parser.add_argument("--profiles", default=",".join(JUDGE_PROFILES), help="Comma-separated judge profiles to rotate across impostor rounds")
@@ -152,6 +155,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                 fragment_chars=args.fragment_chars,
                 min_fragment_chars=args.min_fragment_chars,
                 length_tolerance=args.length_tolerance,
+                match_genre=args.match_genre,
                 placebo=False,
                 profile=profiles[(index - 1) % len(profiles)],
             )
@@ -169,6 +173,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                 fragment_chars=args.fragment_chars,
                 min_fragment_chars=args.min_fragment_chars,
                 length_tolerance=args.length_tolerance,
+                match_genre=args.match_genre,
                 placebo=True,
                 profile="placebo-calibrated",
             )
@@ -180,6 +185,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         "fragment_chars": args.fragment_chars,
         "min_fragment_chars": args.min_fragment_chars,
         "length_tolerance": args.length_tolerance,
+        "match_genre": args.match_genre,
         "placebo_rounds": placebo_rounds,
         "profiles": profiles,
         "rounds": [asdict(item) for item in rounds],

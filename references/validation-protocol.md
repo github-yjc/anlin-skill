@@ -78,6 +78,14 @@ python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment
 
 `run_blind_test.py` prepares anonymous rounds and prints the judge prompts. If no LLM automation key is configured, the controller manually gives each prompt to an isolated judge and records verdicts.
 
+For short sincere, micro-hope, surreal, or otherwise non-standard drafts, add a matched-genre anchor instead of comparing only against random standard diary originals:
+
+```powershell
+python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 3 --placebo-rounds 1 --match-genre sincere
+```
+
+`--match-genre auto|standard|sincere|micro-hope|surreal` uses the generated draft as a hidden anchor for both impostor and placebo rounds. It prefers same-genre, similar-length, similar-line-count originals, then backfills with nearest samples when the small corpus lacks enough exact matches. The mapping records `genre` and `match` diagnostics for controller audit. This is confound control, not a way to lower the bar: if the judge still identifies the generated sample against matched originals and placebo false accusations stay low, treat the evidence as stronger.
+
 ### Portable Mode
 
 Applicable when the full corpus is unavailable.
@@ -219,6 +227,7 @@ Judge rules:
 - Generated drafts must include the title as article text on the first line. The preparation script normalizes `# 标题`, plain first-line titles, and simple emphasis wrappers to the same `# 标题` form so title formatting does not become a leakage cue.
 - Impostor rounds are length-matched by complete article length.
 - Generated standard-diary drafts should clear the safer 850+ body-character buffer and normally target 900-1100 body Chinese characters before complete-article impostor rounds. 650-849 can be used only with an explicit short/matched protocol and should not support formal full-article claims.
+- Use `--match-genre` for short sincere, micro-hope, surreal, or other non-standard drafts. Placebo rounds must be matched to the same hidden draft anchor, otherwise a judge may learn to accuse short/polished originals and the false-accusation rate will be understated.
 - The judge may evaluate title fit as one evidence family, but must not use title, filename, ordering, or length as the sole basis for identification.
 - Treat blind review as open-set verification, not forced attribution. A stable accusation requires `IDENTIFIED` not `NONE`, confidence at least 75, and at least three independent evidence families, including one family that is not title, topic, length, filename, or order.
 - If the strongest accusation depends mainly on title neatness, prompt-topic compliance, article length, file order, or one polished ending, record it as raw suspicion but not stable identification.
