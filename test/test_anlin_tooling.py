@@ -557,7 +557,7 @@ class AnlinToolingTests(unittest.TestCase):
             preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertEqual(preflight.returncode, 3)
             self.assertIn("body_chinese_chars=", preflight.stdout)
-            self.assertIn("< 950", preflight.stdout)
+            self.assertIn("< 900", preflight.stdout)
             self.assertIn("medium_short_line_grid=present", preflight.stdout)
             self.assertIn("long_lines=0 < 6", preflight.stdout)
             self.assertIn("underbuilt source shape", preflight.stdout)
@@ -566,6 +566,162 @@ class AnlinToolingTests(unittest.TestCase):
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
+
+    def test_clean_run_checker_preflight_blocks_under_900_as_incomplete(self) -> None:
+        fragments = [
+            "其实我把车停在楼下，",
+            "觉得手心还在冒汗，",
+            "突然发现钥匙掉了，",
+            "于是低头找了一下，",
+            "因为裤子上有菜汤。",
+            "好像很丢人。",
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 晚饭", "", *(fragments * 7)]), encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3)
+            self.assertIn("body_chinese_chars=", preflight.stdout)
+            self.assertIn("< 900", preflight.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+
+    def test_clean_run_checker_preflight_blocks_900s_only_with_weak_source_shape(self) -> None:
+        from check_anlin_violations import chinese_len
+
+        fragments = [
+            "车把烫得像饭碗边上一圈油",
+            "手机在口袋里一直发热",
+            "其实我只想在楼下坐一会儿",
+            "突然看见路口的灯牌亮了",
+            "于是我把车停在白线旁边",
+            "因为腿抖得有点不像自己的",
+            "好像没人真的在等我回去",
+            "我也没办法把这句话说出来",
+            "饭味还在嘴里往上顶",
+            "裤脚那块菜汤已经干了",
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            body_lines = fragments * 6
+            while chinese_len("\n".join(body_lines)) < 910:
+                body_lines.insert(-1, "我又在路口停了一小会儿")
+            while chinese_len("\n".join(body_lines)) > 949 and len(body_lines) > 50:
+                body_lines.pop(-2)
+            body_chars = chinese_len("\n".join(body_lines))
+            self.assertGreaterEqual(body_chars, 900)
+            self.assertLess(body_chars, 950)
+            self.assertLess(sum(1 for line in body_lines if chinese_len(line) >= 28), 6)
+            lines = ["# 晚饭", "", *body_lines]
+            draft.write_text("\n".join(lines), encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
+            self.assertIn("body_chinese_chars=", preflight.stdout)
+            self.assertIn("< 950 with source_shape_weak", preflight.stdout)
+            self.assertIn("underbuilt source shape", preflight.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+
+    def test_clean_run_checker_preflight_allows_900s_when_source_shape_is_ready(self) -> None:
+        from check_anlin_violations import chinese_len
+
+        lines = [
+            "其实我把车从小区门口推出来的时候，后座还挂着我妈塞的半袋水果，",
+            "我说不用。",
+            "她说拿着。",
+            "饭味还在嘴里，",
+            "蒜味也在。",
+            "突然想起饭桌上我爸问我最近是不是还在写东西，我筷子停在半空很久，不知道怎么接，",
+            "觉得那片青菜掉在裤子上以后，问题就已经替我回答了一大半，像把题目写在膝盖上，",
+            "我低头去捡。",
+            "汤沾到指甲缝里。",
+            "有点黑泥。",
+            "于是我说也没写什么，因为嘴里那口饭还没咽下去，人也坐得很低，只好看碗边，",
+            "我妈在旁边说多吃点，声音轻得像怕把我从桌子边上吓跑，又像怕我真走了。",
+            "我嗯了一声，",
+            "很小声。",
+            "碗边全是油。",
+            "不过门口风一吹，胃里那点蒜味又顶上来，还以为饭桌跟着我追到楼下，",
+            "我还以为自己要吐出来，结果只是打了个嗝，声音小得像一个没擦干净的证据。",
+            "丢人得很。",
+            "电动车车座烫得像刚挨过骂，我坐上去时差点又站起来，膝盖先软了一下，",
+            "钥匙插进去的时候，手心还在滑，水果袋在车把上撞来撞去，像一袋没用的关心。",
+            "路口那个卤味灯牌亮起来，",
+            "红得很正经。",
+            "它比我更像一个回家的人。",
+            "我骑过去，",
+            "没看太久。",
+            "小时候每天上学都经过那里，",
+            "那时候路边卖文具。",
+            "现在卖鸭脖。",
+            "我突然发现城市也不怎么换工作，",
+            "只是把招牌换成更下饭的样子。",
+            "后来手机在口袋里震了两下，我没有看，怕里面又是问我到没到的消息，",
+            "路边有人把垃圾袋系得很紧，汤水还是滴到白线边上，像一条小路，",
+            "我绕了一点。",
+            "车头歪了一下。",
+            "有个小孩看我，",
+            "像看一个不会骑车的大人。",
+            "我想笑。",
+            "没笑出来。",
+            "喉咙里像卡着米饭，",
+            "刚才那口太急了。",
+            "回到屋里以后，",
+            "钥匙掉在鞋柜下面。",
+            "我蹲下去捡。",
+            "膝盖响了一声。",
+            "非常正式。",
+            "像身体替我回答饭桌上的问题。",
+            "我最近在干什么。",
+            "在捡钥匙。",
+            "在擦裤子上的菜汤。",
+            "在等屋里的灯自己亮。",
+        ]
+        boost_targets = [0, 5, 6, 10, 11, 16, 18, 19, 30, 31]
+        boost_index = 0
+        while chinese_len("\n".join(lines)) < 920:
+            lines[boost_targets[boost_index % len(boost_targets)]] += "，那点饭味还在往上顶"
+            boost_index += 1
+        while chinese_len("\n".join(lines)) > 949 and len(lines) > 48:
+            lines.pop(22)
+
+        body_chars = chinese_len("\n".join(lines))
+        self.assertGreaterEqual(body_chars, 900)
+        self.assertLess(body_chars, 950)
+        self.assertGreaterEqual(sum(1 for line in lines if chinese_len(line) >= 28), 6)
+
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 晚饭", "", *lines]), encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", result.stdout)
+            self.assertNotIn("CLEAN_RUN_PREFLIGHT", result.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 1)
+            self.assertEqual(state["preflights"], 0)
 
     def test_clean_run_checker_preflight_blocks_compressed_prose_shape(self) -> None:
         long_line = (
@@ -2337,10 +2493,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Remove all occurrences before the next checker call", clean)
         self.assertIn("make a local replacement only", clean)
         self.assertIn("medium-length short-line grid", clean)
-        self.assertIn("700-900 character draft with 45-75 visible rows", clean)
+        self.assertIn("A 900-949 character draft can still be underbuilt", clean)
         self.assertIn("source-loop rewrite before the first file write", clean)
         self.assertIn("Do not patch it by adding five more symptoms", clean)
-        self.assertIn("A draft can also fail by looking superficially line-broken but underbuilt", skill)
+        self.assertIn("A 900-949 character draft is a boundary case", skill)
         self.assertIn("do not make nearly every line carry body, money, route, screen", clean)
         self.assertIn("rebalance_line_rhythm.py draft.md --in-place", clean)
         self.assertIn("Do not let the repair bounce from short-line grid into 30-40 prose lines", clean)

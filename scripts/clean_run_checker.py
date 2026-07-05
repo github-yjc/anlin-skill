@@ -307,8 +307,19 @@ def preflight_messages(draft: Path) -> list[str]:
     rough_terms = [term for term in ROUGH_SELF_DAMAGE_TERMS if term in body]
     rough_patterns = [pattern for pattern in ROUGH_SELF_DAMAGE_PATTERNS if re.search(pattern, body)]
     messages: list[str] = []
-    if body_chars < 950:
-        messages.append(f"body_chinese_chars={body_chars} < 950")
+    source_shape_weak = (
+        body_line_count < 45
+        or body_line_count > 90
+        or (45 <= body_line_count <= 75 and long_line_count < 6)
+        or (len(first_twenty) >= 8 and comma_ratio < 0.15)
+        or len(connectors) < 3
+        or len(engine_hits) < 3
+        or (not rough_terms and not rough_patterns)
+    )
+    if body_chars < 900:
+        messages.append(f"body_chinese_chars={body_chars} < 900")
+    elif body_chars < 950 and source_shape_weak:
+        messages.append(f"body_chinese_chars={body_chars} < 950 with source_shape_weak")
     if body_chars > STANDARD_DIARY_DRAFT_OVERFULL_CHARS:
         messages.append(f"body_chinese_chars={body_chars} > {STANDARD_DIARY_DRAFT_OVERFULL_CHARS}")
     if body_line_count < 45:
@@ -371,7 +382,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     )
     missing_breath = any("short_breath_lines=" in message for message in messages)
     underbuilt_source = any(
-        message.startswith("body_chinese_chars=") and "< 950" in message for message in messages
+        message.startswith("body_chinese_chars=") and ("< 900" in message or "< 950" in message) for message in messages
     ) and any(
         key in joined_messages
         for key in (
