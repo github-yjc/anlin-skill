@@ -36,10 +36,11 @@ def is_title_line(line: str) -> bool:
     return bool(stripped) and chinese_len(stripped) <= 24 and not re.search(r"[。！？!?，,：:；;]", stripped)
 
 
-def split_title_body(text: str) -> tuple[list[str], list[str]]:
+def split_title_paragraphs(text: str) -> tuple[list[str], list[list[str]]]:
     raw_lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
     prefix: list[str] = []
-    body: list[str] = []
+    paragraphs: list[list[str]] = []
+    current_paragraph: list[str] = []
     first_nonempty = False
     for line in raw_lines:
         stripped = line.strip()
@@ -49,13 +50,48 @@ def split_title_body(text: str) -> tuple[list[str], list[str]]:
             first_nonempty = True
             prefix.append(line.rstrip())
             if not is_title_line(stripped):
-                body.append(stripped)
+                current_paragraph.append(stripped)
             continue
-        if stripped and not stripped.startswith("<!--"):
-            body.append(stripped)
+        if not stripped:
+            if current_paragraph:
+                paragraphs.append(current_paragraph)
+                current_paragraph = []
+            continue
+        if not stripped.startswith("<!--"):
+            current_paragraph.append(stripped)
+    if current_paragraph:
+        paragraphs.append(current_paragraph)
     if not prefix:
         prefix = ["日寄"]
-    return prefix, body
+    return prefix, paragraphs
+
+
+def flatten_paragraphs(paragraphs: list[list[str]]) -> list[str]:
+    return [line for paragraph in paragraphs for line in paragraph]
+
+
+def regroup_like_original(lines: list[str], original_sizes: list[int]) -> list[list[str]]:
+    if not lines:
+        return []
+    sizes = [size for size in original_sizes if size > 0]
+    if len(sizes) <= 1 or len(lines) < len(sizes):
+        return [lines]
+    total_original = sum(sizes)
+    groups: list[list[str]] = []
+    start = 0
+    cumulative = 0
+    for index, size in enumerate(sizes):
+        if index == len(sizes) - 1:
+            end = len(lines)
+        else:
+            cumulative += size
+            proposed = round(cumulative / total_original * len(lines))
+            min_end = start + 1
+            max_end = len(lines) - (len(sizes) - index - 1)
+            end = max(min_end, min(proposed, max_end))
+        groups.append(lines[start:end])
+        start = end
+    return [group for group in groups if group]
 
 
 def line_stats(lines: list[str]) -> dict[str, Any]:
@@ -254,7 +290,9 @@ def rebalance(
     max_split_chars: int,
     min_chunk_chars: int,
 ) -> tuple[str, dict[str, Any]]:
-    prefix, body = split_title_body(text)
+    prefix, paragraphs = split_title_paragraphs(text)
+    body = flatten_paragraphs(paragraphs)
+    original_paragraph_sizes = [len(paragraph) for paragraph in paragraphs]
     before = line_stats(body)
     lines = split_until_corridor(
         body,
@@ -290,7 +328,11 @@ def rebalance(
 
     output_lines = [line.rstrip() for line in prefix]
     output_lines.append("")
-    output_lines.extend(lines)
+    regrouped = regroup_like_original(lines, original_paragraph_sizes)
+    for index, group in enumerate(regrouped):
+        if index:
+            output_lines.append("")
+        output_lines.extend(group)
     output = "\n".join(output_lines).rstrip() + "\n"
     report = {
         "before": before,

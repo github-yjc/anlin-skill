@@ -283,6 +283,36 @@ UNSUPPORTED_FAMILY_IDENTITY_TERMS = [
     "孩子他妈",
     "我家孩子",
 ]
+THIRD_PERSON_SPEECH_CUES = [
+    "他说",
+    "她说",
+    "他问",
+    "她问",
+    "老板说",
+    "卖瓜的说",
+    "摊主说",
+    "大叔说",
+    "大妈说",
+    "店员说",
+    "司机说",
+    "对方说",
+]
+THIRD_PERSON_ATTRIBUTION_CUES = [
+    "他",
+    "她",
+    "老板",
+    "卖瓜的",
+    "摊主",
+    "大叔",
+    "大妈",
+    "店员",
+    "司机",
+    "对方",
+    "朋友",
+    "同学",
+    "室友",
+    "邻居",
+]
 BACKGROUND_DISPLAY_GROUPS = {
     "school_work": ["211", "春招", "外卖", "送外卖", "程序员", "被裁", "失业"],
     "game": ["王者", "王者荣耀", "星耀五", "ELO", "elo", "蔡文姬"],
@@ -1275,6 +1305,37 @@ def unsupported_game_term_present(term: str, line: str) -> bool:
     return term in line
 
 
+def unsupported_family_identity_present(term: str, line: str) -> bool:
+    for match in re.finditer(re.escape(term), line):
+        prefix = line[: match.start()]
+        suffix = line[match.end() :]
+        nearby_prefix = prefix[-28:]
+        nearby_suffix = suffix[:40]
+
+        if any(cue in nearby_prefix for cue in THIRD_PERSON_SPEECH_CUES):
+            continue
+
+        if term in {"我儿子", "我女儿", "我家孩子"}:
+            starts_as_quote = re.match(r'^\s*["“「『]?\s*' + re.escape(term), line) is not None
+            has_third_person_attribution = re.search(
+                r'["”」』][^。！？\n]{0,30}(?:'
+                + "|".join(map(re.escape, THIRD_PERSON_ATTRIBUTION_CUES))
+                + r")",
+                nearby_suffix,
+            )
+            if starts_as_quote and has_third_person_attribution:
+                continue
+
+        if term in {"老婆", "妻子", "媳妇", "太太"} and re.search(
+            r"(?:" + "|".join(map(re.escape, THIRD_PERSON_ATTRIBUTION_CUES)) + r")(?:的)?$",
+            nearby_prefix,
+        ):
+            continue
+
+        return True
+    return False
+
+
 def check_background_fact_specificity(findings: list[Finding], lines: list[str]) -> None:
     for line_number, line in enumerate(lines, start=1):
         for term in UNSUPPORTED_DISTRICT_TERMS:
@@ -1314,7 +1375,7 @@ def check_background_fact_specificity(findings: list[Finding], lines: list[str])
                 )
                 break
         for term in UNSUPPORTED_FAMILY_IDENTITY_TERMS:
-            if term in line:
+            if unsupported_family_identity_present(term, line):
                 findings.append(
                     Finding(
                         "warning",

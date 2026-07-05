@@ -40,7 +40,86 @@ class TraceFinding:
 
 def normalize_log(text: str) -> str:
     # Strip ANSI escapes but keep command text and tool names.
-    return re.sub(r"\x1b\[[0-9;]*m", "", text).replace("\\", "/")
+    return re.sub(r"\x1b\[[0-9;]*m", "", extract_json_event_trace(text)).replace("\\", "/")
+
+
+def extract_json_event_trace(text: str) -> str:
+    """Convert OpenCode JSONL events to an action trace.
+
+    The raw JSON stream can include complete skill/reference contents. Scanning
+    those outputs as if they were actions creates false positives, because the
+    skill body necessarily names forbidden pre-draft repair files while telling
+    the generator not to load them. Keep commands, tool paths, checker output,
+    and visible reasoning, but do not scan dumped skill/reference bodies as
+    tool actions.
+    """
+    lines = [line for line in text.splitlines() if line.strip()]
+    if not lines:
+        return text
+
+    events: list[dict] = []
+    parsed_count = 0
+    for line in lines:
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(event, dict) and "type" in event:
+            events.append(event)
+            parsed_count += 1
+
+    if parsed_count == 0 or parsed_count < max(1, len(lines) // 2):
+        return text
+
+    chunks: list[str] = []
+    for event in events:
+        part = event.get("part")
+        if not isinstance(part, dict):
+            continue
+        event_type = event.get("type") or part.get("type")
+
+        if event_type == "reasoning":
+            reasoning = part.get("text")
+            if isinstance(reasoning, str) and reasoning.strip():
+                chunks.append(f"Thinking: {reasoning}")
+            continue
+
+        if event_type != "tool_use":
+            continue
+
+        tool = part.get("tool") or ""
+        state = part.get("state")
+        if not isinstance(state, dict):
+            state = {}
+        tool_input = state.get("input")
+        title = state.get("title") or part.get("title") or ""
+        chunks.append(f"TOOL {tool}")
+        if title:
+            chunks.append(f"TITLE {title}")
+        if tool_input is not None:
+            chunks.append(f"INPUT {json.dumps(tool_input, ensure_ascii=False)}")
+
+        # Loading the skill itself dumps the whole SKILL.md body. That body is
+        # instruction text, not an additional pre-draft reference read.
+        if tool == "skill":
+            continue
+
+        # For normal shell/tool calls, include command output because checker
+        # stop boundaries live there. For file/reference reads, include only
+        # the path/input; full file contents often contain forbidden names as
+        # negative instructions.
+        metadata = state.get("metadata")
+        output = state.get("output")
+        if isinstance(metadata, dict) and isinstance(metadata.get("output"), str):
+            output = metadata["output"]
+        include_output = tool in {"bash", "shell", "terminal", "cmd", "powershell"} or (
+            isinstance(tool_input, dict)
+            and isinstance(tool_input.get("command"), str)
+        )
+        if include_output and isinstance(output, str) and output.strip():
+            chunks.append(f"OUTPUT {output}")
+
+    return "\n".join(chunks) if chunks else text
 
 
 def first_index(text: str, patterns: list[str]) -> int:

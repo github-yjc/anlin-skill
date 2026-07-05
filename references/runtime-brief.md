@@ -162,6 +162,8 @@ For formal generated drafts, group chat and forum scenes should usually contain 
 
 For ordinary dialogue, do not let people take turns delivering prompt facts. Five or more consecutive `我说/他说/他问/我回` lines read like a script. Compress the exchange into one or two rough narrated lines and interrupt it with a body action, misheard word, practical errand, or silence. Family chat is especially high-risk: `我妈问吃了没/我回面/她说少吃` should become one rough sentence plus the action of continuing to eat, not a turn-by-turn transcript.
 
+For stranger, shopkeeper, vendor, driver, customer, or passerby encounters, the same rule applies more strongly because the person often arrives only to deliver social-comparison facts. Keep at most two speech surfaces, usually unquoted and embedded in action: the seller mentions his son, the cashier looks at the narrator's hand, the driver asks one plain question. Then leave the transcript through payment, wrong goods, dirty hands, body sound, route change, or an unfinished reply. Do not write five standalone quote lines just because the prompt contains a dialogue setup.
+
 ## Deep Voice Gates
 
 Recent calibrated blind reviews caught drafts that fixed titles and length but still read like complete realist short stories. Avoid that failure before drafting.

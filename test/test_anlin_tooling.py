@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -1118,6 +1119,144 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(json.loads(result.stdout), [])
 
+    def test_clean_eval_trace_jsonl_ignores_dumped_skill_body_reference_names(self) -> None:
+        events = [
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "skill",
+                    "state": {
+                        "input": {"name": "anlin-writing"},
+                        "output": "The skill says do not load references/anti-ai-slop.md before drafting. It also mentions CLEAN_RUN_PREFLIGHT_STOP and check_anlin_violations.py in instructions.",
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "filesystem_read_file",
+                    "state": {
+                        "input": {"path": "C:/skill/references/clean-generation-brief.md"},
+                        "output": "This brief mentions references/anti-ai-slop.md only as a negative no-load instruction.",
+                        "title": "C:/skill/references/clean-generation-brief.md",
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "Test-Path .anlin-clean-eval-mode"},
+                        "metadata": {"output": "True\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "filesystem_write_file",
+                    "state": {"input": {"path": "draft.md", "content": "日寄\n\n正文"}},
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate"},
+                        "metadata": {
+                            "output": "CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY. DO NOT WRITE draft.md. The next tool action must be reading draft.md once."
+                        },
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "filesystem_read_file",
+                    "state": {"input": {"path": "draft.md"}, "output": "日寄\n\n正文"},
+                },
+            },
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.jsonl"
+            path.write_text("\n".join(json.dumps(event, ensure_ascii=False) for event in events), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(json.loads(result.stdout), [])
+
+    def test_clean_eval_trace_jsonl_still_flags_actual_forbidden_reference_read(self) -> None:
+        events = [
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "filesystem_read_file",
+                    "state": {
+                        "input": {"path": "C:/skill/references/clean-generation-brief.md"},
+                        "title": "C:/skill/references/clean-generation-brief.md",
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "filesystem_read_file",
+                    "state": {
+                        "input": {"path": "C:/skill/references/anti-ai-slop.md"},
+                        "title": "C:/skill/references/anti-ai-slop.md",
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "Test-Path .anlin-clean-eval-mode"},
+                        "metadata": {"output": "True\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "filesystem_write_file",
+                    "state": {"input": {"path": "draft.md", "content": "日寄\n\n正文"}},
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate"},
+                        "metadata": {"output": "CLEAN_RUN_NOTE: checker call 1/2\n"},
+                    },
+                },
+            },
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.jsonl"
+            path.write_text("\n".join(json.dumps(event, ensure_ascii=False) for event in events), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval首稿前加载修复/评审引用", rules)
+
     def test_clean_eval_trace_records_visible_process_chatter_as_warning(self) -> None:
         log = """
         → Read C:/skill/references/clean-generation-brief.md
@@ -2066,6 +2205,30 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any(rule == "strict: 无依据家庭身份: 老婆" for rule in rules))
             self.assertTrue(any(rule == "strict: 无依据家庭身份: 孩子他妈" for rule in rules))
 
+    def test_checker_draft_gate_allows_third_person_quoted_child_identity(self) -> None:
+        body = "\n".join(
+            [
+                "# 生瓜",
+                "",
+                "\"我儿子也学计算机的，\"卖瓜的把袋子递过来，袋口打了个死结。",
+                "他说他儿子在北京上班，我蹲久了站起来膝盖响了一下。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertFalse(any(rule == "strict: 无依据家庭身份: 我儿子" for rule in rules))
+
     def test_checker_draft_gate_rejects_missing_title(self) -> None:
         body = "\n".join(
             [
@@ -2787,6 +2950,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("that file is the first-draft source loop", skill)
         self.assertIn("Do not read `references/runtime-brief.md`", skill)
         self.assertIn("Do not open `runtime-brief.md` before the first complete `draft.md`", skill)
+        self.assertIn("Clean-eval reference stop rule", skill)
+        self.assertIn("`references/runtime-brief.md` is not a harmless supplement before the first draft", skill)
+        self.assertIn("After reading `clean-generation-brief.md` in clean-eval mode, stop reading references", clean)
+        self.assertIn("`runtime-brief.md` is not a harmless supplement before the first draft", clean)
         self.assertIn("Use this loop instead of opening the long runtime or review files", clean)
         self.assertIn("repair by replacing failed scene functions, not by adding feature labels", clean)
         self.assertIn("Clean-eval pre-draft hard no-load list", skill)
@@ -2809,6 +2976,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Rough self-damage is narrower than ordinary awkwardness", clean)
         self.assertIn("脸应该挺难看", clean)
         self.assertIn("也不是疼，就是", clean)
+        self.assertIn("其实不是想X，就是", clean)
         self.assertIn("最疼的不是X，是Y", clean)
         self.assertIn("Scan the whole article for this surface", clean)
         self.assertIn("Remove all occurrences before the next checker call", clean)
@@ -3037,6 +3205,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("For 朋友圈, short-video, and social-comparison prompts", runtime)
         self.assertIn("A feed is not a scene slate", runtime)
         self.assertIn("For invitations, weddings, reunions", clean)
+        self.assertIn("For stranger, shopkeeper, vendor", clean)
+        self.assertIn("do not turn the encounter into a quoted transcript", clean)
+        self.assertIn("For stranger, shopkeeper, vendor", runtime)
+        self.assertIn("Do not write five standalone quote lines", runtime)
         self.assertIn("one-screen chronology failure", runtime)
         self.assertIn("Do not turn many hard-stop lines into one huge comma chain", runtime)
         self.assertIn("Do not create line breaks by deleting punctuation", skill)
@@ -3111,7 +3283,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Do not invent a current office-worker identity", brief)
         self.assertIn("Do not convert delivery work into a different biography", brief)
         self.assertIn("wife, spouse, child", brief)
-        self.assertIn("scan the candidate for `老婆/妻子/媳妇/孩子他妈/我儿子/我女儿`", brief)
+        self.assertIn("scan the candidate for narrator-owned spouse/child phrasing", brief)
+        self.assertIn("If `我儿子/我女儿` belongs to another speaker", brief)
         self.assertIn("A rider video with `有人说...` is still a comment chain", brief)
         self.assertIn("clean_run_checker.py draft.md --strict --draft-gate", brief)
         self.assertIn("Known failed source shape", brief)
@@ -4219,6 +4392,42 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertGreaterEqual(after["long_lines"], 6)
             self.assertLess(after["mean_line_chars"], 30)
             self.assertNotIn("still_prose_compressed", report["unresolved"])
+
+    def test_rebalance_line_rhythm_preserves_existing_paragraph_blocks(self) -> None:
+        paragraph = [
+            "手机电量从百分之三十七掉到二十八，我把充电线按在接口上，手指按得发酸。",
+            "楼下有人喊小孩回家吃饭，小孩没应，我跟着停了一下。很丢人。",
+        ]
+        body = "\n\n".join(["\n".join(paragraph) for _ in range(5)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("# 生瓜\n\n" + body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(REBALANCE_LINE_RHYTHM),
+                    str(draft),
+                    "--in-place",
+                    "--target-min-lines",
+                    "20",
+                    "--target-max-lines",
+                    "70",
+                    "--preferred-lines",
+                    "35",
+                    "--min-long-lines",
+                    "4",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            output = draft.read_text(encoding="utf-8").replace("\r\n", "\n")
+            body_after = output.split("\n\n", 1)[1].strip()
+            blocks = [block for block in re.split(r"\n\s*\n", body_after) if block.strip()]
+            self.assertGreaterEqual(len(blocks), 5)
 
     def test_rebalance_line_rhythm_splits_existing_short_breaths_from_uniform_rows(self) -> None:
         unit = [
