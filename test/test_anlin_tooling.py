@@ -714,6 +714,105 @@ class AnlinToolingTests(unittest.TestCase):
             messages = preflight_messages(draft)
             self.assertTrue(any(message.startswith("short_genre_literary_story_closure=") for message in messages), messages)
 
+    def test_checker_warns_on_underbuilt_short_sincere_complete_article(self) -> None:
+        body = "\n".join(
+            [
+                "# 下午走回来的",
+                "",
+                "电风扇对着脚吹。",
+                "袜子脱了一只，",
+                "脚趾头露在外面。",
+                "手机亮了一下。",
+                "微信里全是母亲节。",
+                "我没给我妈发消息。",
+                "冰箱里有妈妈塞给我的鸡蛋，",
+                "吃了四个，剩下的忘了。",
+                "隔壁男的敲门，",
+                "说阳台管子堵了。",
+                "他看了一眼我的袜子。",
+                "我假装没看见。",
+                "想起小时候下雨，",
+                "妈妈骑车送我上学。",
+                "雨衣里面有洗衣粉味。",
+                "这个念头很快滑过去。",
+                "我给隔壁男的发微信，",
+                "说应该是弯头堵了。",
+                "右腿上有三个蚊子包，",
+                "已经挠破了。",
+                "血印子干了之后是深褐色的。",
+                "房间里灯太暗，",
+                "看不清指甲缝。",
+                "坐了一会儿，",
+                "还是没有给我妈发祝福。",
+                "冰箱门又弹开一点。",
+                "我用腿顶回去，",
+                "塑料袋在里面响了一下。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertIn("短体裁完整度不足", rules)
+            self.assertFalse(any("标准日寄完整文章篇幅" in rule for rule in rules), rules)
+
+    def test_clean_run_preflight_flags_underbuilt_short_sincere(self) -> None:
+        body = "\n".join(
+            [
+                "# 下午走回来的",
+                "",
+                "电风扇对着脚吹。",
+                "袜子脱了一只，",
+                "脚趾头露在外面。",
+                "手机亮了一下。",
+                "微信里全是母亲节。",
+                "我没给我妈发消息。",
+                "冰箱里有妈妈塞给我的鸡蛋，",
+                "吃了四个，剩下的忘了。",
+                "隔壁男的敲门，",
+                "说阳台管子堵了。",
+                "他看了一眼我的袜子。",
+                "我假装没看见。",
+                "想起小时候下雨，",
+                "妈妈骑车送我上学。",
+                "雨衣里面有洗衣粉味。",
+                "这个念头很快滑过去。",
+                "我给隔壁男的发微信，",
+                "说应该是弯头堵了。",
+                "右腿上有三个蚊子包，",
+                "已经挠破了。",
+                "血印子干了之后是深褐色的。",
+                "房间里灯太暗，",
+                "看不清指甲缝。",
+                "坐了一会儿，",
+                "还是没有给我妈发祝福。",
+                "冰箱门又弹开一点。",
+                "我用腿顶回去，",
+                "塑料袋在里面响了一下。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(
+                any(message.startswith("short_genre_underbuilt_complete_article=") for message in messages),
+                messages,
+            )
+            self.assertTrue(
+                any(message.startswith("short_genre_no_long_clumsy_lines=") for message in messages),
+                messages,
+            )
+
     def test_checker_draft_gate_still_treats_plain_family_diary_as_standard_attempt(self) -> None:
         lines = [
             "我妈在饭桌上问我什么时候回去。",

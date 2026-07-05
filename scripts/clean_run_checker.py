@@ -402,6 +402,14 @@ def preflight_messages(draft: Path) -> list[str]:
             messages.append(f"{style}_body_chinese_chars={body_chars} < 180")
         if body_line_count < 8:
             messages.append(f"{style}_body_lines={body_line_count} < 8")
+        if body_chars < 520:
+            messages.append(
+                f"short_genre_underbuilt_complete_article=style:{style}, body_chars={body_chars} < 520"
+            )
+        if body_chars < 650 and body_line_count >= 18 and long_line_count == 0:
+            messages.append(
+                f"short_genre_no_long_clumsy_lines=style:{style}, body_lines={body_line_count}, long_lines={long_line_count}"
+            )
         short_story_risk = short_genre_literary_story_risk(text.splitlines(), text)
         if short_story_risk:
             messages.append(
@@ -487,6 +495,11 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         or "medium_short_line_grid=" in message
         for message in messages
     )
+    underbuilt_short_genre = any(
+        message.startswith("short_genre_underbuilt_complete_article=")
+        or message.startswith("short_genre_no_long_clumsy_lines=")
+        for message in messages
+    )
     missing_breath = any("short_breath_lines=" in message for message in messages)
     near_miss_short = (
         any("body_lines=" in message and "< 45" in message for message in messages)
@@ -525,6 +538,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if missing_breath:
         repair_hints.append(
             "for short_breath_lines, add a few real <=8-character drops such as an ugly reply, failed decision, or small retreat; do not add decorative one-word captions"
+        )
+    if underbuilt_short_genre:
+        repair_hints.append(
+            "for an underbuilt short genre, do not solve by deleting memory or shrinking further; add one present practical cluster that changes action or reply, keep a few longer clumsy lines, and discard or bury one prompt-supplied family prop instead of preserving every prompt noun"
         )
     if f"> {STANDARD_DIARY_DRAFT_OVERFULL_CHARS}" in joined_messages:
         repair_hints.append(
@@ -584,6 +601,12 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
                 "the source loop, and rewrite `draft.md` as a complete line-broken article with a working middle. "
                 "Do not add a few isolated symptoms, app lines, or short captions on top of the weak draft; then "
                 "run this wrapper again."
+            )
+        elif underbuilt_short_genre:
+            revision_frame = (
+                "Rebuild the short-genre source, not the standard-diary length: keep 4-7 uneven clusters, add one "
+                "current practical interruption or awkward reply that changes the next action, keep several longer "
+                "clumsy lines, and drop one prompt-supplied memory/object proof before running this wrapper again."
             )
         else:
             revision_frame = (

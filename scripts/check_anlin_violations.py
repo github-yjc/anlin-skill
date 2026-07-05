@@ -2004,6 +2004,39 @@ def check_short_genre_polished_minimalism(findings: list[Finding], lines: list[s
         )
 
 
+def check_short_genre_underbuilt_complete_article(findings: list[Finding], lines: list[str], text: str) -> None:
+    style = detect_style(text)
+    if style == "standard":
+        return
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [
+        line.strip()
+        for line in content_lines
+        if line.strip() and not line.strip().startswith("<!--")
+    ]
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < 180 or len(visible_lines) < 12:
+        return
+    lengths = [chinese_len(line) for line in visible_lines]
+    long_lines = sum(1 for length in lengths if length >= 24)
+    short_lines = sum(1 for length in lengths if length <= 12)
+    short_line_ratio = short_lines / max(1, len(lengths))
+    underbuilt = body_chars < 520
+    line_grid = body_chars < 650 and len(visible_lines) >= 18 and long_lines == 0 and short_line_ratio >= 0.35
+    if not underbuilt and not line_grid:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "短体裁完整度不足",
+            0,
+            f"style={style}, body_chars={body_chars}, body_lines={len(visible_lines)}, long_lines={long_lines}, short_line_ratio={short_line_ratio:.2f}",
+            "短真诚/微小希望可以短，但不能像提纲或压缩小品。保留短体裁，不要扩成标准日寄；增加一组当前实际动作、笨拙回复或生活打断，并删弱一个提示物件/记忆证明，避免把所有题面素材保留下来。",
+        )
+    )
+
+
 SHORT_GENRE_STORY_OBJECT_TERMS = [
     "鸡蛋",
     "蛋壳",
@@ -3051,6 +3084,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_dialogue_quotes(findings, lines)
     check_dialogue_stack(findings, lines)
     check_high_frequency_coverage(findings, text)
+    check_short_genre_underbuilt_complete_article(findings, lines, text)
     check_short_genre_polished_minimalism(findings, lines, text)
     check_short_genre_literary_story_closure(findings, lines, text)
     check_connector_overuse(findings, text)
