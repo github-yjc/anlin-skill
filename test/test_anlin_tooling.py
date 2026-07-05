@@ -655,11 +655,12 @@ class AnlinToolingTests(unittest.TestCase):
                 encoding="utf-8",
                 check=False,
             )
-            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotEqual(result.returncode, 0, result.stdout)
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings]
             error_rules = [item["rule"] for item in findings if item["severity"] == "error"]
-            self.assertIn("短体裁整齐散文", rules)
+            self.assertTrue(any("短体裁整齐散文" in rule for rule in rules), rules)
+            self.assertTrue(any("短体裁整齐散文" in rule for rule in error_rules), error_rules)
             self.assertFalse(any("标准日寄完整文章篇幅" in rule for rule in error_rules), error_rules)
 
     def test_checker_warns_on_short_sincere_literary_story_closure(self) -> None:
@@ -705,10 +706,12 @@ class AnlinToolingTests(unittest.TestCase):
                 encoding="utf-8",
                 check=False,
             )
-            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotEqual(result.returncode, 0, result.stdout)
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings]
-            self.assertIn("短真诚小小说闭合", rules)
+            error_rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any("短真诚小小说闭合" in rule for rule in rules), rules)
+            self.assertTrue(any("短真诚小小说闭合" in rule for rule in error_rules), error_rules)
             self.assertFalse(any("标准日寄完整文章篇幅" in rule for rule in rules), rules)
 
     def test_clean_run_preflight_flags_short_sincere_literary_story_closure(self) -> None:
@@ -792,10 +795,15 @@ class AnlinToolingTests(unittest.TestCase):
                 encoding="utf-8",
                 check=False,
             )
-            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotEqual(result.returncode, 0, result.stdout)
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings]
-            self.assertIn("短真诚当前动作锚点不足", rules)
+            error_rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any("短真诚当前动作锚点不足" in rule for rule in rules), rules)
+            self.assertTrue(any("短真诚当前动作锚点不足" in rule for rule in error_rules), error_rules)
+            suggestions = "\n".join(item["suggestion"] for item in findings)
+            self.assertIn("整篇换源头", suggestions)
+            self.assertIn("重选标题", suggestions)
 
     def test_clean_run_preflight_flags_short_sincere_missing_present_action_anchor(self) -> None:
         body = "\n".join(
@@ -872,10 +880,9 @@ class AnlinToolingTests(unittest.TestCase):
                 encoding="utf-8",
                 check=False,
             )
-            self.assertEqual(result.returncode, 0, result.stderr)
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings]
-            self.assertNotIn("短真诚当前动作锚点不足", rules)
+            self.assertFalse(any("短真诚当前动作锚点不足" in rule for rule in rules), rules)
 
     def test_checker_warns_on_underbuilt_short_sincere_complete_article(self) -> None:
         body = "\n".join(
@@ -922,10 +929,12 @@ class AnlinToolingTests(unittest.TestCase):
                 encoding="utf-8",
                 check=False,
             )
-            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotEqual(result.returncode, 0, result.stdout)
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings]
-            self.assertIn("短体裁完整度不足", rules)
+            error_rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any("短体裁完整度不足" in rule for rule in rules), rules)
+            self.assertTrue(any("短体裁完整度不足" in rule for rule in error_rules), error_rules)
             self.assertFalse(any("标准日寄完整文章篇幅" in rule for rule in rules), rules)
 
     def test_clean_run_preflight_flags_underbuilt_short_sincere(self) -> None:
@@ -991,7 +1000,7 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings]
             self.assertIn("短体裁散文块压缩", rules)
-            self.assertIn("短体裁题面日期标题", rules)
+            self.assertTrue(any("短体裁题面日期标题" in rule for rule in rules), rules)
 
     def test_clean_run_preflight_flags_short_sincere_prose_block_and_date_title(self) -> None:
         body = short_sincere_prose_block_sample()
@@ -4489,6 +4498,26 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("repair stuffing", layer_map)
         self.assertIn("existing object-message-room-body-memory set", layer_map)
         self.assertIn("new material", combined)
+
+    def test_short_sincere_present_anchor_requires_source_reset_not_local_patch(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        modes = (ROOT / "references" / "generation-modes.md").read_text(encoding="utf-8")
+        budget = (ROOT / "references" / "feature-budget.md").read_text(encoding="utf-8")
+        layer_map = (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8")
+        review = (ROOT / "references" / "review-rubric.md").read_text(encoding="utf-8")
+        checker = (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8")
+        combined = "\n".join([skill, clean, runtime, modes, budget, layer_map, review, checker])
+        self.assertIn("This is a source reset, not a line edit", skill)
+        self.assertIn("Throw away the old spine", clean)
+        self.assertIn("When repairing `短真诚当前动作锚点不足`", runtime)
+        self.assertIn("source reset", modes)
+        self.assertIn("No local patch for a failed sincere spine", budget)
+        self.assertIn("source reset must choose a new side-action title", layer_map)
+        self.assertIn("without replacing the old spine", review)
+        self.assertIn("abandon the existing memory-first spine", checker)
+        self.assertNotIn("add one current detail around the same spine", combined)
 
     def test_title_model_prevents_universal_ri_default(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

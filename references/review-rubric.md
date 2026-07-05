@@ -24,6 +24,7 @@ Rewrite or refuse the relevant part if any appears:
 - formal blind-evaluation draft depends on extra style hints outside the skill and realistic user prompt
 - standard diary reads as a smooth realist short story: all scenes follow one emotional arc, every object serves the same wound, no lateral branch, no rough social misfire, and no crooked laugh
 - short sincere or micro-hope draft reads as a clean literary short story: one title object, one care memory, one withheld message, and one final residue all close the same emotional argument
+- short sincere or micro-hope repair preserves the same memory-first spine and only adds a late current detail; a sink, neighbor, wet clothing, or room chore does not fix the draft if the title object, memory order, withheld message, and ending still carry the old proof chain
 - short sincere or micro-hope draft is an underbuilt sketch: 250-500 body Chinese characters, no longer clumsy action/memory line, and only a few static emotional/image beats
 - ending is a tasteful withheld image that completes the emotional argument rather than a low consequence or interrupted action
 - standard diary is sealed inside one room/night/app chain and closes by neatly repaying an early object or debt
@@ -173,7 +174,7 @@ Registers include laugh, sting, tenderness, deflection, absurdity, analysis, bod
 
 - 2: short sincere/micro-hope piece has a title and emotional pressure, but current action, awkward interruption, or useless residue prevents a designed story closure
 - 1: title object or memory returns once with plausible force, but the ending does not fully explain it
-- 0: title object, family/memory proof, withheld message, and final residue all point to one neat love/guilt/hope argument
+- 0: title object, family/memory proof, withheld message, and final residue all point to one neat love/guilt/hope argument, including repairs that add a practical detail without replacing the old spine
 
 ### Short-Genre Completeness
 

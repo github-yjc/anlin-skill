@@ -61,6 +61,8 @@ Also do not let Mode C become a complete literary story. The high-risk shape is 
 
 Mode C should start from a present-action anchor when the prompt supplies strong family props. Pick a sink, bowl, door, neighbor/call, reply, wet clothing, wrong slipper, body itch/noise, room chore, or object failure that changes the next action; only then let eggs, rain, holiday feed, or blessing leak in. If the first beat is already the memory proof, the piece will usually become a small literary story no matter how many textures are added later.
 
+Mode C repair needs a source reset when the proof chain has already taken over. Do not keep the title `鸡蛋` or `屏朝下`, keep the egg/rain/no-message order, and add one chore near the end. Pick the current failed action first, retitle after that action, then choose which single memory prop is allowed to leak. The other prompt props can disappear.
+
 Mode C repair should not import a new inventory. If the draft is too smooth, thin, or globally profile-drifting, do not answer by adding delivery history, extra named foods, gift boxes, video lessons, variety shows, game scenes, routes, city cues, or background labels. Those packets make the repair visible. Stay with the existing object/message/room/body/memory set: make one action clumsier, one reply worse, one chore more inconvenient, or one memory line longer and less polished. A new family of material is allowed only when it has a consequence, not when it merely raises texture density.
 
 ## Mode D: Body Intrusion

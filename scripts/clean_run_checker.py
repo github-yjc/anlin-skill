@@ -579,7 +579,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             )
         if "short_genre_present_action_anchor=" in joined_messages:
             repair_hints.append(
-                "for short_genre_present_action_anchor, restart from today's practical interruption before the mother-memory proof: make a room, body, door, reply, neighbor, or chore problem change the next action, then let the egg/rain/message enter only as a leak from that action"
+                "for short_genre_present_action_anchor, abandon the existing memory-first spine rather than adding one more practical detail: choose a new side-action title and restart from today's practical interruption before the mother-memory proof. Make a room, body, door, reply, neighbor, or chore problem change the next action, keep at most one egg/rain/message trace, and let that trace leak from the action instead of carrying the argument"
             )
     if f"> {STANDARD_DIARY_DRAFT_OVERFULL_CHARS}" in joined_messages:
         repair_hints.append(
@@ -642,10 +642,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             )
         elif underbuilt_short_genre:
             revision_frame = (
-                "Rebuild the short-genre source, not the standard-diary length: keep 4-7 uneven clusters, add one "
-                "current practical interruption or awkward reply that changes the next action, keep several longer "
-                "clumsy lines, use a side-action title, and drop one prompt-supplied memory/object proof before "
-                "running this wrapper again."
+                "Rebuild the short-genre source, not the standard-diary length: keep 4-7 uneven clusters, restart "
+                "from a current practical interruption or awkward reply that changes the next action, keep several "
+                "longer clumsy lines, use a side-action title, and drop or bury the old title-object/memory proof "
+                "instead of arranging it better before running this wrapper again."
             )
         else:
             revision_frame = (
