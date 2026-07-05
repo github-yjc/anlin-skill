@@ -459,6 +459,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         for message in messages
     )
     missing_breath = any("short_breath_lines=" in message for message in messages)
+    near_miss_short = (
+        any("body_lines=" in message and "< 45" in message for message in messages)
+        or any(message.startswith("body_chinese_chars=") and ("< 900" in message or "< 950" in message) for message in messages)
+    ) and "connectors=" in joined_messages
     underbuilt_source = any(
         message.startswith("body_chinese_chars=") and ("< 900" in message or "< 950" in message) for message in messages
     ) and any(
@@ -480,6 +484,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             "for an underbuilt source shape, do a source-loop rewrite after the visible shape is reset: "
             "start from friction, add one off-axis consequence and one rough body/social turn, then write "
             "near 55-68 actual body lines and 950-1150 Chinese characters; do not patch with isolated line additions"
+        )
+    if near_miss_short:
+        repair_hints.append(
+            "for a near-miss short draft, add one full off-axis life cluster of 6-10 visible lines that changes action and creates new connector turns; do not add a single explanatory paragraph or one decorative symptom"
         )
     if overfragmented_shape:
         repair_hints.append(

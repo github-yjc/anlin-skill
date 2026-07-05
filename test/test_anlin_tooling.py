@@ -2997,6 +2997,7 @@ class AnlinToolingTests(unittest.TestCase):
         runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
         anti_ai = (ROOT / "references" / "anti-ai-slop.md").read_text(encoding="utf-8")
         modes = (ROOT / "references" / "generation-modes.md").read_text(encoding="utf-8")
+        clean_run = (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8")
 
         self.assertIn("that file is the first-draft source loop", skill)
         self.assertIn("Do not read `references/runtime-brief.md`", skill)
@@ -3027,6 +3028,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Use visible breathing clusters before the first file write", clean)
         self.assertIn("count actual visible body rows", clean)
         self.assertIn("Do not trust mental estimates", clean)
+        self.assertIn("Near-miss drafts are a repeated failure", clean)
+        self.assertIn("only 35-44 actual body rows", clean)
+        self.assertIn("A near-miss first draft is still not ready", skill)
+        self.assertIn("for a near-miss short draft", clean_run)
         self.assertIn("Rough self-damage is narrower than ordinary awkwardness", clean)
         self.assertIn("脸应该挺难看", clean)
         self.assertIn("也不是疼，就是", clean)
