@@ -47,6 +47,7 @@ from check_anlin_violations import (  # noqa: E402
     prompt_performing_dialogue_hits,
     short_genre_literary_story_risk,
     short_genre_present_action_anchor_risk,
+    short_genre_prompt_prop_too_early_risk,
     short_genre_repair_stuffing_groups,
     split_title_and_content_lines,
 )
@@ -378,7 +379,7 @@ def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]
 
 def preflight_messages(draft: Path) -> list[str]:
     text = draft.read_text(encoding="utf-8")
-    _, content_lines = split_title_and_content_lines(text.splitlines())
+    title, content_lines = split_title_and_content_lines(text.splitlines())
     style = detect_style(text)
     article_lines = [line.strip() for line in text.splitlines() if line.strip() and not line.strip().startswith("<!--")]
     visible_lines = [line for line in content_lines if line.strip() and not line.strip().startswith("<!--")]
@@ -399,6 +400,9 @@ def preflight_messages(draft: Path) -> list[str]:
     rough_terms = [term for term in ROUGH_SELF_DAMAGE_TERMS if term in body]
     rough_patterns = [pattern for pattern in ROUGH_SELF_DAMAGE_PATTERNS if re.search(pattern, body)]
     messages: list[str] = []
+    if not title:
+        first_visible = article_lines[0] if article_lines else ""
+        messages.append(f"missing_title=first_visible:{first_visible[:32]}")
     if style != "standard":
         if body_chars < 180:
             messages.append(f"{style}_body_chinese_chars={body_chars} < 180")
@@ -416,7 +420,6 @@ def preflight_messages(draft: Path) -> list[str]:
             messages.append(
                 f"short_genre_prose_block_compression=style:{style}, body_lines={body_line_count}, mean_line={mean_line:.1f}, early_comma_ratio={comma_ratio:.2f}"
             )
-        title, _ = split_title_and_content_lines(text.splitlines())
         normalized_title = re.sub(r"[\s#]+", "", title)
         if re.search(r"(?:母亲节|五月十二日|5月12日|五月十二|520)", normalized_title):
             messages.append(f"short_genre_diagnostic_date_title={normalized_title}")
@@ -431,6 +434,12 @@ def preflight_messages(draft: Path) -> list[str]:
             messages.append(
                 "short_genre_present_action_anchor="
                 + json.dumps(present_anchor_risk, ensure_ascii=False)
+            )
+        prompt_prop_risk = short_genre_prompt_prop_too_early_risk(text.splitlines(), text)
+        if prompt_prop_risk:
+            messages.append(
+                "short_genre_prompt_prop_too_early="
+                + json.dumps(prompt_prop_risk, ensure_ascii=False)
             )
         stuffing_groups = short_genre_repair_stuffing_groups(body)
         stuffing_hits = [term for terms in stuffing_groups.values() for term in terms]
@@ -528,8 +537,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         or message.startswith("short_genre_diagnostic_date_title=")
         or message.startswith("short_genre_repair_stuffing=")
         or message.startswith("short_genre_present_action_anchor=")
+        or message.startswith("short_genre_prompt_prop_too_early=")
         for message in messages
     )
+    title_issue = any(message.startswith("missing_title=") for message in messages)
     missing_breath = any("short_breath_lines=" in message for message in messages)
     near_miss_short = (
         any("body_lines=" in message and "< 45" in message for message in messages)
@@ -573,6 +584,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         repair_hints.append(
             "for a short-genre source failure, do not solve by deleting memory or shrinking further; rewrite into 4-7 uneven clusters, keep a few longer clumsy lines, add one present practical cluster that changes action or reply, use a side-action title, and discard or bury one prompt-supplied family prop instead of preserving every prompt noun"
         )
+        if "short_genre_prompt_prop_too_early=" in joined_messages:
+            repair_hints.append(
+                "for short_genre_prompt_prop_too_early, rebuild the first 8-12 body lines before any memory proof: make today's practical action fail and change the next move, then let only one mother/egg/rain/message trace leak in; do not open with the prompt-prop inventory"
+            )
         if "short_genre_repair_stuffing=" in joined_messages:
             repair_hints.append(
                 "for short_genre_repair_stuffing, delete the new food/gift/media packet and repair rhythm inside the existing object-message-room material; do not add delivery, branded food, gift boxes, video teaching, or variety-show texture to make the short genre look thicker"
@@ -592,6 +607,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if "rough_self_damage=missing" in joined_messages:
         repair_hints.append(
             "for rough_self_damage, add one losing-face body/social consequence; pain or heat alone is too polite"
+        )
+    if title_issue:
+        repair_hints.append(
+            "for missing_title, add a standalone first-line title chosen from the completed side action; do not use a date, holiday label, `标题：`, or a sentence that is actually the first body line"
         )
     if "binary_reframe=present" in joined_messages:
         repair_hints.append(
@@ -646,6 +665,12 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
                 "from a current practical interruption or awkward reply that changes the next action, keep several "
                 "longer clumsy lines, use a side-action title, and drop or bury the old title-object/memory proof "
                 "instead of arranging it better before running this wrapper again."
+            )
+        elif title_issue:
+            revision_frame = (
+                "Repair the article artifact first: add a standalone title line, then keep the body as article text. "
+                "The title should come from a side action or object that the body earns, not from the date, holiday, "
+                "test prompt, or a body sentence promoted to title."
             )
         else:
             revision_frame = (

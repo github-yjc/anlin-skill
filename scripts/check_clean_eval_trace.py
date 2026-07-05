@@ -68,7 +68,7 @@ def extract_json_event_trace(text: str) -> str:
             events.append(event)
             parsed_count += 1
 
-    if parsed_count == 0 or parsed_count < max(1, len(lines) // 2):
+    if parsed_count == 0:
         return text
 
     chunks: list[str] = []
@@ -192,9 +192,17 @@ def collect_findings(text: str) -> list[TraceFinding]:
                 r"(?m)^\s*(?:←\s*)?(?:Write|Edit)\s+draft\.md\b|^\s*TITLE\s+(?:Write|Edit)\s+draft\.md\b|^\s*TOOL\s+filesystem_(?:write|edit)_file\b",
                 0,
             ),
-            ("stop后切普通checker", r"check_anlin_violations\.py", re.IGNORECASE),
+            (
+                "stop后切普通checker",
+                r"(?m)^\s*(?:python|py|uv|bash|powershell|cmd|INPUT|TITLE)\b[^\n]{0,220}check_anlin_violations\.py",
+                re.IGNORECASE,
+            ),
             ("stop后删除状态", r"(Remove-Item|rm\s+|del\s+).{0,120}\.anlin-clean-run-state\.json", re.IGNORECASE),
-            ("stop后读取checker源码", r"scripts/check_anlin_violations\.py.{0,120}(offset|Select-String|Read)", re.IGNORECASE),
+            (
+                "stop后读取checker源码",
+                r"(?m)^\s*(?:INPUT|TITLE|python|py|uv|bash|powershell|cmd)\b[^\n]{0,220}scripts/check_anlin_violations\.py[^\n]{0,120}(offset|Select-String|Read)",
+                re.IGNORECASE,
+            ),
         ]
         for rule, pattern, flags in post_stop_patterns:
             match = re.search(pattern, after_stop, flags | re.DOTALL)

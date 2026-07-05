@@ -1042,6 +1042,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "短体裁题面日期标题",
     "短体裁修复堆新素材",
     "短真诚当前动作锚点不足",
+    "短真诚题面物件过早",
     "短真诚小小说闭合",
 )
 DRAFT_GATE_RULE_NAMES: set[str] = {"呼吸点缺失"}
@@ -2235,6 +2236,107 @@ def check_short_genre_present_action_anchor(findings: list[Finding], lines: list
     )
 
 
+def short_genre_prompt_prop_too_early_risk(lines: list[str], text: str) -> dict[str, Any] | None:
+    """Detect short sincere drafts where prompt props take over the opening.
+
+    This is narrower than missing a present-action anchor. A draft may technically
+    begin with a sink, bowl, phone, or room action, but still turn that action into
+    a runway for every supplied mother-memory prop within a few lines.
+    """
+    style = detect_style(text)
+    if style not in {"sincere", "micro-hope"}:
+        return None
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [
+        line.strip()
+        for line in content_lines
+        if line.strip() and not line.strip().startswith("<!--")
+    ]
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < 260 or len(visible_lines) < 12:
+        return None
+
+    family_hits = [term for term in SINCERE_MOTHER_SUBJECT_MARKERS if term in body]
+    message_hits = [term for term in SINCERE_HOLIDAY_OR_MESSAGE_MARKERS if term in body]
+    care_hits = [term for term in SINCERE_CARE_MEMORY_MARKERS if term in body]
+    if not family_hits or not (message_hits or len(care_hits) >= 2):
+        return None
+
+    proof_terms = (
+        SINCERE_MOTHER_SUBJECT_MARKERS
+        + SINCERE_HOLIDAY_OR_MESSAGE_MARKERS
+        + SINCERE_CARE_MEMORY_MARKERS
+        + SHORT_GENRE_MEMORY_ARC_TERMS
+    )
+    early_limit = min(len(visible_lines), 10)
+    early_lines = visible_lines[:early_limit]
+    proof_indices = [
+        index
+        for index, line in enumerate(early_lines)
+        if any(term in line for term in proof_terms)
+    ]
+    if not proof_indices:
+        return None
+    first_proof_index = min(proof_indices)
+    before_proof = "\n".join(visible_lines[:first_proof_index])
+    grouped_before = {
+        group: [term for term in terms if term in before_proof]
+        for group, terms in SHORT_GENRE_PRESENT_ANCHOR_GROUPS.items()
+        if any(term in before_proof for term in terms)
+    }
+    anchor_hits_before = [
+        term for term in SHORT_GENRE_PRESENT_ANCHOR_TERMS if term in before_proof
+    ]
+    early_proof_terms = sorted({term for line in early_lines for term in proof_terms if term in line})
+
+    risk_score = 0
+    reasons: list[str] = []
+    if first_proof_index <= 4:
+        risk_score += 2
+        reasons.append(f"proof_enters_opening=line_index:{first_proof_index}")
+    if len(proof_indices) >= 3:
+        risk_score += 1
+        reasons.append(f"proof_line_count_first_10={len(proof_indices)}")
+    if len(grouped_before) < 2:
+        risk_score += 1
+        reasons.append(f"anchor_group_count_before_proof={len(grouped_before)}")
+    if len(anchor_hits_before) < 3:
+        risk_score += 1
+        reasons.append(f"anchor_hits_before_proof={anchor_hits_before[:4]}")
+    if len(early_proof_terms) >= 4:
+        risk_score += 1
+        reasons.append(f"early_proof_terms={early_proof_terms[:6]}")
+
+    if risk_score < 4:
+        return None
+    return {
+        "style": style,
+        "body_chars": body_chars,
+        "body_lines": len(visible_lines),
+        "risk_score": risk_score,
+        "reasons": reasons[:6],
+        "first_proof_index": first_proof_index,
+        "early_proof_terms": early_proof_terms[:8],
+        "anchor_groups_before_proof": grouped_before,
+    }
+
+
+def check_short_genre_prompt_prop_too_early(findings: list[Finding], lines: list[str], text: str) -> None:
+    risk = short_genre_prompt_prop_too_early_risk(lines, text)
+    if not risk:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "短真诚题面物件过早",
+            0,
+            json.dumps(risk, ensure_ascii=False),
+            "短真诚/微小希望生成稿高风险：开头虽然有当前动作，但母亲、节日、鸡蛋、雨、未发消息等题面强物件过早接管，读者会看到按素材清单搭出的证明链。重写前8-12行：先让一个不靠题面成立的当前动作失败并改变下一步，再只漏入一个记忆/屏幕碎片；其余强物件后撤、合并或删除。",
+        )
+    )
+
+
 SHORT_GENRE_STORY_OBJECT_TERMS = [
     "鸡蛋",
     "蛋壳",
@@ -3422,6 +3524,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_short_genre_repair_stuffing(findings, lines, text)
     check_short_genre_polished_minimalism(findings, lines, text)
     check_short_genre_present_action_anchor(findings, lines, text)
+    check_short_genre_prompt_prop_too_early(findings, lines, text)
     check_short_genre_literary_story_closure(findings, lines, text)
     check_connector_overuse(findings, text)
     check_diagnostic_title(findings, lines)

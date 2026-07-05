@@ -840,6 +840,96 @@ class AnlinToolingTests(unittest.TestCase):
                 messages,
             )
 
+    def test_checker_warns_when_short_sincere_prompt_props_enter_too_early(self) -> None:
+        body = "\n".join(
+            [
+                "# 油没冲掉",
+                "",
+                "碗底还有点油，水凉了，手背有点红。",
+                "洗洁精快用完了，",
+                "挤了半天才出来一点，瓶底咕噜响。",
+                "水槽边那个塑料袋是上次回家装鸡蛋的，",
+                "妈煮好了一袋让我带走，袋口拧了个结。",
+                "鸡蛋在冰箱里吃了几个，",
+                "袋子没扔，搁在水槽边上。",
+                "小时候下雨她送我上学。",
+                "雨衣裹着我，她没穿。",
+                "手机在桌上亮了一下。",
+                "朋友圈里全是母亲节。",
+                "我点开对话框，打了几个字，又删了。",
+                "碗还没洗完，水更凉了。",
+                "手在里面泡久了，指节有点皱。",
+                "走廊里有人关门，砰的一声。",
+                "我把碗摞起来，底下那个盘子滑了一下，",
+                "水溅到袖口上。",
+                "手机又亮了一下，我没拿。",
+                "水龙头关不紧，滴了几下。",
+                "抹布有点硬，擦过去还是一条油光。",
+                "我站了一会儿，觉得脚底凉。",
+                "厨房灯没开，窗户那边有一点雨声。",
+                "塑料袋还搁在水槽边。",
+                "袋口那个结看着很死。",
+                "裤子湿了一块。",
+                "我没换。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            findings = json.loads(result.stdout)
+            error_rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any("短真诚题面物件过早" in rule for rule in error_rules), error_rules)
+
+    def test_clean_run_preflight_flags_short_sincere_prompt_props_enter_too_early(self) -> None:
+        body = "\n".join(
+            [
+                "# 油没冲掉",
+                "",
+                "碗底还有点油，水凉了，手背有点红。",
+                "洗洁精快用完了，",
+                "挤了半天才出来一点，瓶底咕噜响。",
+                "水槽边那个塑料袋是上次回家装鸡蛋的，",
+                "妈煮好了一袋让我带走，袋口拧了个结。",
+                "鸡蛋在冰箱里吃了几个，",
+                "袋子没扔，搁在水槽边上。",
+                "小时候下雨她送我上学。",
+                "雨衣裹着我，她没穿。",
+                "手机在桌上亮了一下。",
+                "朋友圈里全是母亲节。",
+                "我点开对话框，打了几个字，又删了。",
+                "碗还没洗完，水更凉了。",
+                "手在里面泡久了，指节有点皱。",
+                "走廊里有人关门，砰的一声。",
+                "我把碗摞起来，底下那个盘子滑了一下，",
+                "水溅到袖口上。",
+                "手机又亮了一下，我没拿。",
+                "水龙头关不紧，滴了几下。",
+                "抹布有点硬，擦过去还是一条油光。",
+                "我站了一会儿，觉得脚底凉。",
+                "厨房灯没开，窗户那边有一点雨声。",
+                "塑料袋还搁在水槽边。",
+                "袋口那个结看着很死。",
+                "裤子湿了一块。",
+                "我没换。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(
+                any(message.startswith("short_genre_prompt_prop_too_early=") for message in messages),
+                messages,
+            )
+
     def test_checker_does_not_warn_present_action_anchor_when_current_friction_leads(self) -> None:
         body = "\n".join(
             [
@@ -883,6 +973,26 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings]
             self.assertFalse(any("短真诚当前动作锚点不足" in rule for rule in rules), rules)
+
+    def test_clean_run_preflight_flags_missing_title_before_checker(self) -> None:
+        body = "\n".join(
+            [
+                "碗底还有点油，水凉了，手背有点红。",
+                "洗洁精快用完了，",
+                "挤了半天才出来一点，瓶底咕噜响。",
+                "水槽边那个塑料袋是上次回家装鸡蛋的，",
+                "妈煮好了一袋让我带走。",
+                "朋友圈里全是母亲节。",
+                "我没发。",
+                "裤子湿了一块。",
+                "我没换。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(any(message.startswith("missing_title=") for message in messages), messages)
 
     def test_checker_warns_on_underbuilt_short_sincere_complete_article(self) -> None:
         body = "\n".join(
@@ -2037,6 +2147,64 @@ class AnlinToolingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "opencode-output.jsonl"
             path.write_text("\n".join(json.dumps(event, ensure_ascii=False) for event in events), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(json.loads(result.stdout), [])
+
+    def test_clean_eval_trace_mixed_log_ignores_dumped_skill_body_reference_names(self) -> None:
+        events = [
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "skill",
+                    "state": {
+                        "input": {"name": "anlin-writing"},
+                        "output": "The skill body mentions references/anti-ai-slop.md and check_anlin_violations.py as negative instructions.",
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "Test-Path .anlin-clean-eval-mode"},
+                        "metadata": {"output": "True\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "filesystem_write_file",
+                    "state": {"input": {"path": "draft.md", "content": "日寄\n\n正文"}},
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate"},
+                        "metadata": {"output": "CLEAN_RUN_NOTE: checker call 1/2\n"},
+                    },
+                },
+            },
+        ]
+        mixed_lines = [
+            "timestamp=2026-07-05T20:05:13.760Z level=INFO message=bootstrapping",
+            "some non-json runtime line",
+            *[json.dumps(event, ensure_ascii=False) for event in events],
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text("\n".join(mixed_lines), encoding="utf-8")
             result = subprocess.run(
                 [sys.executable, str(CHECK_TRACE), str(path), "--json"],
                 capture_output=True,
@@ -4355,6 +4523,21 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("两次 `clean_run_checker.py` 上限", self_check)
         self.assertIn("不允许因为 warning 或普通 error 继续第三次写稿/第三次检查", self_check)
         self.assertIn("clean-eval 不使用无限循环", self_check)
+
+    def test_short_sincere_prompt_prop_gate_is_source_guidance_not_only_checker(self) -> None:
+        files = [
+            ROOT / "SKILL.md",
+            ROOT / "references" / "clean-generation-brief.md",
+            ROOT / "references" / "runtime-brief.md",
+            ROOT / "references" / "generation-modes.md",
+            ROOT / "references" / "feature-budget.md",
+            ROOT / "references" / "runtime-layer-map.md",
+        ]
+        combined = "\n".join(path.read_text(encoding="utf-8") for path in files)
+        self.assertIn("first 8-12 body lines", combined)
+        self.assertIn("short_genre_prompt_prop_too_early", (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8"))
+        self.assertIn("短真诚题面物件过早", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
+        self.assertIn("token-anchor openings", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
 
     def test_runtime_docs_use_current_skill_name_and_output_locations(self) -> None:
         files = [
