@@ -1213,6 +1213,7 @@ class AnlinToolingTests(unittest.TestCase):
             draft = Path(temp) / "draft.md"
             draft.write_text(body, encoding="utf-8")
             messages = preflight_messages(draft)
+            self.assertTrue(any(message.startswith("short_genre_body_lines=") for message in messages), messages)
             self.assertTrue(any(message.startswith("short_genre_prose_block_compression=") for message in messages), messages)
             self.assertTrue(any(message.startswith("short_genre_diagnostic_date_title=") for message in messages), messages)
 
@@ -4683,6 +4684,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("28-55 body lines", combined)
         self.assertIn("poem-shaped grid", combined)
         self.assertIn("520-649", combined)
+        self.assertIn("short_genre_body_lines", (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8"))
         self.assertIn("short_genre_prompt_prop_too_early", (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8"))
         self.assertIn("短真诚题面物件过早", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
         self.assertIn("token-anchor openings", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))

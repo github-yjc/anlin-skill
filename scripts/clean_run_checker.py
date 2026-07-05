@@ -406,8 +406,8 @@ def preflight_messages(draft: Path) -> list[str]:
     if style != "standard":
         if body_chars < 180:
             messages.append(f"{style}_body_chinese_chars={body_chars} < 180")
-        if body_line_count < 8:
-            messages.append(f"{style}_body_lines={body_line_count} < 8")
+        if body_line_count < 24:
+            messages.append(f"short_genre_body_lines=style:{style}, body_lines={body_line_count} < 24")
         if body_chars < 520:
             messages.append(
                 f"short_genre_underbuilt_complete_article=style:{style}, body_chars={body_chars} < 520"
@@ -541,6 +541,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     )
     underbuilt_short_genre = any(
         message.startswith("short_genre_underbuilt_complete_article=")
+        or message.startswith("short_genre_body_lines=")
         or message.startswith("short_genre_complete_article_buffer=")
         or message.startswith("short_genre_no_long_clumsy_lines=")
         or message.startswith("short_genre_short_line_grid=")
@@ -602,6 +603,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         if "short_genre_complete_article_buffer=" in joined_messages or "short_genre_short_line_grid=" in joined_messages:
             repair_hints.append(
                 "for short-genre completion/rhythm, do not expand into standard diary or split into tiny rows; rebuild around 650-850 body Chinese characters, about 28-55 body lines, with 4-8 longer clumsy action/memory/reply lines and one practical consequence that changes the next move"
+            )
+        if "short_genre_body_lines=" in joined_messages or "short_genre_prose_block_compression=" in joined_messages:
+            repair_hints.append(
+                "for short-genre prose compression, do not add one more paragraph; rewrite the visible page into about 28-55 actual body lines across 4-7 clusters, preserving punctuation at line ends and using a few longer clumsy lines plus short factual retreats"
             )
         if "short_genre_repair_stuffing=" in joined_messages:
             repair_hints.append(
