@@ -208,6 +208,10 @@ If the user prompt contains a group chat, forum, comment thread, class chat, or 
 
 For 朋友圈, short-video feeds, annual-summary feeds, new-year flag screens, old-chat records, or romantic/social comparison prompts, one surface is enough before the first checker. Do not write a feed montage: three posts, a caption quote, a like/unlike gesture, and a final latest video usually reads as prompt coverage. Do not write a screen-archaeology chain either: 朋友圈年度总结 -> 2021聊天记录 -> 群聊 -> 通讯录 -> 外卖推送 is still a neat assignment path even when each surface is plausible. Pick one cropped thing on the screen, then move away from the feed into a body, food, money, room, route, reply, outside contact, or object consequence. If the feed or old record returns later, it must change action or social position, not add another example of the same pressure.
 
+For old-record or nostalgia prompts, the old record is a trigger, not the engine. Before writing `draft.md`, choose one current-day consequence that the old record causes: a reply goes to the wrong person, the hand slips and exposes something, a delivery/cashier/neighbor interrupts, a practical chore gets worse, the body makes a low sound, or a room object forces the narrator to move. The memory itself should be crookedly read or punctured by the present. A red exclamation mark can become an unpaid practical debt, a voice bar can become a useless object, and an annual summary can feel like an app doing accounts receivable; but after that, the article must leave the screen through action. If the old record only produces "I remembered, then the room was quiet," it is not ready.
+
+Do not repair this by adding more saved messages, more years, or more screenshots. One old surface plus one present humiliation beats a full archive tour. If the draft already has phone + old chat + room + food + bed, replace one private room/object packet with an outside or practical consequence before the first checker.
+
 ## Rhythm
 
 Rhythm must come from thought and action, not visible formatting.

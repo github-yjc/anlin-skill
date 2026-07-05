@@ -3037,6 +3037,32 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any(item["rule"] == "strict: 无依据游戏角色细节: adc" for item in findings))
             self.assertFalse(any(item["rule"] == "金额后缀（中文数字）" for item in findings))
 
+    def test_checker_does_not_flag_piece_counter_as_money_suffix(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "墙皮上印了个湿手印，蹲下去捡了两块泡沫。",
+                "桌上还有三块石头和一块旧布。",
+                "手机里那杯水显示五块钱。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            money_infos = [item for item in findings if item["rule"] == "金额后缀（中文数字）"]
+            self.assertEqual(len(money_infos), 1)
+            self.assertIn("五块钱", money_infos[0]["excerpt"])
+
     def test_checker_draft_gate_rejects_ai_variable_placeholder_sentence(self) -> None:
         body = "\n".join(
             [
@@ -5232,6 +5258,74 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(realistic_prompt.startswith("用 anlin-writing skill 写"), item["name"])
             for banned in banned_helpers:
                 self.assertNotIn(banned, realistic_prompt, item["name"])
+
+    def test_checker_blocks_private_old_record_archive_chain_in_draft_gate(self) -> None:
+        archive_lines = [
+            "# 六十秒",
+            "",
+            "凌晨快三点，手机显示两度。",
+            "朋友圈刷到头，年度总结和新年flag挤在一起。",
+            "往上滑是歌单，往下滑是结婚证。",
+            "退出来又按亮屏幕，手滑点进旧手机备份。",
+            "二一年三月的聊天记录还在。",
+            "毕业论文那阵子，红叹号一直挂着。",
+            "语音条播放不了，加载不出来。",
+            "对话框里全是查重、参考文献和页码。",
+        ]
+        filler = "其实我觉得厨房灯管突然闪了一下，手机屏幕还亮着，于是发现房间里很冷，因为窗户没关严。"
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join([*archive_lines, *([filler] * 42)]), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertTrue(any("旧记录私密考古链" in item["rule"] for item in findings))
+            self.assertTrue(any(item["severity"] == "error" and "旧记录私密考古链" in item["rule"] for item in findings))
+
+    def test_checker_counts_practical_misread_and_wrong_slipper_as_engine(self) -> None:
+        body = "\n".join(
+            [
+                "# 六十秒",
+                "",
+                "蹲下去摸，发现灰腻腻的还拉丝，心里一紧，以为老鼠。",
+                "开手电筒照，是糖，化了一大半，剩下的粘着灰。",
+                "鞋柜里只剩一双夏天的，左右脚不一样，穿上以后一个高一个低。",
+                "走回客厅左脚绊在门槛上，手撑在墙上才没倒。",
+                "碰倒了门边那个快递盒，泡沫滚了一地。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings))
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+
+    def test_old_record_positive_source_lens_is_in_runtime_layers(self) -> None:
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        modes = (ROOT / "references" / "generation-modes.md").read_text(encoding="utf-8")
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        for text in (clean, runtime, modes, skill):
+            self.assertIn("old", text.lower())
+        self.assertIn("the old record is a trigger, not the engine", clean)
+        self.assertIn("one present humiliation", clean)
+        self.assertIn("The old record should not be a museum tour", runtime)
+        self.assertIn("make the present day answer it badly", modes)
+        self.assertIn("old record is a trigger, not the engine", skill)
 
     @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_run_blind_test_supports_multiple_placebo_rounds(self) -> None:

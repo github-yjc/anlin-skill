@@ -644,6 +644,71 @@ THEME_DOMAINS = {
         "2024",
     ],
 }
+TIME_ARCHIVE_TERMS = [
+    "跨年",
+    "新年",
+    "元旦",
+    "年度总结",
+    "朋友圈",
+    "flag",
+    "聊天记录",
+    "旧聊天",
+    "旧手机",
+    "备份",
+    "语音条",
+    "红叹号",
+    "加载不出来",
+    "毕业论文",
+    "查重",
+    "2021",
+    "二一年",
+]
+SCREEN_ARCHAEOLOGY_TERMS = [
+    "手机",
+    "屏幕",
+    "朋友圈",
+    "年度总结",
+    "往上翻",
+    "往下滑",
+    "翻到",
+    "点进",
+    "退出来",
+    "锁屏",
+    "按亮",
+    "相册",
+    "缓存",
+    "旧手机",
+    "备份",
+    "聊天记录",
+    "语音条",
+    "红叹号",
+    "对话框",
+    "联系人",
+    "通讯录",
+    "群聊",
+]
+OUTSIDE_CONTACT_TERMS = [
+    "老板",
+    "摊主",
+    "店员",
+    "收银",
+    "骑手",
+    "司机",
+    "保安",
+    "邻居",
+    "室友",
+    "舍友",
+    "同学",
+    "朋友",
+    "大爷",
+    "大妈",
+    "楼下有人",
+    "隔壁楼有人",
+    "问我",
+    "回我",
+    "看了我",
+    "瞥了我",
+]
 TASTEFUL_WITHHOLDING_ENDINGS = [
     "没点开",
     "没回",
@@ -714,6 +779,10 @@ ENGINE_SIGNAL_PATTERNS = [
     # words are quiet. Keep this narrow so private grime does not pass.
     r"(?:老板|摊主|店员|收银|他|她)[^。！？\n]{0,30}(?:看|瞥)[^。！？\n]{0,18}(?:我的)?(?:手|手指|指甲|指甲缝)[^。！？\n]{0,40}(?:嘴角|停|顿|没接|纸巾|擦|零钱|硬币)",
     r"(?:我的)?(?:手|手指|指甲|指甲缝)[^。！？\n]{0,24}(?:灰|黑|脏|泥|汁)[^。！？\n]{0,50}(?:老板|摊主|店员|收银|他|她)[^。！？\n]{0,35}(?:看|瞥|嘴角|停|顿|纸巾|擦|零钱|硬币)",
+    r"(?:以为|还以为)[^。！？\n]{0,24}(?:老鼠|虫|玻璃|血|坏了|漏了|有人)",
+    r"(?:拖鞋|鞋)[^。！？\n]{0,36}(?:左右脚不一样|一个高一个低|穿反|穿错)[\s\S]{0,90}(?:绊|摔|门槛|楼道|差点|看)",
+    r"(?:绊|摔|栽|跪)[^。！？\n]{0,36}(?:门槛|楼道|墙|快递盒|泡沫|纸箱|手印|湿手印)",
+    r"(?:快递盒|泡沫|纸箱)[^。！？\n]{0,40}(?:碰倒|倒|滚|撒|散了一地)",
 ]
 SEALED_NIGHT_TERMS = ["失眠", "床", "枕", "闹钟", "睡", "手机", "通知", "群", "Boss", "直聘"]
 CLOSED_LOOP_TAIL_TERMS = ["到现在也没", "明天再", "还没请", "还没还", "又点开"]
@@ -806,6 +875,8 @@ ROUGH_SELF_DAMAGE_PATTERNS = [
     r"胃[^。！？\n]{0,16}响[^。！？\n]{0,40}(?:店里|老板|店员|收银|他|她|抬头|安静|看)",
     r"(?:碰到我的手|看了我的手|看我的手)[\s\S]{0,90}(?:灰|黑|脏)[\s\S]{0,90}(?:纸巾擦|擦了擦手|零钱|老板|店员|收银)",
     r"(?:手|手背|手上)[^。！？\n]{0,36}(?:灰|黑|脏)[\s\S]{0,120}(?:纸巾擦|擦了擦手|零钱|老板|店员|收银)",
+    r"(?:拖鞋|鞋)[^。！？\n]{0,36}(?:左右脚不一样|一个高一个低|穿反|穿错)[\s\S]{0,90}(?:绊|摔|门槛|楼道|差点)",
+    r"(?:绊|摔|栽|跪)[^。！？\n]{0,36}(?:门槛|楼道|墙|快递盒|泡沫|纸箱|手印|湿手印)",
 ]
 AMBIENT_ENDING_PATTERNS = [
     r"(空调|外机|风扇|雨|灯|屏幕|手机|机器|冰箱)[^。！？\n]{0,16}(嗡|响|亮|暗|黑|震)[^。！？\n]{0,8}[。！？]?$",
@@ -890,6 +961,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "标准日寄完整文章过满",
     "单主题词密度偏高",
     "题面链条过于完整",
+    "旧记录私密考古链",
     "评论链公式化转述",
     "高频词覆盖不足",
     "AI二元解释句式",
@@ -1712,6 +1784,8 @@ def check_money_suffix(findings: list[Finding], lines: list[str]) -> None:
                 continue
             matched = chinese_match.group(0)
             following = line[chinese_match.end() : chinese_match.end() + 1]
+            if matched.endswith("块") and following and is_chinese_word_char(following) and following not in {"钱", "五", "多", "半"}:
+                continue
             if matched == "一块" and following not in {"钱", "五"}:
                 continue
             findings.append(
@@ -2150,6 +2224,34 @@ def check_prompt_chain_surface(findings: list[Finding], lines: list[str], text: 
                 0,
                 f"title/opening/tail_terms={matched[:10]}",
                 "标题、开头和结尾暴露太多题面名词；删除或后移至少两个高信号元素，让文章先像一天，再像回答题目。",
+            )
+        )
+
+
+def check_time_archive_private_chain(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    style = detect_style(text)
+    if style != "standard":
+        return
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if len(visible_lines) < 30 or chinese_len("\n".join(visible_lines)) < 650:
+        return
+    surface = "\n".join([title, *visible_lines])
+    archive_hits = [term for term in TIME_ARCHIVE_TERMS if term in surface]
+    if len(archive_hits) < 5:
+        return
+    screen_lines = sum(1 for line in visible_lines if any(term in line for term in SCREEN_ARCHAEOLOGY_TERMS))
+    outside_lines = sum(1 for line in visible_lines if any(term in line for term in OUTSIDE_CONTACT_TERMS))
+    engine_hits = [term for term in ENGINE_SIGNAL_TERMS if term in surface]
+    engine_hits.extend(pattern for pattern in ENGINE_SIGNAL_PATTERNS if re.search(pattern, surface))
+    if screen_lines >= 7 and outside_lines <= 1 and len(engine_hits) < 3:
+        findings.append(
+            Finding(
+                "warning",
+                "旧记录私密考古链",
+                0,
+                f"archive_hits={archive_hits[:8]}, screen_lines={screen_lines}, outside_lines={outside_lines}, engine_hits={engine_hits[:4]}",
+                "跨年、年度总结、旧聊天或回忆题材不能停在屏幕考古和室内物件。保留一个旧记录切片，让它造成当下错误回复、外界接触、付款/路线/身体后果或低处动作；不要继续补旧消息列表。",
             )
         )
 
@@ -2597,6 +2699,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_rough_self_damage(findings, text)
     check_material_echo(findings, text)
     check_prompt_chain_surface(findings, lines, text)
+    check_time_archive_private_chain(findings, lines, text)
     check_mid_article_offaxis_gap(findings, lines, text)
     check_tasteful_withholding_ending(findings, lines)
     check_quiet_explanation(findings, lines)

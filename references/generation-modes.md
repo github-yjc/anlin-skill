@@ -95,6 +95,8 @@ Shape:
 
 Do not insert memory as decoration. It must be triggered.
 
+For old-chat, annual-summary, archive, and cross-year material, treat the memory surface as a small trigger and then make the present day answer it badly. A saved message, voice bar, red warning mark, file name, or photo should cause a current action, misread, social wound, body interruption, payment/route problem, or unfinished chore. If the memory only creates quiet comparison, nostalgia, or a neat callback, it is decoration and should be cut or punctured.
+
 ## Scene Selection
 
 After listing candidates, choose by non-redundancy:
