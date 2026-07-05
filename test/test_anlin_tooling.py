@@ -559,6 +559,31 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
 
+    def test_clean_run_checker_preflight_blocks_missing_true_short_breaths(self) -> None:
+        lines = [
+            "其实我觉得手背一直发烫，突然发现客户还在催我",
+            "于是我把车停在树下，因为裤脚湿得有点丢人",
+            "好像这单送完就能歇一下，结果手机又亮了一次",
+        ] * 20
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 下午三点半", "", *lines]), encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3)
+            self.assertIn("short_breath_lines=0 < 4", preflight.stdout)
+            self.assertIn("<=8-Chinese-character breath drops", preflight.stdout)
+            self.assertIn("real <=8-character drops", preflight.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+
     def test_clean_run_checker_preflight_stops_after_three_attempts(self) -> None:
         short_body = "\n".join(["# 日寄", "", "杯子脏了。"])
         with tempfile.TemporaryDirectory() as temp:
@@ -2241,6 +2266,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Use the preflight message as a shape diagnosis", clean)
         self.assertIn("rebalance_line_rhythm.py draft.md --in-place", clean)
         self.assertIn("Do not let the repair bounce from short-line grid into 30-40 prose lines", clean)
+        self.assertIn("Do not write a prose version first", clean)
+        self.assertIn("true short breath means about 8 Chinese characters or fewer", clean)
+        self.assertIn("a few true short breath drops", skill)
+        self.assertIn("Do not write a prose-paragraph article first", skill)
         self.assertIn("Status 0 at a stop boundary only means the protocol message was delivered", clean)
         self.assertIn("several different natural small connectors", skill)
         self.assertIn("repeating `其实/已经/当时` as glue", skill)

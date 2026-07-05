@@ -35,12 +35,16 @@ For a standard diary blind-evaluation draft:
 - title required; choose from the completed body, not from a fixed default
 - body target: about 950-1150 Chinese characters
 - body shape: roughly 45-70 non-empty lines
-- at least six naturally longer lines above about 24 Chinese characters
+- first-draft sweet spot: about 55-68 body lines, with several true short breath drops and several rough long action/speech/thought lines
+- true short breath means about 8 Chinese characters or fewer; a 12-character normal sentence is not the same signal
+- keep roughly 8-18 naturally longer lines above about 28 Chinese characters
 - mixed comma-led continuation lines and hard stop lines
 - a middle rhythm corridor: not 36 compressed paragraph lines, not 80 same-length sentence rows
 - line breaks keep punctuation when a clause needs it; do not remove commas or periods to make the page look broken
 - not 8-15 smooth prose blocks
 - not 100+ tiny rows
+
+Do not write a prose version first and then promise to restructure it. In clean-eval mode, the first persisted `draft.md` is already part of the measurement. If the draft in your head is 8-15 paragraphs, stop before writing and rebuild it as breathing clusters.
 
 If the candidate has 90+ body lines, no long lines, or mostly 4-10 character rows, merge lines before writing `draft.md`. If it is under 900 Chinese characters, expand through lived action, not adjectives.
 
@@ -98,7 +102,9 @@ Keep main-topic scenes under half the selected slate. If the prompt gives many p
 
 Before writing `draft.md`, do a private source preflight:
 
-- body is already at least 950 Chinese characters and 45-70 body lines
+- body is already at least 950 Chinese characters and 45-70 body lines; for standard clean-eval aim nearer 55-68 rather than the exact boundary
+- at least a few real <=8-character drops are already present; they should land a failed decision, ugly reply, practical retreat, or body/social lowering, not decorative captions
+- several rough long lines above about 28 Chinese characters are already present; do not let a rhythm script be the first source of long lines
 - several different connectors from `其实/觉得/发现/好像/不过/突然/于是/因为/所以` occur because the thought is moving; zero or one signal is too polished, but repeating one word such as `其实/已经/当时` as glue is also synthetic
 - no `不是X，是Y`, `不是X，而是Y`, `不是X。是Y`, `不是说X，是说Y`, or split-line equivalent
 - no group/comment chain markers such as `有人发/有人说/有人问/又有人/底下有人/另一个说`
@@ -140,7 +146,7 @@ Use:
 
 - comma-led lines where the thought is still moving
 - a few longer spoken/action/thought lines
-- blunt short drops only when they land something
+- blunt short drops only when they land something; short means visually short, often <=8 Chinese characters
 - several rough connectors from `其实/觉得/发现/好像/不过/突然/于是/因为/所以`, distributed across actual turns instead of one repeated glue word
 
 Line-final comma means the visible content line itself ends with `，` because the next line continues the same action or thought. Internal commas inside a long line do not solve that rhythm. Keep punctuation at the line break instead of deleting it.
@@ -155,11 +161,11 @@ Avoid:
 - explaining every turn with `其实`, `已经`, `当时`, or `然后`
 - 100+ body lines in a normal-length draft
 
-Before writing `draft.md`, scan the first 20 content lines. If nearly all end with `。`, change some ongoing action/thought lines into comma continuations. If most adjacent lines are 4-10 characters, merge them into rough spoken/action syntax.
+Before writing `draft.md`, scan the first 20 content lines. If nearly all end with `。`, change some ongoing action/thought lines into comma continuations. If most adjacent lines are 4-10 characters, merge them into rough spoken/action syntax. If there are almost no <=8-character drops anywhere, do not solve it after the checker; add a few where the narrator actually fails, gives up, answers badly, or retreats.
 
 If the draft has more than about 90 content lines, or no naturally longer action/speech/thought lines, it is not a better Anlin surface; it is a generated short-line grid. Merge or rebalance before checking. After merging, reread for broken facts and impossible object-action collisions.
 
-Draft in breathing clusters, not sentence rows. A cluster can be 2-5 visible lines carrying one action/thought movement: one line may end with `，`, the next lands with `。`, then a short drop or ugly reply. Do not put a blank line after every sentence only to raise line count. Do not turn every line ending into `，` only to satisfy `行末逗号比例`. If a line break does not change breath, action, reply, body, or thought direction, it is formatting, not rhythm.
+Draft in breathing clusters, not sentence rows. A cluster can be 2-5 visible lines carrying one action/thought movement: one line may end with `，`, one line may run longer with speech or action, the next lands with `。`, then a short drop or ugly reply. Do not put a blank line after every sentence only to raise line count. Do not turn every line ending into `，` only to satisfy `行末逗号比例`. If a line break does not change breath, action, reply, body, or thought direction, it is formatting, not rhythm.
 
 Before the first `draft.md`, the first 20 content lines should usually contain several comma-ended continuation lines and several hard-stop lines. The whole body should not be mostly independent sentences. If you can read every line as a finished caption, the draft is still too AI-smooth even if the length is correct.
 

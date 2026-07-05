@@ -140,7 +140,7 @@ def normalize_before_final_check(draft: Path) -> None:
             "--preferred-lines",
             "58",
             "--min-long-lines",
-            "6",
+            "10",
         ],
         text=True,
         encoding="utf-8",
@@ -277,6 +277,7 @@ def preflight_messages(draft: Path) -> list[str]:
     body_line_count = len(line_lengths)
     mean_line = statistics.mean(line_lengths) if line_lengths else 0.0
     long_line_count = sum(1 for length in line_lengths if length >= 28)
+    short_breath_count = sum(1 for length in line_lengths if length <= 8)
     short_line_ratio = (sum(1 for length in line_lengths if length <= 12) / len(line_lengths)) if line_lengths else 0.0
     first_twenty = visible_lines[:20]
     comma_ratio = (sum(1 for line in first_twenty if line.endswith("，")) / len(first_twenty)) if first_twenty else 0.0
@@ -297,6 +298,10 @@ def preflight_messages(draft: Path) -> list[str]:
         )
     if body_line_count > 75 and long_line_count < 4:
         messages.append(f"long_lines={long_line_count} < 4 (keep several rough longer action/speech/thought lines)")
+    if body_line_count >= 55 and short_breath_count < 4:
+        messages.append(
+            f"short_breath_lines={short_breath_count} < 4 (keep a few <=8-Chinese-character breath drops; do not make every line a finished caption)"
+        )
     if body_line_count >= 70 and short_line_ratio >= 0.45:
         messages.append(f"short_line_grid={short_line_ratio:.2f} (do not create line breaks by deleting punctuation)")
     if body_chars >= 900 and (body_line_count <= 20 or mean_line >= 42 or long_line_count >= max(6, int(body_line_count * 0.65))):
@@ -325,6 +330,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     overfragmented_shape = any(
         "> 90" in message or "short_line_grid=" in message or "long_lines=" in message for message in messages
     )
+    missing_breath = any("short_breath_lines=" in message for message in messages)
     if compressed_shape:
         repair_hints.append(
             "for prose compression or body_lines < 45, first run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`; inspect once, then add missing lived content only if still short"
@@ -332,6 +338,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if overfragmented_shape:
         repair_hints.append(
             "for overfragmented grids or too few long lines, run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`; do not rewrite into many tiny rows or 30-line prose blocks"
+        )
+    if missing_breath:
+        repair_hints.append(
+            "for short_breath_lines, add a few real <=8-character drops such as an ugly reply, failed decision, or small retreat; do not add decorative one-word captions"
         )
     if "early_comma_ratio=" in joined_messages:
         repair_hints.append(
