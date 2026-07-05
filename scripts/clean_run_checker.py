@@ -42,6 +42,7 @@ from check_anlin_violations import (  # noqa: E402
     comment_chain_formula_hits,
     current_office_persona_hits,
     meta_ai_topic_hits,
+    prompt_performing_dialogue_hits,
     split_title_and_content_lines,
 )
 
@@ -240,12 +241,13 @@ def rebalance_medium_grid(draft: Path, *, min_long_lines: int = 6, min_body_line
 
 
 def binary_reframe_matches(lines: list[str]) -> list[tuple[int, str]]:
+    not_prefix = r"(?<!是)不是"
     patterns = [
-        re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:而|只|也|这|那)?(?:才)?是"),
-        re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:就是|只是)"),
-        re.compile(r"不是[^，。！？\n]{1,28}[,，](?:我|你|他|她|它)?(?:就是|只是|才是|是)"),
-        re.compile(r"不是[^。！？\n]{1,28}[。！？]\s*(?:是|就是|只是|而是|才是)"),
-        re.compile(r"不是[^。！？\n]{1,28}[。！？]\s*(?:我|你|他|她|它)?(?:是|就是|只是|而是|才是)"),
+        re.compile(rf"{not_prefix}[^，。！？\n]{{1,28}}[,，]?(?:而|只|也|这|那)?(?:才)?是"),
+        re.compile(rf"{not_prefix}[^，。！？\n]{{1,28}}[,，]?(?:就是|只是)"),
+        re.compile(rf"{not_prefix}[^，。！？\n]{{1,28}}[,，](?:我|你|他|她|它)?(?:就是|只是|才是|是)"),
+        re.compile(rf"{not_prefix}[^。！？\n]{{1,28}}[。！？]\s*(?:是|就是|只是|而是|才是)"),
+        re.compile(rf"{not_prefix}[^。！？\n]{{1,28}}[。！？]\s*(?:我|你|他|她|它)?(?:是|就是|只是|而是|才是)"),
         re.compile(r"其实不是[,，]?(?:好像|就是|只是|而是|是)"),
         re.compile(r"像[^。！？\n]{1,32}其实不是"),
     ]
@@ -262,7 +264,7 @@ def binary_reframe_matches(lines: list[str]) -> list[tuple[int, str]]:
         left = lines[index].strip()
         right = lines[index + 1].strip()
         if (
-            re.search(r"不是[^。！？\n]{1,28}[，,。！？]?$", left)
+            re.search(rf"{not_prefix}[^。！？\n]{{1,28}}[，,。！？]?$", left)
             and re.match(r"^(?:我|你|他|她|它)?(?:而是|是|就是|只是|这是|那是|才是)[^。！？\n]{1,40}", right)
         ):
             excerpt = f"{left} / {right}"
@@ -332,6 +334,14 @@ def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]
         )
         messages.append(
             f"binary_reframe=present count={len(binary_matches)} scan_all_occurrences=true examples={examples}"
+        )
+    prompt_dialogue_matches = prompt_performing_dialogue_hits(lines)
+    if prompt_dialogue_matches:
+        examples = " | ".join(
+            f"L{line_no}:{excerpt[:42]}" for line_no, excerpt in prompt_dialogue_matches[:3]
+        )
+        messages.append(
+            f"prompt_performing_dialogue=present count={len(prompt_dialogue_matches)} examples={examples}"
         )
     ending_matches = learned_ending_button_matches(lines)
     if ending_matches:
@@ -442,6 +452,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         "process_leak_terms=",
         "comment_chain_markers=",
         "binary_reframe=",
+        "prompt_performing_dialogue=",
         "meta_ai_topic_hits=",
         "current_office_persona=",
         "background_display_groups=",
@@ -512,6 +523,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if "binary_reframe=present" in joined_messages:
         repair_hints.append(
             "for binary_reframe, scan every line and remove all occurrences; replace each not-X/is-Y move with the physical fact, money action, or ugly reply already in that scene"
+        )
+    if "prompt_performing_dialogue=present" in joined_messages:
+        repair_hints.append(
+            "for prompt_performing_dialogue, stop letting a stranger or vendor recite identity, school, city, salary, or success-comparison facts; lower it to one rough side remark and carry the damage through payment, object handling, dirty hands, body noise, route, or a failed reply"
         )
     if "learned_ending_button=present" in joined_messages:
         repair_hints.append(

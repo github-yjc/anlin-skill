@@ -838,6 +838,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "评论链公式化转述",
     "高频词覆盖不足",
     "AI二元解释句式",
+    "提示词报幕式对话",
     "AI解释腔",
     "AI平行解释模板",
     "AI自我注解",
@@ -1091,12 +1092,13 @@ def check_isolated_punctuation(findings: list[Finding], lines: list[str]) -> Non
 
 
 def check_not_x_is_y(findings: list[Finding], lines: list[str]) -> None:
+    not_prefix = r"(?<!是)不是"
     patterns = [
-        re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:而|只|也|这|那)?(?:才)?是"),
-        re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:就是|只是)"),
-        re.compile(r"不是[^，。！？\n]{1,28}[,，](?:我|你|他|她|它)?(?:就是|只是|才是|是)"),
-        re.compile(r"不是[^。！？\n]{1,28}[。！？]\s*(?:是|就是|只是|而是|才是)"),
-        re.compile(r"不是[^。！？\n]{1,28}[。！？]\s*(?:我|你|他|她|它)?(?:是|就是|只是|而是|才是)"),
+        re.compile(rf"{not_prefix}[^，。！？\n]{{1,28}}[,，]?(?:而|只|也|这|那)?(?:才)?是"),
+        re.compile(rf"{not_prefix}[^，。！？\n]{{1,28}}[,，]?(?:就是|只是)"),
+        re.compile(rf"{not_prefix}[^，。！？\n]{{1,28}}[,，](?:我|你|他|她|它)?(?:就是|只是|才是|是)"),
+        re.compile(rf"{not_prefix}[^。！？\n]{{1,28}}[。！？]\s*(?:是|就是|只是|而是|才是)"),
+        re.compile(rf"{not_prefix}[^。！？\n]{{1,28}}[。！？]\s*(?:我|你|他|她|它)?(?:是|就是|只是|而是|才是)"),
         re.compile(r"其实不是[,，]?(?:好像|就是|只是|而是|是)"),
         re.compile(r"像[^。！？\n]{1,32}其实不是"),
     ]
@@ -1109,7 +1111,7 @@ def check_not_x_is_y(findings: list[Finding], lines: list[str]) -> None:
         left = lines[index].strip()
         right = lines[index + 1].strip()
         if (
-            re.search(r"不是[^。！？\n]{1,28}[，,。！？]?$", left)
+            re.search(rf"{not_prefix}[^。！？\n]{{1,28}}[，,。！？]?$", left)
             and re.match(r"^(?:我|你|他|她|它)?(?:而是|是|就是|只是|这是|那是|才是)[^。！？\n]{1,40}", right)
         ):
             matches.append((index + 1, f"{left} / {right}"))
@@ -1121,6 +1123,108 @@ def check_not_x_is_y(findings: list[Finding], lines: list[str]) -> None:
                 line_number,
                 clean_excerpt(line),
                 "生成稿高风险：不是X是Y/而是Y/只是Y常像AI在宣布重构。优先删除否定框架，让动作、人物、身体或物件直接呈现事实。原文校准时人工区分自然对话。",
+            )
+        )
+
+
+PROMPT_PERFORMING_DIALOGUE_TERMS = [
+    "大学",
+    "学校",
+    "小吃街",
+    "后面",
+    "以前",
+    "老家",
+    "北京",
+    "上海",
+    "深圳",
+    "杭州",
+    "上班",
+    "公司",
+    "大厂",
+    "计算机",
+    "程序员",
+    "工资",
+    "月薪",
+    "不少钱",
+    "年轻人",
+    "出去闯",
+]
+PROMPT_PERFORMING_SPEAKER_TERMS = [
+    "问我",
+    "问了一句",
+    "问",
+    "他说",
+    "她说",
+    "老板",
+    "摊主",
+    "卖瓜",
+    "店员",
+    "收银员",
+    "司机",
+    "路人",
+    "客户",
+]
+PROMPT_PERFORMING_SUCCESS_TERMS = [
+    "北京",
+    "上海",
+    "深圳",
+    "杭州",
+    "上班",
+    "公司",
+    "大厂",
+    "计算机",
+    "程序员",
+    "一个月",
+    "月薪",
+    "工资",
+    "不少钱",
+    "新车",
+    "买了台",
+]
+PROMPT_PERFORMING_RELATION_TERMS = ["儿子", "女儿", "孩子", "家里"]
+
+
+def prompt_performing_dialogue_hits(lines: list[str]) -> list[tuple[int, str]]:
+    """Find dialogue that exists mainly to deliver prompt/background facts."""
+    hits: list[tuple[int, str]] = []
+    seen: set[tuple[int, str]] = set()
+    identity_probe = re.compile(
+        r"(?:问我|问了一句|问|他说|她说|老板|摊主|卖瓜|店员|收银员|司机|路人|客户)"
+        r"[^。！？\n]{0,24}(?:你)?是不是[^。！？\n]{1,42}"
+    )
+    bare_probe = re.compile(r"(?:你)?是不是[^。！？\n]{1,36}就是[^。！？\n]{1,36}")
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped:
+            continue
+        has_probe = identity_probe.search(stripped) or bare_probe.search(stripped)
+        if has_probe and any(term in stripped for term in PROMPT_PERFORMING_DIALOGUE_TERMS):
+            key = (index + 1, stripped)
+            if key not in seen:
+                hits.append(key)
+                seen.add(key)
+        window = "\n".join(lines[max(0, index - 1) : min(len(lines), index + 2)])
+        if (
+            any(term in window for term in PROMPT_PERFORMING_RELATION_TERMS)
+            and sum(1 for term in PROMPT_PERFORMING_SUCCESS_TERMS if term in window) >= 2
+            and any(term in window for term in PROMPT_PERFORMING_SPEAKER_TERMS)
+        ):
+            key = (index + 1, stripped)
+            if key not in seen:
+                hits.append(key)
+                seen.add(key)
+    return hits
+
+
+def check_prompt_performing_dialogue(findings: list[Finding], lines: list[str]) -> None:
+    for line_number, line in prompt_performing_dialogue_hits(lines):
+        findings.append(
+            Finding(
+                "warning",
+                "提示词报幕式对话",
+                line_number,
+                clean_excerpt(line),
+                "陌生人/摊贩/司机/店员的口语不能替题面交代学校、城市、职业、工资或成功对比。把这类身份探问压低成一个粗糙侧面，并让付款、物件、脏手、身体噪音、路线或失败回复承担后果。",
             )
         )
 
@@ -2391,6 +2495,7 @@ def collect_findings(text: str) -> list[Finding]:
     add_term_findings(findings, lines, FAKE_SENTIMENT_TERMS, "warning", "假感动收尾", "静止情绪画面替代具体动作——用具体动作收束（关了、划掉、回了句去你妈的、又打开了）。")
     check_news_name_drop(findings, lines)
     check_not_x_is_y(findings, lines)
+    check_prompt_performing_dialogue(findings, lines)
     check_ai_slop_terms(findings, lines)
     check_pseudo_humanizer_surface(findings, lines, text)
     check_therapeutic_humanizer_surface(findings, lines)

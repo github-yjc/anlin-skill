@@ -1009,6 +1009,70 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["preflights"], 1)
             self.assertEqual(state["last_preflight_messages"][0].split()[0], "binary_reframe=present")
 
+    def test_clean_run_checker_does_not_treat_shi_bu_shi_as_binary_reframe(self) -> None:
+        cluster = [
+            "其实楼下水管又响了一下，",
+            "我觉得像有人在墙里拖塑料袋。",
+            "突然发现指甲缝里黑泥还在，",
+            "于是换手去拿杯子，因为那只手看起来更丢人。",
+            "不过收银员看了我一眼。",
+            "很丢人。",
+            "胃响了一声。",
+            "我假装没听见。",
+        ]
+        body = "\n".join(
+            [
+                "# 水管",
+                "",
+                "室友在旁边问我是不是还没吃饭，我说吃了，其实只吃了半个冷包子。",
+                *(cluster * 7),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CLEAN_RUN_CHECKER), str(draft), "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotIn("binary_reframe=present", result.stdout)
+
+    def test_clean_run_checker_flags_prompt_performing_identity_probe(self) -> None:
+        cluster = [
+            "其实楼下水管又响了一下，",
+            "我觉得像有人在墙里拖塑料袋。",
+            "突然发现指甲缝里黑泥还在，",
+            "于是换手去拿杯子，因为那只手看起来更丢人。",
+            "不过收银员看了我一眼。",
+            "很丢人。",
+            "胃响了一声。",
+            "我假装没听见。",
+        ]
+        body = "\n".join(
+            [
+                "# 水管",
+                "",
+                "他突然问我，你是不是以前那个大学的，就是后面有条小吃街那个。",
+                *(cluster * 7),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CLEAN_RUN_CHECKER), str(draft), "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+            self.assertIn("prompt_performing_dialogue=present", result.stdout)
+            self.assertNotIn("binary_reframe=present", result.stdout)
+
     def test_clean_run_checker_preflight_blocks_learned_ending_button_without_consuming_call(self) -> None:
         cluster = [
             "其实水龙头咳了一下，水从接口那边斜着喷出来，",
@@ -2048,6 +2112,75 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: AI二元解释句式" for item in findings))
+
+    def test_checker_draft_gate_rejects_prompt_performing_identity_probe_not_binary(self) -> None:
+        cluster = [
+            "其实楼下水管又响了一下，",
+            "我觉得像有人在墙里拖塑料袋。",
+            "突然发现指甲缝里黑泥还在，",
+            "于是换手去拿杯子，因为那只手看起来更丢人。",
+            "不过收银员看了我一眼。",
+            "很丢人。",
+            "胃响了一声。",
+            "我假装没听见。",
+        ]
+        body = "\n".join(
+            [
+                "# 水管",
+                "",
+                "他突然问我，你是不是以前那个大学的，就是后面有条小吃街那个。",
+                *(cluster * 7),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertIn("strict: 提示词报幕式对话", rules)
+            self.assertNotIn("strict: AI二元解释句式", rules)
+
+    def test_checker_draft_gate_allows_plain_shi_bu_shi_question(self) -> None:
+        cluster = [
+            "其实楼下水管又响了一下，",
+            "我觉得像有人在墙里拖塑料袋。",
+            "突然发现指甲缝里黑泥还在，",
+            "于是换手去拿杯子，因为那只手看起来更丢人。",
+            "不过收银员看了我一眼。",
+            "很丢人。",
+            "胃响了一声。",
+            "我假装没听见。",
+        ]
+        body = "\n".join(
+            [
+                "# 水管",
+                "",
+                "室友在旁边问我是不是还没吃饭，我说吃了，其实只吃了半个冷包子。",
+                *(cluster * 7),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertNotIn("strict: AI二元解释句式", rules)
+            self.assertNotIn("strict: 提示词报幕式对话", rules)
 
     def test_checker_draft_gate_rejects_english_process_preamble(self) -> None:
         body = "\n".join(
