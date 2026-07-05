@@ -206,7 +206,7 @@ When a turn needs explanation, replace the explanation with a thing happening: f
 
 If the user prompt contains a group chat, forum, comment thread, class chat, or a short-video/social-media surface, convert it before drafting. Use one cropped surface, unread count, screenshot title, message preview, delayed reply, body reaction, scroll action, or practical consequence. Do not narrate multiple speakers. A rider video with `有人说...` is still a comment chain. Formal generated drafts should usually contain zero `有人/又有人/底下有人/另一个说` in those scenes.
 
-For 朋友圈, short-video feeds, or romantic/social comparison prompts, one surface is enough before the first checker. Do not write a feed montage: three posts, a caption quote, a like/unlike gesture, and a final latest video usually reads as prompt coverage. Pick one cropped thing on the screen, then move away from the feed into a body, food, money, room, route, reply, or object consequence. If the feed returns later, it must change action or social position, not add another example of the same pressure.
+For 朋友圈, short-video feeds, annual-summary feeds, new-year flag screens, old-chat records, or romantic/social comparison prompts, one surface is enough before the first checker. Do not write a feed montage: three posts, a caption quote, a like/unlike gesture, and a final latest video usually reads as prompt coverage. Do not write a screen-archaeology chain either: 朋友圈年度总结 -> 2021聊天记录 -> 群聊 -> 通讯录 -> 外卖推送 is still a neat assignment path even when each surface is plausible. Pick one cropped thing on the screen, then move away from the feed into a body, food, money, room, route, reply, outside contact, or object consequence. If the feed or old record returns later, it must change action or social position, not add another example of the same pressure.
 
 ## Rhythm
 
@@ -270,6 +270,8 @@ Do not default mechanically to `日寄`, and do not avoid it mechanically either
 - If the body is sincere, micro-hope, surreal, or later reflective, a sentence or phrase title may work.
 - If the title alone reveals the user's prompt, weaken it or choose a side object/action.
 - If the title and ending explain each other too neatly, lower one of them.
+
+Do not use a calendar label as a quick modifier for standard clean-eval. Titles like `2024日寄`, `新年日寄`, `跨年日寄`, `元旦日寄`, or `年度总结日寄` usually tell the judge the prompt before the body starts. If the date matters, let it leak through the phone time, an unpaid practical action, a message surface, a body state, or a side object; choose the title from that side handle after the article is complete.
 
 ## Required Tool Flow
 

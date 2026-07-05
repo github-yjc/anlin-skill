@@ -1548,7 +1548,7 @@ class AnlinToolingTests(unittest.TestCase):
             bounded = case_dir / "draft.md"
             finalized = finalized_dir / "draft.md"
             bounded.write_text(body, encoding="utf-8")
-            finalized.write_text(body, encoding="utf-8")
+            finalized.write_text(body + "\n其实我又看了看杯子，还是脏。", encoding="utf-8")
             result = subprocess.run(
                 [
                     sys.executable,
@@ -1576,6 +1576,44 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("Only `pass` means", payload["finalized_checkpoint_answer"])
             self.assertIn("final article is not clean", payload["repair_implication"])
             self.assertIn(payload["finalized"]["gate"]["status"], {"fail", "review"})
+
+    def test_dev_checkpoint_summary_marks_unchanged_finalized_artifact_invalid(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            finalized_dir = case_dir / "finalized"
+            finalized_dir.mkdir(parents=True)
+            body = "\n".join(["# 2024日寄", "", *(["杯子脏了。"] * 90)])
+            bounded = case_dir / "draft.md"
+            finalized = finalized_dir / "draft.md"
+            bounded.write_text(body, encoding="utf-8")
+            finalized.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(bounded),
+                    "--finalized-draft",
+                    str(finalized),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["finalized"]["gate"]["status"], "invalid")
+            self.assertTrue(
+                any(
+                    "finalized draft unchanged from bounded input" in note
+                    for note in payload["finalized"]["gate"]["notes"]
+                )
+            )
 
     def test_clean_run_checker_merges_uniform_medium_grid_before_second_call(self) -> None:
         fragments = [
@@ -1906,6 +1944,30 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertFalse(any("标准日寄完整文章篇幅偏短" in rule for rule in strict_rules))
             self.assertTrue(any("标准日寄完整文章篇幅偏短" in rule for rule in draft_gate_rules))
             self.assertTrue(any("题面诊断型标题" in rule for rule in draft_gate_rules))
+
+    def test_checker_draft_gate_rejects_year_label_title(self) -> None:
+        body = "\n".join(
+            [
+                "# 2024日寄",
+                "",
+                *(["其实杯子有点脏，于是我拿去洗，水龙头喷到裤子上，收银台灯一亮我发现手上还有灰。"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            errors = [item for item in findings if item["severity"] == "error"]
+            self.assertTrue(any(item["rule"] == "strict: 题面诊断型标题" for item in errors))
+            self.assertTrue(any("four_digit_year" in item["suggestion"] for item in findings))
 
     def test_checker_draft_gate_rejects_near_minimum_article_length(self) -> None:
         filler_line = "我把杯子拿去洗水龙头先咳了一下喷到裤子上"
@@ -3202,8 +3264,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("the visible article itself should already look like clusters of breath", clean)
         self.assertIn("do not restate diagnostic words as a checklist", clean)
         self.assertIn("the metric names changed", clean)
-        self.assertIn("For 朋友圈, short-video feeds, or romantic/social comparison prompts", clean)
+        self.assertIn("For 朋友圈, short-video feeds, annual-summary feeds", clean)
         self.assertIn("Do not write a feed montage", clean)
+        self.assertIn("screen-archaeology chain", skill)
+        self.assertIn("old-chat records", clean)
         self.assertIn("Use visible breathing clusters before the first file write", clean)
         self.assertIn("count actual visible body rows", clean)
         self.assertIn("Do not trust mental estimates", clean)
@@ -3446,6 +3510,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("blind_round_readiness", readme)
         self.assertIn("双检查点记录", eval_readme)
         self.assertIn("最终稿不能只凭普通检查器通过", eval_readme)
+        self.assertIn("artifact failure", eval_readme)
+        self.assertIn("terminal/log-only final prose is an artifact failure", layer_map)
+        self.assertIn("finalized draft unchanged from bounded input", (ROOT / "scripts" / "summarize_dev_checkpoints.py").read_text(encoding="utf-8"))
         self.assertIn("finalized 仍为 review/fail/invalid", eval_readme)
         self.assertIn("bounded clean-eval checkpoint", layer_map)
         self.assertIn("finalized repair checkpoint", layer_map)
@@ -3453,7 +3520,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("finalized is only `review`, it is still unresolved", layer_map)
         self.assertIn("Generated articles do not belong in the skill directory", runtime)
         self.assertIn("Natural connector coverage should be solved before the checker", clean)
-        self.assertIn("For 朋友圈, short-video, and social-comparison prompts", runtime)
+        self.assertIn("For 朋友圈, short-video, annual-summary, old-chat", runtime)
         self.assertIn("A feed is not a scene slate", runtime)
         self.assertIn("For invitations, weddings, reunions", clean)
         self.assertIn("For stranger, shopkeeper, vendor", clean)
@@ -3483,6 +3550,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Standard diary does not have one safe default", modes)
         self.assertIn("Bare `日寄` is valid, but not a universal default", budget)
         self.assertIn("not a safe universal default", title)
+        self.assertIn("calendar labels", title)
+        self.assertIn("2024日寄", clean)
+        self.assertIn("2024日寄", modes)
         self.assertNotIn("Standard diary defaults to `日寄`", combined)
         self.assertNotIn("default to `日寄`; use", combined)
 

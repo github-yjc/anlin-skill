@@ -39,6 +39,7 @@ Choose the title after drafting:
 ## High-Risk Generated Titles
 
 - task labels: `春招日寄`, `情人节日寄`, `痛风日寄`, `母亲节日寄` when the user prompt already contains that exact topic and the body merely executes it
+- calendar labels: `2024日寄`, `新年日寄`, `元旦日寄`, `跨年日寄`, `年度总结日寄` when the date or feed topic is the assignment rather than a lived side handle
 - tidy thesis titles: `不算坏事`, `没发出去的消息`, `给不存在的人写信`
 - clever titles that require the ending to explain them
 - title/first-five-lines/ending all pointing to the same prompt noun

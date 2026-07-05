@@ -561,6 +561,11 @@ TOPIC_DIAGNOSTIC_TITLE_TERMS = [
     "婚礼",
     "痛风",
     "跨年",
+    "新年",
+    "元旦",
+    "年度总结",
+    "聊天记录",
+    "旧聊天",
     "搬家",
     "写作",
     "外卖",
@@ -577,6 +582,11 @@ HIGH_SIGNAL_OPENING_TERMS = [
     "婚礼",
     "痛风",
     "跨年",
+    "新年",
+    "元旦",
+    "年度总结",
+    "聊天记录",
+    "旧聊天",
     "搬家",
     "写不出来",
     "无人便利店",
@@ -616,6 +626,23 @@ THEME_DOMAINS = {
     "romance": ["情人节", "礼物", "玫瑰", "情侣", "对象", "恋爱", "结婚", "婚礼", "随礼"],
     "family": ["母亲节", "我妈", "妈妈", "我爸", "鸡蛋", "雨衣", "回家", "饭桌"],
     "illness": ["痛风", "脚踝", "尿酸", "肿", "疼", "富贵病", "腐乳", "可乐"],
+    "time_feed": [
+        "跨年",
+        "新年",
+        "元旦",
+        "年度总结",
+        "朋友圈",
+        "flag",
+        "聊天记录",
+        "旧聊天",
+        "毕业论文",
+        "毕业旅行",
+        "室友",
+        "2021",
+        "2022",
+        "2023",
+        "2024",
+    ],
 }
 TASTEFUL_WITHHOLDING_ENDINGS = [
     "没点开",
@@ -1801,6 +1828,10 @@ def check_diagnostic_title(findings: list[Finding], lines: list[str]) -> None:
         return
     if title != "日寄" and title.endswith("日寄"):
         matched = [term for term in TOPIC_DIAGNOSTIC_TITLE_TERMS if term in title]
+        if re.search(r"(?:19|20)\d{2}(?:年)?日寄$", title):
+            matched.append("four_digit_year")
+        if re.search(r"(?:\d{1,2}月\d{1,2}日|元旦|新年|跨年)(?:日寄|寄)$", title):
+            matched.append("calendar_label")
         if matched:
             findings.append(
                 Finding(

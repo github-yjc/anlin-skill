@@ -15,7 +15,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -159,6 +159,10 @@ def copy_for_controller(draft: Path, output_root: Path, name: str) -> Path:
     target = output_root / f"{name}-draft.md"
     shutil.copyfile(draft, target)
     return target
+
+
+def file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def summarize_hard_findings(findings: list[dict[str, Any]]) -> tuple[int, int]:
@@ -559,6 +563,37 @@ def build_checkpoint(
     )
 
 
+def flag_unchanged_finalized_artifact(
+    *,
+    bounded: CheckpointReport,
+    finalized: CheckpointReport,
+) -> CheckpointReport:
+    """Mark finalized repair as invalid when the artifact was never updated.
+
+    A common agent failure is printing a repaired article in the terminal while
+    leaving finalized/draft.md identical to the bounded input. That cannot count
+    as ordinary repair convergence.
+    """
+    bounded_path = Path(bounded.draft)
+    finalized_path = Path(finalized.draft)
+    try:
+        unchanged = file_sha256(bounded_path) == file_sha256(finalized_path)
+    except OSError:
+        return finalized
+    if not unchanged or bounded.gate.status == "pass":
+        return finalized
+    notes = list(finalized.gate.notes or [])
+    notes.append(
+        "finalized draft unchanged from bounded input after a non-pass bounded checkpoint; printed-only repairs do not count"
+    )
+    updated_gate = replace(
+        finalized.gate,
+        status="invalid",
+        notes=notes,
+    )
+    return replace(finalized, gate=updated_gate)
+
+
 def format_markdown(report: DevelopmentSummary) -> str:
     lines = [
         "# Development Checkpoint Summary",
@@ -666,6 +701,7 @@ def main() -> int:
             genre=args.genre,
             trace_log=None,
         )
+        finalized = flag_unchanged_finalized_artifact(bounded=bounded, finalized=finalized)
 
     diagnosis, next_action = classify_development_result(
         bounded.gate.status,

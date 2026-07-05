@@ -235,6 +235,7 @@ Rules:
 - Sincere or micro-hope titles may be complete sentences, but the title should come from a side action or wrong object, not from the final meaning.
 - Avoid titles that contain the full emotional contract: `不算坏事`, `没发出去那条消息`, `给不存在的人写信`, and similar prompt-summary phrases are high-risk.
 - Avoid topic-diagnostic standard titles such as `春招日寄`, `情人节日寄`, `婚礼日寄`, `痛风日寄`, `搬家日寄`, unless the body makes the modifier feel like an ugly side handle rather than the user's assignment.
+- Avoid calendar-diagnostic titles such as `2024日寄`, `新年日寄`, `元旦日寄`, `跨年日寄`, or `年度总结日寄` when the date/social feed is already the user's assignment.
 - If the body already has a strong motif, use a weaker title.
 - If the title is specific, the ending must not mirror it.
 
@@ -264,6 +265,7 @@ Before finalizing, remove the most "written" surface:
 - If the draft has fewer than 900 body Chinese characters and is headed for full blind evaluation, expand with lived material rather than adjectives: one dialogue/social residue, one body or money action, and one unrelated daily detail. For formal standard diary generation, draft toward 950-1150 body Chinese characters. Do not aim for 650, 700, 800, or just under 900; that creates a length cue and often becomes a shortfall after editing.
 - If repair deletes a scene, replace it with a concrete action or off-axis residue before the second checker call; do not let repair shrink the article into the 650-699 risk zone.
 - If a group chat or comment scene stacks `有人说/有人回/又有人`, replace the chain with one concrete screen detail, one representative line plus reaction, or one practical consequence. Multi-person comment summaries read like a prompt checklist.
+- If a cross-year, annual-summary, or old-chat prompt turns into feed -> old chat -> group chat -> contact list -> app push, cut the chain. Keep one screen surface and make it trigger a present body, room, route, food, payment, outside-contact, or object consequence.
 - If a group chat scene leaves a residue like `底下跟了一串回答`, delete it too. A vague crowd summary is still a comment-chain formula unless it causes a concrete action.
 - Also delete compressed residue such as `底下追了一串问号`, `被人回了个笑哭`, or `跟了一排`; keep one screen surface or a resulting action.
 - In formal drafts, do not repair group chat with another `有人` actor. Also delete `跟了个捂脸`, `又发了个文档`, `发截图的人`, `群里回了两个人`, and reaction-summary residue. Prefer zero-person screen surfaces: unread count, screenshot crop, file name, red dot, scroll distance, delayed reply, or a practical action after seeing it.
