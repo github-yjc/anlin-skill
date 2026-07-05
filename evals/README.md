@@ -123,11 +123,14 @@ python <skill-dir>/scripts/summarize_dev_checkpoints.py <case-dir> `
   --trace-log <case-dir>/opencode-output.txt `
   --corpus-dir <corpus-dir> `
   --profile <skill-dir>/references/style-profile.json `
+  --genre <standard|sincere|micro-hope|surreal> `
   --output-json <case-dir>/controller-audit/summary.json `
   --output-md <case-dir>/controller-audit/summary.md
 ```
 
 `summary.json` 中的 `bounded.stage_audits` 是 bounded 内部阶段证据，`diagnosis` 是开发归因，不是风格证明：
+
+如果 `--genre` 省略，汇总脚本会尝试从 `eval-07-...` 或用例名目录自动推断体裁；正式报告仍应显式传入，短真诚、微小希望和超现实用例尤其不能只让全局标准日寄 profile 解释根因。
 
 - `source_guidance_gap`：两次检查器边界稿没过，但最终稿过了；优先改源头引导。
 - `repair_path_gap` / `repair_or_validator_gap`：自然引导可用但修复路径或验证器出了问题。

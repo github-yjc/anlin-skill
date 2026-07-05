@@ -34,7 +34,7 @@ BACKGROUND_FACT_CLASSES = ROOT / "references" / "background-fact-classes.json"
 EVALS = ROOT / "evals" / "evals.json"
 sys.path.insert(0, str(ROOT / "scripts"))
 from clean_run_checker import normalize_before_final_check, preflight_messages  # noqa: E402
-from summarize_dev_checkpoints import classify_development_result, summarize_gate  # noqa: E402
+from summarize_dev_checkpoints import classify_development_result, infer_genre_from_case_dir, summarize_gate  # noqa: E402
 
 
 def short_sincere_prose_block_sample() -> str:
@@ -864,6 +864,128 @@ class AnlinToolingTests(unittest.TestCase):
             messages = preflight_messages(draft)
             self.assertTrue(any(message.startswith("short_genre_prose_block_compression=") for message in messages), messages)
             self.assertTrue(any(message.startswith("short_genre_diagnostic_date_title=") for message in messages), messages)
+
+    def test_checker_warns_on_short_sincere_repair_stuffing(self) -> None:
+        lines = [
+            "# 锅盖",
+            "",
+            "水龙头开了很久，锅里还是凉的，",
+            "我妈早上发消息问我吃没吃饭，我回了个吃了。",
+            "上次回家，她把鸡蛋装进塑料袋，结打得很紧，",
+            "小时候下雨，她骑车送我上学，雨衣大半边都盖在我身上。",
+            "我想把母亲节快乐打出来，手指停了一下，",
+            "又去看锅盖有没有动。",
+            "后来我叫外卖，订单卡在配送中，",
+            "页面上黄焖鸡、桂花糕、酥糖和溏心蛋挤在一起，",
+            "短视频里有人教怎么煮溏心蛋，下一条综艺还在笑，",
+            "游戏也弹出来，说王者有活动，",
+            "导航显示小区门口堵了，",
+            "我看了一眼，又把手机扣回灶台。",
+            *(
+                [
+                    "锅盖边上有水，一点点往下滑，我拿抹布擦了一下，袖口贴在手腕上。",
+                    "屏幕又亮，我没有拿起来，只把火调小了一点，",
+                    "厨房灯管响了一声，好像也不太想参与这个节日。",
+                ]
+                * 12
+            ),
+        ]
+        body = "\n".join(lines)
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertTrue(any("短体裁修复堆新素材" in item["rule"] for item in findings), findings)
+
+    def test_clean_run_preflight_flags_short_sincere_repair_stuffing(self) -> None:
+        body = "\n".join(
+            [
+                "# 锅盖",
+                "",
+                "我妈问吃饭没有，我说吃了，其实锅里还是凉的。",
+                "上次她给我塞鸡蛋，小时候下雨又骑车送我上学，雨衣全往我这边偏。",
+                "我盯着输入框，不知道怎么把母亲节快乐发出去。",
+                "后来叫外卖，订单卡着不动，",
+                "黄焖鸡、桂花糕、酥糖、溏心蛋排在一个页面里。",
+                "短视频又教煮蛋，综艺在旁边笑，",
+                "王者也弹活动，导航说小区门口堵着。",
+                *(
+                    [
+                        "锅盖边上冒白汽，我用袖口去擦，手腕上湿了一块，",
+                        "手机又亮，我没拿，只把那行字删掉。",
+                        "水槽里的碗还泡着，油花贴在边上，不太肯走。",
+                    ]
+                    * 14
+                ),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(any(message.startswith("short_genre_repair_stuffing=") for message in messages), messages)
+
+    def test_checker_does_not_warn_repair_stuffing_for_plain_short_sincere(self) -> None:
+        body = "\n".join(
+            [
+                "# 锅盖",
+                "",
+                "我妈问吃饭没有，我说吃了，其实锅里还是凉的。",
+                "上次她给我塞鸡蛋，塑料袋结打得很紧，",
+                "小时候下雨，她骑车送我上学，雨衣一直往我这边偏。",
+                "我盯着输入框，不知道怎么把母亲节快乐发出去。",
+                *(
+                    [
+                        "锅盖边上冒白汽，我用袖口去擦，手腕上湿了一块，",
+                        "手机又亮，我没拿，只把那行字删掉。",
+                        "水槽里的碗还泡着，油花贴在边上，不太肯走。",
+                    ]
+                    * 4
+                ),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("短体裁修复堆新素材" in item["rule"] for item in findings), findings)
+
+    def test_checker_infers_sincere_from_full_body_not_only_first_forty_lines(self) -> None:
+        lead = ["我坐在桌边看锅盖，水汽贴着灯管往上爬。"] * 42
+        mother_cluster = [
+            "我妈发消息问我吃没吃饭。",
+            "上次回家，她煮了一袋鸡蛋让我带走，",
+            "小时候下雨，她骑车送我上学，雨衣往我这边偏。",
+            "我想发母亲节快乐，最后只把手机扣过去。",
+        ]
+        body = "\n".join(["# 锅盖", "", *lead, *mother_cluster])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertFalse(any("标准日寄完整文章篇幅" in rule for rule in rules), rules)
 
     def test_checker_draft_gate_still_treats_plain_family_diary_as_standard_attempt(self) -> None:
         lines = [
@@ -1975,6 +2097,31 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertEqual(classify_development_result("pass", "fail")[0], "repair_or_validator_gap")
         self.assertEqual(classify_development_result("pass", "review")[0], "repair_or_validator_gap")
         self.assertEqual(classify_development_result("fail", None)[0], "bounded_fail_finalized_missing")
+
+    def test_dev_checkpoint_infers_genre_from_eval_case_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            evals = Path(temp) / "evals.json"
+            evals.write_text(
+                json.dumps(
+                    {
+                        "evals": [
+                            {"id": 7, "name": "2024-mothers-day-sincere", "style": "sincere"},
+                            {"id": 11, "name": "2025-surreal-introspection-projection", "style": "surreal-literary"},
+                        ]
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            self.assertEqual(
+                infer_genre_from_case_dir(Path(temp) / "iteration-36" / "eval-07-2024-mothers-day-sincere", evals),
+                "sincere",
+            )
+            self.assertEqual(
+                infer_genre_from_case_dir(Path(temp) / "iteration" / "2025-surreal-introspection-projection", evals),
+                "surreal",
+            )
+            self.assertIsNone(infer_genre_from_case_dir(Path(temp) / "unmatched-case", evals))
 
     def test_dev_checkpoint_treats_inconclusive_style_profile_as_review_not_pass(self) -> None:
         gate = summarize_gate(
@@ -4188,6 +4335,23 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("A draft with many short rows and no visible punctuation is a generated line grid", runtime)
         self.assertIn("actual line endings, not comma count inside long lines", runtime)
         self.assertIn("reread for semantic damage", skill)
+
+    def test_short_genre_repair_stuffing_is_source_guidance_not_only_checker(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        modes = (ROOT / "references" / "generation-modes.md").read_text(encoding="utf-8")
+        budget = (ROOT / "references" / "feature-budget.md").read_text(encoding="utf-8")
+        layer_map = (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8")
+        combined = "\n".join([skill, clean, runtime, modes, budget, layer_map])
+        self.assertIn("Do not repair short sincere profile drift by adding new food", skill)
+        self.assertIn("Short sincere repair has a second overfill trap", clean)
+        self.assertIn("Treat `短体裁修复堆新素材` the same way", runtime)
+        self.assertIn("Mode C repair should not import a new inventory", modes)
+        self.assertIn("No short-genre repair stuffing", budget)
+        self.assertIn("repair stuffing", layer_map)
+        self.assertIn("existing object-message-room-body-memory set", layer_map)
+        self.assertIn("new material", combined)
 
     def test_title_model_prevents_universal_ri_default(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

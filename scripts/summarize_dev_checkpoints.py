@@ -26,6 +26,7 @@ CHECK_PROFILE = ROOT / "scripts" / "check_style_profile.py"
 COMPARE_CORPUS = ROOT / "scripts" / "compare_anlin_corpus.py"
 CHECK_TRACE = ROOT / "scripts" / "check_clean_eval_trace.py"
 DEFAULT_PROFILE = ROOT / "references" / "style-profile.json"
+EVALS_JSON = ROOT / "evals" / "evals.json"
 
 
 @dataclass(frozen=True)
@@ -111,6 +112,43 @@ def run_command(command: list[str]) -> CommandReport:
         check=False,
     )
     return CommandReport(command, result.returncode, result.stdout, result.stderr)
+
+
+def normalize_profile_genre(style: str | None) -> str | None:
+    if not style:
+        return None
+    mapping = {
+        "standard-diary": "standard",
+        "standard": "standard",
+        "sincere": "sincere",
+        "micro-hope": "micro-hope",
+        "surreal-literary": "surreal",
+        "surreal": "surreal",
+    }
+    return mapping.get(style)
+
+
+def infer_genre_from_case_dir(case_dir: Path, evals_json: Path = EVALS_JSON) -> str | None:
+    """Infer style-profile genre from a controller case directory when possible."""
+    try:
+        data = json.loads(evals_json.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    haystack = str(case_dir).replace("\\", "/").lower()
+    for item in data.get("evals", []):
+        style = normalize_profile_genre(item.get("style"))
+        if not style:
+            continue
+        name = str(item.get("name", "")).lower()
+        raw_id = item.get("id")
+        id_tokens = []
+        if isinstance(raw_id, int):
+            id_tokens = [f"eval-{raw_id:02d}", f"eval-{raw_id}-"]
+        if name and name in haystack:
+            return style
+        if any(token in haystack for token in id_tokens):
+            return style
+    return None
 
 
 def extract_json(stdout: str) -> Any:
@@ -668,7 +706,7 @@ def main() -> int:
     parser.add_argument("--corpus-dir", type=Path, default=None, help="Optional full original corpus directory")
     parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE, help="style-profile.json path")
     parser.add_argument("--phase", default=None, help="Optional phase for style profile")
-    parser.add_argument("--genre", default=None, help="Optional genre for style profile")
+    parser.add_argument("--genre", default=None, help="Optional genre for style profile; inferred from eval case directory when omitted")
     parser.add_argument("--output-json", type=Path, default=None, help="Write full JSON summary")
     parser.add_argument("--output-md", type=Path, default=None, help="Write markdown summary")
     parser.add_argument("--json", action="store_true", help="Print JSON instead of markdown")
@@ -683,6 +721,8 @@ def main() -> int:
         parser.error(f"finalized draft not found: {finalized_draft}")
 
     audit_root = case_dir / "controller-audit"
+    effective_genre = args.genre or infer_genre_from_case_dir(case_dir)
+
     bounded = build_checkpoint(
         name="bounded",
         draft=bounded_draft,
@@ -691,7 +731,7 @@ def main() -> int:
         corpus_dir=args.corpus_dir,
         profile=args.profile,
         phase=args.phase,
-        genre=args.genre,
+        genre=effective_genre,
         trace_log=args.trace_log,
     )
     finalized = None
@@ -704,7 +744,7 @@ def main() -> int:
             corpus_dir=args.corpus_dir,
             profile=args.profile,
             phase=args.phase,
-            genre=args.genre,
+            genre=effective_genre,
             trace_log=None,
         )
         finalized = flag_unchanged_finalized_artifact(bounded=bounded, finalized=finalized)

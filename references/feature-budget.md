@@ -41,6 +41,7 @@ These apply to all normal generation:
 31. No repeated texture-packet repair: if a draft keeps returning to the same body/object packet, such as hand dirt, white food, cutting board, garbage, route heat, payment, or dark room, do not add another proof-detail. Delete one packet and replace its function with a social or practical consequence that changes reply, payment, route, room position, or next action.
 32. No polished short-genre essay or sketch: sincere and micro-hope pieces can be short, but they still need uneven breathing, rough logistics, awkward reply/practical interruption, and factual retreat. Do not submit a 25-35-line smooth prose piece where every line completes the same feeling, and do not treat a 250-500-character fragment with no longer clumsy line as a complete article.
 33. No short sincere literary-story closure: a title object, mother/family memory, childhood rain, withheld message, and final tasteful residue must not all point to the same love/guilt argument. When the prompt supplies several of those props, preserve one main pressure and at most one cropped trace; discard or bury the rest. For Mother's Day direct-memory prompts, do not keep all four visible blocks: holiday/feed, eggs/home food, childhood rain, and typed-then-deleted message. Cut one symbolic proof or add a present-day practical interruption before the article becomes a small designed story.
+34. No short-genre repair stuffing: when a sincere or micro-hope draft is thin, do not thicken it by importing unrelated delivery, branded food, gift, media/video, variety-show, game, route, city, or background packets. Repair inside the chosen prop budget first: longer clumsy lines can come from the same object, room, reply, body, and cropped memory. Add a new material family only if it changes action, social position, body, room, or the next scene.
 
 ## Strong Defaults
 
@@ -144,6 +145,7 @@ Avoid:
 - titles that summarize the withheld confession
 - stretching into standard diary only to satisfy a global profile
 - adding game/body/route/background labels because the short genre feels too quiet
+- adding new delivery, food, gift, media, route, game, or background packets to manufacture short-genre thickness after a checker/profile warning
 
 ## Micro-Hope Piece
 

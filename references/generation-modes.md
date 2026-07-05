@@ -58,6 +58,8 @@ Do not let Mode C become polished minimalism. A sincere piece can be short, but 
 
 Also do not let Mode C become a complete literary story. The high-risk shape is one strong title object carrying every beat: a phone or holiday surface, mother/family care, childhood rain, an unsent message, then an ending where the same object quietly proves the whole emotion. That can pass a surface checker and still feel generated to a reader. If the prompt itself hands you all of those beats, treat them as pressure options, not obligations. Use one, crop one, discard or bury the rest. For a Mother's Day packet, never use all four visible blocks: holiday feed, eggs/home food, childhood rain, and typed-then-deleted message. Pick two at most, and make one of them partial. When this starts happening, weaken the design rather than adding more texture: cut one memory proof, let a current chore or body/practical interruption damage the tenderness, keep one object that refuses to symbolize anything, and end before the title object closes the argument.
 
+Mode C repair should not import a new inventory. If the draft is too smooth, thin, or globally profile-drifting, do not answer by adding delivery history, extra named foods, gift boxes, video lessons, variety shows, game scenes, routes, city cues, or background labels. Those packets make the repair visible. Stay with the existing object/message/room/body/memory set: make one action clumsier, one reply worse, one chore more inconvenient, or one memory line longer and less polished. A new family of material is allowed only when it has a consequence, not when it merely raises texture density.
+
 ## Mode D: Body Intrusion
 
 Best for gout, sleep, pain, hunger, urine, stomach, heart, or fatigue.
@@ -336,6 +338,7 @@ Use this map when a blind judge identifies a draft.
 | short sincere polished minimalism | merge equal emotional lines into rougher memory/action syntax; add one awkward reply or practical interruption; keep a short factual retreat |
 | sincere piece too clean | keep one ugly practical detail and one awkward reply; do not let memory prove love too neatly |
 | short sincere literary-story closure | cut one title-object echo or sentimental proof scene; add a present interruption that damages the memory's neatness; end on an unfinished action rather than the object proving the title |
+| short sincere repair stuffing | delete the new food/delivery/gift/media/game/route/background packet; repair within the original prop budget with clumsy action, awkward reply, room/body interruption, or one cropped memory line |
 | surreal piece too symbolic | add a dumb object, a payment/log-in problem, or an ordinary bodily action that breaks the symbol chain |
 | short-line fragment poem | merge lines into uneven spoken syntax and add a longer clumsy clause |
 | ending uses a learned button | end on a consequence: unread reply, cold food, wrong object, body pain, route, payment, or interrupted chore |

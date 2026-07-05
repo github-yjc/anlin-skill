@@ -46,6 +46,7 @@ from check_anlin_violations import (  # noqa: E402
     meta_ai_topic_hits,
     prompt_performing_dialogue_hits,
     short_genre_literary_story_risk,
+    short_genre_repair_stuffing_groups,
     split_title_and_content_lines,
 )
 
@@ -424,6 +425,16 @@ def preflight_messages(draft: Path) -> list[str]:
                 "short_genre_literary_story_closure="
                 + json.dumps(short_story_risk, ensure_ascii=False)
             )
+        stuffing_groups = short_genre_repair_stuffing_groups(body)
+        stuffing_hits = [term for terms in stuffing_groups.values() for term in terms]
+        if body_chars >= 850 and (len(stuffing_groups) >= 3 or len(stuffing_hits) >= 5):
+            messages.append(
+                "short_genre_repair_stuffing="
+                + json.dumps(
+                    {"style": style, "body_chars": body_chars, "groups": stuffing_groups},
+                    ensure_ascii=False,
+                )
+            )
         messages.extend(surface_preflight_messages(article_lines, "\n".join(article_lines)))
         return messages
     source_shape_weak = (
@@ -508,6 +519,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         or message.startswith("short_genre_no_long_clumsy_lines=")
         or message.startswith("short_genre_prose_block_compression=")
         or message.startswith("short_genre_diagnostic_date_title=")
+        or message.startswith("short_genre_repair_stuffing=")
         for message in messages
     )
     missing_breath = any("short_breath_lines=" in message for message in messages)
@@ -553,6 +565,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         repair_hints.append(
             "for a short-genre source failure, do not solve by deleting memory or shrinking further; rewrite into 4-7 uneven clusters, keep a few longer clumsy lines, add one present practical cluster that changes action or reply, use a side-action title, and discard or bury one prompt-supplied family prop instead of preserving every prompt noun"
         )
+        if "short_genre_repair_stuffing=" in joined_messages:
+            repair_hints.append(
+                "for short_genre_repair_stuffing, delete the new food/gift/media packet and repair rhythm inside the existing object-message-room material; do not add delivery, branded food, gift boxes, video teaching, or variety-show texture to make the short genre look thicker"
+            )
     if f"> {STANDARD_DIARY_DRAFT_OVERFULL_CHARS}" in joined_messages:
         repair_hints.append(
             "for overfilled length, cut unsupported/non-consequential texture after the visible shape is stable; do not add more body, screen, route, or money proof"

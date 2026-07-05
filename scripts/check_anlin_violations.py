@@ -2085,6 +2085,52 @@ def check_short_genre_diagnostic_date_title(findings: list[Finding], lines: list
         )
 
 
+def short_genre_repair_stuffing_groups(text: str) -> dict[str, list[str]]:
+    groups: dict[str, list[str]] = {}
+    for group, terms in SINCERE_REPAIR_STUFFING_FAMILIES.items():
+        hits = [term for term in terms if term in text]
+        if hits:
+            groups[group] = hits
+    return groups
+
+
+def short_genre_repair_stuffing_hits(text: str) -> list[str]:
+    return [
+        term
+        for terms in short_genre_repair_stuffing_groups(text).values()
+        for term in terms
+    ]
+
+
+def check_short_genre_repair_stuffing(findings: list[Finding], lines: list[str], text: str) -> None:
+    style = detect_style(text)
+    if style not in {"sincere", "micro-hope"}:
+        return
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [
+        line.strip()
+        for line in content_lines
+        if line.strip() and not line.strip().startswith("<!--")
+    ]
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < 850:
+        return
+    groups = short_genre_repair_stuffing_groups(body)
+    hits = [term for terms in groups.values() for term in terms]
+    if len(groups) < 3 and len(hits) < 5:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "短体裁修复堆新素材",
+            0,
+            f"style={style}, body_chars={body_chars}, groups={groups}",
+            "短真诚/微小希望修复不能靠新增外卖、食品、礼物包、媒体、游戏、路线或背景包来凑厚度和长行。保留短体裁，在已选对象、消息、房间、身体、记忆事实内重排动作、回复和事实后撤；必要时删一个新素材包。",
+        )
+    )
+
+
 SHORT_GENRE_STORY_OBJECT_TERMS = [
     "鸡蛋",
     "蛋壳",
@@ -2911,8 +2957,88 @@ SINCERE_CARE_MEMORY_MARKERS = [
     "发烧",
     "摸我的额头",
 ]
+SINCERE_REPAIR_STUFFING_FAMILIES = {
+    "delivery": [
+        "外卖",
+        "骑手",
+        "配送",
+        "订单",
+        "取餐",
+        "送餐",
+        "叫外卖",
+        "都叫外卖",
+    ],
+    "extra_food": [
+        "黄焖鸡",
+        "桂花糕",
+        "酥糖",
+        "溏心蛋",
+        "奶茶",
+        "麻辣烫",
+        "炸鸡",
+        "烧烤",
+        "蛋糕",
+        "粽子",
+    ],
+    "gift_packet": [
+        "礼物",
+        "礼盒",
+        "买了两盒",
+        "阿姨送过去",
+        "寄回去",
+        "花束",
+        "快递盒",
+    ],
+    "media_packet": [
+        "综艺",
+        "短视频",
+        "视频教",
+        "教程",
+        "直播",
+        "博主",
+        "转场",
+    ],
+    "game_packet": [
+        "王者",
+        "游戏",
+        "排位",
+        "打野",
+        "星耀",
+        "蔡文姬",
+        "队友",
+    ],
+    "route_packet": [
+        "导航",
+        "打车",
+        "公交",
+        "地铁",
+        "高铁",
+        "站台",
+        "路线",
+        "小区门口",
+    ],
+    "background_label": [
+        "云南",
+        "湖南",
+        "知乎",
+        "狗哥",
+        "211",
+        "计算机",
+        "痛风",
+    ],
+}
+SINCERE_REPAIR_STUFFING_TERMS = sorted(
+    {term for terms in SINCERE_REPAIR_STUFFING_FAMILIES.values() for term in terms}
+)
 MICRO_HOPE_TITLE_MARKERS = ["活着就是"]
 SURREAL_TITLE_MARKERS = ["存在主义", "迷失"]
+
+
+def sincere_mother_surface(surface: str) -> bool:
+    has_mother_subject = any(marker in surface for marker in SINCERE_MOTHER_SUBJECT_MARKERS)
+    message_hits = {marker for marker in SINCERE_HOLIDAY_OR_MESSAGE_MARKERS if marker in surface}
+    care_hits = {marker for marker in SINCERE_CARE_MEMORY_MARKERS if marker in surface}
+    return has_mother_subject and bool(message_hits) and len(care_hits) >= 2
 
 
 def detect_style(text: str) -> str:
@@ -2924,6 +3050,7 @@ def detect_style(text: str) -> str:
     lines = text.splitlines()
     title, content_lines = split_title_and_content_lines(lines)
     surface = "\n".join([title, *content_lines[:40]])
+    full_surface = "\n".join([title, *content_lines])
     if any(marker in title for marker in MICRO_HOPE_TITLE_MARKERS):
         return "micro-hope"
     if any(marker in title for marker in SURREAL_TITLE_MARKERS):
@@ -2934,10 +3061,7 @@ def detect_style(text: str) -> str:
     if len(sincere_hits) >= 2:
         return "sincere"
     if "日寄" not in title:
-        has_mother_subject = any(marker in surface for marker in SINCERE_MOTHER_SUBJECT_MARKERS)
-        message_hits = {marker for marker in SINCERE_HOLIDAY_OR_MESSAGE_MARKERS if marker in surface}
-        care_hits = {marker for marker in SINCERE_CARE_MEMORY_MARKERS if marker in surface}
-        if has_mother_subject and message_hits and len(care_hits) >= 2:
+        if sincere_mother_surface(surface) or sincere_mother_surface(full_surface):
             return "sincere"
     return "standard"
 
@@ -3135,6 +3259,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_short_genre_underbuilt_complete_article(findings, lines, text)
     check_short_genre_prose_block_compression(findings, lines, text)
     check_short_genre_diagnostic_date_title(findings, lines, text)
+    check_short_genre_repair_stuffing(findings, lines, text)
     check_short_genre_polished_minimalism(findings, lines, text)
     check_short_genre_literary_story_closure(findings, lines, text)
     check_connector_overuse(findings, text)

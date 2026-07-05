@@ -46,6 +46,8 @@ Follow-up retest `iteration-20260706-34/eval-07-2024-mothers-day-sincere` used `
 
 Follow-up retest `iteration-20260706-35/eval-07-2024-mothers-day-sincere` used `mimo/mimo-v2.5`, `--variant high`, and thinking enabled after commit `e263478`. The bounded run still stopped at preflight before checker call 1/2 (`calls=0`, `preflights=3`), but the failure moved: the draft was no longer a 250-500-character sketch. It became a 678-character, 16-line smooth paragraph-shaped sincere piece titled `五月十二日`, kept too many Mother's Day prompt props, and used a typed-then-deleted ending loop. Controller recheck found `short_genre_literary_story_closure`, prompt-chain completeness, line-final comma problems, and global-fallback line-rhythm/ngram/punctuation drift. Diagnosis remains `systemic_gap`, not blind-ready. Current source/tooling fix: Layer 0/1 now treats 520+ short sincere bodies with 8-18 smooth complete-sentence lines as `prose-block compression`, blocks date/holiday titles for direct holiday prompts, and tells the generator to choose a side-action title while cutting one full prop family before `draft.md`.
 
+Follow-up retest `iteration-20260706-36/eval-07-2024-mothers-day-sincere` used `opencode-go/minimax-m3`, `--variant high`, and thinking enabled after commit `8e7262f`. The bounded run reached the real clean-eval two-call boundary (`calls=2`, `preflights=2`) and had zero strict hard errors, but style-profile remained `review` with red global-fallback `line_rhythm` and `punctuation`. A copied finalized repair used `deepseek/deepseek-v4-flash` and wrote back to `finalized/draft.md`, but manual audit found a new repair-path failure: it added delivery, branded food, gift/media/video, variety-show, route/game-like, and background-adjacent packets to manufacture thickness and long lines. This is not a blind-round-ready result; it shows that short sincere repair can become an "expanded proof essay" even after hard gates are clean. Current source/tooling fix: short sincere/micro-hope guidance now forbids repair stuffing as a source move, `check_anlin_violations.py` and `clean_run_checker.py` warn on overlong short-genre drafts that import multiple unrelated new material families, and `summarize_dev_checkpoints.py` now infers style-profile genre from eval case names when `--genre` is omitted while still preferring explicit `--genre` in formal reports.
+
 Follow-up audit on `iteration-20260705-26/eval-06-2024-new-year-nostalgia` with the updated checker showed the copied finalized draft no longer has strict hard-gate errors; the earlier `段落发动机信号偏弱` finding was partly a checker undercount. It still fails the finalized checkpoint because style-profile remains `review`, mainly from high body/object/screen texture density, high concrete-entry count, and punctuation/structure drift. The source lesson is not "add more rough detail"; it is to reduce texture-as-repair and make old-record pressure produce one present social/practical consequence earlier.
 
 Follow-up retest `iteration-20260705-25/eval-06-2024-new-year-nostalgia` used a rotated available model surface after commit `fcdf374`. The bounded run respected the clean-eval stop boundary but stopped at preflight (`calls=0`, `preflights=3`) with title, unsupported-place, connector-spread, roughness, paragraph-engine, high-risk convenience-store, and quiet-explanation issues; style-profile was `revise` with red connector, line-rhythm, ngram-texture, and punctuation families. The finalized repair failed as an artifact: the agent printed a long final version and process analysis in the log but left `finalized/draft.md` unchanged. Diagnosis is `systemic_gap`, not blind-round-ready. Root fixes from this case: source guidance now blocks calendar-label titles and screen-archaeology chains for annual-summary/old-chat prompts, and controller summary now marks unchanged finalized artifacts invalid when bounded did not pass.
@@ -227,10 +229,10 @@ For controller validation, use the full validation layer after generation:
 $env:ANLIN_CORPUS_DIR='<corpus-dir>'
 python scripts/check_anlin_violations.py draft.md --strict --draft-gate --corpus-dir $env:ANLIN_CORPUS_DIR
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir $env:ANLIN_CORPUS_DIR
-python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate --strict
+python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate --strict --genre <standard|sincere|micro-hope|surreal>
 python scripts/rebalance_line_rhythm.py draft.md --in-place
 python scripts/calibrate_style_profile.py $env:ANLIN_CORPUS_DIR --profile references/style-profile.json
-python scripts/summarize_dev_checkpoints.py <case-dir> --bounded-draft <case-dir>/draft.md --finalized-draft <case-dir>/finalized/draft.md --trace-log <case-dir>/opencode-output.txt --corpus-dir $env:ANLIN_CORPUS_DIR --profile references/style-profile.json --output-json <case-dir>/controller-audit/summary.json --output-md <case-dir>/controller-audit/summary.md
+python scripts/summarize_dev_checkpoints.py <case-dir> --bounded-draft <case-dir>/draft.md --finalized-draft <case-dir>/finalized/draft.md --trace-log <case-dir>/opencode-output.txt --corpus-dir $env:ANLIN_CORPUS_DIR --profile references/style-profile.json --genre <standard|sincere|micro-hope|surreal> --output-json <case-dir>/controller-audit/summary.json --output-md <case-dir>/controller-audit/summary.md
 python scripts/run_blind_test.py draft.md $env:ANLIN_CORPUS_DIR --rounds 8 --placebo-rounds 2 --min-fragment-chars 550
 python scripts/check_clean_eval_trace.py <case-dir>/opencode-output.txt --json
 ```
@@ -258,10 +260,12 @@ python -m unittest discover -s test -p test_anlin_tooling.py
 $env:ANLIN_CORPUS_DIR='<corpus-dir>'
 python scripts\build_style_profile.py $env:ANLIN_CORPUS_DIR --output references\style-profile.json
 python scripts\calibrate_style_profile.py $env:ANLIN_CORPUS_DIR --profile references\style-profile.json
-python scripts\summarize_dev_checkpoints.py <case-dir> --bounded-draft <case-dir>\draft.md --finalized-draft <case-dir>\finalized\draft.md --trace-log <case-dir>\opencode-output.txt --corpus-dir $env:ANLIN_CORPUS_DIR --profile references\style-profile.json
+python scripts\summarize_dev_checkpoints.py <case-dir> --bounded-draft <case-dir>\draft.md --finalized-draft <case-dir>\finalized\draft.md --trace-log <case-dir>\opencode-output.txt --corpus-dir $env:ANLIN_CORPUS_DIR --profile references\style-profile.json --genre <standard|sincere|micro-hope|surreal>
 ```
 
 Fresh pass/fail claims should quote the exact command results. Older results in this README are status boundaries, not current verification.
+
+`summarize_dev_checkpoints.py` will try to infer `--genre` from an `eval-07-...` or eval-name case directory when the argument is omitted. Still pass it explicitly in formal reports, especially for short sincere, micro-hope, or surreal cases, so the report does not silently compare a non-standard draft only against global standard-diary priors.
 
 ## Development Notes
 
