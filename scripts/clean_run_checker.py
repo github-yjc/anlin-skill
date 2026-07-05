@@ -46,6 +46,7 @@ from check_anlin_violations import (  # noqa: E402
     meta_ai_topic_hits,
     prompt_performing_dialogue_hits,
     short_genre_literary_story_risk,
+    short_genre_present_action_anchor_risk,
     short_genre_repair_stuffing_groups,
     split_title_and_content_lines,
 )
@@ -425,6 +426,12 @@ def preflight_messages(draft: Path) -> list[str]:
                 "short_genre_literary_story_closure="
                 + json.dumps(short_story_risk, ensure_ascii=False)
             )
+        present_anchor_risk = short_genre_present_action_anchor_risk(text.splitlines(), text)
+        if present_anchor_risk:
+            messages.append(
+                "short_genre_present_action_anchor="
+                + json.dumps(present_anchor_risk, ensure_ascii=False)
+            )
         stuffing_groups = short_genre_repair_stuffing_groups(body)
         stuffing_hits = [term for terms in stuffing_groups.values() for term in terms]
         if body_chars >= 850 and (len(stuffing_groups) >= 3 or len(stuffing_hits) >= 5):
@@ -520,6 +527,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         or message.startswith("short_genre_prose_block_compression=")
         or message.startswith("short_genre_diagnostic_date_title=")
         or message.startswith("short_genre_repair_stuffing=")
+        or message.startswith("short_genre_present_action_anchor=")
         for message in messages
     )
     missing_breath = any("short_breath_lines=" in message for message in messages)
@@ -568,6 +576,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         if "short_genre_repair_stuffing=" in joined_messages:
             repair_hints.append(
                 "for short_genre_repair_stuffing, delete the new food/gift/media packet and repair rhythm inside the existing object-message-room material; do not add delivery, branded food, gift boxes, video teaching, or variety-show texture to make the short genre look thicker"
+            )
+        if "short_genre_present_action_anchor=" in joined_messages:
+            repair_hints.append(
+                "for short_genre_present_action_anchor, restart from today's practical interruption before the mother-memory proof: make a room, body, door, reply, neighbor, or chore problem change the next action, then let the egg/rain/message enter only as a leak from that action"
             )
     if f"> {STANDARD_DIARY_DRAFT_OVERFULL_CHARS}" in joined_messages:
         repair_hints.append(

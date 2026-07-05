@@ -42,6 +42,7 @@ These apply to all normal generation:
 32. No polished short-genre essay or sketch: sincere and micro-hope pieces can be short, but they still need uneven breathing, rough logistics, awkward reply/practical interruption, and factual retreat. Do not submit a 25-35-line smooth prose piece where every line completes the same feeling, and do not treat a 250-500-character fragment with no longer clumsy line as a complete article.
 33. No short sincere literary-story closure: a title object, mother/family memory, childhood rain, withheld message, and final tasteful residue must not all point to the same love/guilt argument. When the prompt supplies several of those props, preserve one main pressure and at most one cropped trace; discard or bury the rest. For Mother's Day direct-memory prompts, do not keep all four visible blocks: holiday/feed, eggs/home food, childhood rain, and typed-then-deleted message. Cut one symbolic proof or add a present-day practical interruption before the article becomes a small designed story.
 34. No short-genre repair stuffing: when a sincere or micro-hope draft is thin, do not thicken it by importing unrelated delivery, branded food, gift, media/video, variety-show, game, route, city, or background packets. Repair inside the chosen prop budget first: longer clumsy lines can come from the same object, room, reply, body, and cropped memory. Add a new material family only if it changes action, social position, body, room, or the next scene.
+35. No memory-first sincere proof chain: for mother/family sincere prompts, select a present-action anchor before selecting memory. The anchor must be a current sink/bowl/door/neighbor/call/reply/body/clothing/room/object problem that changes the next action. Eggs, rain, holiday feed, and blessing are pressure props, not anchors, unless the present action around them fails and redirects the scene.
 
 ## Strong Defaults
 
@@ -121,6 +122,7 @@ Recommended budget:
 - One protected retreat near the end, but do not force a joke.
 - If used in blind evaluation, either expand to a comparable complete-article length or compare only against short sincere originals.
 - For clean-eval short sincere, keep a practical completeness floor: usually above roughly 520 body Chinese characters, with at least a few longer clumsy action/memory/speech lines. If the draft is shorter, add a current practical cluster that changes action or reply, not another proof-memory.
+- For mother/family sincere, start from the current practical anchor. Let only one memory prop attach to that anchor; crop or discard the rest.
 
 Allowed:
 

@@ -2131,6 +2131,104 @@ def check_short_genre_repair_stuffing(findings: list[Finding], lines: list[str],
     )
 
 
+def short_genre_present_action_anchor_risk(lines: list[str], text: str) -> dict[str, Any] | None:
+    """Detect short sincere drafts that start from proof-memory instead of today's action."""
+    style = detect_style(text)
+    if style not in {"sincere", "micro-hope"}:
+        return None
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [
+        line.strip()
+        for line in content_lines
+        if line.strip() and not line.strip().startswith("<!--")
+    ]
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < 220 or len(visible_lines) < 12:
+        return None
+
+    family_hits = [term for term in SINCERE_MOTHER_SUBJECT_MARKERS if term in body]
+    message_hits = [term for term in SINCERE_HOLIDAY_OR_MESSAGE_MARKERS if term in body]
+    care_hits = [term for term in SINCERE_CARE_MEMORY_MARKERS if term in body]
+    if not family_hits or not (message_hits or len(care_hits) >= 2):
+        return None
+
+    proof_terms = (
+        SINCERE_MOTHER_SUBJECT_MARKERS
+        + SINCERE_HOLIDAY_OR_MESSAGE_MARKERS
+        + SINCERE_CARE_MEMORY_MARKERS
+        + SHORT_GENRE_MEMORY_ARC_TERMS
+    )
+    proof_indices = [
+        index
+        for index, line in enumerate(visible_lines)
+        if any(term in line for term in proof_terms)
+    ]
+    first_proof_index = min(proof_indices) if proof_indices else 0
+    before_proof = "\n".join(visible_lines[:first_proof_index])
+    early_window = "\n".join(visible_lines[: max(3, min(len(visible_lines), first_proof_index + 2))])
+
+    anchor_hits_before = [
+        term for term in SHORT_GENRE_PRESENT_ANCHOR_TERMS if term in before_proof
+    ]
+    grouped_before = {
+        group: [term for term in terms if term in before_proof]
+        for group, terms in SHORT_GENRE_PRESENT_ANCHOR_GROUPS.items()
+        if any(term in before_proof for term in terms)
+    }
+    anchor_hits_early = [term for term in SHORT_GENRE_PRESENT_ANCHOR_TERMS if term in early_window]
+    all_anchor_hits = [term for term in SHORT_GENRE_PRESENT_ANCHOR_TERMS if term in body]
+    memory_hits = [term for term in SHORT_GENRE_MEMORY_ARC_TERMS if term in body]
+
+    risk_score = 0
+    reasons: list[str] = []
+    if not anchor_hits_before:
+        risk_score += 2
+        reasons.append("no_present_anchor_before_family_proof")
+    if first_proof_index <= 2:
+        risk_score += 1
+        reasons.append(f"proof_starts_too_early=line_index:{first_proof_index}")
+    if len(memory_hits) >= 3 and message_hits:
+        risk_score += 1
+        reasons.append(f"memory_message_chain={memory_hits[:4]}")
+    if not anchor_hits_early:
+        risk_score += 1
+        reasons.append("early_window_has_no_practical_interrupt")
+    elif not grouped_before and all_anchor_hits:
+        risk_score += 1
+        reasons.append("practical_interrupt_arrives_after_proof")
+
+    if risk_score < 3:
+        return None
+    return {
+        "style": style,
+        "body_chars": body_chars,
+        "body_lines": len(visible_lines),
+        "risk_score": risk_score,
+        "reasons": reasons[:6],
+        "anchor_hits_before": anchor_hits_before[:6],
+        "anchor_hits_total": all_anchor_hits[:8],
+        "family_hits": family_hits[:4],
+        "message_hits": message_hits[:4],
+        "care_hits": care_hits[:5],
+    }
+
+
+def check_short_genre_present_action_anchor(findings: list[Finding], lines: list[str], text: str) -> None:
+    risk = short_genre_present_action_anchor_risk(lines, text)
+    if not risk:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "短真诚当前动作锚点不足",
+            0,
+            json.dumps(risk, ensure_ascii=False),
+            "短真诚/微小希望生成稿高风险：母亲、节日、鸡蛋、雨衣、未发消息等证明链太早接管文章。先让今天一个不靠题面物件成立的动作坏掉：水槽/门口/邻居/回复/身体/房间小事故改变下一步；回忆只能从这个动作里漏出来，不要从回忆直接证明愧疚。",
+        )
+    )
+
+
 SHORT_GENRE_STORY_OBJECT_TERMS = [
     "鸡蛋",
     "蛋壳",
@@ -2957,6 +3055,62 @@ SINCERE_CARE_MEMORY_MARKERS = [
     "发烧",
     "摸我的额头",
 ]
+SHORT_GENRE_PRESENT_ANCHOR_GROUPS = {
+    "body_or_dirty": [
+        "袜子",
+        "拖鞋",
+        "脚趾",
+        "蚊子包",
+        "挠破",
+        "血印",
+        "裤子湿",
+        "湿了一身",
+        "袖口",
+        "指甲",
+        "洗洁精",
+        "油花",
+        "油",
+        "脏",
+        "灰",
+        "烫",
+    ],
+    "room_or_chore": [
+        "水槽",
+        "水龙头",
+        "洗锅",
+        "洗碗",
+        "碗",
+        "冰箱门",
+        "弹开",
+        "热水",
+        "冷水",
+        "管子",
+        "堵",
+        "阳台",
+        "钥匙",
+        "门响",
+        "敲门",
+    ],
+    "outside_or_reply": [
+        "隔壁",
+        "邻居",
+        "快递",
+        "门口",
+        "楼道",
+        "电话",
+        "未接",
+        "回微信",
+        "发错",
+        "打错",
+        "回了个",
+        "问我",
+        "看了一眼",
+        "看了我",
+    ],
+}
+SHORT_GENRE_PRESENT_ANCHOR_TERMS = sorted(
+    {term for terms in SHORT_GENRE_PRESENT_ANCHOR_GROUPS.values() for term in terms}
+)
 SINCERE_REPAIR_STUFFING_FAMILIES = {
     "delivery": [
         "外卖",
@@ -3261,6 +3415,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_short_genre_diagnostic_date_title(findings, lines, text)
     check_short_genre_repair_stuffing(findings, lines, text)
     check_short_genre_polished_minimalism(findings, lines, text)
+    check_short_genre_present_action_anchor(findings, lines, text)
     check_short_genre_literary_story_closure(findings, lines, text)
     check_connector_overuse(findings, text)
     check_diagnostic_title(findings, lines)

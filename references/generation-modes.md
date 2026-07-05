@@ -47,16 +47,19 @@ Best for mother/family/memory pieces.
 
 Shape:
 
-1. concrete memory or current action
-2. cost becomes visible
-3. narrator says less than he knows
-4. retreat by plain fact, not a joke if a joke would cheapen it
+1. current action or practical friction, preferably before memory
+2. memory or relationship pressure enters because that action touches it
+3. cost becomes visible
+4. narrator says less than he knows
+5. retreat by plain fact, not a joke if a joke would cheapen it
 
 Use sparingly in standard diaries. In sincere pieces this can be the main mode.
 
 Do not let Mode C become polished minimalism. A sincere piece can be short, but it still needs enough lived movement to be a complete article: a practical thing to do, an awkward reply not sent or sent badly, food/water/light/object logistics, or a small interruption that keeps the memory from becoming proof of love. A 250-500-character sequence with no longer clumsy line is usually a sketch. Build it in uneven clusters rather than equal emotional lines. Keep a few longer clumsy action or memory lines and one or two short factual retreats. If every line sounds like it was chosen to be tender, merge lines, add the ordinary interruption already present in the day, and cut the explanatory feeling.
 
 Also do not let Mode C become a complete literary story. The high-risk shape is one strong title object carrying every beat: a phone or holiday surface, mother/family care, childhood rain, an unsent message, then an ending where the same object quietly proves the whole emotion. That can pass a surface checker and still feel generated to a reader. If the prompt itself hands you all of those beats, treat them as pressure options, not obligations. Use one, crop one, discard or bury the rest. For a Mother's Day packet, never use all four visible blocks: holiday feed, eggs/home food, childhood rain, and typed-then-deleted message. Pick two at most, and make one of them partial. When this starts happening, weaken the design rather than adding more texture: cut one memory proof, let a current chore or body/practical interruption damage the tenderness, keep one object that refuses to symbolize anything, and end before the title object closes the argument.
+
+Mode C should start from a present-action anchor when the prompt supplies strong family props. Pick a sink, bowl, door, neighbor/call, reply, wet clothing, wrong slipper, body itch/noise, room chore, or object failure that changes the next action; only then let eggs, rain, holiday feed, or blessing leak in. If the first beat is already the memory proof, the piece will usually become a small literary story no matter how many textures are added later.
 
 Mode C repair should not import a new inventory. If the draft is too smooth, thin, or globally profile-drifting, do not answer by adding delivery history, extra named foods, gift boxes, video lessons, variety shows, game scenes, routes, city cues, or background labels. Those packets make the repair visible. Stay with the existing object/message/room/body/memory set: make one action clumsier, one reply worse, one chore more inconvenient, or one memory line longer and less polished. A new family of material is allowed only when it has a consequence, not when it merely raises texture density.
 

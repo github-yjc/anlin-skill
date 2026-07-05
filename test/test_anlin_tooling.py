@@ -740,6 +740,143 @@ class AnlinToolingTests(unittest.TestCase):
             messages = preflight_messages(draft)
             self.assertTrue(any(message.startswith("short_genre_literary_story_closure=") for message in messages), messages)
 
+    def test_checker_warns_on_short_sincere_missing_present_action_anchor(self) -> None:
+        body = "\n".join(
+            [
+                "# 屏朝下",
+                "",
+                "下午煮鸡蛋。冰箱里那几个放了快一周，",
+                "上回回家我妈塞的，塑料袋扎了两层，",
+                "拿出来的时候还是那个样子。",
+                "挑了两个下锅。有一个放下去就裂了口子，",
+                "蛋清散出来在水里白花花一团往上翻。",
+                "我站在灶台前面看了好一阵子。",
+                "",
+                "小时候下雨天她送我上学，雨衣套在我身上，",
+                "她自己打一把破伞，那伞半边是断的。",
+                "雨从断了的那根骨架漏下来淋在她肩膀上。",
+                "到村口那段路全是稀泥，",
+                "她把我背过去，鞋子陷在里面拔了一下才拔出来。",
+                "到学校门口她头发贴在脸上。",
+                "我看了她一眼，没说话，就进去了。",
+                "这事隔了二十年，我不知道为什么煮鸡蛋的时候想起来了。",
+                "",
+                "把破的那个捞出来，蛋清碎得不成形，",
+                "蛋黄倒还完整。有点烫，站在灶台前面吃了。",
+                "",
+                "手机在房间床上，屏朝下搁着。",
+                "朋友圈里全是母亲节，",
+                "康乃馨，合照，转账截图，一条一条。",
+                "我没发。",
+                "想不出来发什么。",
+                "我妈不识字，发文字她要拿给隔壁王姨看，",
+                "发语音也不一定回，上次发了一条隔了两天才回个表情。",
+                "",
+                "把剩下的几个鸡蛋捞出来装在碗里。",
+                "小时候觉得她烦，煮个鸡蛋都念叨半天，",
+                "现在她不说了，我也不说。",
+                "隔壁好像在放什么节目，电视声音很大，",
+                "嗡嗡嗡一句也听不清。",
+                "",
+                "洗锅的时候水龙头开太大溅了一身，",
+                "裤子湿了一大片，我没换就坐回床上。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertIn("短真诚当前动作锚点不足", rules)
+
+    def test_clean_run_preflight_flags_short_sincere_missing_present_action_anchor(self) -> None:
+        body = "\n".join(
+            [
+                "# 屏朝下",
+                "",
+                "下午煮鸡蛋。冰箱里那几个放了快一周，",
+                "上回回家我妈塞的，塑料袋扎了两层，",
+                "拿出来的时候还是那个样子。",
+                "挑了两个下锅。有一个放下去就裂了口子，",
+                "蛋清散出来在水里白花花一团往上翻。",
+                "小时候下雨天她送我上学，雨衣套在我身上。",
+                "她自己打一把破伞，那伞半边是断的。",
+                "到学校门口她头发贴在脸上。",
+                "我看了她一眼，没说话，就进去了。",
+                "这事隔了二十年，我不知道为什么煮鸡蛋的时候想起来了。",
+                "手机在房间床上，屏朝下搁着。",
+                "朋友圈里全是母亲节，康乃馨，合照，转账截图，一条一条。",
+                "我没发。",
+                "我妈不识字，发文字她要拿给隔壁王姨看。",
+                "把剩下的几个鸡蛋捞出来装在碗里。",
+                "小时候觉得她烦，煮个鸡蛋都念叨半天。",
+                "现在她不说了，我也不说。",
+                "洗锅的时候水龙头开太大溅了一身。",
+                "裤子湿了一大片，我没换。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(
+                any(message.startswith("short_genre_present_action_anchor=") for message in messages),
+                messages,
+            )
+
+    def test_checker_does_not_warn_present_action_anchor_when_current_friction_leads(self) -> None:
+        body = "\n".join(
+            [
+                "# 下午走回来的",
+                "",
+                "电风扇对着脚吹。",
+                "袜子脱了一只，",
+                "脚趾头露在外面。",
+                "手机亮了一下。",
+                "微信里全是母亲节。",
+                "我没给我妈发消息。",
+                "冰箱里有妈妈塞给我的鸡蛋，",
+                "吃了四个，剩下的忘了。",
+                "隔壁男的敲门，",
+                "说阳台管子堵了。",
+                "他看了一眼我的袜子。",
+                "我假装没看见。",
+                "想起小时候下雨，",
+                "妈妈骑车送我上学。",
+                "雨衣里面有洗衣粉味。",
+                "这个念头很快滑过去。",
+                "我给隔壁男的发微信，",
+                "说应该是弯头堵了。",
+                "右腿上有三个蚊子包，",
+                "已经挠破了。",
+                "血印子干了之后是深褐色的。",
+                "冰箱门又弹开一点。",
+                "我用腿顶回去。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertNotIn("短真诚当前动作锚点不足", rules)
+
     def test_checker_warns_on_underbuilt_short_sincere_complete_article(self) -> None:
         body = "\n".join(
             [
