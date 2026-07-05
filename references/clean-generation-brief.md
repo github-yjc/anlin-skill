@@ -50,9 +50,13 @@ If the candidate has 90+ body lines, no long lines, or mostly 4-10 character row
 
 Do not make the first draft a case report where every detail proves the prompt topic. In delivery, illness, job, family, or game prompts, one pressure surface is enough at first; the rest of the article still needs accidental body/social/material movement. Too many correct details in a row can read more synthetic than one unsupported detail.
 
+Avoid the opposite repair failure too: do not make nearly every line carry body, money, route, screen, food, weather, or cognition after a checker warning. A readable draft can have plain connective tissue, a dumb reply, a weak action, or a boring object that does not announce a mechanism. If each line proves heat, money, system pressure, and physical damage, the article starts to look like a controlled demonstration rather than a day.
+
 Known failed source shape: a fluent 10-15 paragraph article, later line-broken by tools into 55-70 lines, still tends to keep prose logic, period-heavy rhythm, repeated connector glue, and binary reframe sentences. Do not use that path. Before saving the first `draft.md`, the visible article itself should already look like clusters of breath: one or two lines may run on with `，`, a longer action/speech/thought line may carry the load, then a short drop lands a bad reply, body lowering, failed decision, or practical retreat. The short drop is earned by the scene; it is not a caption row.
 
 Generated drafts often smuggle AI binary framing through ordinary self-correction. Treat these as unsafe before the checker, even when they sound colloquial: `也不是疼，就是...`, `不是认识，就是...`, `不是因为X，而是因为Y`, `不是X。是Y`, `最疼的不是X，是Y`, and similar cross-line forms. Replace them with the positive physical fact or social action: the knee softens, the hand has black dirt, the rider checks the phone first, someone says one ugly line.
+
+Scan the whole article for this surface, not just the first matched sentence. Generated drafts often contain two or three softened versions after one obvious `不是X，是Y` is fixed. Remove all occurrences before the next checker call. If the only remaining preflight issue is binary reframe or another surface leak, make a local replacement only; do not expand the draft, add short drops, add money/body/platform facts, or introduce a new scene.
 
 ## Source Loop
 
@@ -225,7 +229,7 @@ Use the preflight message as a shape diagnosis, not as permission to thrash betw
 
 - `body_lines < 45`, `prose_block_shape=compressed`, `body_lines > 90`, `short_line_grid`, or `long_lines < 4`: first run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`, read once, then add only missing scene function or cut non-consequential texture. Do not let the repair bounce from short-line grid into 30-40 prose lines.
 - `early_comma_ratio`: run `python <skill-dir>/scripts/soften_line_endings.py draft.md --in-place` or manually break ongoing actions after visible line-final `，`; internal comma chains do not count.
-- `binary_reframe`: delete the `不是X，是Y` move and let the physical fact, body reaction, money action, or plain social line carry the turn.
+- `binary_reframe`: scan every line, delete every `不是X，是Y` / `不是X，而是Y` / soft equivalent, and let the physical fact, body reaction, money action, or plain social line already in that scene carry the turn. If this is the only remaining preflight issue, keep the same length/rhythm/scene slate and do not add new texture.
 - `rough_self_damage`: pain, heat, and fatigue alone are too polite. Add one losing-face consequence: dirty clothing noticed by someone, stomach/urine/sweat trouble, being mistaken as ridiculous, a bad reply, a body failure that changes the next action, or a practical low-status cost.
 - `body_chinese_chars < 950`: expand within the existing line-broken shape; do not collapse the whole article back into 8-15 prose paragraphs.
 

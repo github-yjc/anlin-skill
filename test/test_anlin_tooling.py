@@ -728,6 +728,36 @@ class AnlinToolingTests(unittest.TestCase):
                     self.assertEqual(state["calls"], 0)
                     self.assertEqual(state["preflights"], 1)
 
+    def test_clean_run_checker_binary_preflight_requires_global_local_repair(self) -> None:
+        filler = "其实我觉得厕所灯突然坏了，因为我站着很丢人，像系统坏了，"
+        risky_lines = [
+            "到家手还在抖，不是怕，是热的，吹了一路热风吹得脑袋发懵，",
+            "第一反应不是看伤口而是蹲下捡没洒的米饭，",
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 日寄", "", *risky_lines, *([filler] * 45)]), encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
+            self.assertIn("binary_reframe=present count=2", preflight.stdout)
+            self.assertIn("scan_all_occurrences=true", preflight.stdout)
+            self.assertIn("L2:", preflight.stdout)
+            self.assertIn("L3:", preflight.stdout)
+            self.assertIn("Revise locally", preflight.stdout)
+            self.assertIn("do not add new scenes", preflight.stdout)
+            self.assertIn("short drops", preflight.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+            self.assertEqual(state["last_preflight_messages"][0].split()[0], "binary_reframe=present")
+
     def test_clean_eval_trace_flags_pre_draft_refs_and_stop_escape(self) -> None:
         log = """
         → Read C:/skill/references/clean-generation-brief.md
@@ -2269,6 +2299,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("the visible article itself should already look like clusters of breath", clean)
         self.assertIn("也不是疼，就是", clean)
         self.assertIn("最疼的不是X，是Y", clean)
+        self.assertIn("Scan the whole article for this surface", clean)
+        self.assertIn("Remove all occurrences before the next checker call", clean)
+        self.assertIn("make a local replacement only", clean)
+        self.assertIn("do not make nearly every line carry body, money, route, screen", clean)
         self.assertIn("rebalance_line_rhythm.py draft.md --in-place", clean)
         self.assertIn("Do not let the repair bounce from short-line grid into 30-40 prose lines", clean)
         self.assertIn("Do not write a prose version first", clean)
@@ -2280,6 +2314,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("repeating `其实/已经/当时` as glue", skill)
         self.assertIn("convert chat pressure into one screen/action/body consequence", skill)
         self.assertIn("These are movement signals, not content quotas", skill)
+        self.assertIn("Scan the whole article for all occurrences", skill)
+        self.assertIn("If only this surface remains, replace locally", skill)
         self.assertIn("For clean-eval generation, do not open this file before the first complete `draft.md`", runtime)
         self.assertIn("do not open this file before the first complete `draft.md`", anti_ai)
         self.assertIn("do not open this file before the first complete `draft.md` unless the scene slate is stuck", modes)
@@ -2426,6 +2462,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("do one rhythm-reset rewrite around 55-65 body lines", skill)
         self.assertIn("repairs bounce between opposite profile failures", skill)
         self.assertIn("style-profile remains `revise`, or remains `review` with red `line_rhythm`", runtime)
+        self.assertIn("five independent yellow drift families", skill)
+        self.assertIn("style-profile `review` is not", skill)
+        self.assertIn("thin the draft instead of decorating it", runtime)
         self.assertIn("breathing clusters of 2-5 visible lines", runtime)
         self.assertIn("`finalized=review` is not a clean final success", validation)
         self.assertIn("exits nonzero unless both checkpoints are ready for blind rounds", validation)

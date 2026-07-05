@@ -218,7 +218,7 @@ def rebalance_medium_grid(draft: Path, *, min_long_lines: int = 6, min_body_line
         draft.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8", newline="\n")
 
 
-def has_binary_reframe(lines: list[str]) -> bool:
+def binary_reframe_matches(lines: list[str]) -> list[tuple[int, str]]:
     patterns = [
         re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:而|只|也|这|那)?(?:才)?是"),
         re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:就是|只是)"),
@@ -226,9 +226,15 @@ def has_binary_reframe(lines: list[str]) -> bool:
         re.compile(r"其实不是[,，]?(?:好像|就是|只是|而是|是)"),
         re.compile(r"像[^。！？\n]{1,32}其实不是"),
     ]
-    for line in lines:
+    matches: list[tuple[int, str]] = []
+    seen: set[tuple[int, str]] = set()
+    for index, line in enumerate(lines, start=1):
         if any(pattern.search(line) for pattern in patterns):
-            return True
+            excerpt = line.strip()
+            key = (index, excerpt)
+            if key not in seen:
+                matches.append(key)
+                seen.add(key)
     for index in range(len(lines) - 1):
         left = lines[index].strip()
         right = lines[index + 1].strip()
@@ -236,8 +242,16 @@ def has_binary_reframe(lines: list[str]) -> bool:
             re.search(r"不是[^。！？\n]{1,28}[，,。！？]?$", left)
             and re.match(r"^(?:而是|是|就是|只是|这是|那是|才是)[^。！？\n]{1,40}", right)
         ):
-            return True
-    return False
+            excerpt = f"{left} / {right}"
+            key = (index + 1, excerpt)
+            if key not in seen:
+                matches.append(key)
+                seen.add(key)
+    return matches
+
+
+def has_binary_reframe(lines: list[str]) -> bool:
+    return bool(binary_reframe_matches(lines))
 
 
 def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]:
@@ -248,8 +262,14 @@ def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]
     comment_markers = [term for term in COMMENT_CHAIN_FORMULA_MARKERS if term in article_text]
     if comment_markers:
         messages.append(f"comment_chain_markers={comment_markers[:4]}")
-    if has_binary_reframe(lines):
-        messages.append("binary_reframe=present")
+    binary_matches = binary_reframe_matches(lines)
+    if binary_matches:
+        examples = " | ".join(
+            f"L{line_no}:{excerpt[:42]}" for line_no, excerpt in binary_matches[:3]
+        )
+        messages.append(
+            f"binary_reframe=present count={len(binary_matches)} scan_all_occurrences=true examples={examples}"
+        )
     meta_ai_hits = meta_ai_topic_hits(article_text)
     if meta_ai_hits:
         messages.append(f"meta_ai_topic_hits={meta_ai_hits[:4]}")
@@ -326,6 +346,15 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         return False, []
     joined_messages = "; ".join(messages)
     repair_hints: list[str] = []
+    surface_only_prefixes = (
+        "process_leak_terms=",
+        "comment_chain_markers=",
+        "binary_reframe=",
+        "meta_ai_topic_hits=",
+        "current_office_persona=",
+        "background_display_groups=",
+    )
+    surface_only = all(message.startswith(surface_only_prefixes) for message in messages)
     compressed_shape = any("< 45" in message or "prose_block_shape=compressed" in message for message in messages)
     overfragmented_shape = any(
         "> 90" in message or "short_line_grid=" in message or "long_lines=" in message for message in messages
@@ -353,9 +382,23 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         )
     if "binary_reframe=present" in joined_messages:
         repair_hints.append(
-            "for binary_reframe, delete the not-X/is-Y sentence and replace it with a physical reaction, money action, or ugly reply"
+            "for binary_reframe, scan every line and remove all occurrences; replace each not-X/is-Y move with the physical fact, money action, or ugly reply already in that scene"
         )
     hint_text = " Prioritized repair: " + " | ".join(repair_hints) + "." if repair_hints else ""
+    if surface_only:
+        revision_frame = (
+            "Revise locally: scan the whole draft for every flagged surface and remove or lower all occurrences. "
+            "Keep the same length, rhythm, title, and scene slate unless a local sentence breaks; do not add new scenes, "
+            "short drops, body symptoms, money lines, platform facts, or other texture just because a surface gate fired; "
+            "then run this wrapper again."
+        )
+    else:
+        revision_frame = (
+            "Revise toward a complete but not overfilled article: write a line-broken article first, use "
+            "rebalance_line_rhythm.py for prose-block or short-grid drift, keep punctuation at line endings, add "
+            "concrete action/body/social/off-axis material only when short, or cut unsupported/non-consequential "
+            "texture when long; then run this wrapper again."
+        )
     if attempt >= max_attempts:
         print(
             f"CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY. DO NOT WRITE draft.md. DO NOT REPAIR. "
@@ -369,7 +412,8 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             f"CLEAN_RUN_PREFLIGHT: draft is not ready for checker call {call_number}/2 "
             f"(preflight {attempt}/{max_attempts}); "
             + joined_messages
-            + ". Revise toward a complete but not overfilled article: write a line-broken article first, use rebalance_line_rhythm.py for prose-block or short-grid drift, keep punctuation at line endings, add concrete action/body/social/off-axis material only when short, or cut unsupported/non-consequential texture when long; then run this wrapper again."
+            + ". "
+            + revision_frame
             + hint_text
             + " "
             "This preflight did not consume a checker call."
