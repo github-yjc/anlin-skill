@@ -531,7 +531,7 @@ class AnlinToolingTests(unittest.TestCase):
             preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertEqual(preflight.returncode, 3)
             self.assertIn("body_lines=120 > 90", preflight.stdout)
-            self.assertIn("long_lines=0 < 4", preflight.stdout)
+            self.assertIn("long_lines=0 < 3", preflight.stdout)
             self.assertIn("short_line_grid=", preflight.stdout)
             self.assertIn("rebalance_line_rhythm.py", preflight.stdout)
             self.assertIn("short-grid drift", preflight.stdout)
@@ -805,6 +805,27 @@ class AnlinToolingTests(unittest.TestCase):
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
+
+    def test_clean_run_checker_allows_near_miss_long_line_count_to_reach_checker(self) -> None:
+        long_lines = [
+            "其实我蹲在地上拆箱子的时候，指甲缝里都是灰，手背还被胶带划了一道口子，",
+            "收银员扫完水以后看了我一眼，又看了一眼我的手，我把手往口袋里塞了一下，",
+            "裤子后面全是灰，在走廊灯下面看得很清楚，像我把便宜房间穿在身上出来了，",
+        ]
+        medium_lines = (["于是我坐在地上继续拆那个纸箱。"] * 25) + (
+            ["突然发现地址还停在输入框里。"] * 24
+        ) + (["好像这屋子也没完全认得我。"] * 24)
+        short_lines = ["很丢人。", "没发。", "手很脏。", "要命。"]
+        body = "\n".join(["# 小票", "", *long_lines, *medium_lines, *short_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            command = [sys.executable, str(CLEAN_RUN_CHECKER), str(draft), "--strict", "--draft-gate"]
+            result = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertNotIn("CLEAN_RUN_PREFLIGHT", result.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["preflights"], 0)
+            self.assertEqual(state["calls"], 1)
 
     def test_clean_run_checker_preflight_stops_after_three_attempts(self) -> None:
         short_body = "\n".join(["# 日寄", "", "杯子脏了。"])
@@ -4128,6 +4149,30 @@ class AnlinToolingTests(unittest.TestCase):
                 "站起来的时候膝盖响了一声，楼道里听得清清楚楚。",
                 "对门那个中年女的看到我的时候脚步顿了一下。",
                 "我站在门口，手里捏着胶带和一张断掉的卡。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+
+    def test_checker_accepts_visible_grime_as_low_status_rough_signal(self) -> None:
+        body = "\n".join(
+            [
+                "# 小票",
+                "",
+                "指甲缝里都是灰，刚才拆胶带的时候划了一道口子，",
+                "裤子后面全是灰，在走廊灯下面看得很清楚。",
+                "收银员扫完水以后看了我一眼，又看了一眼我的手。",
                 *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
             ]
         )

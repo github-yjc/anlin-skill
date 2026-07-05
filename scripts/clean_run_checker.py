@@ -362,8 +362,8 @@ def preflight_messages(draft: Path) -> list[str]:
         messages.append(
             f"body_lines={body_line_count} > 90 (overfragmented short-line grid; merge adjacent action/speech lines before checking)"
         )
-    if body_line_count > 75 and long_line_count < 4:
-        messages.append(f"long_lines={long_line_count} < 4 (keep several rough longer action/speech/thought lines)")
+    if body_line_count > 75 and long_line_count < 3:
+        messages.append(f"long_lines={long_line_count} < 3 (keep several rough longer action/speech/thought lines)")
     if 45 <= body_line_count <= 75 and body_chars < 950 and long_line_count < 6:
         messages.append(
             f"medium_short_line_grid=present (long_lines={long_line_count} < 6, line_stdev={line_stdev:.1f}; "
