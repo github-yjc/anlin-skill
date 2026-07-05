@@ -368,6 +368,7 @@ class AnlinToolingTests(unittest.TestCase):
     def test_clean_run_checker_enforces_two_call_limit(self) -> None:
         ready_lines = [
             "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",
+            "很丢人。",
             "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
             "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
             "不过镜子里那张脸像没睡醒，还以为自己要去面试。",
@@ -395,12 +396,14 @@ class AnlinToolingTests(unittest.TestCase):
     def test_clean_run_checker_records_stage_snapshots(self) -> None:
         ready_lines = [
             "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",
+            "很丢人。",
             "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
             "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
             "不过镜子里那张脸像没睡醒，还以为自己要去面试。",
         ] * 12
         repaired_lines = [
             "其实第二次我把厕所灯看成面试通知，站在门口有点丢人，",
+            "没说。",
             "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
             "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
             "不过镜子里那张脸像没睡醒，还以为自己要去面试。",
@@ -457,6 +460,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["preflights"], 1)
             ready_lines = [
                 "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",
+                "很丢人。",
                 "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
                 "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
                 "不过镜子里那张脸像没睡醒，还以为自己要去面试。",
@@ -491,6 +495,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["preflights"], 1)
             ready_lines = [
                 "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",
+                "很丢人。",
                 "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
                 "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
                 "不过镜子里那张脸像没睡醒，还以为自己要去面试。",
@@ -774,6 +779,29 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
 
+    def test_clean_run_checker_preflight_blocks_54_line_draft_without_short_breaths(self) -> None:
+        lines = [
+            "其实我把饭盒挂到车把上的时候，塑料袋一直蹭着手腕，",
+            "突然发现路口的灯牌亮得很正经，好像比我更像一个人，",
+            "于是我低头看裤脚那块菜汤，因为它已经干成一小块地图，",
+        ] * 18
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 路口寄", "", *lines]), encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
+            self.assertIn("short_breath_lines=0 < 4", preflight.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+
     def test_clean_run_checker_preflight_stops_after_three_attempts(self) -> None:
         short_body = "\n".join(["# 日寄", "", "杯子脏了。"])
         with tempfile.TemporaryDirectory() as temp:
@@ -859,6 +887,7 @@ class AnlinToolingTests(unittest.TestCase):
     def test_clean_run_checker_allows_near_miss_connector_draft_to_reach_checker(self) -> None:
         lines = [
             "其实我把杯子拿去洗，水龙头先咳了一下喷到裤子上，",
+            "没动。",
             "觉得这事有点丢人，鞋底还粘着菜市场的汤，差点跪在门口，",
             "好像脚趾头也露在外面，缩了一下还是被楼道灯照见，还以为自己没躲过去，",
             "于是把手机翻过去，假装没看到那条快超时的提醒。",
@@ -886,6 +915,7 @@ class AnlinToolingTests(unittest.TestCase):
         cases = [
             ("binary_reframe=present", ["不是包装袋漏，是电动车前面那个篮子。"]),
             ("binary_reframe=present", ["不是不想帮。是帮了还要继续站在太阳底下。"]),
+            ("binary_reframe=present", ["我不是叔叔，我只是失败得比较显老。"]),
             ("comment_chain_markers=", ["评论区有一行字写着展示给谁看。"]),
             ("process_leak_terms=", ["final article"]),
             ("meta_ai_topic_hits=", ["驿站老板刷短视频，说怎么识别AI写的文章。", "我又打开AI对话窗口。"]),
@@ -919,14 +949,17 @@ class AnlinToolingTests(unittest.TestCase):
                     self.assertEqual(state["preflights"], 1)
 
     def test_clean_run_checker_binary_preflight_requires_global_local_repair(self) -> None:
-        filler = "其实我觉得厕所灯突然坏了，因为我站着很丢人，像系统坏了，"
+        filler = "其实我觉得厕所灯突然坏了，因为我站着很丢人，像系统坏了，手指还蹭着黑泥，"
         risky_lines = [
             "到家手还在抖，不是怕，是热的，吹了一路热风吹得脑袋发懵，",
             "第一反应不是看伤口而是蹲下捡没洒的米饭，",
         ]
         with tempfile.TemporaryDirectory() as temp:
             draft = Path(temp) / "draft.md"
-            draft.write_text("\n".join(["# 日寄", "", *risky_lines, *([filler] * 45)]), encoding="utf-8")
+            draft.write_text(
+                "\n".join(["# 日寄", "", *risky_lines, *([filler, "没动。"] * 26)]),
+                encoding="utf-8",
+            )
             command = [
                 sys.executable,
                 str(CLEAN_RUN_CHECKER),
@@ -1695,6 +1728,30 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(strict_result.returncode, 0, strict_result.stderr)
             self.assertNotEqual(draft_gate_result.returncode, 0)
             findings = json.loads(draft_gate_result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: AI二元解释句式" for item in findings))
+
+    def test_checker_draft_gate_rejects_pronoun_binary_reframe(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "旁边小孩看了我一眼。",
+                "我不是叔叔，我只是失败得比较显老。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: AI二元解释句式" for item in findings))
 
     def test_checker_draft_gate_rejects_this_is_binary_reframe(self) -> None:
@@ -3427,6 +3484,7 @@ class AnlinToolingTests(unittest.TestCase):
                 "",
                 "不是包装袋漏，是电动车前面那个篮子。",
                 "不是不想帮。是帮了还要继续站在太阳底下。",
+                "我不是叔叔，我只是失败得比较显老。",
                 "酸梅汤顺着车篮子滴了一路。",
             ]
         )
@@ -3884,6 +3942,47 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertGreaterEqual(after["long_lines"], 6)
             self.assertLess(after["mean_line_chars"], 30)
             self.assertNotIn("still_prose_compressed", report["unresolved"])
+
+    def test_rebalance_line_rhythm_splits_existing_short_breaths_from_uniform_rows(self) -> None:
+        unit = [
+            "我把饭盒挂在车把上，塑料袋一直蹭着手腕。其实会。",
+            "路口的灯牌亮得很正经，好像比我更像一个人。很丢人。",
+            "我低头看裤脚那块菜汤，它已经干成一小块地图。没有人记。",
+        ]
+        body = "\n".join(["# 路口寄", "", *(unit * 18)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(REBALANCE_LINE_RHYTHM),
+                    str(draft),
+                    "--in-place",
+                    "--target-min-lines",
+                    "45",
+                    "--target-max-lines",
+                    "70",
+                    "--preferred-lines",
+                    "58",
+                    "--min-long-lines",
+                    "6",
+                    "--min-short-breaths",
+                    "4",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(result.stdout)
+            after = report["after"]
+            self.assertGreaterEqual(after["body_lines"], 45)
+            self.assertLessEqual(after["body_lines"], 70)
+            self.assertGreaterEqual(after["short_breath_lines"], 4)
+            self.assertNotIn("short_breath_lines_below_corridor", report["unresolved"])
 
     def test_checker_accepts_low_body_roughness_as_self_damage_signal(self) -> None:
         body = "\n".join(

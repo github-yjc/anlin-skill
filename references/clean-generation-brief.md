@@ -56,7 +56,7 @@ Avoid the opposite repair failure too: do not make nearly every line carry body,
 
 Known failed source shape: a fluent 10-15 paragraph article, later line-broken by tools into 55-70 lines, still tends to keep prose logic, period-heavy rhythm, repeated connector glue, and binary reframe sentences. Do not use that path. Before saving the first `draft.md`, the visible article itself should already look like clusters of breath: one or two lines may run on with `，`, a longer action/speech/thought line may carry the load, then a short drop lands a bad reply, body lowering, failed decision, or practical retreat. The short drop is earned by the scene; it is not a caption row.
 
-Generated drafts often smuggle AI binary framing through ordinary self-correction. Treat these as unsafe before the checker, even when they sound colloquial: `也不是疼，就是...`, `不是认识，就是...`, `不是因为X，而是因为Y`, `不是X。是Y`, `最疼的不是X，是Y`, and similar cross-line forms. Replace them with the positive physical fact or social action: the knee softens, the hand has black dirt, the rider checks the phone first, someone says one ugly line.
+Generated drafts often smuggle AI binary framing through ordinary self-correction. Treat these as unsafe before the checker, even when they sound colloquial: `也不是疼，就是...`, `不是认识，就是...`, `不是因为X，而是因为Y`, `不是X。是Y`, `我不是叔叔，我只是...`, `最疼的不是X，是Y`, and similar cross-line forms. Replace them with the positive physical fact or social action: the knee softens, the hand has black dirt, the rider checks the phone first, someone says one ugly line.
 
 Scan the whole article for this surface, not just the first matched sentence. Generated drafts often contain two or three softened versions after one obvious `不是X，是Y` is fixed. Remove all occurrences before the next checker call. If the only remaining preflight issue is binary reframe or another surface leak, make a local replacement only; do not expand the draft, add short drops, add money/body/platform facts, or introduce a new scene.
 
@@ -118,7 +118,7 @@ Before writing `draft.md`, do a private source preflight:
 - several rough long lines above about 28 Chinese characters are already present; do not let a rhythm script be the first source of long lines
 - several different connectors from `其实/觉得/发现/好像/不过/突然/于是/因为/所以` occur because the thought is moving; zero or one signal is too polished, but repeating one word such as `其实/已经/当时` as glue is also synthetic
 - no `不是X，是Y`, `不是X，而是Y`, `不是X。是Y`, `不是说X，是说Y`, or split-line equivalent
-- no soft binary repair such as `也不是疼，就是...`, `不是认识，就是...`, `最疼的不是X，是Y`, or `不是因为X，而是因为Y`
+- no soft binary repair such as `也不是疼，就是...`, `不是认识，就是...`, `我不是叔叔，我只是...`, `最疼的不是X，是Y`, or `不是因为X，而是因为Y`
 - no group/comment chain markers such as `有人发/有人说/有人问/又有人/底下有人/另一个说`
 - no invented spouse/child identity such as `老婆/妻子/媳妇/孩子`; delivery pressure is route, app, heat, money, body, customer, parent, landlord, or class comparison, not a married-rider biography
 - one coarse body/social/self-own consequence is present in the scene, not only a quiet mood or clean ache
@@ -138,7 +138,7 @@ The anti-AI material in this skill is a negative list, not subject material. Unl
 Avoid these generated-draft surfaces:
 
 - `不是X，是Y`, `不是X，而是Y`, `不是X。是Y`, `这不是X，这是Y`
-- `也不是X，就是Y`, `不是认识，就是Y`, `最疼的不是X，是Y`, `不是因为X，而是因为Y`
+- `也不是X，就是Y`, `不是认识，就是Y`, `我不是X，我只是Y`, `最疼的不是X，是Y`, `不是因为X，而是因为Y`
 - `本质上`, `真正的问题是`, `这说明`, `这意味着`, `换句话说`, `总之`
 - `首先/其次/最后/综上`
 - `——那种...`, `终于可以...的放松`, `释然`, `自洽`, `真实感`
@@ -178,11 +178,11 @@ Before writing `draft.md`, scan the first 20 content lines. If nearly all end wi
 
 If the draft has more than about 90 content lines, or no naturally longer action/speech/thought lines, it is not a better Anlin surface; it is a generated short-line grid. Merge or rebalance before checking. After merging, reread for broken facts and impossible object-action collisions.
 
-Draft in breathing clusters, not sentence rows. A cluster can be 2-5 visible lines carrying one action/thought movement: one line may end with `，`, one line may run longer with speech or action, the next lands with `。`, then a short drop or ugly reply. Do not put a blank line after every sentence only to raise line count. Do not turn every line ending into `，` only to satisfy `行末逗号比例`. If a line break does not change breath, action, reply, body, or thought direction, it is formatting, not rhythm.
+Draft in breathing clusters, not sentence rows. A cluster can be 2-5 visible lines carrying one action/thought movement: one line may end with `，`, one line may run longer with speech or action, the next lands with `。`, then a short drop or ugly reply. A 45-70 line draft with zero real <=8-character drops is still a medium-row grid; it reads like every thought was normalized to the same length. Do not put a blank line after every sentence only to raise line count. Do not turn every line ending into `，` only to satisfy `行末逗号比例`. If a line break does not change breath, action, reply, body, or thought direction, it is formatting, not rhythm.
 
 Before the first `draft.md`, the first 20 content lines should usually contain several comma-ended continuation lines and several hard-stop lines. The whole body should not be mostly independent sentences. If you can read every line as a finished caption, the draft is still too AI-smooth even if the length is correct.
 
-If you need a mechanical rhythm repair, use it as a corridor reset, not a style source. `rebalance_line_rhythm.py` can move a draft back from prose-block compression or short-line grid toward 45-70 lines with several longer lines. It cannot supply the missing scene engine; after using it, inspect whether the lines still read like a report.
+If you need a mechanical rhythm repair, use it as a corridor reset, not a style source. `rebalance_line_rhythm.py` can move a draft back from prose-block compression or short-line grid toward 45-70 lines with several longer lines, and it can split out existing short landing sentences such as `其实会。` or `很丢人。` when they are buried inside uniform rows. It cannot supply the missing scene engine; after using it, inspect whether the lines still read like a report.
 
 ## Background And Game
 

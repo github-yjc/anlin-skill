@@ -222,7 +222,9 @@ def binary_reframe_matches(lines: list[str]) -> list[tuple[int, str]]:
     patterns = [
         re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:而|只|也|这|那)?(?:才)?是"),
         re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:就是|只是)"),
+        re.compile(r"不是[^，。！？\n]{1,28}[,，](?:我|你|他|她|它)?(?:就是|只是|才是|是)"),
         re.compile(r"不是[^。！？\n]{1,28}[。！？]\s*(?:是|就是|只是|而是|才是)"),
+        re.compile(r"不是[^。！？\n]{1,28}[。！？]\s*(?:我|你|他|她|它)?(?:是|就是|只是|而是|才是)"),
         re.compile(r"其实不是[,，]?(?:好像|就是|只是|而是|是)"),
         re.compile(r"像[^。！？\n]{1,32}其实不是"),
     ]
@@ -240,7 +242,7 @@ def binary_reframe_matches(lines: list[str]) -> list[tuple[int, str]]:
         right = lines[index + 1].strip()
         if (
             re.search(r"不是[^。！？\n]{1,28}[，,。！？]?$", left)
-            and re.match(r"^(?:而是|是|就是|只是|这是|那是|才是)[^。！？\n]{1,40}", right)
+            and re.match(r"^(?:我|你|他|她|它)?(?:而是|是|就是|只是|这是|那是|才是)[^。！？\n]{1,40}", right)
         ):
             excerpt = f"{left} / {right}"
             key = (index + 1, excerpt)
@@ -335,7 +337,7 @@ def preflight_messages(draft: Path) -> list[str]:
             f"medium_short_line_grid=present (long_lines={long_line_count} < 6, line_stdev={line_stdev:.1f}; "
             "rewrite rough action/speech/thought lines before checking)"
         )
-    if body_line_count >= 55 and short_breath_count < 4:
+    if body_line_count >= 45 and short_breath_count < 4:
         messages.append(
             f"short_breath_lines={short_breath_count} < 4 (keep a few <=8-Chinese-character breath drops; do not make every line a finished caption)"
         )

@@ -68,11 +68,13 @@ def line_stats(lines: list[str]) -> dict[str, Any]:
             "mean_line_chars": 0.0,
             "stdev_line_chars": 0.0,
             "short_lines": 0,
+            "short_breath_lines": 0,
             "long_lines": 0,
             "short_line_ratio": 0.0,
             "long_line_ratio": 0.0,
         }
     short_lines = sum(1 for length in lengths if length <= 12)
+    short_breath_lines = sum(1 for length in lengths if length <= 8)
     long_lines = sum(1 for length in lengths if length >= 28)
     return {
         "body_lines": len(lengths),
@@ -80,6 +82,7 @@ def line_stats(lines: list[str]) -> dict[str, Any]:
         "mean_line_chars": round(total / len(lengths), 3),
         "stdev_line_chars": round(statistics.pstdev(lengths), 3) if len(lengths) > 1 else 0.0,
         "short_lines": short_lines,
+        "short_breath_lines": short_breath_lines,
         "long_lines": long_lines,
         "short_line_ratio": round(short_lines / len(lengths), 3),
         "long_line_ratio": round(long_lines / len(lengths), 3),
@@ -202,6 +205,44 @@ def merge_until_corridor(
     return output
 
 
+def split_for_short_breath(line: str) -> list[str]:
+    pieces = [piece for piece in re.split(r"(?<=[。！？?])", line.strip()) if piece]
+    if len(pieces) <= 1:
+        return [line]
+    for index, piece in enumerate(pieces):
+        if 1 <= chinese_len(piece) <= 8:
+            before = "".join(pieces[:index]).strip()
+            after = "".join(pieces[index + 1 :]).strip()
+            output: list[str] = []
+            if before:
+                output.append(before)
+            output.append(piece)
+            if after:
+                output.append(after)
+            return output if len(output) > 1 else [line]
+    return [line]
+
+
+def ensure_short_breaths(lines: list[str], *, target_max_lines: int, min_short_breaths: int) -> list[str]:
+    output = list(lines)
+    while int(line_stats(output)["short_breath_lines"]) < min_short_breaths and len(output) < target_max_lines:
+        best_index: int | None = None
+        best_pieces: list[str] | None = None
+        for index, line in enumerate(output):
+            pieces = split_for_short_breath(line)
+            if len(pieces) <= 1:
+                continue
+            if len(output) + len(pieces) - 1 > target_max_lines:
+                continue
+            best_index = index
+            best_pieces = pieces
+            break
+        if best_index is None or best_pieces is None:
+            break
+        output[best_index : best_index + 1] = best_pieces
+    return output
+
+
 def rebalance(
     text: str,
     *,
@@ -209,6 +250,7 @@ def rebalance(
     target_max_lines: int,
     preferred_lines: int,
     min_long_lines: int,
+    min_short_breaths: int,
     max_split_chars: int,
     min_chunk_chars: int,
 ) -> tuple[str, dict[str, Any]]:
@@ -228,6 +270,11 @@ def rebalance(
         target_max_lines=target_max_lines,
         min_long_lines=min_long_lines,
     )
+    lines = ensure_short_breaths(
+        lines,
+        target_max_lines=target_max_lines,
+        min_short_breaths=min_short_breaths,
+    )
     after = line_stats(lines)
     unresolved: list[str] = []
     if int(after["body_lines"]) < target_min_lines:
@@ -236,6 +283,8 @@ def rebalance(
         unresolved.append("body_lines_above_corridor")
     if int(after["long_lines"]) < min_long_lines:
         unresolved.append("long_lines_below_corridor")
+    if int(after["short_breath_lines"]) < min_short_breaths:
+        unresolved.append("short_breath_lines_below_corridor")
     if int(after["body_lines"]) <= 40 and float(after["mean_line_chars"]) >= 30:
         unresolved.append("still_prose_compressed")
 
@@ -251,6 +300,7 @@ def rebalance(
             "max_lines": target_max_lines,
             "preferred_lines": preferred_lines,
             "min_long_lines": min_long_lines,
+            "min_short_breaths": min_short_breaths,
         },
         "unresolved": unresolved,
     }
@@ -264,6 +314,7 @@ def main() -> int:
     parser.add_argument("--target-max-lines", type=int, default=70)
     parser.add_argument("--preferred-lines", type=int, default=58)
     parser.add_argument("--min-long-lines", type=int, default=6)
+    parser.add_argument("--min-short-breaths", type=int, default=4)
     parser.add_argument("--max-split-chars", type=int, default=26)
     parser.add_argument("--min-chunk-chars", type=int, default=7)
     parser.add_argument("--in-place", action="store_true")
@@ -276,6 +327,7 @@ def main() -> int:
         target_max_lines=args.target_max_lines,
         preferred_lines=args.preferred_lines,
         min_long_lines=args.min_long_lines,
+        min_short_breaths=args.min_short_breaths,
         max_split_chars=args.max_split_chars,
         min_chunk_chars=args.min_chunk_chars,
     )

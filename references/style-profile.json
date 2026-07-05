@@ -1724,7 +1724,7 @@
         "cognitive_humor_friction": 0,
         "cognitive_emotion_displaced_logistics": 7,
         "cognitive_abstract_emotion_label": 0,
-        "ai_binary_reframe": 0,
+        "ai_binary_reframe": 1,
         "ai_explainer": 0,
         "ordered_explainer": 0,
         "therapeutic_humanizer": 0,
@@ -1903,7 +1903,7 @@
         "cognitive_humor_friction_per_1k": 0.0,
         "cognitive_emotion_displaced_logistics_per_1k": 8.23529411764706,
         "cognitive_abstract_emotion_label_per_1k": 0.0,
-        "ai_binary_reframe_per_1k": 0.0,
+        "ai_binary_reframe_per_1k": 1.176470588235294,
         "ai_explainer_per_1k": 0.0,
         "ordered_explainer_per_1k": 0.0,
         "therapeutic_humanizer_per_1k": 0.0,
@@ -8770,7 +8770,7 @@
         "cognitive_humor_friction": 2,
         "cognitive_emotion_displaced_logistics": 0,
         "cognitive_abstract_emotion_label": 0,
-        "ai_binary_reframe": 0,
+        "ai_binary_reframe": 1,
         "ai_explainer": 0,
         "ordered_explainer": 0,
         "therapeutic_humanizer": 0,
@@ -8949,7 +8949,7 @@
         "cognitive_humor_friction_per_1k": 1.8518518518518519,
         "cognitive_emotion_displaced_logistics_per_1k": 0.0,
         "cognitive_abstract_emotion_label_per_1k": 0.0,
-        "ai_binary_reframe_per_1k": 0.0,
+        "ai_binary_reframe_per_1k": 0.9259259259259259,
         "ai_explainer_per_1k": 0.0,
         "ordered_explainer_per_1k": 0.0,
         "therapeutic_humanizer_per_1k": 0.0,
@@ -10321,7 +10321,7 @@
       "q90": 1.337696175063801,
       "q95": 2.0304347621534387,
       "max": 2.677376171352075,
-      "mean": 0.28459956844741346,
+      "mean": 0.33992579250428767,
       "mad": 0.0
     },
     "ai_explainer_per_1k": {
@@ -11422,10 +11422,10 @@
   },
   "count_summary": {
     "ai_binary_reframe": {
-      "successes": 8,
+      "successes": 10,
       "trials": 33197,
-      "alpha": 9,
-      "beta": 33190,
+      "alpha": 11,
+      "beta": 33188,
       "family": "ai_slop",
       "denominator": "body_chars",
       "hard_generated": true
@@ -12209,10 +12209,10 @@
             "q05": 0.0,
             "q10": 0.0,
             "median": 0.0,
-            "q90": 1.106855921299252,
+            "q90": 1.2109328579916816,
             "q95": 1.437789391647183,
             "max": 2.3923444976076556,
-            "mean": 0.2285495959777734,
+            "mean": 0.2721225807272287,
             "mad": 0.0
           },
           "ai_explainer_per_1k": {
@@ -13313,10 +13313,10 @@
         },
         "count_summary": {
           "ai_binary_reframe": {
-            "successes": 4,
+            "successes": 5,
             "trials": 19751,
-            "alpha": 5,
-            "beta": 19748,
+            "alpha": 6,
+            "beta": 19747,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -15939,12 +15939,12 @@
             "min": 0.0,
             "q05": 0.0,
             "q10": 0.0,
-            "median": 0.0,
-            "q90": 1.3765978367748284,
-            "q95": 1.6715830875122906,
+            "median": 0.46296296296296297,
+            "q90": 1.654375614552606,
+            "q95": 1.8104719764011798,
             "max": 1.9665683382497543,
-            "mean": 0.4916420845624386,
-            "mad": 0.0
+            "mean": 0.72312356604392,
+            "mad": 0.46296296296296297
           },
           "ai_explainer_per_1k": {
             "min": 0.0,
@@ -17044,10 +17044,10 @@
         },
         "count_summary": {
           "ai_binary_reframe": {
-            "successes": 2,
+            "successes": 3,
             "trials": 4793,
-            "alpha": 3,
-            "beta": 4792,
+            "alpha": 4,
+            "beta": 4791,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -21529,14 +21529,14 @@
         ],
         "value_summary": {
           "ai_binary_reframe_per_1k": {
-            "min": 0.0,
-            "q05": 0.0,
-            "q10": 0.0,
-            "median": 0.0,
-            "q90": 0.0,
-            "q95": 0.0,
-            "max": 0.0,
-            "mean": 0.0,
+            "min": 0.9259259259259259,
+            "q05": 0.9259259259259259,
+            "q10": 0.9259259259259259,
+            "median": 0.9259259259259259,
+            "q90": 0.9259259259259259,
+            "q95": 0.9259259259259259,
+            "max": 0.9259259259259259,
+            "mean": 0.9259259259259259,
             "mad": 0.0
           },
           "ai_explainer_per_1k": {
@@ -22637,10 +22637,10 @@
         },
         "count_summary": {
           "ai_binary_reframe": {
-            "successes": 0,
+            "successes": 1,
             "trials": 1080,
-            "alpha": 1,
-            "beta": 1081,
+            "alpha": 2,
+            "beta": 1080,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -25296,7 +25296,7 @@
             "q90": 1.437789391647183,
             "q95": 2.1155899940250187,
             "max": 2.677376171352075,
-            "mean": 0.3180818706176974,
+            "mean": 0.3526839467422649,
             "mad": 0.0
           },
           "ai_explainer_per_1k": {
@@ -26397,10 +26397,10 @@
         },
         "count_summary": {
           "ai_binary_reframe": {
-            "successes": 8,
+            "successes": 9,
             "trials": 28284,
-            "alpha": 9,
-            "beta": 28277,
+            "alpha": 10,
+            "beta": 28276,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -30909,10 +30909,10 @@
             "q05": 0.0,
             "q10": 0.0,
             "median": 0.0,
-            "q90": 1.1328176448537532,
+            "q90": 1.2195484254307782,
             "q95": 1.4503010437201058,
             "max": 2.3923444976076556,
-            "mean": 0.23733996505384164,
+            "mean": 0.2825888338321222,
             "mad": 0.0
           },
           "ai_explainer_per_1k": {
@@ -32013,10 +32013,10 @@
         },
         "count_summary": {
           "ai_binary_reframe": {
-            "successes": 4,
+            "successes": 5,
             "trials": 19516,
-            "alpha": 5,
-            "beta": 19513,
+            "alpha": 6,
+            "beta": 19512,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
@@ -36495,14 +36495,14 @@
         ],
         "value_summary": {
           "ai_binary_reframe_per_1k": {
-            "min": 0.0,
-            "q05": 0.0,
-            "q10": 0.0,
-            "median": 0.0,
-            "q90": 0.0,
-            "q95": 0.0,
-            "max": 0.0,
-            "mean": 0.0,
+            "min": 0.9259259259259259,
+            "q05": 0.9259259259259259,
+            "q10": 0.9259259259259259,
+            "median": 0.9259259259259259,
+            "q90": 0.9259259259259259,
+            "q95": 0.9259259259259259,
+            "max": 0.9259259259259259,
+            "mean": 0.9259259259259259,
             "mad": 0.0
           },
           "ai_explainer_per_1k": {
@@ -37603,10 +37603,10 @@
         },
         "count_summary": {
           "ai_binary_reframe": {
-            "successes": 0,
+            "successes": 1,
             "trials": 1080,
-            "alpha": 1,
-            "beta": 1081,
+            "alpha": 2,
+            "beta": 1080,
             "family": "ai_slop",
             "denominator": "body_chars",
             "hard_generated": true
