@@ -843,6 +843,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "AI自我注解",
     "AI变量代称",
     "AI文艺解释面",
+    "字幕式明喻解释",
     "AI伪口语",
     "AI完整结构",
     "破折号解释连接",
@@ -1273,6 +1274,24 @@ def check_literary_ai_surface(findings: list[Finding], lines: list[str]) -> None
                     line_number,
                     clean_excerpt(line),
                     "生成稿高风险：放松/释然/自洽/真实感等抽象情绪命名容易把场景写成文学腔。用具体动作、付款、食物、身体、路线或一句笨拙回复替代。",
+                )
+            )
+
+
+def check_literary_simile_caption(findings: list[Finding], lines: list[str]) -> None:
+    caption_patterns = [
+        re.compile(r"(?:脑子里|心里|那句话|这句话|消息|简历|人生|命运|裂缝|下午|沉默|孤独|焦虑|压力|屏幕)[^。！？\n]{0,24}像[^。！？\n]{2,36}"),
+        re.compile(r"像一(?:颗|根|道|张|块|条|口|层)[^。！？\n]{1,18}(?:钉子|针|刺|井|表|网|墙|裂缝|伤口|洞|锁)"),
+    ]
+    for line_number, line in enumerate(lines, start=1):
+        if any(pattern.search(line) for pattern in caption_patterns):
+            findings.append(
+                Finding(
+                    "warning",
+                    "字幕式明喻解释",
+                    line_number,
+                    clean_excerpt(line),
+                    "生成稿高风险：抽象压力后接漂亮明喻，容易像模型给画面加字幕。保留实际物、对话、身体或付款后果；删掉帮读者解释感受的比喻句。",
                 )
             )
 
@@ -2377,6 +2396,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_therapeutic_humanizer_surface(findings, lines)
     check_meta_ai_topic_contamination(findings, text)
     check_literary_ai_surface(findings, lines)
+    check_literary_simile_caption(findings, lines)
     check_ai_variable_placeholders(findings, lines)
     check_background_fact_specificity(findings, lines)
     check_game_match_report_surface(findings, lines)

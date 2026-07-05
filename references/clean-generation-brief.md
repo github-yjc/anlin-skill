@@ -60,6 +60,8 @@ Avoid the opposite repair failure too: do not make nearly every line carry body,
 
 Known failed source shape: a fluent 10-15 paragraph article, later line-broken by tools into 55-70 lines, still tends to keep prose logic, period-heavy rhythm, repeated connector glue, and binary reframe sentences. Do not use that path. Before saving the first `draft.md`, the visible article itself should already look like clusters of breath: one or two lines may run on with `，`, a longer action/speech/thought line may carry the load, then a short drop lands a bad reply, body lowering, failed decision, or practical retreat. The short drop is earned by the scene; it is not a caption row.
 
+Another failed source shape is a complete small realist story: the stranger delivers the exact social-comparison fact in quotation marks, the object fails exactly on cue, then the narrator supplies a clean metaphor so the reader understands the pressure. This feels complete, but it is too authored. Break it before writing: remove theatrical quote marks, let only one speech fragment leak into payment/object/body action, and replace the polished metaphor with a next action or physical residue.
+
 Use visible breathing clusters before the first file write. This is not a content recipe; it is a guard against the model imagining lineation that is not actually on the page. Draft roughly 8-10 clusters, usually 4-7 body lines each:
 
 - friction appears through a thing failing, not a summary
@@ -137,6 +139,8 @@ For invitations, weddings, reunions, job announcements, or other social-comparis
 
 For stranger, shopkeeper, vendor, driver, customer, or passerby social-comparison prompts, do not turn the encounter into a quoted transcript. Use one or two embedded speech fragments without theatrical quotation marks, then interrupt with object handling, payment, body noise, dirty hands, wrong goods, route change, or silence. If the other person says `我儿子/我女儿/我老婆`, keep it clearly as that person's claim or lower it to `他儿子/他家里`; never let it become the narrator's family identity. A real encounter should leave a practical residue, not five standalone quote lines delivering every prompt fact.
 
+For this encounter type, the first draft should usually contain zero quote marks in that scene. If the prompt itself gives a sentence, do not copy it as dialogue unless the exact wording changes the next action. Turn it into a rough narrated surface: the seller mentioned his son working in Beijing while weighing the melon; the cashier asked one ugly question while looking at the narrator's hand; the driver said a plain thing and the narrator failed to answer. Then leave the speech through money, object, body, or route. Do not let the stranger speak the prompt in a neat script.
+
 Before writing `draft.md`, do a private source preflight:
 
 - body is already at least 950 Chinese characters and 45-70 body lines; for standard clean-eval aim nearer 55-68 rather than the exact boundary
@@ -147,6 +151,8 @@ Before writing `draft.md`, do a private source preflight:
 - no `不是X，是Y`, `不是X，而是Y`, `不是X。是Y`, `不是说X，是说Y`, or split-line equivalent
 - no soft binary repair such as `也不是疼，就是...`, `不是认识，就是...`, `我不是叔叔，我只是...`, `最疼的不是X，是Y`, or `不是因为X，而是因为Y`
 - no group/comment chain markers such as `有人发/有人说/有人问/又有人/底下有人/另一个说`
+- no theatrical ordinary dialogue in quote marks; stranger/vendor/shopkeeper speech should usually be embedded without `“”` / `""`, and the encounter should leave through payment, wrong goods, dirty hands, body noise, route change, or silence
+- no polished simile caption after abstract pressure, such as a sentence that says the message, job pressure, crack, or memory is `像一颗钉子` or `像扔进井里`; keep the physical fact or next action instead
 - no invented spouse/child identity such as `老婆/妻子/媳妇/孩子`; delivery pressure is route, app, heat, money, body, customer, parent, landlord, or class comparison, not a married-rider biography
 - one coarse body/social/self-own consequence is present in the scene, not only a quiet mood or clean ache
 - social-message prompts have one off-chat consequence; they are not a chronological transcript of replies, prices, photos, and old messages
@@ -175,6 +181,7 @@ Avoid these generated-draft surfaces:
 - `本质上`, `真正的问题是`, `这说明`, `这意味着`, `换句话说`, `总之`, `现在我意识到...`
 - `首先/其次/最后/综上`
 - `——那种...`, `终于可以...的放松`, `释然`, `自洽`, `真实感`
+- caption similes where an abstract pressure is explained for the reader: `那句话像一颗钉子`, `消息像扔进井里`, `裂缝像...`, `沉默像...`
 - A/B or 甲乙 variable explanations
 - therapy-humanizer phrases such as `允许自己`, `接住自己`, `慢慢来`, `和自己和解`
 - comment chains such as `有人说/有人问/另一个人说/评论区/热评/底下有人`

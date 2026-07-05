@@ -164,6 +164,8 @@ For ordinary dialogue, do not let people take turns delivering prompt facts. Fiv
 
 For stranger, shopkeeper, vendor, driver, customer, or passerby encounters, the same rule applies more strongly because the person often arrives only to deliver social-comparison facts. Keep at most two speech surfaces, usually unquoted and embedded in action: the seller mentions his son, the cashier looks at the narrator's hand, the driver asks one plain question. Then leave the transcript through payment, wrong goods, dirty hands, body sound, route change, or an unfinished reply. Do not write five standalone quote lines just because the prompt contains a dialogue setup.
 
+If a repair keeps the scene but only removes quote marks, check whether the stranger is still performing the prompt. The encounter should damage the narrator through a practical residue: a hand is looked at, money is counted, wrong goods become a problem, a reply fails, or the body makes a noise. Also cut caption metaphors that explain pressure for the reader, such as a message or sentence becoming a nail, a well, a crack, or a clean symbol. Original prose can use wild comparison; generated formal drafts should not use a polished simile as the emotional explanation after a prompt-shaped scene.
+
 ## Deep Voice Gates
 
 Recent calibrated blind reviews caught drafts that fixed titles and length but still read like complete realist short stories. Avoid that failure before drafting.

@@ -2579,6 +2579,30 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any(rule == "strict: 破折号解释连接" for rule in rules))
             self.assertTrue(any(rule == "strict: AI文艺解释面" for rule in rules))
 
+    def test_checker_draft_gate_rejects_caption_simile_surface(self) -> None:
+        body = "\n".join(
+            [
+                "# 生瓜",
+                "",
+                "那句话像一颗钉子，钉在那里拔不出来。",
+                "招聘消息像扔进井里，连个回声都没有。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 字幕式明喻解释" for item in findings))
+
     def test_checker_draft_gate_rejects_residual_comment_chain_surface(self) -> None:
         body = "\n".join(
             [
@@ -2721,6 +2745,33 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: 日常对话引号" for item in findings))
+
+    def test_clean_run_preflight_flags_embedded_quote_and_caption_simile(self) -> None:
+        body_lines = [
+            "其实我下楼买水的时候，",
+            "卖瓜的说他儿子在北京一个月两万多，我手上黑泥还没洗干净。",
+            "\"好好干，年轻人机会多。\"他笑起来。",
+            "那句话像一颗钉子，钉在那里拔不出来。",
+            "不过我发现袋子勒得手指疼，于是换了一只手，",
+            "胃响了一声，旁边店员抬头看我。",
+            "很丢人。",
+        ] * 8
+        body = "\n".join(["# 生瓜", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CLEAN_RUN_CHECKER), str(draft), "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+            self.assertIn("quoted_dialogue=present", result.stdout)
+            self.assertIn("literary_simile_caption=present", result.stdout)
+            self.assertIn("payment, object handling, body noise", result.stdout)
+            self.assertIn("delete the explanatory simile", result.stdout)
 
     def test_checker_draft_gate_rejects_adc_game_role_but_not_one_piece_surface(self) -> None:
         body = "\n".join(
@@ -2961,10 +3012,13 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Extra pre-draft files contaminate the source-guidance measurement", clean)
         self.assertIn("Before writing `draft.md`, do a private source preflight", clean)
         self.assertIn("no group/comment chain markers", clean)
+        self.assertIn("no theatrical ordinary dialogue in quote marks", clean)
+        self.assertIn("no polished simile caption after abstract pressure", clean)
         self.assertIn("one coarse body/social/self-own consequence", clean)
         self.assertIn("Use the preflight message as a shape diagnosis", clean)
         self.assertIn("Known failed source shape", clean)
         self.assertIn("fluent 10-15 paragraph article", clean)
+        self.assertIn("complete small realist story", clean)
         self.assertIn("the visible article itself should already look like clusters of breath", clean)
         self.assertIn("do not restate diagnostic words as a checklist", clean)
         self.assertIn("the metric names changed", clean)
@@ -3207,8 +3261,11 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("For invitations, weddings, reunions", clean)
         self.assertIn("For stranger, shopkeeper, vendor", clean)
         self.assertIn("do not turn the encounter into a quoted transcript", clean)
+        self.assertIn("first draft should usually contain zero quote marks", clean)
+        self.assertIn("Do not let the stranger speak the prompt in a neat script", clean)
         self.assertIn("For stranger, shopkeeper, vendor", runtime)
         self.assertIn("Do not write five standalone quote lines", runtime)
+        self.assertIn("caption metaphors that explain pressure for the reader", runtime)
         self.assertIn("one-screen chronology failure", runtime)
         self.assertIn("Do not turn many hard-stop lines into one huge comma chain", runtime)
         self.assertIn("Do not create line breaks by deleting punctuation", skill)

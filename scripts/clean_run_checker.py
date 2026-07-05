@@ -284,6 +284,33 @@ def learned_ending_button_matches(lines: list[str]) -> list[str]:
     return [line for line in tail if re.sub(r"\s+", "", line) in LEARNED_ENDING_LINES]
 
 
+def quoted_dialogue_matches(lines: list[str]) -> list[tuple[int, str]]:
+    patterns = [
+        re.compile(r"(?:说|问|喊|回|继续说|又说|老板|摊主|店员|司机|我妈|室友)[^。！？\n]{0,12}[“\"『「]"),
+        re.compile(r"[”\"』」][^。！？\n]{0,12}(?:说|问|喊|回|笑|盯|凑|看)"),
+        re.compile(r"^[“\"『「][^。！？\n]{1,42}[。！？]?[”\"』」]$"),
+    ]
+    matches: list[tuple[int, str]] = []
+    for index, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        if any(pattern.search(stripped) for pattern in patterns):
+            matches.append((index, stripped))
+    return matches
+
+
+def literary_simile_caption_matches(lines: list[str]) -> list[tuple[int, str]]:
+    patterns = [
+        re.compile(r"(?:脑子里|心里|那句话|这句话|消息|简历|人生|命运|裂缝|下午|沉默|孤独|焦虑|压力|屏幕)[^。！？\n]{0,24}像[^。！？\n]{2,36}"),
+        re.compile(r"像一(?:颗|根|道|张|块|条|口|层)[^。！？\n]{1,18}(?:钉子|针|刺|井|表|网|墙|裂缝|伤口|洞|锁)"),
+    ]
+    matches: list[tuple[int, str]] = []
+    for index, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        if any(pattern.search(stripped) for pattern in patterns):
+            matches.append((index, stripped))
+    return matches
+
+
 def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]:
     messages: list[str] = []
     leaked_terms = [term for term in PROCESS_LEAK_TERMS if term in article_text]
@@ -310,6 +337,14 @@ def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]
     if ending_matches:
         examples = " | ".join(line[:24] for line in ending_matches[:3])
         messages.append(f"learned_ending_button=present examples={examples}")
+    quote_matches = quoted_dialogue_matches(lines)
+    if quote_matches:
+        examples = " | ".join(f"L{line_no}:{excerpt[:42]}" for line_no, excerpt in quote_matches[:3])
+        messages.append(f"quoted_dialogue=present count={len(quote_matches)} examples={examples}")
+    simile_matches = literary_simile_caption_matches(lines)
+    if simile_matches:
+        examples = " | ".join(f"L{line_no}:{excerpt[:42]}" for line_no, excerpt in simile_matches[:3])
+        messages.append(f"literary_simile_caption=present count={len(simile_matches)} examples={examples}")
     meta_ai_hits = meta_ai_topic_hits(article_text)
     if meta_ai_hits:
         messages.append(f"meta_ai_topic_hits={meta_ai_hits[:4]}")
@@ -411,6 +446,8 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         "current_office_persona=",
         "background_display_groups=",
         "learned_ending_button=",
+        "quoted_dialogue=",
+        "literary_simile_caption=",
     )
     surface_only = all(message.startswith(surface_only_prefixes) for message in messages)
     compressed_shape = any("< 45" in message or "prose_block_shape=compressed" in message for message in messages)
@@ -471,6 +508,14 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if "learned_ending_button=present" in joined_messages:
         repair_hints.append(
             "for learned_ending_button, replace the tail button with an unfinished practical action, wrong object, payment, route, reply, or body interruption already earned by the scene"
+        )
+    if "quoted_dialogue=present" in joined_messages:
+        repair_hints.append(
+            "for quoted_dialogue, remove theatrical quote marks and keep at most one embedded speech surface; let payment, object handling, body noise, dirty hands, or an unfinished reply carry the encounter"
+        )
+    if "literary_simile_caption=present" in joined_messages:
+        repair_hints.append(
+            "for literary_simile_caption, delete the explanatory simile and keep the physical fact or next action; do not replace it with another prettier metaphor"
         )
     anti_todo_guard = (
         " Do not summarize, quote, or enumerate these diagnostics as a TODO list. "
