@@ -145,6 +145,7 @@ Finalized checkpoint pass gate:
 - Run `check_anlin_violations.py <finalized-draft> --strict --draft-gate` and require zero `error` findings.
 - Run `check_style_profile.py <finalized-draft> --profile <skill-dir>/references/style-profile.json --draft-gate --strict` when the bundled profile is available. A `revise` status means finalized repair failed. A missing profile makes the result `review`, not ready for blind rounds.
 - Style-profile `yellow` with zero errors is acceptable for the finalized checkpoint; record the yellow families, but do not keep rewriting solely to remove yellow warnings. Blind rounds and placebo calibration decide whether those remaining cues matter.
+- Style-profile `review` is not a finalized checkpoint pass, even when `red_families` is empty. Use the report's `checkpoint_decision`; only `checkpoint_decision=pass` can enter blind-round preparation.
 - If corpus is available, run copy-overlap comparison with `--corpus-dir <corpus-dir>`.
 - Record repair iteration count and whether the final repair changed scene source, rhythm, title, background specificity, or only patched local wording.
 - If finalized repair improves one rhythm metric by creating the opposite failure, such as 80+ uniform lines becoming 30-40 compressed prose lines, classify it as unresolved repair-path drift. Run `rebalance_line_rhythm.py` once as a corridor reset, then inspect scene function; do not continue metric ping-pong.

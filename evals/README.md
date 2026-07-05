@@ -110,7 +110,7 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 
 判读时不要只看“最后有没有修好”：如果 bounded 失败但 finalized 通过，下一轮优先改生成源头、clean-eval 修复说明和早期引导；如果 finalized 仍失败或只是 `review`，说明最终成果本身还有问题，需要同时检查 skill 架构、事实边界、修复路径、style-profile 和 checker 假设。
 
-style-profile `yellow` 可作为 finalized checkpoint 的通过条件之一：记录黄项和后续盲评风险，但不要为了清空黄项继续机械修文。`revise`、strict hard error、缺 profile 导致的 `review` 才不能进入盲评候选。
+style-profile `yellow` 可作为 finalized checkpoint 的通过条件之一：记录黄项和后续盲评风险，但不要为了清空黄项继续机械修文。`review` 和 `revise` 都不是 finalized pass；即使 `red_families` 为空，只要报告里的 `checkpoint_decision` 不是 `pass`，就不能进入盲评候选。strict hard error 或缺 profile 导致的 `review` 也同样不能进入盲评候选。
 
 推荐每个用例最终都运行一次控制器汇总：
 

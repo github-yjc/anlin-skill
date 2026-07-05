@@ -3263,18 +3263,16 @@ class AnlinToolingTests(unittest.TestCase):
         ]
         runtime_combined = "\n".join(path.read_text(encoding="utf-8") for path in runtime_files).lower()
 
-        self.assertIn("rotate generation models across a declared pool", validation)
-        self.assertIn("deepseek-v4-pro", validation)
-        self.assertIn("deepseek-v4-flash", validation)
-        self.assertIn("mimo-v2.5", validation)
-        self.assertIn("minimax-m3", validation)
-        self.assertIn("gpt-5.5", validation)
+        self.assertIn("rotate generation models across a declared external pool", validation)
+        self.assertIn("Keep the concrete pool outside the distributable skill", validation)
         self.assertIn("Do not add model-name branches", validation)
         self.assertIn("Development tests should now rotate across multiple model surfaces", readme)
         self.assertIn("runtime instructions should stay model-agnostic", readme)
         self.assertIn("开发测试应轮换生成模型", eval_readme)
         self.assertIn("不要把某个模型上轮失败的分析追加给下轮生成 agent", eval_readme)
+        validation_lower = validation.lower()
         for provider_token in ["deepseek", "mimo", "minimax", "gpt-5.5", "bigzickle"]:
+            self.assertNotIn(provider_token, validation_lower)
             self.assertNotIn(provider_token, runtime_combined)
 
     def test_readme_uses_portable_skill_and_corpus_paths(self) -> None:
@@ -4211,8 +4209,11 @@ class AnlinToolingTests(unittest.TestCase):
             errors = [item for item in draft_gate_report["findings"] if item["severity"] == "error"]
             self.assertTrue(any(item["metric"] == "ai_binary_reframe" for item in errors))
             self.assertEqual(draft_gate_report["summary"]["status"], "revise")
+            self.assertEqual(draft_gate_report["summary"]["checkpoint_decision"], "not_pass_revise")
+            self.assertFalse(draft_gate_report["summary"]["checkpoint_pass"])
             self.assertIn("red_families", draft_gate_report["summary"])
             self.assertIn("decision_rule", draft_gate_report["summary"])
+            self.assertIn("checkpoint_rule", draft_gate_report["summary"])
             self.assertIn("cognitive_audit", draft_gate_report)
             self.assertIn("missing_core", draft_gate_report["cognitive_audit"])
             self.assertIn("first_hit_lines", draft_gate_report["cognitive_audit"])
@@ -4291,6 +4292,9 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(json_result.returncode, 0, json_result.stderr)
             report = json.loads(json_result.stdout)
             self.assertEqual(report["summary"]["status"], "review")
+            self.assertEqual(report["summary"]["checkpoint_decision"], "not_pass_review_required")
+            self.assertFalse(report["summary"]["checkpoint_pass"])
+            self.assertIn("review is not a finalized checkpoint pass", report["summary"]["decision_rule"])
             self.assertEqual(report["summary"]["independent_drift_family_count"], 5)
 
             strict_result = subprocess.run(
@@ -4310,6 +4314,24 @@ class AnlinToolingTests(unittest.TestCase):
                 check=False,
             )
             self.assertNotEqual(strict_result.returncode, 0)
+
+            text_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECK_PROFILE),
+                    str(draft),
+                    "--profile",
+                    str(profile),
+                    "--draft-gate",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(text_result.returncode, 0, text_result.stderr)
+            self.assertIn("checkpoint_decision: not_pass_review_required", text_result.stdout)
+            self.assertIn("checkpoint_pass: false", text_result.stdout)
 
     def test_merge_short_lines_reduces_generated_line_grid(self) -> None:
         body = "\n".join(

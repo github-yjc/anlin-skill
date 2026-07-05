@@ -315,8 +315,19 @@ def summarize_status(findings: list[ProfileFinding]) -> dict[str, Any]:
         status = "yellow"
     else:
         status = "green"
+    if status in {"green", "yellow"}:
+        checkpoint_decision = "pass"
+        checkpoint_pass = True
+    elif status == "review":
+        checkpoint_decision = "not_pass_review_required"
+        checkpoint_pass = False
+    else:
+        checkpoint_decision = "not_pass_revise"
+        checkpoint_pass = False
     return {
         "status": status,
+        "checkpoint_decision": checkpoint_decision,
+        "checkpoint_pass": checkpoint_pass,
         "error_count": len(errors),
         "warning_count": len(warnings),
         "red_count": len(red_findings),
@@ -329,7 +340,8 @@ def summarize_status(findings: list[ProfileFinding]) -> dict[str, Any]:
         "independent_drift_family_count": len(independent_drift_families),
         "yellow_review_threshold": YELLOW_REVIEW_FAMILY_THRESHOLD,
         "soft_revise_threshold": SOFT_REVISE_FAMILY_THRESHOLD,
-        "decision_rule": "revise on any hard error, three independent red drift families, or soft family drift beyond original-calibrated upper bound; five independent yellow/red families require strong manual review and placebo comparison",
+        "decision_rule": "checkpoint pass only when status is green/yellow; review is not a finalized checkpoint pass even with zero red families; revise on any hard error, three independent red drift families, or soft family drift beyond original-calibrated upper bound; five independent yellow/red families require strong manual review and placebo comparison",
+        "checkpoint_rule": "For finalized checkpoints, require checkpoint_decision=pass plus separate strict hard gate, trace, and corpus/overlap checks as applicable.",
         "principle": "Profile drift is evidence for revision, not proof of authorship or generation.",
     }
 
@@ -472,6 +484,8 @@ def format_report(report: dict[str, Any]) -> str:
         f"profile_scope: {json.dumps(report['profile_scope'], ensure_ascii=False)}",
         f"draft_gate: {report['draft_gate']}",
         f"status: {report['summary']['status']}",
+        f"checkpoint_decision: {report['summary']['checkpoint_decision']}",
+        f"checkpoint_pass: {str(report['summary']['checkpoint_pass']).lower()}",
         f"errors: {report['summary']['error_count']}",
         f"warnings: {report['summary']['warning_count']}",
         f"red_families: {', '.join(report['summary']['red_families']) or '(none)'}",
@@ -504,7 +518,7 @@ def main() -> int:
     parser.add_argument("--genre", default=None, help="Optional genre for stratified audit, e.g. standard/sincere/micro-hope/surreal")
     parser.add_argument("--min-stratum-docs", type=int, default=4, help="Minimum documents required before using a phase/genre stratum")
     parser.add_argument("--include-info", action="store_true", help="Include q10-q90 / 80% predictive informational drift")
-    parser.add_argument("--strict", action="store_true", help="Return nonzero when profile status is revise, even without hard errors")
+    parser.add_argument("--strict", action="store_true", help="Return nonzero when profile status is review or revise, even without hard errors")
     parser.add_argument("--json", action="store_true", help="Output JSON")
     args = parser.parse_args()
 

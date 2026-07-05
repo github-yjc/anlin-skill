@@ -42,6 +42,7 @@ class GateSummary:
     hard_errors: int = 0
     hard_warnings: int = 0
     style_status: str | None = None
+    style_checkpoint_decision: str | None = None
     style_red_families: list[str] | None = None
     style_yellow_families: list[str] | None = None
     trace_errors: int = 0
@@ -62,6 +63,7 @@ class StageAudit:
     hard_errors: int
     hard_warnings: int
     style_status: str | None
+    style_checkpoint_decision: str | None
     style_red_families: list[str]
     style_yellow_families: list[str]
     notes: list[str]
@@ -239,6 +241,7 @@ def summarize_gate(
     clean_stop_reason = clean_state.get("stop_reason")
     summary = style_report.get("summary") if style_report else {}
     profile_status = summary.get("status") if isinstance(summary, dict) else None
+    profile_decision = summary.get("checkpoint_decision") if isinstance(summary, dict) else None
     red_families = summary.get("red_families", []) if isinstance(summary, dict) else []
     yellow_families = summary.get("yellow_families", []) if isinstance(summary, dict) else []
     notes: list[str] = []
@@ -276,6 +279,7 @@ def summarize_gate(
         hard_errors=hard_errors,
         hard_warnings=hard_warnings,
         style_status=profile_status,
+        style_checkpoint_decision=profile_decision,
         style_red_families=list(red_families),
         style_yellow_families=list(yellow_families),
         trace_errors=trace_errors,
@@ -315,9 +319,10 @@ def snapshot_candidates(clean_state: dict[str, Any]) -> list[tuple[str, Path]]:
     return ordered
 
 
-def stage_status_for(hard_errors: int, style_report: dict[str, Any] | None) -> tuple[str, str | None, list[str], list[str], list[str]]:
+def stage_status_for(hard_errors: int, style_report: dict[str, Any] | None) -> tuple[str, str | None, str | None, list[str], list[str], list[str]]:
     summary = style_report.get("summary") if style_report else {}
     profile_status = summary.get("status") if isinstance(summary, dict) else None
+    profile_decision = summary.get("checkpoint_decision") if isinstance(summary, dict) else None
     red_families = summary.get("red_families", []) if isinstance(summary, dict) else []
     yellow_families = summary.get("yellow_families", []) if isinstance(summary, dict) else []
     notes: list[str] = []
@@ -332,7 +337,7 @@ def stage_status_for(hard_errors: int, style_report: dict[str, Any] | None) -> t
         notes.append("style-profile audit unavailable")
     else:
         status = "pass"
-    return status, profile_status, list(red_families), list(yellow_families), notes
+    return status, profile_status, profile_decision, list(red_families), list(yellow_families), notes
 
 
 def build_stage_audits(
@@ -355,7 +360,7 @@ def build_stage_audits(
         hard_findings, _hard_command = run_hard_gate(audit_draft, corpus_dir)
         hard_errors, hard_warnings = summarize_hard_findings(hard_findings)
         style_report_data, _style_command = run_style_gate(audit_draft, profile, phase, genre)
-        status, profile_status, red_families, yellow_families, notes = stage_status_for(hard_errors, style_report_data)
+        status, profile_status, profile_decision, red_families, yellow_families, notes = stage_status_for(hard_errors, style_report_data)
         audits.append(
             StageAudit(
                 name=key,
@@ -366,6 +371,7 @@ def build_stage_audits(
                 hard_errors=hard_errors,
                 hard_warnings=hard_warnings,
                 style_status=profile_status,
+                style_checkpoint_decision=profile_decision,
                 style_red_families=red_families,
                 style_yellow_families=yellow_families,
                 notes=notes,
@@ -590,6 +596,7 @@ def format_gate(checkpoint: CheckpointReport) -> str:
         f"- hard_errors: {gate.hard_errors}",
         f"- hard_warnings: {gate.hard_warnings}",
         f"- style_status: `{gate.style_status}`",
+        f"- style_checkpoint_decision: `{gate.style_checkpoint_decision}`",
         f"- style_red_families: {red}",
         f"- style_yellow_families: {yellow}",
         f"- trace_errors: {gate.trace_errors}",
@@ -605,7 +612,8 @@ def format_gate(checkpoint: CheckpointReport) -> str:
             stage_yellow = ", ".join(audit.style_yellow_families) or "none"
             lines.append(
                 f"  - `{audit.name}`: status={audit.status}, hard_errors={audit.hard_errors}, "
-                f"style_status={audit.style_status}, red={stage_red}, yellow={stage_yellow}"
+                f"style_status={audit.style_status}, style_checkpoint_decision={audit.style_checkpoint_decision}, "
+                f"red={stage_red}, yellow={stage_yellow}"
             )
     return "\n".join(lines)
 
