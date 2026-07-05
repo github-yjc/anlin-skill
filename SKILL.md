@@ -77,6 +77,8 @@ For clean-eval generation, that file is the first-draft source loop. Do not read
 
 Clean-eval reference stop rule: after `references/clean-generation-brief.md` is loaded in a clean-eval workspace, stop reading references until the first complete `draft.md` exists and the wrapper has been run. `references/runtime-brief.md` is not a harmless supplement before the first draft; loading it early contaminates the source-guidance measurement. The next non-checker tool actions should be the marker check if it has not happened, writing `draft.md`, and then `clean_run_checker.py`.
 
+Skill discovery stop rule: once this `anlin-writing` skill has triggered, do not glob, search, or list parent skill directories to rediscover it. The runtime has already provided the skill body and the relative reference names above. If a bundled reference path cannot be resolved by the tool environment, do not search `<skills-root>` or sibling skill folders; use the Clean-Eval Minimum in this file, write a complete `draft.md` in the current task workspace, and let the controller validate or fail the run. A missing reference is less damaging than leaving no draft artifact.
+
 Clean-eval pre-draft hard no-load list: before the first complete `draft.md`, do not open `references/anti-ai-slop.md`, `references/structure-patterns.md`, `references/title-model.md`, `references/generation-modes.md`, `references/runtime-brief.md`, `references/review-rubric.md`, `references/writing-checklist.md`, `references/self-check.md`, `references/blind-judge-angles.md`, `references/stylometric-ratio-protocol.md`, or `references/corpus-cards/`. These files are repair/controller materials at that stage. If you feel you need one of them, write the first complete article from `clean-generation-brief.md` first, run the bounded checker, then load the smallest matching repair file.
 
 For architecture audits, developer refactors, or repeated-failure diagnosis, read `references/runtime-layer-map.md`. Do not load it during ordinary generation; it is a map of responsibilities, not a drafting aid.
@@ -106,7 +108,7 @@ Use detailed references after the first draft/checker pass fails, for non-formal
 
 Do not read `anlin-reference-library.md`, `writing-checklist.md`, `self-check.md`, `review-rubric.md`, or `blind-judge-angles.md` before the first draft. Those are critique/reference materials and can cause the agent to stall or overfit. Use them only after the first checker pass fails or when the user explicitly asks for analysis/validation.
 
-Do not list the skill directory recursively during ordinary generation. The paths above are known. Do not read `references/corpus-cards/` before the first draft in clean-eval generation; corpus cards are for failed-draft repair or explicit validation.
+Do not list the skill directory recursively during ordinary generation. Do not search parent or sibling skill directories during clean-eval generation. The paths above are known. Do not read `references/corpus-cards/` before the first draft in clean-eval generation; corpus cards are for failed-draft repair or explicit validation.
 
 Then load only the branch-specific files as needed:
 

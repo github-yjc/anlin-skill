@@ -178,6 +178,28 @@ def actual_reference_action_index(text: str, reference: str) -> int:
     return min(indices) if indices else -1
 
 
+def actual_parent_skill_search_index(text: str) -> int:
+    """Find attempts to rediscover the skill through a parent skills folder.
+
+    In clean-eval the skill has already triggered. Searching sibling skills or
+    a generic skills root before writing `draft.md` often causes permission
+    failures and leaves no artifact, which is a protocol failure distinct from
+    prose quality.
+    """
+    patterns = [
+        r"(?im)^\s*!\s*permission requested:\s*external_directory\s*\([^)]*/skills/\*",
+        r"(?im)^\s*✗\s*Glob\s+['\"][^'\"]*anlin-writing[^'\"]*['\"]\s+failed\s+in\s+[^\n]*/skills\b",
+        r"(?im)^\s*(?:INPUT|TITLE|\$)\s+[^\n]*(?:glob|Get-ChildItem|rg|Select-String|find|ls)[^\n]*/skills/[^\n]*(?:\*|\*\*)",
+        r"(?im)^\s*(?:INPUT|TITLE|\$)\s+[^\n]*(?:glob|Get-ChildItem|rg|Select-String|find|ls)[^\n]*(?:\.config/opencode/skills|\.opencode/skills)[^\n]*(?:\*|\*\*)",
+    ]
+    indices: list[int] = []
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if match:
+            indices.append(match.start())
+    return min(indices) if indices else -1
+
+
 def actual_clean_stop_index(text: str) -> int:
     """Find a real clean-run stop emitted by the wrapper.
 
@@ -242,6 +264,16 @@ def collect_findings(text: str) -> list[TraceFinding]:
                     f"Clean-eval first draft may only load the minimal generation pack; defer `{reference}` until after the first complete draft/checker pass.",
                 )
             )
+    parent_skill_index = actual_parent_skill_search_index(pre_draft)
+    if parent_skill_index >= 0:
+        findings.append(
+            TraceFinding(
+                "error",
+                "clean-eval首稿前搜索父级skill目录",
+                clean_excerpt(pre_draft, parent_skill_index),
+                "After anlin-writing has triggered, do not glob/search parent or sibling skill directories to rediscover it. Use the loaded skill instructions, persist draft.md, and let the controller validate the artifact.",
+            )
+        )
 
     stop_index = actual_clean_stop_index(normalized)
     if stop_index >= 0:

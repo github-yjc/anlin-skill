@@ -2244,6 +2244,30 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("clean-eval未调用clean_run_checker", rules)
             self.assertIn("clean-eval未写入draft.md", rules)
 
+    def test_clean_eval_trace_flags_parent_skill_directory_rediscovery(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        ! permission requested: external_directory (C:/agent/config/opencode/skills/*); auto-rejecting
+        ✗ Glob "**/anlin-writing/**" failed in C:/agent/config/opencode/skills
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval首稿前搜索父级skill目录", rules)
+            self.assertIn("clean-eval未写入draft.md", rules)
+
     def test_clean_eval_trace_jsonl_ignores_dumped_skill_body_reference_names(self) -> None:
         events = [
             {
@@ -4857,6 +4881,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("This marker check should be the first tool action", clean)
         self.assertIn("Do not write `draft.md` until this marker check is visible in the run trace", clean)
         self.assertIn("marker check -> read this brief -> write one complete `draft.md` -> run `clean_run_checker.py`", clean)
+        self.assertIn("Do not rediscover this skill after it has already triggered", clean)
+        self.assertIn("do not glob, search, or list parent skill directories", skill)
+        self.assertIn("If a bundled reference path cannot be resolved", skill)
+        self.assertIn("still persist `draft.md`", clean)
         self.assertIn("visible scratch article without `draft.md` is a failed run", clean)
         self.assertIn("The wrapper `clean_run_checker.py` is the only checker entrypoint", clean)
         self.assertIn("Choose the checker by mode before running any command", skill)

@@ -10,6 +10,8 @@ Do not print an English or Chinese scene plan between tool calls. Avoid visible 
 
 Skill references are local bundled files. Do not call `read_mcp_resource` for this skill. Read local files directly only when this brief tells you to.
 
+Do not rediscover this skill after it has already triggered. Do not glob, search, or list parent skill directories, sibling skill folders, or a generic `<skills-root>` to find `anlin-writing`. The current skill body and this brief are already the route. If a tool cannot resolve a bundled reference path, fall back to the Clean-Eval Minimum already loaded from `SKILL.md`: write the best complete titled `draft.md` in the current task workspace, then run `clean_run_checker.py` if its path is known. If the checker path also cannot be resolved, still persist `draft.md`; a controller can validate the artifact, but it cannot validate an unwritten article.
+
 First tool action for any formal draft workspace:
 
 ```powershell
@@ -20,7 +22,7 @@ If this returns true, choose clean-eval mode before drafting. Do not write `draf
 
 For clean-eval generation, do not print the article to chat before the checker flow. First write the complete article to `draft.md` in the task workspace, run the bounded checker flow, then read `draft.md` once and output that exact content. A visible pre-check article followed by tools contaminates the run.
 
-Clean-eval tool order is part of the test, not a suggestion: marker check -> read this brief -> write one complete `draft.md` -> run `clean_run_checker.py`. After this brief is loaded, do not draft trial paragraphs, scene plans, or repeated scratch versions in the terminal. If the article is imperfect, persist the best complete titled candidate to `draft.md` and let the wrapper diagnose it; a visible scratch article without `draft.md` is a failed run.
+Clean-eval tool order is part of the test, not a suggestion: marker check -> read this brief -> write one complete `draft.md` -> run `clean_run_checker.py`. The step "read this brief" means using the reference file path supplied by the already-triggered skill; it never means searching parent skill directories to locate the skill again. After this brief is loaded, do not draft trial paragraphs, scene plans, or repeated scratch versions in the terminal. If the article is imperfect, persist the best complete titled candidate to `draft.md` and let the wrapper diagnose it; a visible scratch article without `draft.md` is a failed run.
 
 Use the relative path `draft.md` or `.\draft.md` for the article file in the current task workspace. Do not construct an absolute path from memory, from a previous evaluation directory, or from a date-stamped folder. If the current directory is unclear, run `Get-Location` / `pwd`; do not guess.
 
