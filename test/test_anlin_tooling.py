@@ -566,7 +566,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("medium_short_line_grid=present", preflight.stdout)
             self.assertIn("long_lines=0 < 6", preflight.stdout)
             self.assertIn("underbuilt source shape", preflight.stdout)
-            self.assertIn("full source-loop rewrite", preflight.stdout)
+            self.assertIn("source-loop rewrite after the visible shape is reset", preflight.stdout)
             self.assertIn("do not patch with isolated line additions", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
@@ -639,6 +639,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("body_chinese_chars=", preflight.stdout)
             self.assertIn("< 950 with source_shape_weak", preflight.stdout)
             self.assertIn("underbuilt source shape", preflight.stdout)
+            self.assertIn("source-loop rewrite after the visible shape is reset", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
@@ -750,6 +751,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("CLEAN_RUN_PREFLIGHT", preflight.stdout)
             self.assertIn("body_lines=9 < 45", preflight.stdout)
             self.assertIn("prose_block_shape=compressed", preflight.stdout)
+            self.assertIn("NEXT_ACTION=run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`", preflight.stdout)
+            self.assertIn("do not mentally estimate 55-68 lines", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
@@ -1730,6 +1733,30 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(draft_gate_result.stdout)
             self.assertTrue(any(item["rule"] == "strict: AI二元解释句式" for item in findings))
 
+    def test_checker_draft_gate_rejects_now_i_realized_caption(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "水还在滴。",
+                "现在我意识到水龙头已经完全坏了，胶带也救不了，得让房东来换新的。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"].startswith("strict: AI解释腔") for item in findings))
+
     def test_checker_draft_gate_rejects_pronoun_binary_reframe(self) -> None:
         body = "\n".join(
             [
@@ -2544,6 +2571,11 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Known failed source shape", clean)
         self.assertIn("fluent 10-15 paragraph article", clean)
         self.assertIn("the visible article itself should already look like clusters of breath", clean)
+        self.assertIn("Use visible breathing clusters before the first file write", clean)
+        self.assertIn("count actual visible body rows", clean)
+        self.assertIn("Do not trust mental estimates", clean)
+        self.assertIn("Rough self-damage is narrower than ordinary awkwardness", clean)
+        self.assertIn("脸应该挺难看", clean)
         self.assertIn("也不是疼，就是", clean)
         self.assertIn("最疼的不是X，是Y", clean)
         self.assertIn("Scan the whole article for this surface", clean)
@@ -2561,6 +2593,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("true short breath means about 8 Chinese characters or fewer", clean)
         self.assertIn("a few true short breath drops", skill)
         self.assertIn("Do not write a prose-paragraph article first", skill)
+        self.assertIn("do not trust a mental claim", skill)
         self.assertIn("Status 0 at a stop boundary only means the protocol message was delivered", clean)
         self.assertIn("several different natural small connectors", skill)
         self.assertIn("repeating `其实/已经/当时` as glue", skill)

@@ -56,6 +56,21 @@ Avoid the opposite repair failure too: do not make nearly every line carry body,
 
 Known failed source shape: a fluent 10-15 paragraph article, later line-broken by tools into 55-70 lines, still tends to keep prose logic, period-heavy rhythm, repeated connector glue, and binary reframe sentences. Do not use that path. Before saving the first `draft.md`, the visible article itself should already look like clusters of breath: one or two lines may run on with `，`, a longer action/speech/thought line may carry the load, then a short drop lands a bad reply, body lowering, failed decision, or practical retreat. The short drop is earned by the scene; it is not a caption row.
 
+Use visible breathing clusters before the first file write. This is not a content recipe; it is a guard against the model imagining lineation that is not actually on the page. Draft roughly 8-10 clusters, usually 4-7 body lines each:
+
+- friction appears through a thing failing, not a summary
+- one attempted fix makes the body, money, route, or room worse
+- one residue line does not explain the theme
+- the prompt pressure enters through one cropped action or message surface
+- the middle changes action through a misread, wrong reply, body interruption, or low-status practical cost
+- the social/body wound becomes visible outside the narrator's explanation
+- one cluster lets the prompt topic disappear for a moment
+- the ending leaves a practical next action or wrong object, not a lesson
+
+Before writing `draft.md`, count actual visible body rows in the candidate. Do not trust mental estimates such as "about 60 lines" or "this looks like enough breathing room." If the candidate has fewer than 45 actual body rows, it is still prose compression. If it has 45-70 rows but no <=8-character drops, it is a medium-row grid. Rebuild the visible shape before saving, not after the checker.
+
+Rough self-damage is narrower than ordinary awkwardness. A neighbor looking once, a face "probably looking bad", or a line saying the narrator "seems stupid" is usually still tasteful narration. The wound should change the body, social position, reply, route, money, or next action: a dirty/stained thing gets noticed, the body makes an embarrassing sound or cost, a reply comes out wrong, the narrator is mistaken for something ridiculous, or a practical low-status maneuver becomes visible. Do not add shock; make the existing scene lower the narrator by consequence.
+
 Generated drafts often smuggle AI binary framing through ordinary self-correction. Treat these as unsafe before the checker, even when they sound colloquial: `也不是疼，就是...`, `不是认识，就是...`, `不是因为X，而是因为Y`, `不是X。是Y`, `我不是叔叔，我只是...`, `最疼的不是X，是Y`, and similar cross-line forms. Replace them with the positive physical fact or social action: the knee softens, the hand has black dirt, the rider checks the phone first, someone says one ugly line.
 
 Scan the whole article for this surface, not just the first matched sentence. Generated drafts often contain two or three softened versions after one obvious `不是X，是Y` is fixed. Remove all occurrences before the next checker call. If the only remaining preflight issue is binary reframe or another surface leak, make a local replacement only; do not expand the draft, add short drops, add money/body/platform facts, or introduce a new scene.
@@ -139,7 +154,7 @@ Avoid these generated-draft surfaces:
 
 - `不是X，是Y`, `不是X，而是Y`, `不是X。是Y`, `这不是X，这是Y`
 - `也不是X，就是Y`, `不是认识，就是Y`, `我不是X，我只是Y`, `最疼的不是X，是Y`, `不是因为X，而是因为Y`
-- `本质上`, `真正的问题是`, `这说明`, `这意味着`, `换句话说`, `总之`
+- `本质上`, `真正的问题是`, `这说明`, `这意味着`, `换句话说`, `总之`, `现在我意识到...`
 - `首先/其次/最后/综上`
 - `——那种...`, `终于可以...的放松`, `释然`, `自洽`, `真实感`
 - A/B or 甲乙 variable explanations
@@ -234,7 +249,7 @@ Use the preflight message as a shape diagnosis, not as permission to thrash betw
 - `medium_short_line_grid` or an underbuilt source shape: rewrite from the source loop before overwriting `draft.md`. Keep only useful scene facts, add one off-axis consequence and one rough body/social turn, and rebuild toward 55-68 body lines and 950-1150 Chinese characters. Do not patch a weak grid with isolated symptoms, app lines, money facts, or decorative short drops.
 - `early_comma_ratio`: run `python <skill-dir>/scripts/soften_line_endings.py draft.md --in-place` or manually break ongoing actions after visible line-final `，`; internal comma chains do not count.
 - `binary_reframe`: scan every line, delete every `不是X，是Y` / `不是X，而是Y` / soft equivalent, and let the physical fact, body reaction, money action, or plain social line already in that scene carry the turn. If this is the only remaining preflight issue, keep the same length/rhythm/scene slate and do not add new texture.
-- `rough_self_damage`: pain, heat, and fatigue alone are too polite. Add one losing-face consequence: dirty clothing noticed by someone, stomach/urine/sweat trouble, being mistaken as ridiculous, a bad reply, a body failure that changes the next action, or a practical low-status cost.
+- `rough_self_damage`: pain, heat, and fatigue alone are too polite; so are a neighbor's glance, `脸应该挺难看`, or `显得我挺蠢` by themselves. Add one losing-face consequence: dirty clothing noticed by someone, stomach/urine/sweat trouble, being mistaken as ridiculous, a bad reply, a body failure that changes the next action, or a practical low-status cost.
 - `body_chinese_chars < 900`: expand within the existing line-broken shape through lived action, social/body consequence, or off-axis residue; do not collapse the whole article back into 8-15 prose paragraphs.
 - `body_chinese_chars < 950 with source_shape_weak`: do not patch by count. Rebuild the weak middle source: add one consequence that changes action, one rough losing-face turn, and several natural longer action/speech/thought lines, then let the length rise as a byproduct.
 

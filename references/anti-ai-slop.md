@@ -56,6 +56,7 @@ Delete sentences that translate the scene for the reader:
 - `本质上...`
 - `核心是...`
 - `真正的问题是...`
+- `现在我意识到...`
 - `我终于明白...`
 - `最终我意识到...`
 - `说不上是那种...`

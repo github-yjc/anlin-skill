@@ -394,15 +394,16 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             "early_comma_ratio=",
         )
     )
-    if underbuilt_source:
-        repair_hints.append(
-            "for an underbuilt source shape, do a full source-loop rewrite before overwriting draft.md: "
-            "start from friction, add one off-axis consequence and one rough body/social turn, then write "
-            "near 55-68 body lines and 950-1150 Chinese characters; do not patch with isolated line additions"
-        )
     if compressed_shape:
         repair_hints.append(
-            "for prose compression or body_lines < 45, first run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`; inspect once, then add missing lived content only if still short"
+            "NEXT_ACTION=run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place` before any new prose rewrite; "
+            "then inspect the actual visible line count and rewrite only inside that line-broken shape"
+        )
+    if underbuilt_source:
+        repair_hints.append(
+            "for an underbuilt source shape, do a source-loop rewrite after the visible shape is reset: "
+            "start from friction, add one off-axis consequence and one rough body/social turn, then write "
+            "near 55-68 actual body lines and 950-1150 Chinese characters; do not patch with isolated line additions"
         )
     if overfragmented_shape:
         repair_hints.append(
@@ -411,6 +412,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if missing_breath:
         repair_hints.append(
             "for short_breath_lines, add a few real <=8-character drops such as an ugly reply, failed decision, or small retreat; do not add decorative one-word captions"
+        )
+    if f"> {STANDARD_DIARY_DRAFT_OVERFULL_CHARS}" in joined_messages:
+        repair_hints.append(
+            "for overfilled length, cut unsupported/non-consequential texture after the visible shape is stable; do not add more body, screen, route, or money proof"
         )
     if "early_comma_ratio=" in joined_messages:
         repair_hints.append(
@@ -433,7 +438,13 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             "then run this wrapper again."
         )
     else:
-        if underbuilt_source:
+        if compressed_shape:
+            revision_frame = (
+                "Reset the visible shape first, then repair the source: do not mentally estimate 55-68 lines and do "
+                "not rewrite another prose block. Run the rhythm reset named below, inspect the actual draft, then "
+                "rewrite only within a 45-70-line article shape with a working middle."
+            )
+        elif underbuilt_source:
             revision_frame = (
                 "Rebuild the article shape, not just the metric: keep only the useful scene facts, restart from "
                 "the source loop, and rewrite `draft.md` as a complete line-broken article with a working middle. "
