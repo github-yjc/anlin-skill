@@ -403,6 +403,42 @@ CURRENT_OFFICE_PERSONA_TERMS = [
     "季度",
 ]
 CURRENT_OFFICE_HIGH_SPECIFIC_TERMS = ["到了公司", "工位", "KPI", "kpi", "营收", "王总", "同事小", "张哥"]
+THIRD_PERSON_OFFICE_SURFACE_MARKERS = [
+    "朋友圈",
+    "动态",
+    "配图",
+    "照片",
+    "文案",
+    "截图",
+    "屏幕",
+    "消息",
+    "群里",
+    "工牌",
+    "同学",
+    "老同学",
+    "朋友",
+    "前同事",
+    "别人",
+    "人家",
+    "他",
+    "她",
+    "晒",
+    "发了",
+]
+FIRST_PERSON_OFFICE_SURFACE_MARKERS = [
+    "我",
+    "自己",
+    "坐回",
+    "回到",
+    "走到",
+    "到了公司",
+    "到公司",
+    "上班",
+    "下班",
+    "开会",
+    "散会",
+    "饭卡",
+]
 HOLLOW_OBSERVATION_TERMS = [
     "其实不知道在吵什么",
     "好像也没什么区别",
@@ -1316,9 +1352,32 @@ def check_game_match_report_surface(findings: list[Finding], lines: list[str]) -
                 )
 
 
+def _has_any_marker(text: str, markers: list[str]) -> bool:
+    return any(marker in text for marker in markers)
+
+
+def _is_third_person_office_surface(lines: list[str], index: int) -> bool:
+    window = "".join(lines[max(0, index - 2) : min(len(lines), index + 3)])
+    if not _has_any_marker(window, THIRD_PERSON_OFFICE_SURFACE_MARKERS):
+        return False
+    return not _has_any_marker(lines[index], FIRST_PERSON_OFFICE_SURFACE_MARKERS)
+
+
 def current_office_persona_hits(text: str) -> list[str]:
-    hits = [term for term in CURRENT_OFFICE_PERSONA_TERMS if term in text]
-    high_specific = [term for term in CURRENT_OFFICE_HIGH_SPECIFIC_TERMS if term in text]
+    lines = text.splitlines()
+    hits: list[str] = []
+    high_specific: list[str] = []
+    for index, line in enumerate(lines):
+        for term in CURRENT_OFFICE_PERSONA_TERMS:
+            if term not in line:
+                continue
+            if _is_third_person_office_surface(lines, index):
+                continue
+            hits.append(term)
+            if term in CURRENT_OFFICE_HIGH_SPECIFIC_TERMS:
+                high_specific.append(term)
+    hits = list(dict.fromkeys(hits))
+    high_specific = list(dict.fromkeys(high_specific))
     if len(set(hits)) >= 4 or high_specific:
         return hits[:8]
     return []

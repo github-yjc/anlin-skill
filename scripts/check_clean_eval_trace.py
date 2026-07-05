@@ -23,6 +23,11 @@ FORBIDDEN_PRE_DRAFT_REFERENCES = [
     "references/stylometric-ratio-protocol.md",
     "references/corpus-cards/",
 ]
+VISIBLE_PROCESS_CHATTER_PATTERNS = [
+    re.compile(r"(?im)^\s*(?:Let me plan|Let me write|Let me draft|I need to|The preflight says|The preflight detected|The main issues are|Scene\s+\d+:|Thinking:)"),
+    re.compile(r"(?i)paying attention to:"),
+    re.compile(r"(?i)the checker (?:requires|reports|detected|says)"),
+]
 
 
 @dataclass(frozen=True)
@@ -116,6 +121,19 @@ def collect_findings(text: str) -> list[TraceFinding]:
                 "Invalid tool calls do not prove style failure, but they indicate controller noise or agent confusion and should be recorded.",
             )
         )
+
+    for pattern in VISIBLE_PROCESS_CHATTER_PATTERNS:
+        match = pattern.search(normalized)
+        if match:
+            findings.append(
+                TraceFinding(
+                    "warning",
+                    "clean-eval可见过程计划",
+                    clean_excerpt(normalized, match.start()),
+                    "The generation trace contains visible planning, thinking, or diagnostic restatement. This may be provider/runtime logging, but clean-eval reports should record it and the runtime guidance should keep the final user-visible answer article-only.",
+                )
+            )
+            break
 
     return findings
 

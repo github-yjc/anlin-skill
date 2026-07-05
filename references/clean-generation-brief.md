@@ -6,6 +6,8 @@ Use this file for the first draft of a formal standard diary article. It is a co
 
 Do not announce that you are loading references or building a state card. Do not print process notes, checker summaries, or "now I will" lines. If the user asked for prose, the first visible line must be the title.
 
+Do not print an English or Chinese scene plan between tool calls. Avoid visible text such as `Let me plan`, `The preflight says`, `Scene 1`, `I need to`, or a bullet list of metrics to fix. If a preflight forces a rewrite, make the next visible non-tool text the final article after reading `draft.md`; keep planning private.
+
 Skill references are local bundled files. Do not call `read_mcp_resource` for this skill. Read local files directly only when this brief tells you to.
 
 First tool action for any formal draft workspace:
@@ -89,6 +91,8 @@ Use this loop instead of opening the long runtime or review files before the fir
 
 This is source guidance, not a scorecard. The point is to make the first draft grow from friction and consequence before any audit vocabulary enters the model's writing surface.
 
+`Complete article` does not mean complete prompt coverage. When the prompt gives several neat nouns, such as shopping discount + social feed + parcel + wrong object, do not allocate one scene to every noun in order. Pick one daily failure as the driver, let one prompt pressure interrupt it, and bury, weaken, or discard the rest unless it changes the next action. A blind judge spots assignment-shaped writing when the article visits every supplied item politely.
+
 ## Start From Friction
 
 Do not start from a checklist or the user's clean topic. Start from one small thing that bothers the narrator:
@@ -125,6 +129,8 @@ Every concrete noun must change action, social position, body consequence, money
 
 Keep main-topic scenes under half the selected slate. If the prompt gives many pressure nouns, make only one or two visible and bury or discard the rest.
 
+For shopping, parcel, wrong-size, coupon, delivery, or household-object prompts, the object inspection is not the scene engine. The failed object must change the narrator's body, reply, route, money, room, or social position: someone sees the bad object, a foot/hand cannot do the task, a return/payment action is abandoned in a humiliating way, or the wrong thing blocks the next ordinary action. If the draft only says the object is wrong and the narrator decides not to return it, it is still a tidy task report.
+
 Before writing `draft.md`, do a private source preflight:
 
 - body is already at least 950 Chinese characters and 45-70 body lines; for standard clean-eval aim nearer 55-68 rather than the exact boundary
@@ -144,6 +150,8 @@ If these readiness signals tempt you to add a game scene, recurring character, b
 Natural connector coverage should be solved before the checker by changing scene movement, not by sprinkling words. A draft with only `觉得/发现` usually means each line is a sealed observation. Make the narrator do something after noticing it: delay a reply, pay money, misread a screen, answer someone badly, move route, get interrupted by the body, or correct a thought halfway. The connector is then a trace of that movement.
 
 Keep connector spread rough. If one connector such as `觉得` or `可能` appears five or more times, or if the whole article only has three familiar connector families, it is probably doing the work that an action, bad reply, object movement, or body interruption should do. Replace the repeated or thin connector pattern by changing what happens next, not by swapping it for synonyms.
+
+When a draft has 45-70 lines but no long action/speech/thought rows, it is usually one caption per line. Before saving, merge some adjacent object facts into rough rows that carry both the thing and its consequence, for example one line can contain seeing the old slipper, the hallway light, and what that exposure does to the next action. Do not break every observed fact into its own sentence row.
 
 When repairing after a wrapper preflight, do not restate diagnostic words as a checklist. Do not write "the checker requires..." in notes or prose, and do not solve by adding one item per message. Either reset the visible rhythm corridor with the named script, or rewrite the middle from friction -> one off-axis consequence -> one losing-face body/social turn -> practical retreat. The visible article should change because the day changed, not because the metric names changed.
 

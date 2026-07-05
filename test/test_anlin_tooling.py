@@ -1118,6 +1118,33 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(json.loads(result.stdout), [])
 
+    def test_clean_eval_trace_records_visible_process_chatter_as_warning(self) -> None:
+        log = """
+        → Read C:/skill/references/clean-generation-brief.md
+        $ Test-Path .anlin-clean-eval-mode
+        ← Write draft.md
+        python scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_PREFLIGHT: draft is not ready for checker call 1/2
+        Let me plan the new draft with more substance:
+        The preflight says the main issues are length and connector spread.
+        → Read draft.md
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            findings = json.loads(result.stdout)
+            self.assertTrue(
+                any(item["rule"] == "clean-eval可见过程计划" and item["severity"] == "warning" for item in findings)
+            )
+
     def test_clean_eval_trace_does_not_treat_stop_instruction_as_write(self) -> None:
         log = """
         → Read C:/skill/references/clean-generation-brief.md
@@ -1979,6 +2006,40 @@ class AnlinToolingTests(unittest.TestCase):
                 any(item["rule"] == "strict: 无依据当前职场身份" for item in draft_gate_findings)
             )
 
+    def test_checker_allows_third_person_social_feed_office_surface(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "大学同学发了新动态，配图是一张工牌，",
+                "文案写的是新工位，新开始。",
+                "我把手机扣在床上，手指上还有拖鞋盒子的灰。",
+                *(["其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"] * 34),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            strict_result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            clean_result = subprocess.run(
+                [sys.executable, str(CLEAN_RUN_CHECKER), str(draft), "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            draft_gate_findings = json.loads(strict_result.stdout)
+            self.assertFalse(
+                any(item["rule"] == "strict: 无依据当前职场身份" for item in draft_gate_findings)
+            )
+            self.assertNotIn("current_office_persona=", clean_result.stdout)
+
     def test_checker_draft_gate_rejects_unsupported_family_identity(self) -> None:
         body = "\n".join(
             [
@@ -2727,6 +2788,12 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("convert chat pressure into one screen/action/body consequence", skill)
         self.assertIn("Treat social-feed prompts the same way", skill)
         self.assertIn("Do not stack three posts", skill)
+        self.assertIn("A complete article is not a complete inventory of prompt nouns", skill)
+        self.assertIn("Do not print an English or Chinese scene plan", skill)
+        self.assertIn("Complete article` does not mean complete prompt coverage", clean)
+        self.assertIn("Shopping, parcel, wrong-size, coupon, delivery, or household-object", runtime)
+        self.assertIn("If the draft only says the object is wrong", clean)
+        self.assertIn("no long action/speech/thought rows", clean)
         self.assertIn("These are movement signals, not content quotas", skill)
         self.assertIn("Scan the whole article for all occurrences", skill)
         self.assertIn("If only this surface remains, replace locally", skill)
