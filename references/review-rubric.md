@@ -24,6 +24,7 @@ Rewrite or refuse the relevant part if any appears:
 - formal blind-evaluation draft depends on extra style hints outside the skill and realistic user prompt
 - standard diary reads as a smooth realist short story: all scenes follow one emotional arc, every object serves the same wound, no lateral branch, no rough social misfire, and no crooked laugh
 - short sincere or micro-hope draft reads as a clean literary short story: one title object, one care memory, one withheld message, and one final residue all close the same emotional argument
+- short sincere or micro-hope title is the main prompt prop and the body/tail keep returning to it as proof, such as `鸡蛋`/`一袋鸡蛋` carrying mother memory, withheld message, and final residue
 - short sincere or micro-hope repair preserves the same memory-first spine and only adds a late current detail; a sink, neighbor, wet clothing, or room chore does not fix the draft if the title object, memory order, withheld message, and ending still carry the old proof chain
 - short sincere or micro-hope draft is an underbuilt sketch: 250-500 body Chinese characters, no longer clumsy action/memory line, and only a few static emotional/image beats
 - ending is a tasteful withheld image that completes the emotional argument rather than a low consequence or interrupted action
@@ -163,6 +164,8 @@ Registers include laugh, sting, tenderness, deflection, absurdity, analysis, bod
 - 2: title fits genre, phase, defense level, and body relation without over-explaining the piece
 - 1: title is plausible but generic, too informative, or slightly overdesigned
 - 0: missing title, wrong genre signal, or title-to-body contract gives away artificial construction
+
+For short sincere or micro-hope pieces, lower the score to 0 when the title is a strong prompt prop and the same prop is used as opening engine, memory proof, and ending closure. A side-action title can be rough or plain; a prompt-prop title must be weakened by the body.
 
 ### Ending Consequence
 

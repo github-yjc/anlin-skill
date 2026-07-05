@@ -45,6 +45,7 @@ These apply to all normal generation:
 35. No memory-first sincere proof chain: for mother/family sincere prompts, select a present-action anchor before selecting memory. The anchor must be a current sink/bowl/door/neighbor/call/reply/body/clothing/room/object problem that changes the next action. Eggs, rain, holiday feed, and blessing are pressure props, not anchors, unless the present action around them fails and redirects the scene.
 36. No early prompt-prop takeover: a present-action anchor must hold the opening, not just appear as a preface. If the first few body lines already introduce eggs, plastic bag, rain, mother, holiday feed, and the unsent message as a chain, cut the chain and let the first 8-12 lines stay with today's practical failure before one memory prop leaks in.
 37. No local patch for a failed sincere spine: when a short sincere draft already runs through a neat egg/rain/holiday/no-message/final-residue chain, do not repair by adding one practical detail while preserving the same title, opening object, memory order, and ending. Reset the source: current practical failure first, new side-action title after the new body exists, at most one old memory prop as a cropped leak, no unrelated repair stuffing.
+38. No main-prop title loop in short sincere: do not let a title like `鸡蛋`, `一袋鸡蛋`, `塑料袋`, `屏幕`, or `没发出去的消息` become the object that opens the body, proves the memory, carries the withheld message, and closes the ending. Prefer a side-action title from today's failed action. If a prompt-prop title remains, the body and tail must stop using it as the emotional proof.
 
 ## Strong Defaults
 
@@ -145,6 +146,7 @@ Avoid:
 - polished minimalism where every line is a complete emotional unit
 - mother/family memories arranged as a clean proof of love or guilt
 - one title object making the opening, memory, message, and ending all explain each other
+- a main prompt-prop title that keeps returning as proof in the body and tail
 - preserving every prompt-supplied family prop just because the user listed it
 - date/holiday titles such as `五月十二日` or `母亲节` when the prompt already gives the occasion
 - typed-then-deleted message loops as the main ending engine

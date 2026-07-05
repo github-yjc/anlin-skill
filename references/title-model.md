@@ -41,6 +41,7 @@ Choose the title after drafting:
 - task labels: `春招日寄`, `情人节日寄`, `痛风日寄`, `母亲节日寄` when the user prompt already contains that exact topic and the body merely executes it
 - calendar labels: `2024日寄`, `新年日寄`, `元旦日寄`, `跨年日寄`, `年度总结日寄` when the date or feed topic is the assignment rather than a lived side handle
 - tidy thesis titles: `不算坏事`, `没发出去的消息`, `给不存在的人写信`
+- short sincere main-prop loops: `鸡蛋`, `一袋鸡蛋`, `塑料袋`, `屏幕`, or `没发出去的消息` when the same prop opens the body, proves mother/family memory, and returns in the ending
 - clever titles that require the ending to explain them
 - title/first-five-lines/ending all pointing to the same prompt noun
 
@@ -52,3 +53,4 @@ High-risk does not mean forbidden. Some corpus titles directly name spring recru
 - If title is too bland: choose a modifier from a real body consequence, not from the prompt.
 - If title is too literary: remove the abstract feeling and use the object/action that caused it.
 - If title and ending close too neatly: keep the stronger one and lower the other into a practical consequence.
+- If a short sincere title is the main prompt prop: retitle from the present failure, such as a sleeve, door, wrong reply, sink, bowl, slipper, or low-status object; if the old prop remains, stop using it as the ending proof.

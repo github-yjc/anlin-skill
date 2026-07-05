@@ -1043,6 +1043,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "短体裁修复堆新素材",
     "短真诚当前动作锚点不足",
     "短真诚题面物件过早",
+    "短真诚标题物件闭环",
     "短真诚小小说闭合",
 )
 DRAFT_GATE_RULE_NAMES: set[str] = {"呼吸点缺失"}
@@ -2389,6 +2390,120 @@ SHORT_GENRE_MESSAGE_CLOSURE_TERMS = [
     "还在",
 ]
 
+SHORT_GENRE_PROMPT_PROP_TITLE_TERMS = [
+    "鸡蛋",
+    "蛋壳",
+    "塑料袋",
+    "雨衣",
+    "雨伞",
+    "康乃馨",
+    "母亲节",
+    "五月十二",
+    "屏幕",
+    "消息",
+    "祝福",
+]
+
+
+def short_genre_main_prop_title_loop_risk(lines: list[str], text: str) -> dict[str, Any] | None:
+    """Detect short-genre drafts whose title turns a prompt prop into proof.
+
+    The guard is intentionally narrow: a prop title is risky only when a
+    mother/holiday/memory chain also appears and the title prop is echoed by the
+    body or tail. Side-action titles such as sink, sleeve, door, or wrong reply
+    should remain available.
+    """
+    style = detect_style(text)
+    if style not in {"sincere", "micro-hope"}:
+        return None
+    title, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [
+        line.strip()
+        for line in content_lines
+        if line.strip() and not line.strip().startswith("<!--")
+    ]
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < 260 or len(visible_lines) < 12:
+        return None
+
+    normalized_title = re.sub(r"[\s#《》「」『』“”\"'，。！？!?:：、]+", "", title)
+    title_hits = [
+        term for term in SHORT_GENRE_PROMPT_PROP_TITLE_TERMS if term in normalized_title
+    ]
+    if not title_hits:
+        return None
+
+    family_hits = [term for term in SINCERE_MOTHER_SUBJECT_MARKERS if term in body]
+    message_hits = [term for term in SINCERE_HOLIDAY_OR_MESSAGE_MARKERS if term in body]
+    care_hits = [term for term in SINCERE_CARE_MEMORY_MARKERS if term in body]
+    memory_hits = [term for term in SHORT_GENRE_MEMORY_ARC_TERMS if term in body]
+    closure_hits = [term for term in SHORT_GENRE_MESSAGE_CLOSURE_TERMS if term in body]
+    if not family_hits or not (message_hits or len(care_hits) >= 2 or len(memory_hits) >= 2):
+        return None
+
+    tail = "\n".join(visible_lines[-8:])
+    title_echo_count = max(body.count(term) for term in title_hits)
+    title_tail_echo = any(term in tail for term in title_hits)
+
+    proof_family_count = 0
+    proof_family_count += 1 if message_hits else 0
+    proof_family_count += 1 if len(care_hits) >= 2 else 0
+    proof_family_count += 1 if len(memory_hits) >= 2 else 0
+    proof_family_count += 1 if len(closure_hits) >= 1 else 0
+
+    risk_score = 0
+    reasons: list[str] = []
+    if title_echo_count >= 2:
+        risk_score += 2
+        reasons.append(f"title_prop_echo_count={title_echo_count}")
+    if title_tail_echo:
+        risk_score += 1
+        reasons.append("title_prop_tail_echo")
+    if proof_family_count >= 3:
+        risk_score += 2
+        reasons.append(f"proof_family_count={proof_family_count}")
+    elif proof_family_count == 2:
+        risk_score += 1
+        reasons.append("two_proof_families")
+    if any(term in normalized_title for term in ("母亲节", "五月十二")):
+        risk_score += 1
+        reasons.append("date_or_holiday_title")
+
+    if risk_score < 4:
+        return None
+    return {
+        "style": style,
+        "body_chars": body_chars,
+        "body_lines": len(visible_lines),
+        "title": normalized_title,
+        "title_hits": title_hits[:4],
+        "title_echo_count": title_echo_count,
+        "title_tail_echo": title_tail_echo,
+        "proof_family_count": proof_family_count,
+        "family_hits": family_hits[:4],
+        "message_hits": message_hits[:4],
+        "care_hits": care_hits[:5],
+        "memory_hits": memory_hits[:5],
+        "closure_hits": closure_hits[:4],
+        "reasons": reasons[:6],
+    }
+
+
+def check_short_genre_main_prop_title_loop(findings: list[Finding], lines: list[str], text: str) -> None:
+    risk = short_genre_main_prop_title_loop_risk(lines, text)
+    if not risk:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "短真诚标题物件闭环",
+            0,
+            json.dumps(risk, ensure_ascii=False),
+            "短真诚/微小希望生成稿高风险：标题直接拿题面强物件，正文又让同一物件承接母亲/节日/未发消息/照料记忆并在尾部回收，容易读成一条被设计好的证明链。重选侧面动作或低状态把手作标题，正文保留一个记忆压力即可；如果标题物件必须保留，结尾不要再回到它。",
+        )
+    )
+
 
 def short_genre_literary_story_risk(lines: list[str], text: str) -> dict[str, Any] | None:
     """Return a conservative risk summary for polished short-genre story closure.
@@ -3538,6 +3653,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_short_genre_polished_minimalism(findings, lines, text)
     check_short_genre_present_action_anchor(findings, lines, text)
     check_short_genre_prompt_prop_too_early(findings, lines, text)
+    check_short_genre_main_prop_title_loop(findings, lines, text)
     check_short_genre_literary_story_closure(findings, lines, text)
     check_connector_overuse(findings, text)
     check_diagnostic_title(findings, lines)

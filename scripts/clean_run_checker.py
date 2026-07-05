@@ -46,6 +46,7 @@ from check_anlin_violations import (  # noqa: E402
     meta_ai_topic_hits,
     prompt_performing_dialogue_hits,
     short_genre_literary_story_risk,
+    short_genre_main_prop_title_loop_risk,
     short_genre_present_action_anchor_risk,
     short_genre_prompt_prop_too_early_risk,
     short_genre_repair_stuffing_groups,
@@ -432,6 +433,12 @@ def preflight_messages(draft: Path) -> list[str]:
         normalized_title = re.sub(r"[\s#]+", "", title)
         if re.search(r"(?:母亲节|五月十二日|5月12日|五月十二|520)", normalized_title):
             messages.append(f"short_genre_diagnostic_date_title={normalized_title}")
+        main_prop_title_risk = short_genre_main_prop_title_loop_risk(text.splitlines(), text)
+        if main_prop_title_risk:
+            messages.append(
+                "short_genre_main_prop_title_loop="
+                + json.dumps(main_prop_title_risk, ensure_ascii=False)
+            )
         short_story_risk = short_genre_literary_story_risk(text.splitlines(), text)
         if short_story_risk:
             messages.append(
@@ -550,6 +557,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         or message.startswith("short_genre_repair_stuffing=")
         or message.startswith("short_genre_present_action_anchor=")
         or message.startswith("short_genre_prompt_prop_too_early=")
+        or message.startswith("short_genre_main_prop_title_loop=")
         for message in messages
     )
     title_issue = any(message.startswith("missing_title=") for message in messages)
@@ -619,6 +627,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         if "short_genre_present_action_anchor=" in joined_messages:
             repair_hints.append(
                 "for short_genre_present_action_anchor, abandon the existing memory-first spine rather than adding one more practical detail: choose a new side-action title and restart from today's practical interruption before the mother-memory proof. Make a room, body, door, reply, neighbor, or chore problem change the next action, keep at most one egg/rain/message trace, and let that trace leak from the action instead of carrying the argument"
+            )
+        if "short_genre_main_prop_title_loop=" in joined_messages:
+            repair_hints.append(
+                "for short_genre_main_prop_title_loop, do not keep a title like `鸡蛋` or `一袋鸡蛋` while the body and tail use that prop as proof. Retitle from a side action, wrong chore, sleeve, door, reply, or other low-status handle; if the prompt prop remains in the body, the ending must leave through a different practical action"
             )
     if f"> {STANDARD_DIARY_DRAFT_OVERFULL_CHARS}" in joined_messages:
         repair_hints.append(

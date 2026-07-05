@@ -63,6 +63,8 @@ Mode C should start from a present-action anchor when the prompt supplies strong
 
 Mode C repair needs a source reset when the proof chain has already taken over. Do not keep the title `鸡蛋` or `屏朝下`, keep the egg/rain/no-message order, and add one chore near the end. Pick the current failed action first, retitle after that action, then choose which single memory prop is allowed to leak. The other prompt props can disappear.
 
+Mode C titles should be chosen as handles, not evidence tags. A side-action title from a failed sink, sleeve, door, reply, slipper, call, or low-status object lets the body breathe. A main prompt-prop title such as `一袋鸡蛋` or `没发出去的消息` is high-risk when the body uses that same prop to carry memory, withheld message, and final residue. If a prompt-prop title is kept, weaken its body role and end elsewhere.
+
 Mode C repair should not import a new inventory. If the draft is too smooth, thin, or globally profile-drifting, do not answer by adding delivery history, extra named foods, gift boxes, video lessons, variety shows, game scenes, routes, city cues, or background labels. Those packets make the repair visible. Stay with the existing object/message/room/body/memory set: make one action clumsier, one reply worse, one chore more inconvenient, or one memory line longer and less polished. A new family of material is allowed only when it has a consequence, not when it merely raises texture density.
 
 ## Mode D: Body Intrusion

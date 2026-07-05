@@ -782,6 +782,148 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("childhood-rain/raincoat/school line is still a full memory prop", result.stdout)
             self.assertIn("no-message + eggs + childhood-rain", result.stdout)
 
+    def test_checker_flags_short_sincere_main_prop_title_loop(self) -> None:
+        body = "\n".join(
+            [
+                "# 一袋鸡蛋",
+                "",
+                "水槽里那个碗翻不过来，",
+                "底下有一圈油，冷水冲了半天还在。",
+                "我手背被洗洁精泡得有点红，",
+                "袖口也湿了。",
+                "手机在旁边亮了一下，",
+                "朋友圈里都是母亲节。",
+                "我没有点开。",
+                "上次回家，我妈塞给我一袋鸡蛋，塑料袋结打得很紧，",
+                "路上鸡蛋在包里碰来碰去。",
+                "我拎到车站的时候，袋子勒在手指上，",
+                "那道红印到晚上还没消。",
+                "小时候下雨，她骑车送我上学，雨衣往我这边偏，",
+                "她肩膀湿了一路。",
+                "到校门口她把书包递给我，",
+                "我嫌书包带上全是水，皱了一下眉。",
+                "我现在想给她发点什么，",
+                "打了一个妈字又删掉。",
+                "锅里的水开了，",
+                "鸡蛋在里面撞了两下。",
+                "有一个壳裂了，白沫浮起来，",
+                "我拿筷子戳了一下，像在确认它还能不能装作完整。",
+                "楼道里有人关门，",
+                "我把手机扣过去。",
+                "最后那袋鸡蛋还在台面上，",
+                "塑料袋的结没有拆开。",
+                "袖口贴着手腕，",
+                "我也没有换衣服。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            findings = json.loads(result.stdout)
+            error_rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            suggestions = "\n".join(item["suggestion"] for item in findings)
+            self.assertTrue(any("短真诚标题物件闭环" in rule for rule in error_rules), error_rules)
+            self.assertIn("重选侧面动作", suggestions)
+
+    def test_clean_run_preflight_flags_short_sincere_main_prop_title_loop(self) -> None:
+        body = "\n".join(
+            [
+                "# 一袋鸡蛋",
+                "",
+                "水槽里那个碗翻不过来，",
+                "底下有一圈油，冷水冲了半天还在。",
+                "我手背被洗洁精泡得有点红，",
+                "袖口也湿了。",
+                "手机在旁边亮了一下，",
+                "朋友圈里都是母亲节。",
+                "我没有点开。",
+                "上次回家，我妈塞给我一袋鸡蛋，塑料袋结打得很紧，",
+                "路上鸡蛋在包里碰来碰去。",
+                "我拎到车站的时候，袋子勒在手指上，",
+                "那道红印到晚上还没消。",
+                "小时候下雨，她骑车送我上学，雨衣往我这边偏，",
+                "她肩膀湿了一路。",
+                "到校门口她把书包递给我，",
+                "我嫌书包带上全是水，皱了一下眉。",
+                "我现在想给她发点什么，",
+                "打了一个妈字又删掉。",
+                "锅里的水开了，",
+                "鸡蛋在里面撞了两下。",
+                "有一个壳裂了，白沫浮起来，",
+                "我拿筷子戳了一下，像在确认它还能不能装作完整。",
+                "楼道里有人关门，",
+                "我把手机扣过去。",
+                "最后那袋鸡蛋还在台面上，",
+                "塑料袋的结没有拆开。",
+                "袖口贴着手腕，",
+                "我也没有换衣服。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(
+                any(message.startswith("short_genre_main_prop_title_loop=") for message in messages),
+                messages,
+            )
+
+    def test_checker_does_not_flag_side_action_title_as_main_prop_loop(self) -> None:
+        body = "\n".join(
+            [
+                "# 袖口",
+                "",
+                "水槽里那个碗翻不过来，",
+                "底下有一圈油，冷水冲了半天还在。",
+                "我手背被洗洁精泡得有点红，",
+                "袖口也湿了。",
+                "手机在旁边亮了一下，",
+                "朋友圈里都是母亲节。",
+                "我没有点开。",
+                "上次回家，我妈塞给我一袋鸡蛋，塑料袋结打得很紧，",
+                "路上鸡蛋在包里碰来碰去。",
+                "我拎到车站的时候，袋子勒在手指上，",
+                "那道红印到晚上还没消。",
+                "小时候下雨，她骑车送我上学，雨衣往我这边偏，",
+                "她肩膀湿了一路。",
+                "到校门口她把书包递给我，",
+                "我嫌书包带上全是水，皱了一下眉。",
+                "我现在想给她发点什么，",
+                "打了一个妈字又删掉。",
+                "锅里的水开了，",
+                "鸡蛋在里面撞了两下。",
+                "有一个壳裂了，白沫浮起来，",
+                "我拿筷子戳了一下，像在确认它还能不能装作完整。",
+                "楼道里有人关门，",
+                "我把手机扣过去。",
+                "最后那袋鸡蛋还在台面上，",
+                "塑料袋的结没有拆开。",
+                "袖口贴着手腕，",
+                "我也没有换衣服。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertFalse(any("短真诚标题物件闭环" in rule for rule in rules), rules)
+
     def test_checker_warns_on_short_sincere_missing_present_action_anchor(self) -> None:
         body = "\n".join(
             [
@@ -4843,7 +4985,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("520-649", combined)
         self.assertIn("short_genre_body_lines", (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8"))
         self.assertIn("short_genre_prompt_prop_too_early", (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8"))
+        self.assertIn("short_genre_main_prop_title_loop", (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8"))
         self.assertIn("短真诚题面物件过早", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
+        self.assertIn("短真诚标题物件闭环", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
         self.assertIn("token-anchor openings", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
 
     def test_runtime_docs_use_current_skill_name_and_output_locations(self) -> None:
@@ -5013,8 +5157,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("This is a source reset, not a line edit", skill)
         self.assertIn("Throw away the old spine", clean)
         self.assertIn("When repairing `短真诚当前动作锚点不足`", runtime)
+        self.assertIn("When repairing `短真诚标题物件闭环`", runtime)
         self.assertIn("source reset", modes)
         self.assertIn("No local patch for a failed sincere spine", budget)
+        self.assertIn("No main-prop title loop in short sincere", budget)
         self.assertIn("source reset must choose a new side-action title", layer_map)
         self.assertIn("without replacing the old spine", review)
         self.assertIn("abandon the existing memory-first spine", checker)
