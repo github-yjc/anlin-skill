@@ -49,6 +49,8 @@ bounded clean-eval 用例可以在外部 case 工作区放置空文件 `.anlin-c
 
 草稿只保存一篇完整文章的标题和正文。标题必须由生成 agent 产出，放在第一行，推荐使用 `# 标题`；不要加粗、不要写成 `标题：...`，也不要把标题作为控制器元数据附加。不要把仿写、生成、验证、语料、片段级验证等方法标签写进正文；这些信息由控制器记录在验证报告里。
 
+开发测试应轮换生成模型，防止 skill 只适配一个模型表面。每个 case 在启动前记录随机或轮询选中的模型、实际 CLI model id、provider、reasoning/thinking 设置、不可用模型跳过原因、skill commit 和 prompt。不要把某个模型上轮失败的分析追加给下轮生成 agent；模型差异只能通过后续修改 skill 的通用源头引导、事实门禁、句式门禁或检查器来吸收。
+
 ### 步骤 2：运行硬规则脚本
 
 ```powershell
@@ -154,10 +156,11 @@ python <skill-dir>/scripts/summarize_dev_checkpoints.py <case-dir> `
 未来可用控制器脚本自动完成全流程：
 1. 读取 evals.json 的 `realistic_prompt`
 2. 对每个用例启动一个独立 agent（无上下文污染）
-3. agent 生成一篇含标题的完整文章 → 保存到外部评测工作区，例如 `<eval-workspace>/iteration-<n>/eval-<id>/draft.md`
-4. 运行 `check_anlin_violations.py`
-5. 运行 Style Critic 子代理评分
-6. 汇总到外部评测工作区，例如 `<eval-workspace>/iteration-<n>/benchmark.json`
+3. 在声明的模型池中随机或轮询选择一个生成模型，打开可用的 reasoning/thinking 模式并记录设置
+4. agent 生成一篇含标题的完整文章 → 保存到外部评测工作区，例如 `<eval-workspace>/iteration-<n>/eval-<id>/draft.md`
+5. 运行 `check_anlin_violations.py`
+6. 运行 Style Critic 子代理评分
+7. 汇总到外部评测工作区，例如 `<eval-workspace>/iteration-<n>/benchmark.json`
 
 ## 与盲测的关系
 

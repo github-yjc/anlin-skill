@@ -533,6 +533,40 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
 
+    def test_clean_run_checker_preflight_blocks_medium_short_line_grid_without_consuming_call(self) -> None:
+        fragments = [
+            "车把烫手",
+            "手机也烫",
+            "其实我想坐下",
+            "突然看见人倒了",
+            "于是我停了一下",
+            "因为腿在抖",
+            "好像没人说话",
+            "我也没说话",
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 下午三点半", "", *(fragments * 8)]), encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3)
+            self.assertIn("body_chinese_chars=", preflight.stdout)
+            self.assertIn("< 950", preflight.stdout)
+            self.assertIn("medium_short_line_grid=present", preflight.stdout)
+            self.assertIn("long_lines=0 < 6", preflight.stdout)
+            self.assertIn("underbuilt source shape", preflight.stdout)
+            self.assertIn("full source-loop rewrite", preflight.stdout)
+            self.assertIn("do not patch with isolated line additions", preflight.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+
     def test_clean_run_checker_preflight_blocks_compressed_prose_shape(self) -> None:
         long_line = (
             "其实我摸了摸手机，觉得六条未读有点多，突然发现三条是运营商的催缴短信，"
@@ -2302,6 +2336,11 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Scan the whole article for this surface", clean)
         self.assertIn("Remove all occurrences before the next checker call", clean)
         self.assertIn("make a local replacement only", clean)
+        self.assertIn("medium-length short-line grid", clean)
+        self.assertIn("700-900 character draft with 45-75 visible rows", clean)
+        self.assertIn("source-loop rewrite before the first file write", clean)
+        self.assertIn("Do not patch it by adding five more symptoms", clean)
+        self.assertIn("A draft can also fail by looking superficially line-broken but underbuilt", skill)
         self.assertIn("do not make nearly every line carry body, money, route, screen", clean)
         self.assertIn("rebalance_line_rhythm.py draft.md --in-place", clean)
         self.assertIn("Do not let the repair bounce from short-line grid into 30-40 prose lines", clean)
@@ -2321,6 +2360,32 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("do not open this file before the first complete `draft.md` unless the scene slate is stuck", modes)
         self.assertIn("source-load conflict", readme)
         self.assertIn("runtime-brief.md`, `generation-modes.md`, and `anti-ai-slop.md` remain available", readme)
+
+    def test_model_rotation_is_controller_protocol_not_runtime_branching(self) -> None:
+        validation = (ROOT / "references" / "validation-protocol.md").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        eval_readme = (ROOT / "evals" / "README.md").read_text(encoding="utf-8")
+        runtime_files = [
+            ROOT / "SKILL.md",
+            ROOT / "references" / "clean-generation-brief.md",
+            ROOT / "references" / "runtime-brief.md",
+            ROOT / "references" / "runtime-layer-map.md",
+        ]
+        runtime_combined = "\n".join(path.read_text(encoding="utf-8") for path in runtime_files).lower()
+
+        self.assertIn("rotate generation models across a declared pool", validation)
+        self.assertIn("deepseek-v4-pro", validation)
+        self.assertIn("deepseek-v4-flash", validation)
+        self.assertIn("mimo-v2.5", validation)
+        self.assertIn("minimax-m3", validation)
+        self.assertIn("gpt-5.5", validation)
+        self.assertIn("Do not add model-name branches", validation)
+        self.assertIn("Development tests should now rotate across multiple model surfaces", readme)
+        self.assertIn("runtime instructions should stay model-agnostic", readme)
+        self.assertIn("开发测试应轮换生成模型", eval_readme)
+        self.assertIn("不要把某个模型上轮失败的分析追加给下轮生成 agent", eval_readme)
+        for provider_token in ["deepseek", "mimo", "minimax", "gpt-5.5", "bigzickle"]:
+            self.assertNotIn(provider_token, runtime_combined)
 
     def test_readme_uses_portable_skill_and_corpus_paths(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")

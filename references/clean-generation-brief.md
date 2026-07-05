@@ -48,6 +48,8 @@ Do not write a prose version first and then promise to restructure it. In clean-
 
 If the candidate has 90+ body lines, no long lines, or mostly 4-10 character rows, merge lines before writing `draft.md`. If it is under 900 Chinese characters, expand through lived action, not adjectives.
 
+Do not mistake a medium-length short-line grid for a finished diary. A 700-900 character draft with 45-75 visible rows can still be underbuilt when most rows are small sealed captions, the first 20 lines rarely run through `，`, and almost no line carries rough action, speech, or thought. That shape needs a source-loop rewrite before the first file write: keep the useful facts, rebuild the middle with one off-axis consequence and one losing-face body/social turn, then choose the title again from the rebuilt body. Do not patch it by adding five more symptoms, app surfaces, money facts, or one-word drops.
+
 Do not make the first draft a case report where every detail proves the prompt topic. In delivery, illness, job, family, or game prompts, one pressure surface is enough at first; the rest of the article still needs accidental body/social/material movement. Too many correct details in a row can read more synthetic than one unsupported detail.
 
 Avoid the opposite repair failure too: do not make nearly every line carry body, money, route, screen, food, weather, or cognition after a checker warning. A readable draft can have plain connective tissue, a dumb reply, a weak action, or a boring object that does not announce a mechanism. If each line proves heat, money, system pressure, and physical damage, the article starts to look like a controlled demonstration rather than a day.
@@ -111,6 +113,7 @@ Keep main-topic scenes under half the selected slate. If the prompt gives many p
 Before writing `draft.md`, do a private source preflight:
 
 - body is already at least 950 Chinese characters and 45-70 body lines; for standard clean-eval aim nearer 55-68 rather than the exact boundary
+- if the body is only 700-900 Chinese characters with 45-75 similar short rows, treat it as underbuilt even though line count looks legal
 - at least a few real <=8-character drops are already present; they should land a failed decision, ugly reply, practical retreat, or body/social lowering, not decorative captions
 - several rough long lines above about 28 Chinese characters are already present; do not let a rhythm script be the first source of long lines
 - several different connectors from `其实/觉得/发现/好像/不过/突然/于是/因为/所以` occur because the thought is moving; zero or one signal is too polished, but repeating one word such as `其实/已经/当时` as glue is also synthetic
@@ -228,6 +231,7 @@ If the wrapper prints `CLEAN_RUN_PREFLIGHT`, revise before the first checker cal
 Use the preflight message as a shape diagnosis, not as permission to thrash between prose blocks and tiny grids:
 
 - `body_lines < 45`, `prose_block_shape=compressed`, `body_lines > 90`, `short_line_grid`, or `long_lines < 4`: first run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`, read once, then add only missing scene function or cut non-consequential texture. Do not let the repair bounce from short-line grid into 30-40 prose lines.
+- `medium_short_line_grid` or an underbuilt source shape: rewrite from the source loop before overwriting `draft.md`. Keep only useful scene facts, add one off-axis consequence and one rough body/social turn, and rebuild toward 55-68 body lines and 950-1150 Chinese characters. Do not patch a weak grid with isolated symptoms, app lines, money facts, or decorative short drops.
 - `early_comma_ratio`: run `python <skill-dir>/scripts/soften_line_endings.py draft.md --in-place` or manually break ongoing actions after visible line-final `，`; internal comma chains do not count.
 - `binary_reframe`: scan every line, delete every `不是X，是Y` / `不是X，而是Y` / soft equivalent, and let the physical fact, body reaction, money action, or plain social line already in that scene carry the turn. If this is the only remaining preflight issue, keep the same length/rhythm/scene slate and do not add new texture.
 - `rough_self_damage`: pain, heat, and fatigue alone are too polite. Add one losing-face consequence: dirty clothing noticed by someone, stomach/urine/sweat trouble, being mistaken as ridiculous, a bad reply, a body failure that changes the next action, or a practical low-status cost.

@@ -101,12 +101,15 @@ Generator setup:
 - Do not provide previous blind-review failures, judge rubrics, source excerpts, corpus filenames, controller mappings, hidden expected elements, or manual advice such as "add montage", "add unrelated details", or "avoid prompt-shape leakage".
 - If the generator reads `outputs/`, blind-round folders, `mapping.json`, judge reports, or controller notes before writing, mark the generation contaminated.
 - Record the exact prompt, skill path, skill commit, model/surface, allowed tools, corpus availability, and whether web/background lookup was allowed.
+- For development coverage, rotate generation models across a declared pool instead of optimizing against one surface. The requested pool currently includes DeepSeek `deepseek-v4-pro` / `deepseek-v4-flash`, Mimo `mimo-v2.5` / `mimo-v2.5-pro`, OpenCodeGo `minimax-m3`, OpenCode `bigzickle`, and Gateway `gpt-5.5`; exact CLI model IDs may differ by local configuration, so record the actual string used and whether the model was unavailable. Choose the next model by random draw or round-robin before reading the case result, not by picking the model expected to pass.
+- Use the provider's reasoning/thinking mode when the surface supports it, and record the setting. Do not pass reasoning traces, previous model failures, judge rubrics, or model-specific repair notes into the generator prompt.
+- Treat model differences as failure discovery, not as model-specific runtime design. If one model exposes short-line grid, prose compression, binary reframe, tool routing, or background stuffing, fold the fix back as a general source/checker improvement. Do not add model-name branches to `SKILL.md`, `clean-generation-brief.md`, or runtime drafting instructions.
 - For OpenCode generation against the current installed skill path, disable legacy or external skill scans when an older same-name copy exists outside `<skill-dir>`. Example:
 
 ```powershell
 $env:OPENCODE_DISABLE_CLAUDE_CODE_SKILLS='1'
 $env:OPENCODE_DISABLE_EXTERNAL_SKILLS='1'
-opencode run --model 'longcat/LongCat-2.0' --dir <case-dir> <realistic_prompt>
+opencode run --model '<model-id>' --dir <case-dir> <realistic_prompt>
 ```
 
   A generation stderr/log line that references any anlin-writing skill path other than the recorded `<skill-dir>` means the run used the wrong skill and must be marked contaminated.

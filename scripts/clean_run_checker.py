@@ -296,6 +296,7 @@ def preflight_messages(draft: Path) -> list[str]:
     line_lengths = [chinese_len(line) for line in visible_lines]
     body_line_count = len(line_lengths)
     mean_line = statistics.mean(line_lengths) if line_lengths else 0.0
+    line_stdev = statistics.pstdev(line_lengths) if len(line_lengths) > 1 else 0.0
     long_line_count = sum(1 for length in line_lengths if length >= 28)
     short_breath_count = sum(1 for length in line_lengths if length <= 8)
     short_line_ratio = (sum(1 for length in line_lengths if length <= 12) / len(line_lengths)) if line_lengths else 0.0
@@ -318,6 +319,11 @@ def preflight_messages(draft: Path) -> list[str]:
         )
     if body_line_count > 75 and long_line_count < 4:
         messages.append(f"long_lines={long_line_count} < 4 (keep several rough longer action/speech/thought lines)")
+    if 45 <= body_line_count <= 75 and body_chars < 950 and long_line_count < 6:
+        messages.append(
+            f"medium_short_line_grid=present (long_lines={long_line_count} < 6, line_stdev={line_stdev:.1f}; "
+            "rewrite rough action/speech/thought lines before checking)"
+        )
     if body_line_count >= 55 and short_breath_count < 4:
         messages.append(
             f"short_breath_lines={short_breath_count} < 4 (keep a few <=8-Chinese-character breath drops; do not make every line a finished caption)"
@@ -357,16 +363,37 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     surface_only = all(message.startswith(surface_only_prefixes) for message in messages)
     compressed_shape = any("< 45" in message or "prose_block_shape=compressed" in message for message in messages)
     overfragmented_shape = any(
-        "> 90" in message or "short_line_grid=" in message or "long_lines=" in message for message in messages
+        "> 90" in message
+        or "short_line_grid=" in message
+        or "long_lines=" in message
+        or "medium_short_line_grid=" in message
+        for message in messages
     )
     missing_breath = any("short_breath_lines=" in message for message in messages)
+    underbuilt_source = any(
+        message.startswith("body_chinese_chars=") and "< 950" in message for message in messages
+    ) and any(
+        key in joined_messages
+        for key in (
+            "medium_short_line_grid=",
+            "paragraph_engine=weak",
+            "rough_self_damage=missing",
+            "early_comma_ratio=",
+        )
+    )
+    if underbuilt_source:
+        repair_hints.append(
+            "for an underbuilt source shape, do a full source-loop rewrite before overwriting draft.md: "
+            "start from friction, add one off-axis consequence and one rough body/social turn, then write "
+            "near 55-68 body lines and 950-1150 Chinese characters; do not patch with isolated line additions"
+        )
     if compressed_shape:
         repair_hints.append(
             "for prose compression or body_lines < 45, first run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`; inspect once, then add missing lived content only if still short"
         )
     if overfragmented_shape:
         repair_hints.append(
-            "for overfragmented grids or too few long lines, run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`; do not rewrite into many tiny rows or 30-line prose blocks"
+            "for short-grid drift, overfragmented grids, or too few long lines, run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`; do not rewrite into many tiny rows or 30-line prose blocks"
         )
     if missing_breath:
         repair_hints.append(
@@ -393,12 +420,20 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             "then run this wrapper again."
         )
     else:
-        revision_frame = (
-            "Revise toward a complete but not overfilled article: write a line-broken article first, use "
-            "rebalance_line_rhythm.py for prose-block or short-grid drift, keep punctuation at line endings, add "
-            "concrete action/body/social/off-axis material only when short, or cut unsupported/non-consequential "
-            "texture when long; then run this wrapper again."
-        )
+        if underbuilt_source:
+            revision_frame = (
+                "Rebuild the article shape, not just the metric: keep only the useful scene facts, restart from "
+                "the source loop, and rewrite `draft.md` as a complete line-broken article with a working middle. "
+                "Do not add a few isolated symptoms, app lines, or short captions on top of the weak draft; then "
+                "run this wrapper again."
+            )
+        else:
+            revision_frame = (
+                "Revise toward a complete but not overfilled article: write a line-broken article first, use "
+                "rebalance_line_rhythm.py for prose-block or short-grid drift, keep punctuation at line endings, add "
+                "concrete action/body/social/off-axis material only when short, or cut unsupported/non-consequential "
+                "texture when long; then run this wrapper again."
+            )
     if attempt >= max_attempts:
         print(
             f"CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY. DO NOT WRITE draft.md. DO NOT REPAIR. "
