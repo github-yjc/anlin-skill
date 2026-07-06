@@ -4363,6 +4363,34 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertTrue(any(rule == "strict: 无依据工作后果链" for rule in rules))
 
+    def test_checker_draft_gate_rejects_project_excuse_made_real_work_chain(self) -> None:
+        body = "\n".join(
+            [
+                "# 暖气片",
+                "",
+                "狗哥问我下个月结婚来不来。",
+                "我说最近忙项目，去不了。",
+                "这个项目月底要交付，",
+                "组长上周在群里说了，",
+                "最近别想请假的事。",
+                *(["其实我觉得水龙头突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"] * 34),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any(rule == "strict: 无依据工作后果链" for rule in rules), findings)
+
     def test_checker_allows_third_person_social_feed_office_surface(self) -> None:
         body = "\n".join(
             [
@@ -4647,6 +4675,30 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: 无依据具体地名: 黄埔区" for item in findings))
             self.assertTrue(any(item["rule"] == "strict: 无依据游戏角色细节: 打野教学" for item in findings))
+
+    def test_checker_draft_gate_rejects_invented_specific_landmark_and_restaurant(self) -> None:
+        body = "\n".join(
+            [
+                "# 暖气片",
+                "",
+                "再往前是毕业那年六月底，群里发的散伙饭定位，翠屏山出来那家川菜馆。",
+                "后来又想起西门外面那家烧烤摊，十块钱一把肉筋。",
+                *(["其实我觉得水龙头突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"] * 34),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 无依据具体地标" for item in findings), findings)
 
     def test_checker_draft_gate_rejects_background_display_stuffing(self) -> None:
         body = "\n".join(

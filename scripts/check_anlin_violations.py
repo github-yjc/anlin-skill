@@ -274,6 +274,10 @@ UNSUPPORTED_CITY_REVIEW_TERMS = [
     "湖南",
     "昆明",
 ]
+UNSUPPORTED_LANDMARK_PATTERNS = [
+    re.compile(r"[\u4e00-\u9fff]{2,6}(?:山|湖|江|河|桥|公园|广场|车站|火车站|高铁站)(?:出来|旁边|附近|后面|那边)?[^。！？\n]{0,24}(?:川菜馆|烧烤|饭店|餐馆|小吃|店|馆|摊)"),
+    re.compile(r"(?:东门|南门|西门|北门)[^。！？\n]{0,18}(?:外面|出来|旁边|后面|那边)[^。！？\n]{0,24}(?:烧烤|川菜|饭店|餐馆|小吃|店|馆|摊)"),
+]
 UNSUPPORTED_FAMILY_IDENTITY_TERMS = [
     "老婆",
     "妻子",
@@ -538,7 +542,10 @@ WORK_CONSEQUENCE_CHAIN_TERMS = [
     "考勤",
     "打卡",
     "周一",
+    "月底",
     "周报",
+    "项目",
+    "交付",
     "文件",
     "表格",
     "汇报",
@@ -549,8 +556,9 @@ WORK_CONSEQUENCE_CHAIN_TERMS = [
 ]
 WORK_CONSEQUENCE_CHAIN_PATTERNS = [
     re.compile(r"(?:领导|主管|组长|经理)[^。！？\n]{0,50}(?:文件|表格|周一|明天|今天|请假|扣钱|上班|开会|汇报|KPI|kpi|绩效|打卡|考勤)"),
+    re.compile(r"(?:领导|主管|组长|经理)[^。！？\n]{0,50}(?:项目|交付|月底)"),
     re.compile(r"(?:请假|病假)[^。！？\n]{0,35}(?:扣钱|工资|领导|主管|组长|经理|公司|上班|考勤|打卡)"),
-    re.compile(r"(?:周一|明天|今天)[^。！？\n]{0,35}(?:要交|要发|交材料|交表|交文件|汇报|开会)"),
+    re.compile(r"(?:周一|月底|明天|今天)[^。！？\n]{0,35}(?:要交|要发|交材料|交表|交文件|交付|汇报|开会)"),
 ]
 THIRD_PERSON_OFFICE_SURFACE_MARKERS = [
     "朋友圈",
@@ -1089,6 +1097,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "破折号解释连接",
     "破折号稀有连接",
     "无依据具体地名",
+    "无依据具体地标",
     "无依据游戏角色细节",
     "无依据当前职场身份",
     "无依据工作后果链",
@@ -1775,6 +1784,18 @@ def check_background_fact_specificity(findings: list[Finding], lines: list[str])
                     )
                 )
                 break
+        for pattern in UNSUPPORTED_LANDMARK_PATTERNS:
+            if pattern.search(line):
+                findings.append(
+                    Finding(
+                        "warning",
+                        "无依据具体地标",
+                        line_number,
+                        clean_excerpt(line),
+                        "生成稿高风险：不要凭空发明山名、校门方位、具体饭店/烧烤摊来制造大学旧事真实感。除非用户或语料锚点支持，降级为学校门口、那家店、以前吃饭的地方，或让记忆通过动作/付款/回复后果出现。",
+                    )
+                )
+                break
         for term in UNSUPPORTED_FAMILY_IDENTITY_TERMS:
             if unsupported_family_identity_present(term, line):
                 findings.append(
@@ -1843,6 +1864,10 @@ def _has_any_marker(text: str, markers: list[str]) -> bool:
 
 def _is_third_person_office_surface(lines: list[str], index: int) -> bool:
     window = "".join(lines[max(0, index - 2) : min(len(lines), index + 3)])
+    work_chain_terms = ["项目", "交付", "月底", "请假", "病假", "扣钱", "考勤", "打卡"]
+    work_authority_terms = ["领导", "主管", "组长", "经理"]
+    if _has_any_marker(window, work_chain_terms) and _has_any_marker(window, work_authority_terms):
+        return False
     if not _has_any_marker(window, THIRD_PERSON_OFFICE_SURFACE_MARKERS):
         return False
     return not _has_any_marker(lines[index], FIRST_PERSON_OFFICE_SURFACE_MARKERS)
@@ -1903,7 +1928,7 @@ def work_consequence_chain_hits(lines: list[str]) -> list[str]:
         present = {term for term in WORK_CONSEQUENCE_CHAIN_TERMS if term in window}
         has_work_authority = any(term in present for term in {"领导", "主管", "组长", "经理"})
         has_leave_penalty = {"请假", "扣钱"}.issubset(present) or {"病假", "扣钱"}.issubset(present)
-        has_deadline_package = any(term in present for term in {"周一", "周报", "文件", "表格", "汇报"}) and any(
+        has_deadline_package = any(term in present for term in {"周一", "月底", "项目", "交付", "周报", "文件", "表格", "汇报"}) and any(
             term in present for term in {"领导", "主管", "组长", "经理", "公司", "上班", "开会"}
         )
         if len(present) >= 3 and (has_work_authority or has_leave_penalty or has_deadline_package):

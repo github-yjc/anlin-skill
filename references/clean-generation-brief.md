@@ -300,6 +300,10 @@ Game is allowed, not required. Use it only if the prompt, current action, memory
 
 Named districts, current cities, company parks, local policies, current game-role details, or specific routes need support. If unsupported, lower specificity or delete.
 
+If a prompt says the narrator uses `忙项目`, `最近有项目`, or similar wording as an excuse to decline a wedding, dinner, trip, or reunion, keep it inside the reply as an excuse surface. Do not make it true by adding a current project, team leader, deadline, delivery, leave request, office group, or manager. The lie should damage the reply or body; it should not create a new office biography.
+
+Old school or classmate memory can stay generic. Do not invent a named mountain, campus gate, road, restaurant, hotpot place, or barbecue stall to make the memory feel real. Use `学校门口`, `那家店`, `以前吃饭的地方`, or a cropped object/price only when it changes the current reply, payment, body, or shame.
+
 Load `references/anlin-background.md` and `references/background-fact-classes.json` only after a scene already contains a fact that must be checked.
 
 Do not invent a current office-worker identity. Unless the user gives a phase/date or concrete material that supports it, avoid first-person scenes built around `到了公司`, `同事小X`, `张哥`, `工位`, `领导`, `KPI`, `营收`, `财务`, meetings,饭卡, or quarterly office reporting. Also avoid subtler current-work consequence chains such as a leader sending a file, a Monday hand-in deadline, leave being penalized, attendance, work group pressure, or a shift that the body problem threatens. Work/company material is phase-bound and often belongs to other people, old work, interviews, layoffs, or screen pressure; default current generation should lower it to old coworker, recruitment surface, someone else's company, a cropped message, or ordinary daily life.
