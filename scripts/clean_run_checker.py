@@ -412,6 +412,14 @@ def preflight_messages(draft: Path) -> list[str]:
     line_period_ratio = (
         sum(1 for line in visible_lines if line.endswith("。")) / len(visible_lines)
     ) if visible_lines else 0.0
+    bare_line_ratio = (
+        sum(
+            1
+            for line in visible_lines
+            if chinese_len(line) >= 2 and not re.search(r"[，。！？；：、,.!?;:]$", line.strip())
+        )
+        / len(visible_lines)
+    ) if visible_lines else 0.0
     time_glue_count = sum(body.count(term) for term in ("后来", "已经", "当时"))
     connectors = [term for term in HIGH_FREQUENCY_TERMS if term in body]
     engine_hits = [term for term in ENGINE_SIGNAL_TERMS if term in body]
@@ -541,6 +549,10 @@ def preflight_messages(draft: Path) -> list[str]:
         )
     if body_line_count >= 70 and short_line_ratio >= 0.45:
         messages.append(f"short_line_grid={short_line_ratio:.2f} (do not create line breaks by deleting punctuation)")
+    if body_line_count >= 45 and short_line_ratio >= 0.35 and bare_line_ratio >= 0.35:
+        messages.append(
+            f"bare_line_grid={bare_line_ratio:.2f} (keep punctuation on broken lines; do not turn the article into caption-like naked rows)"
+        )
     if body_chars >= 900 and (body_line_count <= 20 or mean_line >= 42 or long_line_count >= max(6, int(body_line_count * 0.65))):
         messages.append(
             f"prose_block_shape=compressed (body_lines={body_line_count}, mean_line={mean_line:.1f}, long_lines={long_line_count})"
@@ -711,6 +723,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if "rough_self_damage=missing" in joined_messages:
         repair_hints.append(
             "for rough_self_damage, add one losing-face body/social consequence; pain or heat alone is too polite"
+        )
+    if "bare_line_grid=" in joined_messages:
+        repair_hints.append(
+            "for bare_line_grid, keep sentence punctuation and merge naked caption rows into action/reply/thought lines; do not create lineation by stripping punctuation"
         )
     if title_issue:
         repair_hints.append(

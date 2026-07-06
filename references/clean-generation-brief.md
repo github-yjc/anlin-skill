@@ -85,6 +85,7 @@ For a standard diary blind-evaluation draft:
 - mixed comma-led continuation lines and hard stop lines
 - a middle rhythm corridor: not 36 compressed paragraph lines, not 80 same-length sentence rows
 - line breaks keep punctuation when a clause needs it; do not remove commas or periods to make the page look broken
+- bare caption rows are dangerous: do not make many lines like `手机亮了` / `又暗了` / `没点开` without punctuation. A few short drops are fine only when they land a failed decision or body/social lowering
 - not 8-15 smooth prose blocks
 - not 100+ tiny rows
 
@@ -93,6 +94,8 @@ Title freedom is not length freedom. A standard diary with a side-object, phrase
 Do not write a prose version first and then promise to restructure it. In clean-eval mode, the first persisted `draft.md` is already part of the measurement. If the draft in your head is 8-15 paragraphs, stop before writing and rebuild it as breathing clusters.
 
 When using a write/file tool, the `content` being written must already visibly contain the line-broken body. Do not paste a 10-15 paragraph short story where blank lines separate long blocks. A quick visual test is enough: before the write, the middle of the article should look like many uneven rows, not a few dense paragraphs. If you see three or more sentences sitting on the same body line, break that line by action or speech before the file write.
+
+The opposite failure is also invalid: do not remove punctuation to create many short rows. Broken-line prose still has commas and periods where the Chinese sentence needs them. If the candidate becomes a naked caption list, merge adjacent rows into rough action/reply/thought lines and keep punctuation before writing.
 
 Do not manually number every line or add character counts to each row. If the candidate visibly has too many tiny rows, no long movement rows, or is obviously short, fix that by changing the source movement before writing `draft.md`. If it is probably short, expand through lived action, not adjectives. If it is near the lower edge, inspect the source shape before expanding: only add material when the middle engine, long action/speech/thought lines, connectors, or rough body/social turn are weak.
 

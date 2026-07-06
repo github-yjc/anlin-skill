@@ -2645,6 +2645,38 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("as the last action before the wrapper", result.stdout)
             self.assertIn("if you edit draft.md after that script, rerun the script before checking", result.stdout)
 
+    def test_clean_run_checker_preflight_names_bare_short_line_grid(self) -> None:
+        lines = [
+            "手机亮了",
+            "又暗了",
+            "没点开",
+            "其实我觉得杯子有点旧",
+            "不过水龙头响了一下",
+            "因为接口又开始渗水",
+            "所以纸巾也湿了",
+            "手指蹭到裤子上",
+        ] * 9
+        body = "\n".join(["# 日寄", "", *lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLEAN_RUN_CHECKER),
+                    str(draft),
+                    "--strict",
+                    "--draft-gate",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 3)
+            self.assertIn("bare_line_grid=", result.stdout)
+            self.assertIn("do not turn the article into caption-like naked rows", result.stdout)
+
     def test_clean_run_checker_allows_near_miss_connector_draft_to_reach_checker(self) -> None:
         lines = [
             "其实我把杯子拿去洗，水龙头先咳了一下喷到裤子上，",
@@ -6604,6 +6636,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("write the saved file as the broken article, not as paragraphs", clean)
         self.assertIn("the `content` being written must already visibly contain the line-broken body", clean)
         self.assertIn("The file content itself must carry the broken surface", skill)
+        self.assertIn("bare caption rows are dangerous", clean)
+        self.assertIn("do not delete punctuation to make many naked short rows", skill)
         self.assertIn("pain, heat, and fatigue alone are too polite", clean)
         self.assertIn("private case-report chain", runtime)
         self.assertIn("symptom list -> search result -> food taboo -> refrigerator inventory -> room smell -> ambient sound", skill)
@@ -8548,6 +8582,58 @@ class AnlinToolingTests(unittest.TestCase):
             )
             findings = json.loads(result.stdout)
             self.assertTrue(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+
+    def test_checker_counts_delivery_person_room_glance_as_rough_and_engine(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "外卖员把袋子递过来，说路上洒了一点。",
+                "他好像往里看了一眼，屋里太乱了，桌上还有昨天的快餐盒。",
+                "我赶紧说了声谢谢，把门关上。",
+                "回去的时候踩到门口那点汤，拖鞋打滑，差点跪在门槛上。",
+                "手机又响了一下，我假装没听见。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+            self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings))
+
+    def test_checker_does_not_let_single_delivery_glance_carry_whole_standard_piece(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "外卖员把袋子递过来，说路上洒了一点。",
+                "他好像往里看了一眼，屋里太乱了，桌上还有昨天的快餐盒。",
+                "我赶紧说了声谢谢，把门关上。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
+            self.assertTrue(any("段落发动机信号偏弱" in item["rule"] for item in findings))
 
     def test_checker_does_not_count_private_stomach_noise_as_rough_signal(self) -> None:
         body = "\n".join(
