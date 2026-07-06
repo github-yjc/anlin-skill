@@ -44,6 +44,7 @@ Choose the title after drafting:
 - tidy thesis titles: `不算坏事`, `没发出去的消息`, `给不存在的人写信`
 - short sincere main-prop loops: `鸡蛋`, `一袋鸡蛋`, `塑料袋`, `屏幕`, or `没发出去的消息` when the same prop opens the body, proves mother/family memory, and returns in the ending
 - clever titles that require the ending to explain them
+- tail-button sentence titles such as `明天再说吧`, `不想起来了`, or another final-line phrase when the ending repeats or completes the same phrase
 - title/first-five-lines/ending all pointing to the same prompt noun
 
 High-risk does not mean forbidden. Some corpus titles directly name spring recruitment or delivery work. The difference is function: an original title can be an immediate wound or joke; a generated title often becomes a diagnostic tag for the assignment. If using a prompt-adjacent `X日寄`, make the opening and ending less diagnostic and let the body contain off-axis residue.
@@ -55,4 +56,5 @@ High-risk does not mean forbidden. Some corpus titles directly name spring recru
 - If title is too bland: choose a modifier from a real body consequence, not from the prompt.
 - If title is too literary: remove the abstract feeling and use the object/action that caused it.
 - If title and ending close too neatly: keep the stronger one and lower the other into a practical consequence.
+- If the title repeats the last line or makes the last line feel written to justify the title, change one side: use a weaker side handle as title, or let the ending leave through another unfinished chore, reply, payment, object, or body nuisance.
 - If a short sincere title is the main prompt prop: retitle from the present failure, such as a sleeve, door, wrong reply, sink, bowl, slipper, or low-status object; if the old prop remains, stop using it as the ending proof.

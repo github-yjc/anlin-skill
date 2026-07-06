@@ -2388,6 +2388,33 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(result.returncode, 3)
             self.assertIn("early_comma_ratio", result.stdout)
             self.assertIn("soften_line_endings.py", result.stdout)
+            self.assertIn("if you edit draft.md after that script, rerun the script before checking", result.stdout)
+
+    def test_clean_run_checker_preflight_orders_content_repair_before_soften_script(self) -> None:
+        line = "其实我觉得窗户有点冷，好像手机也卡，于是把杯子放回桌上。"
+        body = "\n".join(["# 日寄", "", *([line] * 46)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLEAN_RUN_CHECKER),
+                    str(draft),
+                    "--strict",
+                    "--draft-gate",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+            self.assertIn("early_comma_ratio", result.stdout)
+            self.assertIn("rough_self_damage=missing", result.stdout)
+            self.assertIn("combined with content repairs", result.stdout)
+            self.assertIn("as the last action before the wrapper", result.stdout)
+            self.assertIn("if you edit draft.md after that script, rerun the script before checking", result.stdout)
 
     def test_clean_run_checker_allows_near_miss_connector_draft_to_reach_checker(self) -> None:
         lines = [
@@ -5855,6 +5882,7 @@ class AnlinToolingTests(unittest.TestCase):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
         runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        title_model = (ROOT / "references" / "title-model.md").read_text(encoding="utf-8")
         anti_ai = (ROOT / "references" / "anti-ai-slop.md").read_text(encoding="utf-8")
         modes = (ROOT / "references" / "generation-modes.md").read_text(encoding="utf-8")
         validation = (ROOT / "references" / "validation-protocol.md").read_text(encoding="utf-8")
@@ -5887,6 +5915,11 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("the metric names changed", clean)
         self.assertIn("For 朋友圈, short-video feeds, annual-summary feeds", clean)
         self.assertIn("Do not write a feed montage", clean)
+        self.assertIn("phone/feed -> order food -> wrong item -> wash bowl -> bed", clean)
+        self.assertIn("run `soften_line_endings.py` last before the next wrapper call", clean)
+        self.assertIn("final-line phrase such as `明天再说吧`", clean)
+        self.assertIn("tail-button sentence titles", title_model)
+        self.assertIn("makes the last line feel written to justify the title", title_model)
         self.assertIn("screen-archaeology chain", skill)
         self.assertIn("old-chat records", clean)
         self.assertIn("Use visible breathing clusters before the first file write", clean)
@@ -6195,6 +6228,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("If draft-gate reports `高频词覆盖不足`", runtime)
         self.assertIn("For 朋友圈, short-video, annual-summary, old-chat", runtime)
         self.assertIn("A feed is not a scene slate", runtime)
+        self.assertIn("sealed story shape", runtime)
+        self.assertIn("finish any content repair first", runtime)
         self.assertIn("For invitations, weddings, reunions", clean)
         self.assertIn("For stranger, shopkeeper, vendor", clean)
         self.assertIn("do not turn the encounter into a quoted transcript", clean)

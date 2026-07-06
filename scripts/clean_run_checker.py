@@ -669,9 +669,17 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             "for overfilled length, cut unsupported/non-consequential texture after the visible shape is stable; do not add more body, screen, route, or money proof"
         )
     if "early_comma_ratio=" in joined_messages:
-        repair_hints.append(
-            "for early_comma_ratio, run `python <skill-dir>/scripts/soften_line_endings.py draft.md --in-place` before hand editing; line-final commas must continue an action or thought"
-        )
+        if "rough_self_damage=missing" in joined_messages or underbuilt_source or near_miss_short:
+            repair_hints.append(
+                "for early_comma_ratio combined with content repairs, make the content repair first, then run "
+                "`python <skill-dir>/scripts/soften_line_endings.py draft.md --in-place` as the last action before "
+                "the wrapper; if you edit draft.md after that script, rerun the script before checking"
+            )
+        else:
+            repair_hints.append(
+                "for early_comma_ratio, run `python <skill-dir>/scripts/soften_line_endings.py draft.md --in-place` "
+                "before the wrapper; if you edit draft.md after that script, rerun the script before checking"
+            )
     if "rough_self_damage=missing" in joined_messages:
         repair_hints.append(
             "for rough_self_damage, add one losing-face body/social consequence; pain or heat alone is too polite"
