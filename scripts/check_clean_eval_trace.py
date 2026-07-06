@@ -147,6 +147,8 @@ def actual_draft_write_index(text: str) -> int:
         r"(?im)^\s*TITLE\s+Write\s+draft\.md\b",
         r"(?im)^\s*TOOL\s+filesystem_write_file\b[^\n]*(?:\n[^\n]*){0,3}draft\.md\b",
         r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*draft\.md[^\n]*(?:content|write)",
+        r"(?im)^\s*(?:\$|>|>>)?\s*(?:@['\"]\s*\|\s*)?(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?\.?/?draft\.md['\"]?\b",
+        r"(?im)^\s*['\"]@?\s*\|\s*(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?\.?/?draft\.md['\"]?\b",
     ]
     indices: list[int] = []
     for pattern in patterns:
@@ -164,6 +166,10 @@ def actual_nonrelative_draft_write_index(text: str) -> int:
         r"(?im)^\s*TITLE\s+Write\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
         r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*[A-Za-z]:/[^\n]*draft\.md[^\n]*(?:content|write)",
         r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*/(?:skills|skill-dir|anlin-writing)/[^\n]*draft\.md[^\n]*(?:content|write)",
+        r"(?im)^\s*(?:\$|>|>>)?\s*(?:@['\"]\s*\|\s*)?(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?[A-Za-z]:/[^\n]*draft\.md\b",
+        r"(?im)^\s*['\"]@?\s*\|\s*(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?[A-Za-z]:/[^\n]*draft\.md\b",
+        r"(?im)^\s*(?:\$|>|>>)?\s*(?:@['\"]\s*\|\s*)?(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?[^'\"]*/(?:skills|skill-dir|anlin-writing)/[^\n]*draft\.md\b",
+        r"(?im)^\s*['\"]@?\s*\|\s*(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?[^'\"]*/(?:skills|skill-dir|anlin-writing)/[^\n]*draft\.md\b",
     ]
     loose_patterns = [
         r"(?i)(?:←|\?|TITLE)\s*Write\s+(?!\.?[/\\]?draft\.md\b).{0,260}draft\.md\b",

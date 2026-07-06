@@ -2465,6 +2465,36 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertFalse(any(item["severity"] == "error" for item in findings), findings)
 
+    def test_clean_eval_trace_accepts_powershell_relative_set_content_write(self) -> None:
+        log = '''
+        → Read C:/skill/references/clean-generation-brief.md
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        ✗ Invalid Tool
+        The arguments provided to the tool are invalid: Invalid input for tool write.
+        "@ | Set-Content -Path "draft.md" -Encoding UTF8
+        $ python "C:/skill/scripts/clean_run_checker.py" draft.md --strict --draft-gate
+        CLEAN_RUN_NOTE: checker call 1/2
+        "@ | Set-Content -Path "draft.md" -Encoding UTF8
+        $ python "C:/skill/scripts/clean_run_checker.py" draft.md --strict --draft-gate
+        CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2. DO NOT WRITE draft.md.
+        → Read draft.md
+        '''
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            findings = json.loads(result.stdout)
+            self.assertFalse(any(item["severity"] == "error" for item in findings), findings)
+            self.assertTrue(any(item["rule"] == "无效工具调用" for item in findings), findings)
+
     def test_clean_eval_trace_rejects_missing_persisted_draft_even_if_reference_mentions_checker(self) -> None:
         log = """
         $ Test-Path .anlin-clean-eval-mode
@@ -2522,6 +2552,31 @@ class AnlinToolingTests(unittest.TestCase):
         → Read C:/skill/references/clean-generation-brief.md
         ← Write C:/agent/config/opencode/skills/anlin-writing/iteration-44/eval-07-mothers-day-sin
         cere/draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval写稿路径不是相对draft.md", rules)
+            self.assertIn("clean-eval未写入draft.md", rules)
+
+    def test_clean_eval_trace_flags_powershell_nonrelative_set_content_path(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        → Read C:/skill/references/clean-generation-brief.md
+        "@ | Set-Content -Path "C:/agent/config/opencode/skills/anlin-writing/iteration-49/eval-07/draft.md" -Encoding UTF8
         $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
         """
         with tempfile.TemporaryDirectory() as temp:
