@@ -2743,6 +2743,65 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertIn("clean-eval直接调用普通checker", rules)
 
+    def test_clean_eval_trace_flags_rewrite_after_rhythm_script_without_rerun(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        → Read C:/skill/references/clean-generation-brief.md
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_PREFLIGHT: draft is not ready for checker call 1/2
+        $ python C:/skill/scripts/rebalance_line_rhythm.py draft.md --in-place
+        ← Read draft.md
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("节奏脚本后重写未重跑节奏修复", rules)
+
+    def test_clean_eval_trace_allows_rewrite_after_rhythm_script_when_rerun_before_checker(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        → Read C:/skill/references/clean-generation-brief.md
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_PREFLIGHT: draft is not ready for checker call 1/2
+        $ python C:/skill/scripts/rebalance_line_rhythm.py draft.md --in-place
+        ← Write draft.md
+        $ python C:/skill/scripts/rebalance_line_rhythm.py draft.md --in-place
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("节奏脚本后重写未重跑节奏修复", rules)
+
     def test_clean_eval_trace_flags_parent_skill_directory_rediscovery(self) -> None:
         log = """
         → Skill "anlin-writing"

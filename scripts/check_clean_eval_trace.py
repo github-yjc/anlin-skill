@@ -28,6 +28,7 @@ VISIBLE_PROCESS_CHATTER_PATTERNS = [
     re.compile(r"(?i)paying attention to:"),
     re.compile(r"(?i)the checker (?:requires|reports|detected|says)"),
 ]
+RHYTHM_SCRIPTS_PATTERN = r"(?:rebalance_line_rhythm|split_long_lines|merge_short_lines|soften_line_endings)\.py\b"
 
 
 @dataclass(frozen=True)
@@ -127,18 +128,31 @@ def first_index(text: str, patterns: list[str]) -> int:
     return min(indices) if indices else -1
 
 
-def actual_clean_run_checker_index(text: str) -> int:
+def regex_action_indices(text: str, patterns: list[str]) -> list[int]:
+    indices: set[int] = set()
+    for pattern in patterns:
+        for match in re.finditer(pattern, text):
+            indices.add(match.start())
+    return sorted(indices)
+
+
+def first_regex_action_index(text: str, patterns: list[str]) -> int:
+    indices = regex_action_indices(text, patterns)
+    return indices[0] if indices else -1
+
+
+def actual_clean_run_checker_indices(text: str) -> list[int]:
     patterns = [
         r"(?im)^\s*\$\s+[^\n]*clean_run_checker\.py\b",
         r"(?im)^\s*TITLE\s+[^\n]*clean_run_checker\.py\b",
         r"(?im)^\s*INPUT\s+[^\n]*(?:command|cmd)[^\n]*clean_run_checker\.py\b",
     ]
-    indices: list[int] = []
-    for pattern in patterns:
-        match = re.search(pattern, text)
-        if match:
-            indices.append(match.start())
-    return min(indices) if indices else -1
+    return regex_action_indices(text, patterns)
+
+
+def actual_clean_run_checker_index(text: str) -> int:
+    indices = actual_clean_run_checker_indices(text)
+    return indices[0] if indices else -1
 
 
 def actual_normal_checker_index(text: str) -> int:
@@ -170,6 +184,45 @@ def actual_draft_write_index(text: str) -> int:
         if match:
             indices.append(match.start())
     return min(indices) if indices else -1
+
+
+def actual_draft_mutation_indices(text: str) -> list[int]:
+    patterns = [
+        r"(?im)^\s*(?:←\s*)?(?:Write|Edit)\s+\.?[/\\]?draft\.md\b",
+        r"(?im)^\s*TITLE\s+(?:Write|Edit)\s+\.?[/\\]?draft\.md\b",
+        r"(?im)^\s*TOOL\s+filesystem_(?:write|edit)_file\b[^\n]*(?:\n[^\n]*){0,4}draft\.md\b",
+        r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*draft\.md[^\n]*(?:content|write|edit|old_string|new_string)",
+        r"(?im)^\s*(?:\$|>|>>)?\s*(?:@['\"]\s*\|\s*)?(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?\.?[/\\]?draft\.md['\"]?\b",
+        r"(?im)^\s*['\"]@?\s*\|\s*(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?\.?[/\\]?draft\.md['\"]?\b",
+    ]
+    return regex_action_indices(text, patterns)
+
+
+def actual_rhythm_script_indices(text: str) -> list[int]:
+    patterns = [
+        rf"(?im)^\s*\$\s+[^\n]*{RHYTHM_SCRIPTS_PATTERN}",
+        rf"(?im)^\s*TITLE\s+[^\n]*{RHYTHM_SCRIPTS_PATTERN}",
+        rf"(?im)^\s*INPUT\s+[^\n]*(?:command|cmd)[^\n]*{RHYTHM_SCRIPTS_PATTERN}",
+    ]
+    return regex_action_indices(text, patterns)
+
+
+def stale_rhythm_rewrite_indices(text: str) -> tuple[int, int] | None:
+    rhythm_indices = actual_rhythm_script_indices(text)
+    if not rhythm_indices:
+        return None
+    draft_mutations = actual_draft_mutation_indices(text)
+    checker_indices = actual_clean_run_checker_indices(text)
+    for mutation_index in draft_mutations:
+        if not any(rhythm_index < mutation_index for rhythm_index in rhythm_indices):
+            continue
+        next_checker = next((checker for checker in checker_indices if checker > mutation_index), None)
+        if next_checker is None:
+            continue
+        rhythm_after_mutation = any(mutation_index < rhythm_index < next_checker for rhythm_index in rhythm_indices)
+        if not rhythm_after_mutation:
+            return mutation_index, next_checker
+    return None
 
 
 def actual_nonrelative_draft_write_index(text: str) -> int:
@@ -337,6 +390,18 @@ def collect_findings(text: str) -> list[TraceFinding]:
                 "clean-eval首稿前搜索父级skill目录",
                 clean_excerpt(pre_draft, parent_skill_index),
                 "After anlin-writing has triggered, do not glob/search parent or sibling skill directories to rediscover it. Use the loaded skill instructions, persist draft.md, and let the controller validate the artifact.",
+            )
+        )
+
+    stale_rhythm = stale_rhythm_rewrite_indices(normalized)
+    if stale_rhythm is not None:
+        mutation_index, _checker_index = stale_rhythm
+        findings.append(
+            TraceFinding(
+                "error",
+                "节奏脚本后重写未重跑节奏修复",
+                clean_excerpt(normalized, mutation_index),
+                "If draft.md is written or edited after a rhythm script in bounded clean-eval, rerun the relevant rhythm script or preserve the same line-broken corridor before the next clean_run_checker.py call. A previous split/merge/rebalance does not apply to a newly overwritten draft.",
             )
         )
 
