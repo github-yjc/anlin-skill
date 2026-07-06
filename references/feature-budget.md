@@ -49,6 +49,7 @@ These apply to all normal generation:
 39. No main-prop title loop in short sincere: do not let a title like `鸡蛋`, `一袋鸡蛋`, `塑料袋`, `屏幕`, or `没发出去的消息` become the object that opens the body, proves the memory, carries the withheld message, and closes the ending. Prefer a side-action title from today's failed action. If a prompt-prop title remains, the body and tail must stop using it as the emotional proof.
 40. No short-genre expansion drift: once a sincere or micro-hope corridor is selected, repair must not turn it into a standard diary by adding relation exposition, transfer/account scenes, extra social packets, or 900+ character proof-story bulk. Keep the selected genre locked and repair by cutting drift, not by satisfying another genre's length/rhythm gates.
 41. No unsupported major family status: do not invent that the mother or close family member is dead, gone, no longer there, or unreachable to make a short sincere piece feel heavier. Unless the user supplied it, lower the pressure to a current failed reply, missed call, unfinished transfer, room chore, or visible action stop.
+42. No standard prompt-prop title loop: in standard diary, do not let `备注`, `香菜`, `礼物`, `玫瑰`, `优惠券`, `朋友圈`, or another prompt prop become title, opening engine, and tail proof at the same time. These nouns can appear when the scene earns them, but if they organize the whole article, reset the source through a side consequence such as door/hallway exposure, payment, dirty hand, wrong reply, sink, rider/shopkeeper, or another person's reaction.
 
 ## Strong Defaults
 
@@ -100,6 +101,7 @@ Avoid:
 - a visible opening/ending mirror that makes the piece feel designed
 - static image chains where every object becomes a symbol
 - title-to-ending closure that tells the judge the piece was designed around one idea
+- one prompt prop such as an app note, condiment, gift, feed item, coupon, or final practical phrase becoming the title, first engine, and final proof
 - reader-risk fixes that appear only as visible technique: artificially spaced slang, scheduled broken sentences, or one "random" object inserted every paragraph
 - a middle section that still loops through the prompt nouns while pretending to drift
 - line rhythm that looks mechanically cut to avoid prose blocks

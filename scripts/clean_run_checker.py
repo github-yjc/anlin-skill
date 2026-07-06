@@ -51,6 +51,7 @@ from check_anlin_violations import (  # noqa: E402
     short_genre_present_action_anchor_risk,
     short_genre_prompt_prop_too_early_risk,
     short_genre_repair_stuffing_groups,
+    standard_prompt_prop_title_loop_risk,
     set_forced_genre,
     split_title_and_content_lines,
 )
@@ -500,6 +501,12 @@ def preflight_messages(draft: Path) -> list[str]:
         or len(engine_hits) < 3
         or (not rough_terms and not rough_patterns)
     )
+    standard_prop_loop_risk = standard_prompt_prop_title_loop_risk(text.splitlines(), text)
+    if standard_prop_loop_risk:
+        messages.append(
+            "standard_prompt_prop_title_loop="
+            + json.dumps(standard_prop_loop_risk, ensure_ascii=False)
+        )
     if body_chars < 900:
         messages.append(f"body_chinese_chars={body_chars} < 900")
     elif body_chars < 950 and source_shape_weak:
@@ -586,6 +593,9 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     )
     title_issue = any(message.startswith("missing_title=") for message in messages)
     missing_breath = any("short_breath_lines=" in message for message in messages)
+    standard_prompt_loop = any(
+        message.startswith("standard_prompt_prop_title_loop=") for message in messages
+    )
     near_miss_short = (
         any("body_lines=" in message and "< 45" in message for message in messages)
         or any(message.startswith("body_chinese_chars=") and ("< 900" in message or "< 950" in message) for message in messages)
@@ -628,6 +638,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if missing_breath:
         repair_hints.append(
             "for short_breath_lines, add a few real <=8-character drops such as an ugly reply, failed decision, or small retreat; do not add decorative one-word captions"
+        )
+    if standard_prompt_loop:
+        repair_hints.append(
+            "for standard_prompt_prop_title_loop, do a source reset instead of retitling only: choose a side consequence as the title, cut one prompt-prop echo from opening or tail, and rebuild the middle from a door, hallway, payment, dirty hand, wrong reply, sink, rider/shopkeeper, or another person's reaction so the prompt prop appears only as one pressure surface"
         )
     if underbuilt_short_genre:
         repair_hints.append(
@@ -746,6 +760,12 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
                 "the source loop, and rewrite `draft.md` as a complete line-broken article with a working middle. "
                 "Do not add a few isolated symptoms, app lines, or short captions on top of the weak draft; then "
                 "run this wrapper again."
+            )
+        elif standard_prompt_loop:
+            revision_frame = (
+                "Reset the standard-diary source loop: the title/opening/tail are all obeying the same prompt prop. "
+                "Retitle from a side consequence, cut one visible prompt-prop packet, rebuild the middle through a "
+                "practical or social consequence, then run this wrapper again. Do not merely replace the title word."
             )
         elif underbuilt_short_genre:
             revision_frame = (

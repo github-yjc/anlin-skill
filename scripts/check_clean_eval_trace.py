@@ -8,6 +8,7 @@ import json
 import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Any
 
 
 FORBIDDEN_PRE_DRAFT_REFERENCES = [
@@ -102,7 +103,7 @@ def extract_json_event_trace(text: str) -> str:
         if title:
             chunks.append(f"TITLE {title}")
         if tool_input is not None:
-            chunks.append(f"INPUT {json.dumps(tool_input, ensure_ascii=False)}")
+            chunks.append(f"INPUT {json.dumps(sanitized_tool_input(tool_input), ensure_ascii=False)}")
 
         # Loading the skill itself dumps the whole SKILL.md body. That body is
         # instruction text, not an additional pre-draft reference read.
@@ -125,6 +126,21 @@ def extract_json_event_trace(text: str) -> str:
             chunks.append(f"OUTPUT {output}")
 
     return "\n".join(chunks) if chunks else text
+
+
+def sanitized_tool_input(value: Any) -> Any:
+    """Keep action-bearing fields while omitting large free-text payloads."""
+    if isinstance(value, dict):
+        sanitized: dict[str, Any] = {}
+        for key, child in value.items():
+            if key in {"content", "text", "body"} and isinstance(child, str):
+                sanitized[key] = "<content omitted>"
+            else:
+                sanitized[key] = sanitized_tool_input(child)
+        return sanitized
+    if isinstance(value, list):
+        return [sanitized_tool_input(item) for item in value]
+    return value
 
 
 def first_index(text: str, patterns: list[str]) -> int:
@@ -277,7 +293,6 @@ def actual_nonrelative_draft_write_index(text: str) -> int:
     ]
     loose_patterns = [
         r"(?i)(?:←|\?|TITLE)\s*Write\s+(?!\.?[/\\]?draft\.md\b).{0,260}draft\.md\b",
-        r"(?i)TOOL\s+(?:write|filesystem_write_file)\b.{0,1200}INPUT\s+\{.{0,1200}(?:path|file)[^{}]{0,80}[A-Za-z]:/.{0,260}draft\.md\b",
     ]
     indices: list[int] = []
     for haystack in (text, folded_text):

@@ -813,6 +813,63 @@ THEME_DOMAINS = {
         "2024",
     ],
 }
+STANDARD_PROMPT_PROP_TITLE_TERMS = [
+    "备注",
+    "香菜",
+    "麻辣烫",
+    "外卖",
+    "订单",
+    "优惠券",
+    "朋友圈",
+    "玫瑰",
+    "礼物",
+    "红包",
+    "转账",
+    "收款",
+    "已读",
+    "点赞",
+    "短视频",
+    "情人节",
+    "康乃馨",
+]
+STANDARD_PROMPT_PROP_CONTEXT_TERMS = sorted(
+    {
+        "备注",
+        "香菜",
+        "麻辣烫",
+        "外卖",
+        "订单",
+        "优惠券",
+        "配送",
+        "骑手",
+        "店家",
+        "朋友圈",
+        "玫瑰",
+        "礼物",
+        "情侣",
+        "对象",
+        "情人节",
+        "红包",
+        "转账",
+        "收款",
+        "已读",
+        "点赞",
+        "短视频",
+        "康乃馨",
+        "母亲节",
+        "跨年",
+        "新年",
+        "年度总结",
+        "聊天记录",
+    },
+    key=len,
+    reverse=True,
+)
+STANDARD_PROMPT_PROP_SECONDARY_TERMS = [
+    term
+    for term in STANDARD_PROMPT_PROP_CONTEXT_TERMS
+    if term not in {"配送", "店家", "对象", "情侣"}
+]
 TIME_ARCHIVE_TERMS = [
     "跨年",
     "新年",
@@ -1179,6 +1236,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "社交拒绝纹理替代后果不足",
     "社交拒绝编剧化回礼",
     "社交拒绝私密转账假后果",
+    "标准日寄提示物标题闭环",
     "逗号密度过高",
     "行末逗号比例",
     "节奏过度均匀",
@@ -3063,6 +3121,120 @@ def check_connector_overuse(findings: list[Finding], text: str) -> None:
         )
 
 
+def standard_prompt_prop_title_loop_risk(lines: list[str], text: str) -> dict[str, Any] | None:
+    """Detect standard-diary drafts organized by one prompt prop.
+
+    A concrete prop is not a problem by itself. It becomes risky when the title,
+    opening, and tail all keep the same prop or prompt packet as the article's
+    proof structure.
+    """
+    title, content_lines = split_title_and_content_lines(lines)
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
+        return None
+    visible_lines = [
+        line.strip()
+        for line in content_lines
+        if line.strip() and not line.strip().startswith("<!--")
+    ]
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < STANDARD_DIARY_FORMAL_MIN_CHARS or len(visible_lines) < 30:
+        return None
+
+    normalized_title = re.sub(r"[\s#《》「」『』“”\"'，。！？!?:：、]+", "", title)
+    title_hits = [
+        term for term in STANDARD_PROMPT_PROP_TITLE_TERMS if term in normalized_title
+    ]
+    if not title_hits:
+        return None
+
+    surface = "\n".join([normalized_title, body])
+    prompt_context_hits = [
+        term for term in STANDARD_PROMPT_PROP_CONTEXT_TERMS if term in surface
+    ]
+    if len(prompt_context_hits) < 3:
+        return None
+
+    opening = "\n".join(visible_lines[:8])
+    tail = "\n".join(visible_lines[-8:])
+    title_echo_count = max(body.count(term) for term in title_hits)
+    title_open_echo = any(term in opening for term in title_hits)
+    title_tail_echo = any(term in tail for term in title_hits)
+    secondary_hits = [
+        term
+        for term in STANDARD_PROMPT_PROP_SECONDARY_TERMS
+        if term not in title_hits and term in body
+    ]
+    secondary_echo_count = sum(body.count(term) for term in secondary_hits)
+    side_engine_lines = sum(
+        1
+        for line in visible_lines
+        if any(term in line for term in OUTSIDE_CONTACT_TERMS)
+        or any(term in line for term in EXPOSED_SOCIAL_CONSEQUENCE_TERMS)
+        or any(term in line for term in ROUGH_SELF_DAMAGE_TERMS)
+        or any(re.search(pattern, line) for pattern in ROUGH_SELF_DAMAGE_PATTERNS)
+    )
+
+    risk_score = 0
+    reasons: list[str] = []
+    if title_echo_count >= 4:
+        risk_score += 3
+        reasons.append(f"title_prop_echo_count={title_echo_count}")
+    elif title_echo_count >= 2:
+        risk_score += 1
+        reasons.append(f"title_prop_echo_count={title_echo_count}")
+    if title_open_echo:
+        risk_score += 1
+        reasons.append("title_prop_opening_echo")
+    if title_tail_echo:
+        risk_score += 2
+        reasons.append("title_prop_tail_echo")
+    if len(prompt_context_hits) >= 5:
+        risk_score += 2
+        reasons.append(f"prompt_context_count={len(prompt_context_hits)}")
+    elif len(prompt_context_hits) >= 3:
+        risk_score += 1
+        reasons.append(f"prompt_context_count={len(prompt_context_hits)}")
+    if len(secondary_hits) >= 2 or secondary_echo_count >= 4:
+        risk_score += 1
+        reasons.append(f"secondary_prompt_echo={secondary_hits[:6]}")
+    if side_engine_lines <= 2:
+        risk_score += 1
+        reasons.append(f"side_engine_lines={side_engine_lines}")
+
+    if risk_score < 5:
+        return None
+    return {
+        "body_chars": body_chars,
+        "body_lines": len(visible_lines),
+        "title": normalized_title,
+        "title_hits": title_hits[:4],
+        "title_echo_count": title_echo_count,
+        "title_open_echo": title_open_echo,
+        "title_tail_echo": title_tail_echo,
+        "prompt_context_hits": prompt_context_hits[:8],
+        "secondary_hits": secondary_hits[:8],
+        "secondary_echo_count": secondary_echo_count,
+        "side_engine_lines": side_engine_lines,
+        "reasons": reasons[:8],
+    }
+
+
+def check_standard_prompt_prop_title_loop(findings: list[Finding], lines: list[str], text: str) -> None:
+    risk = standard_prompt_prop_title_loop_risk(lines, text)
+    if not risk:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "标准日寄提示物标题闭环",
+            0,
+            json.dumps(risk, ensure_ascii=False),
+            "标准日寄生成稿高风险：一个提示物或题面小物同时当标题、开头发动机和尾部回收，容易读成按题目搭出的完整证明链。这不是局部换词问题；重选侧面后果作标题，删弱一个提示物回声，从门口/楼道/付款/脏手/错回复/水槽/骑手或别人的反应重建中段，让题面物件只作为一次压力表面。",
+        )
+    )
+
+
 def check_diagnostic_title(findings: list[Finding], lines: list[str]) -> None:
     title, _ = split_title_and_content_lines(lines)
     if not title:
@@ -4382,6 +4554,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_short_genre_literary_story_closure(findings, lines, text)
     check_short_genre_local_packet_loop(findings, lines, text)
     check_connector_overuse(findings, text)
+    check_standard_prompt_prop_title_loop(findings, lines, text)
     check_diagnostic_title(findings, lines)
     check_high_signal_opening(findings, lines)
     check_standard_diary_length(findings, lines, text)

@@ -211,6 +211,77 @@ def short_sincere_expanded_repair_sample() -> str:
     )
 
 
+def standard_prompt_prop_title_loop_sample(title: str = "# 备注") -> str:
+    return "\n".join(
+        [
+            title,
+            "",
+            "外卖袋放在门口的时候，我还以为漏汤了，",
+            "蹲下去看，先看到小票上的备注。",
+            "不要香菜四个字印得很黑，",
+            "比我今天任何一句话都像正事。",
+            "骑手站在楼道口等我确认收货，",
+            "我手上还沾着洗碗的油。",
+            "朋友圈里有人晒情人节礼物，",
+            "玫瑰插在那种透明袋子里，看起来很会活。",
+            "我点的麻辣烫倒是不透明，",
+            "透明的是汤从袋子底下渗出来的路线。",
+            "其实我备注了两遍不要香菜，",
+            "下单的时候还检查了一遍，像在给命运发工单。",
+            "结果打开盖子，香菜浮在上面，",
+            "绿得很有单位归属感。",
+            "我把筷子伸进去挑，",
+            "挑了半天，挑出来的全是粉丝。",
+            "骑手还没走，问是不是有问题。",
+            "我说没事，声音小得像优惠券过期。",
+            "他哦了一声，电梯正好上来，",
+            "门开的时候里面有个阿姨拎着垃圾袋。",
+            "垃圾袋碰到我的裤腿，",
+            "我往后退了一下，汤袋又擦到鞋面。",
+            "那一下挺丢人的，",
+            "人还没吃上饭，先像被节日收拾了一遍。",
+            "这反应挺恶心的，",
+            "像系统把两个毫不相关的错误合并报了。",
+            "阿姨看了我一眼，",
+            "又看了看我手里那碗绿的东西。",
+            "我说不用进不用进，",
+            "结果她往旁边让了一步，我反而卡在门口。",
+            "楼道灯闪了两下，",
+            "我的手心被塑料袋勒出一道白印。",
+            "备注贴在袋子侧面，",
+            "被汤泡得翘起来，像一块很小的失败证明。",
+            "手机又亮了一下，",
+            "是店家自动发的评价提醒。",
+            "上面写亲亲记得五星，",
+            "我看着那个亲亲，觉得今天的中文有点不守法。",
+            "我本来想打电话说一下，",
+            "号码拨出去又挂了。",
+            "因为一想到要解释香菜这件事，",
+            "嘴里已经先有了香菜味。",
+            "房间里水槽还没冲干净，",
+            "碗边那圈油贴着白瓷，像不肯下班。",
+            "我把香菜挑到小票上，",
+            "小票吸了汤，备注那一行慢慢糊掉。",
+            "筷子尖沾着一点绿色，",
+            "放到桌上又把桌面染出一条细线。",
+            "我抽纸去擦，",
+            "擦完发现纸盒也空了。",
+            "朋友圈那张玫瑰照又被人点赞，",
+            "红点挂在屏幕上，很小，也很稳。",
+            "我吃了一口，",
+            "香菜味从牙缝里冒出来。",
+            "备注还在小票上，",
+            "但已经看不清了。",
+            "我拿纸去擦，",
+            "纸一碰就破，香菜粘在手指上。",
+            "最后我把小票揉成一团，",
+            "丢进垃圾桶的时候没丢准。",
+            "它掉在地上，",
+            "备注朝上。",
+        ]
+    )
+
+
 class AnlinToolingTests(unittest.TestCase):
     @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_checker_has_no_hard_errors_on_original_corpus(self) -> None:
@@ -1021,6 +1092,73 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(
                 any(message.startswith("short_genre_main_prop_title_loop=") for message in messages),
                 messages,
+            )
+
+    def test_checker_draft_gate_rejects_standard_prompt_prop_title_loop(self) -> None:
+        body = standard_prompt_prop_title_loop_sample()
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECKER),
+                    str(draft),
+                    "--json",
+                    "--strict",
+                    "--draft-gate",
+                    "--genre",
+                    "standard",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("strict: 标准日寄提示物标题闭环", rules)
+            suggestions = "\n".join(item["suggestion"] for item in findings)
+            self.assertIn("重选侧面后果", suggestions)
+            self.assertIn("不是局部换词", suggestions)
+
+    def test_clean_run_preflight_flags_standard_prompt_prop_title_loop(self) -> None:
+        body = standard_prompt_prop_title_loop_sample()
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(
+                any(message.startswith("standard_prompt_prop_title_loop=") for message in messages),
+                messages,
+            )
+
+    def test_checker_allows_standard_side_action_title_with_prompt_props(self) -> None:
+        body = standard_prompt_prop_title_loop_sample("# 水槽")
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECKER),
+                    str(draft),
+                    "--json",
+                    "--strict",
+                    "--draft-gate",
+                    "--genre",
+                    "standard",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(
+                any("标准日寄提示物标题闭环" in item["rule"] for item in findings),
+                [item["rule"] for item in findings],
             )
 
     def test_clean_run_preflight_flags_short_sincere_local_packet_loop(self) -> None:
@@ -3237,7 +3375,7 @@ class AnlinToolingTests(unittest.TestCase):
                         "title": "C:\\Users\\34025\\.config\\opencode\\skills\\anlin-writing-workspace\\iteration-20260706-58\\eval-09-2024-classmate-wedding\\draft.md",
                         "input": {
                             "filePath": "draft.md",
-                            "content": "日寄\n\n正文",
+                            "content": "日寄\n\n正文里偶尔出现 C:/shown/title/draft.md 这种调试残影也不能覆盖 input.filePath。",
                         },
                     },
                 },
@@ -3259,7 +3397,7 @@ class AnlinToolingTests(unittest.TestCase):
                     "state": {
                         "title": "C:\\Users\\34025\\.config\\opencode\\skills\\anlin-writing-workspace\\iteration-20260706-58\\eval-09-2024-classmate-wedding\\draft.md",
                         "input": {"filePath": "draft.md"},
-                        "output": "日寄\n\n正文",
+                        "output": "日寄\n\n正文里偶尔出现 C:/shown/title/draft.md 这种调试残影也不能覆盖 input.filePath。",
                     },
                 },
             },
@@ -6210,6 +6348,22 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("短体裁句号网格", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
         self.assertIn("token-anchor openings", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
 
+    def test_standard_prompt_prop_loop_is_source_guidance_not_only_checker(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        budget = (ROOT / "references" / "feature-budget.md").read_text(encoding="utf-8")
+        layer = (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8")
+        combined = "\n".join([skill, clean, runtime, budget, layer])
+        self.assertIn("标准日寄提示物标题闭环", combined)
+        self.assertIn("standard_prompt_prop_title_loop", combined)
+        self.assertIn("备注", combined)
+        self.assertIn("香菜", combined)
+        self.assertIn("source reset", combined.lower())
+        self.assertIn("side consequence", combined)
+        self.assertIn("door/hallway", combined)
+        self.assertIn("not a retitle-only patch", combined)
+
     def test_runtime_docs_use_current_skill_name_and_output_locations(self) -> None:
         files = [
             ROOT / "README.md",
@@ -7298,6 +7452,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("first_hit_lines", draft_gate_report["cognitive_audit"])
             self.assertIn("independent_drift_family_count", draft_gate_report["summary"])
             self.assertIn("profile_scope", draft_gate_report)
+            self.assertEqual(draft_gate_report["summary"]["repair_mode"], "source_rewrite_required")
+            self.assertIn("source structure", draft_gate_report["summary"]["next_repair_action"])
 
     def test_style_profile_strict_returns_nonzero_for_review_status(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -7375,6 +7531,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertFalse(report["summary"]["checkpoint_pass"])
             self.assertIn("review is not a finalized checkpoint pass", report["summary"]["decision_rule"])
             self.assertEqual(report["summary"]["independent_drift_family_count"], 5)
+            self.assertEqual(report["summary"]["repair_mode"], "source_reset_thinning")
+            self.assertIn("many yellow families", report["summary"]["next_repair_action"])
 
             strict_result = subprocess.run(
                 [
@@ -7411,6 +7569,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(text_result.returncode, 0, text_result.stderr)
             self.assertIn("checkpoint_decision: not_pass_review_required", text_result.stdout)
             self.assertIn("checkpoint_pass: false", text_result.stdout)
+            self.assertIn("repair_mode: source_reset_thinning", text_result.stdout)
+            self.assertIn("next_repair_action:", text_result.stdout)
 
     def test_style_profile_nonstandard_fallback_is_inconclusive_not_strict_failure(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -7520,6 +7680,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(sincere_report["summary"]["checkpoint_decision"], "profile_inconclusive_fallback")
             self.assertTrue(sincere_report["summary"]["checkpoint_pass"])
             self.assertFalse(sincere_report["summary"]["profile_gate_applicable"])
+            self.assertEqual(sincere_report["summary"]["repair_mode"], "matched_placebo_required")
+            self.assertIn("matched-original placebo", sincere_report["summary"]["next_repair_action"])
 
             text_result = subprocess.run(
                 [

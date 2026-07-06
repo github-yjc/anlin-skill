@@ -324,10 +324,43 @@ def summarize_status(findings: list[ProfileFinding]) -> dict[str, Any]:
     else:
         checkpoint_decision = "not_pass_revise"
         checkpoint_pass = False
+    if status == "green":
+        repair_mode = "none"
+        next_repair_action = "No profile repair needed; keep hard-gate, trace, overlap, and blind/placebo validation separate."
+    elif status == "yellow":
+        repair_mode = "targeted_manual_review"
+        next_repair_action = "Review the named drift families against placebo originals; avoid adding rare style features as quotas."
+    elif status == "review" and not red_families and len(independent_drift_families) >= YELLOW_REVIEW_FAMILY_THRESHOLD:
+        repair_mode = "source_reset_thinning"
+        next_repair_action = (
+            "Strict hard gate may be clean, but many yellow families mean the article still reads over-shaped. "
+            "Do one source-reset/thinning pass: cut repeated body, money, screen, route, and explicit cognition that "
+            "does not change action or social position; avoid local punctuation, connector, or line-break chasing."
+        )
+    elif status == "review" and "line_rhythm" in red_families:
+        repair_mode = "rhythm_source_reset"
+        next_repair_action = (
+            "Reset the rhythm corridor from scene movement: use breathing clusters and real action/speech/thought rows, "
+            "then validate once. Do not bounce between tiny rows, prose blocks, and comma chains."
+        )
+    elif status == "review":
+        repair_mode = "manual_placebo_review"
+        next_repair_action = (
+            "Use matched-original placebo reading before treating the profile as decisive; if repairing, change scene "
+            "function or prompt displacement instead of adding measured markers."
+        )
+    else:
+        repair_mode = "source_rewrite_required"
+        next_repair_action = (
+            "Profile status is revise. Fix hard/profile red families by changing source structure, rhythm, prompt "
+            "displacement, or fact texture before any blind round; do not tune only the metric surface."
+        )
     return {
         "status": status,
         "checkpoint_decision": checkpoint_decision,
         "checkpoint_pass": checkpoint_pass,
+        "repair_mode": repair_mode,
+        "next_repair_action": next_repair_action,
         "error_count": len(errors),
         "warning_count": len(warnings),
         "red_count": len(red_findings),
@@ -359,6 +392,11 @@ def apply_profile_scope_limits(summary: dict[str, Any], profile_scope: dict[str,
     limited["status"] = "inconclusive"
     limited["checkpoint_decision"] = "profile_inconclusive_fallback"
     limited["checkpoint_pass"] = True
+    limited["repair_mode"] = "matched_placebo_required"
+    limited["next_repair_action"] = (
+        "The requested non-standard genre fell back to global priors. Treat this as review evidence only; use "
+        "matched-original placebo reading and do not stretch the draft into standard diary shape to satisfy global ratios."
+    )
     limited["profile_gate_applicable"] = False
     limited["decision_rule"] = (
         "Non-standard genre requested but the matching stratum was too small, so the audit fell back to global priors. "
@@ -509,6 +547,8 @@ def format_report(report: dict[str, Any]) -> str:
         f"status: {report['summary']['status']}",
         f"checkpoint_decision: {report['summary']['checkpoint_decision']}",
         f"checkpoint_pass: {str(report['summary']['checkpoint_pass']).lower()}",
+        f"repair_mode: {report['summary'].get('repair_mode', 'unknown')}",
+        f"next_repair_action: {report['summary'].get('next_repair_action', '')}",
         f"profile_gate_applicable: {str(report['summary'].get('profile_gate_applicable', True)).lower()}",
         f"errors: {report['summary']['error_count']}",
         f"warnings: {report['summary']['warning_count']}",
