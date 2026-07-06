@@ -618,7 +618,12 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         )
     if overfragmented_shape:
         repair_hints.append(
-            "for short-grid drift, overfragmented grids, or too few long lines, run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`; do not rewrite into many tiny rows or 30-line prose blocks"
+            "NEXT_ACTION=run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place` before hand rewriting; "
+            "then inspect the visible rows and preserve or rebuild at least six rough longer action/speech/thought lines"
+        )
+        repair_hints.append(
+            "for short-grid drift, overfragmented grids, or too few long lines, do not rewrite into many tiny rows or 30-line prose blocks; "
+            "after the rhythm reset, repair the source movement rather than counting line breaks"
         )
     if missing_breath:
         repair_hints.append(
@@ -727,6 +732,13 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
                 "Reset the visible shape first, then repair the source: do not mentally estimate 55-68 lines and do "
                 "not rewrite another prose block. Run the rhythm reset named below, inspect the actual draft, then "
                 "rewrite only within a 45-70-line article shape with a working middle."
+            )
+        elif overfragmented_shape:
+            revision_frame = (
+                "Reset the short-line grid before content rewriting: run the rhythm reset named below, inspect the "
+                "actual body rows, then rebuild inside that corridor with several longer action/speech/thought lines, "
+                "true short breath drops, and one rough social/body consequence. Do not answer this by writing a new "
+                "80+ row caption grid or a 30-line prose block."
             )
         elif underbuilt_source:
             revision_frame = (

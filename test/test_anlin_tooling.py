@@ -1567,6 +1567,32 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any("无依据重大家庭变故" in rule for rule in error_rules), error_rules)
             self.assertFalse(any("标准日寄行数缓冲异常" in rule for rule in error_rules), error_rules)
 
+    def test_checker_does_not_treat_shop_owner_moved_away_as_family_loss(self) -> None:
+        body = "\n".join(
+            [
+                "# 门口",
+                "",
+                "母亲节那天手机亮了一下。",
+                "我没点开，手上还有一点油。",
+                "楼下那家粉店以前是个老板娘看着，",
+                "她去年搬走了，店面兑给了别人。",
+                "现在汤有点咸，塑料勺子也软，",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("无依据重大家庭变故" in item["rule"] for item in findings), findings)
+
     def test_clean_run_preflight_flags_short_sincere_tiny_row_grid(self) -> None:
         body = "\n".join(
             [
@@ -2012,6 +2038,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("long_lines=0 < 3", preflight.stdout)
             self.assertIn("short_line_grid=", preflight.stdout)
             self.assertIn("rebalance_line_rhythm.py", preflight.stdout)
+            self.assertIn("NEXT_ACTION=run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`", preflight.stdout)
             self.assertIn("short-grid drift", preflight.stdout)
             self.assertIn("Do not summarize, quote, or enumerate these diagnostics as a TODO list", preflight.stdout)
             self.assertIn("change scene movement, rhythm, or local surface only", preflight.stdout)
@@ -2046,6 +2073,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("< 900", preflight.stdout)
             self.assertIn("medium_short_line_grid=present", preflight.stdout)
             self.assertIn("long_lines=0 < 6", preflight.stdout)
+            self.assertIn("NEXT_ACTION=run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`", preflight.stdout)
             self.assertIn("underbuilt source shape", preflight.stdout)
             self.assertIn("source-loop rewrite after the visible shape is reset", preflight.stdout)
             self.assertIn("do not patch with isolated line additions", preflight.stdout)
@@ -5523,6 +5551,29 @@ class AnlinToolingTests(unittest.TestCase):
                 "# 22日寄",
                 "",
                 "他隔了一会儿又发了个红包，说让我沾点喜气，我点开只有一块两毛五。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("评论链公式化转述" in item["rule"] for item in findings))
+
+    def test_checker_does_not_treat_ambient_someone_talking_as_comment_chain(self) -> None:
+        body = "\n".join(
+            [
+                "# 门口",
+                "",
+                "外面好像有人说话，听不清，",
+                "我把塑料袋往门后塞了一下，手背上还有油。",
                 *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
             ]
         )

@@ -114,12 +114,39 @@ COMMENT_CHAIN_CONTEXT_TERMS = [
     "弹幕",
     "第一条",
     "第二条",
-    "有人",
-    "有个人",
-    "另一个",
     "被人",
 ]
 CONTEXTUAL_COMMENT_CHAIN_MARKERS = ["跟了个", "被人回", "又发了个"]
+COMMENT_CHAIN_ACTOR_MARKERS = {
+    "有人说",
+    "有人回",
+    "有人问",
+    "有人发了",
+    "有人发了张",
+    "有个人问",
+    "另一个人说",
+    "一个说",
+    "又有人",
+}
+ONLINE_COMMENT_CONTEXT_TERMS = [
+    "底下",
+    "下面",
+    "评论",
+    "评论区",
+    "回复",
+    "热评",
+    "群里",
+    "群聊",
+    "微信群",
+    "帖子",
+    "视频",
+    "弹幕",
+    "朋友圈",
+    "转发",
+    "截图",
+    "第一条",
+    "第二条",
+]
 LOW_FREQUENCY_TERMS = ["然而", "因此", "可是", "也许", "或许", "认为", "意识到"]
 HIGH_FREQUENCY_TERMS = ["其实", "觉得", "发现", "好像", "不过", "突然", "于是", "因为", "所以"]
 CONNECTOR_OVERUSE_TERMS = [
@@ -1851,9 +1878,14 @@ def check_background_fact_specificity(findings: list[Finding], lines: list[str])
 
 
 MAJOR_FAMILY_LOSS_PATTERNS = [
-    re.compile(r"(?:我妈|妈妈|母亲|她)[^。！？\n]{0,18}(?:不在了|去世|过世|没了|走了)"),
-    re.compile(r"(?:不在了|去世|过世|没了|走了)[^。！？\n]{0,18}(?:我妈|妈妈|母亲|她)"),
+    re.compile(r"(?:我妈|妈妈|母亲)[^。！？\n]{0,18}(?:不在了|去世|过世|没了|走了)"),
+    re.compile(r"(?:不在了|去世|过世|没了|走了)[^。！？\n]{0,18}(?:我妈|妈妈|母亲)"),
 ]
+PRONOUN_MAJOR_FAMILY_LOSS_PATTERNS = [
+    re.compile(r"她[^。！？\n]{0,18}(?:不在了|去世|过世|没了|(?<!搬)走了)"),
+    re.compile(r"(?:不在了|去世|过世|没了|(?<!搬)走了)[^。！？\n]{0,18}她"),
+]
+LOCAL_MOTHER_CONTEXT_TERMS = ("我妈", "妈妈", "母亲")
 
 
 def check_major_family_status_fabrication(findings: list[Finding], lines: list[str]) -> None:
@@ -1862,7 +1894,13 @@ def check_major_family_status_fabrication(findings: list[Finding], lines: list[s
     if not family_context:
         return
     for line_number, line in enumerate(lines, start=1):
-        if any(pattern.search(line) for pattern in MAJOR_FAMILY_LOSS_PATTERNS):
+        local_window = "\n".join(lines[max(0, line_number - 6) : min(len(lines), line_number + 3)])
+        explicit_loss = any(pattern.search(line) for pattern in MAJOR_FAMILY_LOSS_PATTERNS)
+        pronoun_loss = (
+            any(pattern.search(line) for pattern in PRONOUN_MAJOR_FAMILY_LOSS_PATTERNS)
+            and any(term in local_window for term in LOCAL_MOTHER_CONTEXT_TERMS)
+        )
+        if explicit_loss or pronoun_loss:
             findings.append(
                 Finding(
                     "warning",
@@ -3502,17 +3540,23 @@ def comment_chain_formula_hits(line: str) -> list[str]:
     """Return formulaic online-comment/group-chain markers for a single line."""
     hits: list[str] = []
     contextual_markers = set(CONTEXTUAL_COMMENT_CHAIN_MARKERS)
+    has_online_context = any(context in line for context in ONLINE_COMMENT_CONTEXT_TERMS)
+    has_contextual_marker = any(marker in line for marker in CONTEXTUAL_COMMENT_CHAIN_MARKERS)
     for marker in COMMENT_CHAIN_FORMULA_MARKERS:
         if marker in contextual_markers:
             continue
+        if marker in COMMENT_CHAIN_ACTOR_MARKERS:
+            if marker in line and (has_online_context or has_contextual_marker):
+                hits.append(marker)
+            continue
         if marker in line:
             hits.append(marker)
-    if any(context in line for context in COMMENT_CHAIN_CONTEXT_TERMS):
+    if has_online_context or any(context in line for context in COMMENT_CHAIN_CONTEXT_TERMS):
         for marker in CONTEXTUAL_COMMENT_CHAIN_MARKERS:
             if marker in line:
                 hits.append(marker)
     actor_hits = len(re.findall(r"(?:有人|有个人|另一个人)(?:说|回|问|发|开始)", line))
-    if actor_hits >= 2:
+    if actor_hits >= 2 and has_online_context:
         hits.append("multi_actor_chain")
     return hits
 
