@@ -49,7 +49,7 @@ Route genre before choosing length or rhythm:
 
 If genre is unspecified in clean-eval, infer the narrowest genre supported by the prompt and title/body plan. A Mother's Day direct-memory prompt should usually route to sincere mode rather than being stretched into a standard diary. A non-`日寄` title alone never proves short form; if the body is a standard diary attempt, keep standard length and rhythm.
 
-Once selected, keep the genre stable for the run. If the draft is sincere or micro-hope, do not repair it into standard diary length or material density because a global profile warning looks safer. Use `--genre sincere` or the selected non-standard genre when invoking the clean-run checker in formal testing so both preflight and hard gate apply the same corridor.
+Once selected, keep the genre stable for the run. If the prompt explicitly asks for `日寄`, `标准日寄`, or a standard complete diary, lock `standard` even when the title later becomes a side-object title and the body contains one family message. If the draft is sincere or micro-hope, do not repair it into standard diary length or material density because a global profile warning looks safer. In formal testing, pass the selected genre explicitly, including `--genre standard` for standard diary, so preflight and hard gate apply the same corridor and a generic family/screen surface does not reroute the article by accident.
 
 For sincere or micro-hope blind-evaluation drafts, shortness is allowed only when the shape is still a complete article. As a practical clean-eval floor, do not save a 250-500-character sketch and call it restraint; that usually reads like a model hiding from the prompt. When the user asks for a complete article, a short sincere draft should usually land around 650-850 body Chinese characters, about 28-55 body lines, and 4-7 uneven clusters. It needs several longer clumsy action/speech/memory/reply lines, one or two short fact-retreat drops, and a current practical consequence. A 520-649-character draft is only a narrow matched-short-original buffer; in clean-eval it should be rebuilt unless it already has real long clumsy lines and a practical turn. If it has 55+ tiny rows, mostly 4-12 Chinese-character captions, or fewer than three longer clumsy lines, merge and rebuild before writing `draft.md`; a short sincere article is not a poem-shaped grid. If it appears as 8-18 smooth paragraph lines or most lines are long complete sentences, it is still a prose-block sketch; split and rewrite into uneven clusters before saving. Do not write a polished 25-35-line prose essay where every line finishes an emotion. The roughness should come from logistics, an awkward reply, a practical interruption, bad timing, or a plain object that refuses to symbolize the feeling. If the candidate feels smooth or too small, repair the source movement before writing `draft.md`: combine adjacent memory/object facts into one rougher line, add a practical interruption already implied by the day, and delete the sentence that explains what the tenderness means. Do not expand it into standard diary length just to satisfy global ratios.
 
@@ -285,6 +285,7 @@ Avoid:
 - all lines around the same length
 - one clause per line across the whole article
 - decorative comma spraying
+- long lines made only by chaining clauses with commas
 - explaining every turn with `其实`, `已经`, `当时`, or `然后`
 - 100+ body lines in a normal-length draft
 
@@ -292,7 +293,7 @@ Before writing `draft.md`, scan the first 20 content lines. If nearly all end wi
 
 If the draft has more than about 90 content lines, or no naturally longer action/speech/thought lines, it is not a better Anlin surface; it is a generated short-line grid. Merge or rebalance before checking. After merging, reread for broken facts and impossible object-action collisions.
 
-Draft in breathing clusters, not sentence rows. A cluster can be 2-5 visible lines carrying one action/thought movement: one line may end with `，`, one line may run longer with speech or action, the next lands with `。`, then a short drop or ugly reply. A 45-70 line draft with zero real <=8-character drops is still a medium-row grid; it reads like every thought was normalized to the same length. Do not put a blank line after every sentence only to raise line count. Do not turn every line ending into `，` only to satisfy `行末逗号比例`. If a line break does not change breath, action, reply, body, or thought direction, it is formatting, not rhythm.
+Draft in breathing clusters, not sentence rows. A cluster can be 2-5 visible lines carrying one action/thought movement: one line may end with `，`, one line may run longer with speech or action, the next lands with `。`, then a short drop or ugly reply. Long lines should come from rough action, speech, or thought doing more work, not from `，` chaining five explanations. A 45-70 line draft with zero real <=8-character drops is still a medium-row grid; it reads like every thought was normalized to the same length. Do not put a blank line after every sentence only to raise line count. Do not turn every line ending into `，` only to satisfy `行末逗号比例`. If a line break does not change breath, action, reply, body, or thought direction, it is formatting, not rhythm.
 
 Before the first `draft.md`, the first 20 content lines should usually contain several comma-ended continuation lines and several hard-stop lines. The whole body should not be mostly independent sentences. If you can read every line as a finished caption, the draft is still too AI-smooth even if the length is correct.
 
@@ -353,9 +354,10 @@ python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate
 
 Resolve `<skill-dir>` from the directory that contains this `SKILL.md`. Do not make `<skill-dir>` the output directory.
 
-If the selected genre is known and non-standard, pass it explicitly, for example:
+If the selected genre is known, pass it explicitly, including standard diary, for example:
 
 ```powershell
+python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate --genre standard
 python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate --genre sincere
 ```
 

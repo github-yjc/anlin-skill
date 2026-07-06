@@ -1544,6 +1544,68 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertFalse(any(message.startswith("body_chinese_chars=") for message in messages), messages)
             self.assertTrue(any(message.startswith("short_genre_") for message in messages), messages)
 
+    def test_detect_style_keeps_standard_diary_with_generic_mother_message_standard(self) -> None:
+        lines = [
+            "外卖袋子放在门口，汤漏了一点，",
+            "我先看鞋面，红油顺着鞋带往下走。",
+            "手机上面还有朋友圈，两个高中同学晒花，",
+            "我划过去的时候手指有点油，没划动。",
+            "楼下麻辣烫老板在群里说今天爆单，",
+            "其实我只想问他为什么不要香菜还能有香菜。",
+            "不过也没问，",
+            "问了显得我把人生最后一点尊严交给香菜了。",
+            "银行卡余额弹出来，像一个人站在门口看我吃饭，",
+            "我把它关掉，又打开优惠券。",
+            "有张三块的，过期时间是今晚。",
+            "突然觉得这张券比我更懂情人节，",
+            "它至少还有过期的资格。",
+            "我妈发消息问吃了吗，",
+            "我回吃了。",
+            "她又发一个句号。",
+            "那个句号停在屏幕上，跟香菜叶子差不多，",
+            "都很小，都很烦。",
+            "楼道有人说话，像在搬一个很轻的箱子，",
+            "我听了一会儿，发现不是找我。",
+            "饭已经凉了，粉丝坨在一起。",
+            "我挑香菜挑到最后，筷子上全是绿点。",
+            "有一片粘在手背，",
+            "洗了两次还闻得到。",
+            "于是去厕所洗手，水龙头先咳了一下，",
+            "喷到裤子上。",
+            "很丢人。",
+            "我低头看那块水印，像刚从一个很失败的约会回来。",
+            "其实也没约会。",
+            "只是裤子替我参加了一下。",
+            "外卖软件又推情人节第二份半价，",
+            "我点开看了看，发现第二份也要钱。",
+            "这系统很公平，",
+            "它对单身的人也不打折。",
+            "吃到最后嘴里都是香菜味，",
+            "我想喝水，杯子里有昨天的茶渍。",
+            "刷杯子的时候手机又亮，",
+            "我妈问是不是太晚了。",
+            "我说不晚。",
+            "发送完才发现这句话像客服。",
+            "好像我不是她儿子，",
+            "我是一个营业时间比较长的废物。",
+            "窗外有电动车过去，刹车声很尖，",
+            "我把剩下的汤倒进袋子。",
+            "袋口没系好，",
+            "又漏了一点。",
+            "最后我蹲在地上擦那点红油，",
+            "纸巾越擦越薄。",
+            "手机在桌上亮着。",
+            "我没拿。",
+            "先把鞋带解了。",
+        ]
+        body = "\n".join(["# 香菜", "", *lines])
+        self.assertEqual(detect_style(body), "standard")
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertFalse(any(message.startswith("short_genre_") for message in messages), messages)
+
     def test_detect_style_keeps_expanded_mother_care_repair_in_sincere(self) -> None:
         body = short_sincere_expanded_repair_sample()
         self.assertEqual(detect_style(body), "sincere")
@@ -6295,6 +6357,11 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Line-final comma means the visible content line itself ends with", clean)
         self.assertIn("A draft with many short rows and no visible punctuation is a generated line grid", runtime)
         self.assertIn("actual line endings, not comma count inside long lines", runtime)
+        self.assertIn("--genre standard", clean)
+        self.assertIn("generic family/screen surface does not reroute the article by accident", clean)
+        self.assertIn("For `逗号密度过高`, do the opposite of comma repair", skill)
+        self.assertIn("`逗号密度过高` means the repair has become comma-drag", runtime)
+        self.assertIn("long lines made only by chaining clauses with commas", clean)
         self.assertIn("reread for semantic damage", skill)
 
     def test_short_genre_repair_stuffing_is_source_guidance_not_only_checker(self) -> None:
@@ -6601,6 +6668,28 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertTrue(any(rule == "strict: 高频词覆盖不足" for rule in rules))
             self.assertTrue(any(rule == "strict: 行末逗号比例" for rule in rules))
+
+    def test_checker_draft_gate_comma_density_repair_guidance_rejects_comma_drag(self) -> None:
+        line = "其实我拿起杯子，水还没倒，手机又亮，门口有人敲，鞋底还湿。"
+        body = "\n".join(["# 日寄", "", *([line] * 46)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            comma_findings = [item for item in findings if "逗号密度过高" in item["rule"]]
+            self.assertTrue(comma_findings, findings)
+            suggestion = comma_findings[0]["suggestion"]
+            self.assertIn("逗号链", suggestion)
+            self.assertIn("短硬停顿", suggestion)
+            self.assertIn("不要继续撒逗号", suggestion)
 
     def test_checker_draft_gate_rejects_uniform_line_rhythm(self) -> None:
         lines = [

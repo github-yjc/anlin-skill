@@ -3811,7 +3811,7 @@ def check_global_comma_density(findings: list[Finding], lines: list[str], text: 
                 "逗号密度过高",
                 0,
                 f"body_chars={chars}, comma_count={comma_count}, comma_per_1k={comma_per_1k:.2f}",
-                "生成稿高风险：过多逗号会像模型为了制造口语呼吸而持续拖句。改成动作切断、对话切断或直接删去解释尾巴，不要继续撒标点。",
+                "生成稿高风险：过多逗号会像模型为了制造口语呼吸而持续拖句。优先删掉解释尾巴，把一两条逗号链拆成短硬停顿或具体动作/对话切断，再补少数真正较长的行动句；不要继续撒逗号、连接词或把短行机械合并成内部逗号长句。",
             )
         )
 
@@ -3951,6 +3951,12 @@ SINCERE_BODY_MARKERS = [
     "陪我熬",
 ]
 SINCERE_MOTHER_SUBJECT_MARKERS = ["妈妈", "我妈", "母亲"]
+SINCERE_DIRECT_MOTHER_CONTEXT_MARKERS = [
+    "母亲节",
+    "康乃馨",
+    "五月十二",
+    "5月12",
+]
 SINCERE_HOLIDAY_OR_MESSAGE_MARKERS = [
     "母亲节",
     "康乃馨",
@@ -4126,12 +4132,23 @@ def sincere_mother_surface(surface: str) -> bool:
     care_hits = {marker for marker in SINCERE_CARE_MEMORY_MARKERS if marker in surface}
     care_logistics_hits = {marker for marker in SINCERE_CARE_LOGISTICS_MARKERS if marker in surface}
     care_evidence = care_hits | care_logistics_hits
+    direct_mother_context = any(marker in surface for marker in SINCERE_DIRECT_MOTHER_CONTEXT_MARKERS)
     pronoun_mother_context = (
-        bool(message_hits)
+        direct_mother_context
         and "她" in surface
         and len(care_evidence) >= 2
     )
-    return bool(message_hits) and ((has_mother_subject and len(care_evidence) >= 2) or pronoun_mother_context)
+    explicit_mother_holiday_or_care = (
+        direct_mother_context
+        and ((has_mother_subject and len(care_evidence) >= 2) or pronoun_mother_context)
+    )
+    dense_mother_memory_without_holiday = (
+        has_mother_subject
+        and len(care_hits) >= 2
+        and len(care_evidence) >= 3
+        and bool(message_hits)
+    )
+    return explicit_mother_holiday_or_care or dense_mother_memory_without_holiday
 
 
 def detect_style(text: str) -> str:
