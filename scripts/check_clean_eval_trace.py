@@ -90,6 +90,12 @@ def extract_json_event_trace(text: str) -> str:
                 chunks.append(f"Thinking: {reasoning}")
             continue
 
+        if event_type == "text":
+            visible_text = part.get("text")
+            if isinstance(visible_text, str) and visible_text.strip():
+                chunks.append(f"TEXT {visible_text}")
+            continue
+
         if event_type != "tool_use":
             continue
 
@@ -495,6 +501,11 @@ def collect_findings(text: str) -> list[TraceFinding]:
             (
                 "stop后读取checker源码",
                 r"(?m)^\s*(?:INPUT|TITLE|python|py|uv|bash|powershell|cmd)\b[^\n]{0,220}scripts/check_anlin_violations\.py[^\n]{0,120}(offset|Select-String|Read)",
+                re.IGNORECASE,
+            ),
+            (
+                "stop后最终输出带过程前缀",
+                r"(?m)^\s*TEXT\s+(?:完成[。:：]?|以下是|.*最终文章|Clean run|按协议|Here\s+(?:is|it is)|---\s*$)",
                 re.IGNORECASE,
             ),
         ]

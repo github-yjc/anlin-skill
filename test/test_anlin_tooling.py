@@ -3416,6 +3416,101 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertNotIn("clean-eval写稿路径不是相对draft.md", rules)
 
+    def test_clean_eval_trace_flags_final_answer_process_prefix_after_stop(self) -> None:
+        events = [
+            {
+                "type": "tool_use",
+                "part": {"tool": "bash", "state": {"input": {"command": "Test-Path .anlin-clean-eval-mode"}, "metadata": {"output": "True\n"}}},
+            },
+            {
+                "type": "tool_use",
+                "part": {"tool": "bash", "state": {"input": {"command": "Get-Location"}, "metadata": {"output": "C:\\case\n"}}},
+            },
+            {
+                "type": "tool_use",
+                "part": {"tool": "write", "state": {"input": {"filePath": "draft.md", "content": "油\n\n正文"}}},
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate"},
+                        "metadata": {"output": "CLEAN_RUN_STOP: FINAL BOUNDARY\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {"tool": "read", "state": {"input": {"filePath": "draft.md"}, "output": "油\n\n正文"}},
+            },
+            {
+                "type": "text",
+                "part": {"text": "完成。以下是最终文章：\n\n---\n\n油\n\n正文"},
+            },
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.jsonl"
+            path.write_text("\n".join(json.dumps(event, ensure_ascii=False) for event in events), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("stop后最终输出带过程前缀", rules)
+
+    def test_clean_eval_trace_allows_article_only_text_after_stop(self) -> None:
+        events = [
+            {
+                "type": "tool_use",
+                "part": {"tool": "bash", "state": {"input": {"command": "Test-Path .anlin-clean-eval-mode"}, "metadata": {"output": "True\n"}}},
+            },
+            {
+                "type": "tool_use",
+                "part": {"tool": "bash", "state": {"input": {"command": "Get-Location"}, "metadata": {"output": "C:\\case\n"}}},
+            },
+            {
+                "type": "tool_use",
+                "part": {"tool": "write", "state": {"input": {"filePath": "draft.md", "content": "油\n\n正文"}}},
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate"},
+                        "metadata": {"output": "CLEAN_RUN_STOP: FINAL BOUNDARY\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {"tool": "read", "state": {"input": {"filePath": "draft.md"}, "output": "油\n\n正文"}},
+            },
+            {
+                "type": "text",
+                "part": {"text": "油\n\n正文"},
+            },
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.jsonl"
+            path.write_text("\n".join(json.dumps(event, ensure_ascii=False) for event in events), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("stop后最终输出带过程前缀", rules)
+
     def test_clean_eval_trace_jsonl_ignores_dumped_skill_body_reference_names(self) -> None:
         events = [
             {
@@ -6366,6 +6461,11 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("side consequence", combined)
         self.assertIn("door/hallway", combined)
         self.assertIn("not a retitle-only patch", combined)
+        self.assertIn("do not let food/body texture become the new loop", runtime)
+        self.assertIn("hand/oil/taste/hand/oil/taste", clean)
+        self.assertIn("period-heavy grid", clean)
+        self.assertIn("The final visible response must begin with the title", clean)
+        self.assertIn("Read `draft.md` once and output its content exactly", skill)
 
     def test_runtime_docs_use_current_skill_name_and_output_locations(self) -> None:
         files = [

@@ -279,6 +279,7 @@ Required wording:
 - If the user asks for prose, output prose only unless they asked for process notes. The first visible line must be the article title chosen from the completed body; never print `State Card`, prompt buckets, scene slate, validation notes, Jaccard scores, checker summaries, or `草拟`.
 - Never prepend protocol explanations such as `This is the second checker call`, `per protocol`, `Here is the article`, `Now let me write the draft article`, or comments about `draft.md`. The first visible line must be the title.
 - Never announce clean-eval steps in Chinese either: no `现在构建状态卡`, `开始写草稿`, `检查器发现`, `需要重写`, `最后一次修复`, or similar process lines.
+- After `CLEAN_RUN_STOP` or `CLEAN_RUN_PREFLIGHT_STOP`, the visible answer still must be article-only. Do not write `完成`, `以下是最终文章`, `按协议读取并输出`, `Clean run 完成`, `Here is...`, markdown fences, or `---` before the title. Read `draft.md` once and output its content exactly.
 - Do not narrate reference loading, file checks, or internal decisions to the user. Tool use and validation stay internal unless validation reporting was requested.
 - Do not include methodology labels inside the prose.
 - If the user asks for validation, report commands, conditions, sample size, and results.
