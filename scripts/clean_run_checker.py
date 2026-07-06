@@ -33,6 +33,7 @@ from check_anlin_violations import (  # noqa: E402
     BACKGROUND_DISPLAY_GROUPS,
     ENGINE_SIGNAL_PATTERNS,
     ENGINE_SIGNAL_TERMS,
+    HIGH_SIGNAL_OPENING_TERMS,
     PROCESS_LEAK_TERMS,
     HIGH_FREQUENCY_TERMS,
     LEARNED_ENDING_LINES,
@@ -524,6 +525,15 @@ def preflight_messages(draft: Path) -> list[str]:
     )
     standard_prop_loop_risk = standard_prompt_prop_title_loop_risk(text.splitlines(), text)
     normalized_title = re.sub(r"[\s#]+", "", title)
+    opening_text = "\n".join(visible_lines[:5])
+    opening_matches = sorted({term for term in HIGH_SIGNAL_OPENING_TERMS if term in opening_text})
+    if visible_lines:
+        first_line_matches = [term for term in HIGH_SIGNAL_OPENING_TERMS if term in visible_lines[0]]
+        if first_line_matches or len(opening_matches) >= 2:
+            examples = " | ".join(line[:42] for line in visible_lines[:3])
+            messages.append(
+                f"high_signal_opening=present terms={opening_matches[:6]} examples={examples}"
+            )
     if normalized_title in STANDARD_PROMPT_PROP_TITLE_TERMS:
         messages.append(f"standard_prompt_prop_title={normalized_title}")
     if standard_prop_loop_risk:
@@ -680,6 +690,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         repair_hints.append(
             "for standard_prompt_prop_title_loop, do a source reset instead of retitling only: choose a side consequence as the title, cut one prompt-prop echo from opening or tail, and rebuild the middle from a door, hallway, payment, dirty hand, wrong reply, sink, rider/shopkeeper, or another person's reaction so the prompt prop appears only as one pressure surface"
         )
+    if "high_signal_opening=present" in joined_messages:
+        repair_hints.append(
+            "for high_signal_opening, rewrite the first 8-12 body lines from body, room, payment, door, charger, sink, or another useless action before any holiday/feed/gift/order prop leaks in"
+        )
     if underbuilt_short_genre:
         repair_hints.append(
             "for a short-genre source failure, do not solve by deleting memory or shrinking further; rewrite into 4-7 uneven clusters, keep a few longer clumsy lines, add one present practical cluster that changes action or reply, use a side-action title, and discard or bury one prompt-supplied family prop instead of preserving every prompt noun"
@@ -815,6 +829,12 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
                 "Reset the standard-diary source loop: the title/opening/tail are all obeying the same prompt prop. "
                 "Retitle from a side consequence, cut one visible prompt-prop packet, rebuild the middle through a "
                 "practical or social consequence, then run this wrapper again. Do not merely replace the title word."
+            )
+        elif "high_signal_opening=present" in joined_messages:
+            revision_frame = (
+                "Reset the opening source: do not begin with the prompt topic, feed list, holiday label, gift surface, "
+                "or wrong-food prop. Start from a body/room/payment/door/sink/charger action that would still exist "
+                "without the assignment, then let one prompt surface leak later."
             )
         elif underbuilt_short_genre:
             revision_frame = (

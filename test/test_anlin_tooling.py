@@ -1149,6 +1149,38 @@ class AnlinToolingTests(unittest.TestCase):
             messages = preflight_messages(draft)
             self.assertIn("standard_prompt_prop_title=备注", messages)
 
+    def test_clean_run_preflight_flags_high_signal_opening_before_checker(self) -> None:
+        body_lines = [
+            "情人节晚上刷了会儿朋友圈，有晒花的，有晒转账的，有晒电影票的，",
+            "我点外卖的时候备注不要香菜，手指还在屏幕上停了一下。",
+            "其实我觉得门口那个灯很烦，",
+            "突然一闪，外卖袋子上那点红油看起来像别人发错的通知。",
+            "于是我把袋子拎进来，因为门缝里还夹着一张小广告，",
+            "好像提醒我这栋楼也在过节。",
+            "不过水槽里的碗先翻了一下，",
+            "我伸手去扶，袖口蹭到红油，门外的人还没走远。",
+        ] * 8
+        body = "\n".join(["# 门口", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
+            self.assertIn("CLEAN_RUN_PREFLIGHT", preflight.stdout)
+            self.assertIn("high_signal_opening=present", preflight.stdout)
+            self.assertIn("Reset the opening source", preflight.stdout)
+            self.assertIn("first 8-12 body lines", preflight.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+
     def test_clean_run_preflight_flags_em_dash_surface(self) -> None:
         body = "\n".join(
             [
@@ -6888,6 +6920,22 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn("出场必须携带", characters)
         self.assertNotIn("每个角色出场必须", characters)
         self.assertIn("若出场，应携带", characters)
+
+    def test_high_signal_opening_is_source_guidance_not_only_checker(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        checker = (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8")
+        combined = "\n".join([skill, clean, checker])
+        self.assertIn("first 8-12 body lines", skill)
+        self.assertIn("first 8-12 body lines", clean)
+        self.assertIn("情人节/朋友圈/晒花/转账/红包/玫瑰/礼物/香菜/备注", combined)
+        self.assertIn("Do not open with a feed inventory", skill)
+        self.assertIn("Do not open by listing", clean)
+        self.assertIn("body, room, charger, door, payment, sink", skill)
+        self.assertIn("high_signal_opening", checker)
+        self.assertIn("Reset the opening source", checker)
+        self.assertIn("他看了我一眼，大概看到", combined)
+        self.assertIn("changes the next action", combined)
 
     def test_skill_load_order_keeps_background_as_post_scene_fact_gate(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
