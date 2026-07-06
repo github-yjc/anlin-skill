@@ -227,6 +227,19 @@ def actual_rhythm_script_indices(text: str) -> list[int]:
     return regex_action_indices(text, patterns)
 
 
+def clean_wrapper_auto_rhythm_index(text: str, checker_index: int) -> int:
+    if checker_index < 0:
+        return -1
+    stop_match = re.search(r"(?m)^\s*(?:OUTPUT\s+)?(?:CLEAN_RUN_PREFLIGHT|CLEAN_RUN_STOP):", text[checker_index:])
+    end = checker_index + stop_match.start() if stop_match else len(text)
+    segment = text[checker_index:end]
+    patterns = [
+        r"(?m)^\s*\{\"before\":\s*\{\"body_lines\"",
+        r"(?m)^\s*soften_line_endings:\s*before=",
+    ]
+    return first_regex_action_index(segment, patterns)
+
+
 def stale_rhythm_rewrite_indices(text: str) -> tuple[int, int] | None:
     rhythm_indices = actual_rhythm_script_indices(text)
     if not rhythm_indices:
@@ -240,7 +253,8 @@ def stale_rhythm_rewrite_indices(text: str) -> tuple[int, int] | None:
         if next_checker is None:
             continue
         rhythm_after_mutation = any(mutation_index < rhythm_index < next_checker for rhythm_index in rhythm_indices)
-        if not rhythm_after_mutation:
+        wrapper_auto_rhythm = clean_wrapper_auto_rhythm_index(text, next_checker) >= 0
+        if not rhythm_after_mutation and not wrapper_auto_rhythm:
             return mutation_index, next_checker
     return None
 

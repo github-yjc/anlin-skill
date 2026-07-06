@@ -2806,6 +2806,36 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertNotIn("节奏脚本后重写未重跑节奏修复", rules)
 
+    def test_clean_eval_trace_allows_wrapper_internal_rhythm_after_rewrite(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        → Read C:/skill/references/clean-generation-brief.md
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_PREFLIGHT: draft is not ready for checker call 1/2
+        $ python C:/skill/scripts/rebalance_line_rhythm.py draft.md --in-place
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
+        {"before": {"body_lines": 68}, "after": {"body_lines": 64}, "target": {"min_lines": 45}, "unresolved": []}
+        soften_line_endings: before=0.45 after=0.55 changed=2
+        CLEAN_RUN_STOP: FINAL BOUNDARY
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("节奏脚本后重写未重跑节奏修复", rules)
+
     def test_clean_eval_trace_flags_parent_skill_directory_rediscovery(self) -> None:
         log = """
         → Skill "anlin-writing"
@@ -6121,6 +6151,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("first_submission", eval_readme)
         self.assertIn("A clean finalized draft cannot retroactively make the bounded draft a success", validation)
         self.assertIn("Normal `check_anlin_violations.py draft.md` success is not sufficient", validation)
+        self.assertIn("`check_anlin_violations.py draft.md --strict` is not the formal gate", skill)
+        self.assertIn("A plain `check_anlin_violations.py <draft> --strict` run is only a quick informal smoke check", skill)
+        self.assertIn("the formal hard-gate command is `check_anlin_violations.py draft.md --strict --draft-gate --genre <selected-genre>`", runtime)
         self.assertIn("A `revise` status means finalized repair failed", validation)
         self.assertIn("Style-profile `yellow` with zero errors is acceptable for the finalized checkpoint", validation)
         self.assertIn("style-profile `yellow` 可作为 finalized checkpoint 的通过条件之一", eval_readme)
@@ -6158,6 +6191,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("finalized is only `review`, it is still unresolved", layer_map)
         self.assertIn("Generated articles do not belong in the skill directory", runtime)
         self.assertIn("Natural connector coverage should be solved before the checker", clean)
+        self.assertIn("If a finalized standard diary reports `高频词覆盖不足`", skill)
+        self.assertIn("If draft-gate reports `高频词覆盖不足`", runtime)
         self.assertIn("For 朋友圈, short-video, annual-summary, old-chat", runtime)
         self.assertIn("A feed is not a scene slate", runtime)
         self.assertIn("For invitations, weddings, reunions", clean)
