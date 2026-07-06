@@ -349,6 +349,65 @@ TEXTURE_SOCIAL_TERMS = [
     "我妈",
     "我爸",
 ]
+ILLNESS_CASE_REPORT_TERMS = [
+    "痛风",
+    "尿酸",
+    "脚踝",
+    "大脚趾",
+    "脚趾",
+    "肿",
+    "疼",
+    "胀",
+    "富贵病",
+]
+ILLNESS_CASE_SCREEN_TERMS = [
+    "搜",
+    "搜索",
+    "页面",
+    "帖子",
+    "网上",
+    "富贵病",
+    "手机",
+    "屏幕",
+]
+ILLNESS_CASE_ROOM_FOOD_TERMS = [
+    "冰箱",
+    "腐乳",
+    "可乐",
+    "外机",
+    "空调",
+    "房间",
+    "厨房",
+    "味道",
+    "药膏",
+    "药",
+    "碗",
+]
+EXPOSED_SOCIAL_CONSEQUENCE_TERMS = [
+    "我说",
+    "他说",
+    "她说",
+    "问我",
+    "回我",
+    "老板",
+    "摊主",
+    "店员",
+    "收银",
+    "保安",
+    "司机",
+    "邻居",
+    "室友",
+    "舍友",
+    "同学",
+    "朋友",
+    "我妈",
+    "我爸",
+    "敲门",
+    "递给",
+    "扶了一下",
+    "看了我",
+    "盯着我",
+]
 UNSUPPORTED_GAME_ROLE_TERMS = [
     "排位",
     "星耀一",
@@ -1024,6 +1083,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "反AI参考污染",
     "背景展示堆砌",
     "具体纹理堆叠过密",
+    "疾病病例报告闭环",
     "逗号密度过高",
     "行末逗号比例",
     "节奏过度均匀",
@@ -3004,6 +3064,47 @@ def check_generated_texture_overfill(findings: list[Finding], lines: list[str], 
         )
 
 
+def check_illness_case_report_loop(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
+        return
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if len(visible_lines) < 30:
+        return
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
+        return
+    lower_body = body.lower()
+    illness_hits = sum(lower_body.count(term.lower()) for term in ILLNESS_CASE_REPORT_TERMS)
+    illness_lines = sum(1 for line in visible_lines if any(term in line for term in ILLNESS_CASE_REPORT_TERMS))
+    body_texture_lines = sum(1 for line in visible_lines if any(term in line for term in TEXTURE_OVERFILL_GROUPS["body"]))
+    screen_lines = sum(1 for line in visible_lines if any(term in line for term in ILLNESS_CASE_SCREEN_TERMS))
+    room_food_lines = sum(1 for line in visible_lines if any(term in line for term in ILLNESS_CASE_ROOM_FOOD_TERMS))
+    exposed_social_lines = sum(1 for line in visible_lines if any(term in line for term in EXPOSED_SOCIAL_CONSEQUENCE_TERMS))
+    if (
+        illness_hits >= 7
+        and illness_lines >= 6
+        and body_texture_lines >= 12
+        and screen_lines >= 2
+        and room_food_lines >= 6
+        and exposed_social_lines == 0
+    ):
+        findings.append(
+            Finding(
+                "warning",
+                "疾病病例报告闭环",
+                0,
+                (
+                    f"illness_hits={illness_hits}, illness_lines={illness_lines}, "
+                    f"body_texture_lines={body_texture_lines}, screen_lines={screen_lines}, "
+                    f"room_food_lines={room_food_lines}, exposed_social_lines={exposed_social_lines}"
+                ),
+                "生成稿高风险：疾病/身体 prompt 变成症状、搜索、冰箱食物、房间味道和环境声的私密病例报告。删除一个症状/食物/屏幕包，换成别人看见、问话、递东西、付款、门口/楼道接触或路线受阻等会改变行动和社交位置的暴露后果；手机消息不等于真实社交暴露。",
+            )
+        )
+
+
 def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str], text: str) -> None:
     title, content_lines = split_title_and_content_lines(lines)
     if not looks_like_standard_diary_gate_target(title, content_lines, text):
@@ -3969,6 +4070,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_period_comma_ratio(findings, lines)
     check_global_comma_density(findings, lines, text)
     check_generated_texture_overfill(findings, lines, text)
+    check_illness_case_report_loop(findings, lines, text)
     check_prose_block_compression(findings, lines, text)
     check_short_line_poem_surface(findings, lines, text)
     check_line_length_uniformity(findings, lines, text)

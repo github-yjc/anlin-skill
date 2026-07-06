@@ -3902,6 +3902,53 @@ class AnlinToolingTests(unittest.TestCase):
                 any(item["rule"] == "strict: 具体纹理堆叠过密" for item in findings)
             )
 
+    def test_checker_draft_gate_rejects_private_illness_case_report_loop(self) -> None:
+        body_lines = (
+            ["痛风又犯了，大脚趾肿得发亮，脚踝疼得像从里面顶出来。"] * 8
+            + ["我搜了一下痛风，屏幕上写着富贵病，帖子下面还有尿酸两个字。"] * 8
+            + ["冰箱里剩半瓶可乐和两盒腐乳，厨房的碗边有油，空调外机一直响。"] * 10
+            + ["房间里的味道很闷，药膏味、腐乳味、手上的油味混在一起。"] * 10
+            + ["脚趾又胀了一下，我把手机扣在枕头边，继续看那个页面。"] * 8
+        )
+        body = "\n".join(["# 空调外机", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 疾病病例报告闭环" for item in findings))
+
+    def test_checker_draft_gate_allows_illness_when_exposed_social_consequence_exists(self) -> None:
+        body_lines = (
+            ["痛风又犯了，大脚趾肿得发亮，脚踝疼得像从里面顶出来。"] * 5
+            + ["我搜了一下痛风，屏幕上写着富贵病，手指停了一下。"] * 4
+            + ["冰箱里剩半瓶可乐和两盒腐乳，厨房的碗边有油。"] * 4
+            + ["楼下药店老板看我拖着脚进门，问我是不是又疼了，我说还行。"] * 5
+            + ["店员递袋子的时候看了一眼我的拖鞋，我把脚往后缩了一下。"] * 5
+            + ["回到门口钥匙掉在地上，弯不下去，后面的人等了一会儿。"] * 5
+            + ["房间里的味道很闷，药膏味、腐乳味、手上的油味混在一起。"] * 8
+        )
+        body = "\n".join(["# 空调外机", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("疾病病例报告闭环" in item["rule"] for item in findings))
+
     def test_checker_warns_when_body_object_texture_replaces_social_movement(self) -> None:
         body_lines = (
             ["手上有灰，裤子上也有灰，水龙头边的杯子放在楼道里，门口的塑料袋也湿了。"] * 14
@@ -5407,7 +5454,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Draft in breathing clusters, not sentence rows", clean)
         self.assertIn("pain, heat, and fatigue alone are too polite", clean)
         self.assertIn("private case-report chain", runtime)
-        self.assertIn("symptom list -> search result -> food taboo -> refrigerator inventory -> ambient sound", skill)
+        self.assertIn("symptom list -> search result -> food taboo -> refrigerator inventory -> room smell -> ambient sound", skill)
+        self.assertIn("A phone message is still too private unless it changes a visible reply", skill)
         self.assertIn("If the user gives `有人说痛风是富贵病`", runtime)
         self.assertIn("cut one whole packet before adding any new material", skill)
         self.assertIn("This marker check should be the first tool action", clean)
