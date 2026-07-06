@@ -70,12 +70,21 @@ def save_state(path: Path, state: dict[str, Any]) -> None:
     path.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def file_sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def stop_lock_path(draft: Path) -> Path:
     digest = hashlib.sha256(str(draft.resolve()).encode("utf-8")).hexdigest()
     return Path(tempfile.gettempdir()) / "anlin-clean-run-locks" / f"{digest}.json"
 
 
 def save_stop_state(state_path: Path, draft: Path, state: dict[str, Any]) -> None:
+    if state.get("stopped"):
+        state.setdefault("stopped_draft_sha256", file_sha256(draft))
+        bounded_snapshot = (state.get("snapshots") or {}).get("bounded_final")
+        if bounded_snapshot:
+            state.setdefault("stopped_snapshot", bounded_snapshot)
     save_state(state_path, state)
     lock_path = stop_lock_path(draft)
     lock_path.parent.mkdir(parents=True, exist_ok=True)
@@ -850,12 +859,27 @@ def main() -> int:
     if state.get("stopped") or (calls == 0 and preflights >= 3):
         state["stopped"] = True
         state.setdefault("stop_reason", "preflight")
-        record_snapshot(draft, state, "bounded_final", overwrite=True)
+        snapshots = state.setdefault("snapshots", {})
+        bounded_snapshot = snapshots.get("bounded_final")
+        if not bounded_snapshot or not Path(str(bounded_snapshot)).is_file():
+            record_snapshot(draft, state, "bounded_final", overwrite=False)
+        stopped_hash = state.get("stopped_draft_sha256")
+        current_hash = file_sha256(draft)
+        mutated = bool(stopped_hash and current_hash != stopped_hash)
+        if mutated:
+            state["post_stop_mutation_detected"] = True
         save_stop_state(state_path, draft, state)
+        mutation_note = (
+            " WARNING: draft.md was modified after the clean-eval stop boundary; "
+            "do not treat the current file as the bounded checkpoint. The controller should use the frozen bounded_final snapshot."
+            if mutated
+            else ""
+        )
         print(
             "CLEAN_RUN_STOP: FINAL BOUNDARY already reached for this draft. "
             "DO NOT WRITE draft.md. DO NOT REPAIR. Do not switch to the normal checker in this directory. "
             "The next tool action must be reading draft.md once and outputting it unchanged; use a separate finalized checkpoint directory for ordinary repair."
+            + mutation_note
         )
         return 0
     if calls >= 2:

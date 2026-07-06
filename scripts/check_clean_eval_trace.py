@@ -214,6 +214,7 @@ def actual_draft_write_index(text: str) -> int:
 def actual_current_directory_check_index(text: str) -> int:
     patterns = [
         r"(?im)^\s*\$\s*(?:Get-Location|pwd)\b",
+        r"(?im)^\s*\$\s+[^\n;|&]*(?:;|&&|\|\|)\s*(?:Get-Location|pwd)\b",
         r"(?im)^\s*TITLE\s+[^\n]*(?:Get-Location|pwd)\b",
         r"(?im)^\s*INPUT\s+[^\n]*(?:command|cmd)[^\n]*(?:Get-Location|pwd)\b",
     ]

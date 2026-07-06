@@ -78,6 +78,7 @@ For a standard diary blind-evaluation draft:
 - title required; choose from the completed body, not from a fixed default
 - body target: roughly full standard-diary length; exact character counting belongs to the checker, not pre-draft arithmetic
 - body shape: roughly many broken body lines, usually around the original standard-diary corridor; exact line counting belongs to the checker
+- write the saved file as the broken article, not as paragraphs: a body line should usually carry one action, one reply, one thought turn, or one object consequence. If one paragraph line contains several `。` sentences, split it before writing `draft.md`
 - first-draft sweet spot: about 55-68 body lines, with several true short breath drops and several rough long action/speech/thought lines
 - true short breath means about 8 Chinese characters or fewer; a 12-character normal sentence is not the same signal
 - keep roughly 8-18 naturally longer lines above about 28 Chinese characters
@@ -90,6 +91,8 @@ For a standard diary blind-evaluation draft:
 Title freedom is not length freedom. A standard diary with a side-object, phrase, question, or sentence title still needs the complete standard-diary corridor; only a deliberately sincere, micro-hope, or surreal short form should use a shorter matched evaluation.
 
 Do not write a prose version first and then promise to restructure it. In clean-eval mode, the first persisted `draft.md` is already part of the measurement. If the draft in your head is 8-15 paragraphs, stop before writing and rebuild it as breathing clusters.
+
+When using a write/file tool, the `content` being written must already visibly contain the line-broken body. Do not paste a 10-15 paragraph short story where blank lines separate long blocks. A quick visual test is enough: before the write, the middle of the article should look like many uneven rows, not a few dense paragraphs. If you see three or more sentences sitting on the same body line, break that line by action or speech before the file write.
 
 Do not manually number every line or add character counts to each row. If the candidate visibly has too many tiny rows, no long movement rows, or is obviously short, fix that by changing the source movement before writing `draft.md`. If it is probably short, expand through lived action, not adjectives. If it is near the lower edge, inspect the source shape before expanding: only add material when the middle engine, long action/speech/thought lines, connectors, or rough body/social turn are weak.
 

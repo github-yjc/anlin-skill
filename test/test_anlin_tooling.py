@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
 import subprocess
@@ -2918,6 +2919,33 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertFalse(any(item["severity"] == "error" for item in findings), findings)
 
+    def test_clean_eval_trace_accepts_marker_and_location_in_one_command(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Get-ChildItem -Force .anlin-clean-eval-mode -ErrorAction SilentlyContinue; Get-Location
+        目录: C:/eval-workspace/iteration-67/eval-03
+        Path : C:/eval-workspace/iteration-67/eval-03
+        → Read C:/skill/references/clean-generation-brief.md
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --genre standard
+        CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2
+        → Read draft.md
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("clean-eval写稿前未确认当前目录", rules)
+
     def test_clean_eval_trace_accepts_powershell_relative_set_content_write(self) -> None:
         log = '''
         → Read C:/skill/references/clean-generation-brief.md
@@ -3884,6 +3912,52 @@ class AnlinToolingTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(json.loads(result.stdout), [])
+
+    def test_clean_run_checker_does_not_overwrite_bounded_snapshot_after_stop_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            draft = root / "draft.md"
+            snapshot_dir = root / ".anlin-clean-run-snapshots"
+            bounded = snapshot_dir / "bounded_final.md"
+            state_path = root / ".anlin-clean-run-state.json"
+            original = "日寄\n\n第一行。\n"
+            mutated = "日寄\n\n后来我又把它改成了一整段长句，这已经越过停止边界。\n"
+            draft.write_text(original, encoding="utf-8")
+            snapshot_dir.mkdir()
+            bounded.write_text(original, encoding="utf-8")
+            state = {
+                "draft": str(draft.resolve()),
+                "calls": 2,
+                "preflights": 1,
+                "stopped": True,
+                "stop_reason": "checker-limit",
+                "snapshots": {"bounded_final": str(bounded.resolve())},
+                "stopped_draft_sha256": hashlib.sha256(draft.read_bytes()).hexdigest(),
+            }
+            state_path.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+            draft.write_text(mutated, encoding="utf-8")
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLEAN_RUN_CHECKER),
+                    str(draft),
+                    "--strict",
+                    "--draft-gate",
+                    "--state",
+                    str(state_path),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("modified after the clean-eval stop boundary", result.stdout)
+            self.assertEqual(bounded.read_text(encoding="utf-8"), original)
+            updated_state = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertTrue(updated_state["post_stop_mutation_detected"])
 
     def test_clean_eval_trace_rejects_missing_clean_run_checker(self) -> None:
         log = """
@@ -6527,6 +6601,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Do not write `<skill-dir>/<iteration-or-case>/draft.md`", clean)
         self.assertIn("If `Get-Location` shows `<skill-dir>` or a path ending in `anlin-writing`, do not write", clean)
         self.assertIn("Draft in breathing clusters, not sentence rows", clean)
+        self.assertIn("write the saved file as the broken article, not as paragraphs", clean)
+        self.assertIn("the `content` being written must already visibly contain the line-broken body", clean)
+        self.assertIn("The file content itself must carry the broken surface", skill)
         self.assertIn("pain, heat, and fatigue alone are too polite", clean)
         self.assertIn("private case-report chain", runtime)
         self.assertIn("symptom list -> search result -> food taboo -> refrigerator inventory -> room smell -> ambient sound", skill)
