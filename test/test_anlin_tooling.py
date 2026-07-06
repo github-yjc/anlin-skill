@@ -64,6 +64,65 @@ def short_sincere_prose_block_sample() -> str:
     )
 
 
+def short_sincere_period_grid_sample() -> str:
+    return "\n".join(
+        [
+            "# 拖着",
+            "",
+            "右脚的拖鞋带子断了。",
+            "那个塑料扣松了，走两步就滑出来。",
+            "断了一半。",
+            "得拖着走，不然鞋子会掉。",
+            "在屋里走了几个来回。",
+            "去厨房倒水，右脚抬起来的时候，拖鞋留在原地。",
+            "又弯下腰去穿，穿上走了三步，又掉了。",
+            "有点烦。",
+            "但也不想蹲下来修它。",
+            "那个扣子本来就是坏的，买了没多久就松了。",
+            "平时也不太注意，今天突然就觉得受不了了。",
+            "可能因为屋里太安静了。",
+            "那个拖地的声音特别大。",
+            "手机亮了一下。",
+            "锁屏上写着五月十二号，周日。",
+            "底下还有一行小字，母亲节。",
+            "看了两眼。",
+            "解锁，又锁上。",
+            "想发点什么，打了两个字又删了。",
+            "我妈不怎么用微信，朋友圈也不发。",
+            "去年教她用，教了半天，她记不住，后来就算了。",
+            "平时打打电话，每次也就几分钟。",
+            "她问吃了没有，我说吃了。",
+            "问工作累不累，我说还行。",
+            "然后就没什么好说的了。",
+            "但是也不知道说什么。",
+            "有时候给她转钱，她也不收。",
+            "说你一个人在外面，自己留着花。",
+            "厨房台子上放着上次从家里带回来的鸡蛋。",
+            "塑料袋扎着口，放在角落里。",
+            "那天走的时候她非要装。",
+            "我说够了够了，她还是往袋子里又塞了两个。",
+            "说放在冰箱里，早上煮一个吃。",
+            "后来打开看，里面有八个。",
+            "当时想拍张照片发给她，说收到了。",
+            "后来忙着忙着也忘了。",
+            "已经过去好几天了。",
+            "大概已经有坏的了。",
+            "小时候下雨，她骑车送我上学。",
+            "那条路后来修过很多次。",
+            "我已经记不清坑在哪里。",
+            "只记得她下车推车的时候鞋里灌了水。",
+            "当时我坐在后座上。",
+            "书包勒着肩膀。",
+            "她说快到了。",
+            "后来我也没问她冷不冷。",
+            "握着杯子站在厨房，水是凉的。",
+            "拖鞋又掉了。",
+            "没捡。",
+            "明天要是记得就刷一下。",
+        ]
+    )
+
+
 class AnlinToolingTests(unittest.TestCase):
     @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_checker_has_no_hard_errors_on_original_corpus(self) -> None:
@@ -1500,6 +1559,32 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(any(message.startswith("short_genre_body_lines=") for message in messages), messages)
             self.assertTrue(any(message.startswith("short_genre_prose_block_compression=") for message in messages), messages)
             self.assertTrue(any(message.startswith("short_genre_diagnostic_date_title=") for message in messages), messages)
+
+    def test_checker_flags_short_sincere_period_grid(self) -> None:
+        body = short_sincere_period_grid_sample()
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            findings = json.loads(result.stdout)
+            error_rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any("短体裁句号网格" in rule for rule in error_rules), error_rules)
+            self.assertFalse(any("标准日寄完整文章篇幅" in rule for rule in error_rules), error_rules)
+
+    def test_clean_run_preflight_flags_short_sincere_period_grid(self) -> None:
+        body = short_sincere_period_grid_sample()
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(any(message.startswith("short_genre_period_grid=") for message in messages), messages)
 
     def test_checker_warns_on_short_sincere_repair_stuffing(self) -> None:
         lines = [
@@ -5145,8 +5230,12 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("short_genre_body_lines", (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8"))
         self.assertIn("short_genre_prompt_prop_too_early", (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8"))
         self.assertIn("short_genre_main_prop_title_loop", (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8"))
+        self.assertIn("short_genre_period_grid", (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8"))
+        self.assertIn("closed sentence rows", (ROOT / "SKILL.md").read_text(encoding="utf-8"))
+        self.assertIn("many sealed `。` rows", (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8"))
         self.assertIn("短真诚题面物件过早", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
         self.assertIn("短真诚标题物件闭环", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
+        self.assertIn("短体裁句号网格", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
         self.assertIn("token-anchor openings", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
 
     def test_runtime_docs_use_current_skill_name_and_output_locations(self) -> None:

@@ -1039,6 +1039,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "短行诗化表面",
     "短体裁完整度不足",
     "短体裁整齐散文",
+    "短体裁句号网格",
     "短体裁题面日期标题",
     "短体裁修复堆新素材",
     "短真诚当前动作锚点不足",
@@ -2011,6 +2012,44 @@ def check_short_genre_polished_minimalism(findings: list[Finding], lines: list[s
                 "短真诚/微小希望可以短，但不能变成每行长度相近的抛光散文。用现有动作或记忆制造不均匀呼吸：合并一两处为较长笨拙动作/口头句，保留一处很短的失败、沉默或事实后撤；不要拉长成标准日寄，也不要为指标硬切行。",
             )
         )
+
+
+def check_short_genre_period_grid(findings: list[Finding], lines: list[str], text: str) -> None:
+    style = detect_style(text)
+    if style == "standard":
+        return
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [
+        line.strip()
+        for line in content_lines
+        if line.strip() and not line.strip().startswith("<!--")
+    ]
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < 520 or len(visible_lines) < 28:
+        return
+    period_count = body.count("。")
+    comma_count = body.count("，") + body.count(",")
+    period_per_1k = period_count / body_chars * 1000 if body_chars else 0.0
+    line_period_ratio = sum(1 for line in visible_lines if line.endswith("。")) / max(1, len(visible_lines))
+    time_glue_hits = {
+        term: body.count(term)
+        for term in ("后来", "已经", "当时")
+        if body.count(term)
+    }
+    if period_per_1k < 45 and line_period_ratio < 0.52:
+        return
+    if period_count < 24 and sum(time_glue_hits.values()) < 4:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "短体裁句号网格",
+            0,
+            f"style={style}, body_chars={body_chars}, body_lines={len(visible_lines)}, periods={period_count}, commas={comma_count}, period_per_1k={period_per_1k:.1f}, line_period_ratio={line_period_ratio:.2f}, time_glue={time_glue_hits}",
+            "短真诚/微小希望不能写成一排封闭句号和时间胶水。重写成4-7个呼吸簇：让动作或回复拖到下一行，用少量行末逗号承接同一动作；删弱`后来/已经/当时`这类顺序胶水，让物件、身体或对话失误自然转场。",
+        )
+    )
 
 
 def check_short_genre_underbuilt_complete_article(findings: list[Finding], lines: list[str], text: str) -> None:
@@ -3773,6 +3812,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_short_genre_diagnostic_date_title(findings, lines, text)
     check_short_genre_repair_stuffing(findings, lines, text)
     check_short_genre_polished_minimalism(findings, lines, text)
+    check_short_genre_period_grid(findings, lines, text)
     check_short_genre_present_action_anchor(findings, lines, text)
     check_short_genre_prompt_prop_too_early(findings, lines, text)
     check_short_genre_main_prop_title_loop(findings, lines, text)

@@ -396,6 +396,12 @@ def preflight_messages(draft: Path) -> list[str]:
     short_line_ratio = (sum(1 for length in line_lengths if length <= 12) / len(line_lengths)) if line_lengths else 0.0
     first_twenty = visible_lines[:20]
     comma_ratio = (sum(1 for line in first_twenty if line.endswith("，")) / len(first_twenty)) if first_twenty else 0.0
+    period_count = body.count("。")
+    period_per_1k = period_count / body_chars * 1000 if body_chars else 0.0
+    line_period_ratio = (
+        sum(1 for line in visible_lines if line.endswith("。")) / len(visible_lines)
+    ) if visible_lines else 0.0
+    time_glue_count = sum(body.count(term) for term in ("后来", "已经", "当时"))
     connectors = [term for term in HIGH_FREQUENCY_TERMS if term in body]
     engine_hits = [term for term in ENGINE_SIGNAL_TERMS if term in body]
     engine_hits.extend(pattern for pattern in ENGINE_SIGNAL_PATTERNS if re.search(pattern, body))
@@ -430,6 +436,14 @@ def preflight_messages(draft: Path) -> list[str]:
         if body_chars >= 520 and (body_line_count <= 20 or mean_line >= 32 or comma_ratio < 0.08):
             messages.append(
                 f"short_genre_prose_block_compression=style:{style}, body_lines={body_line_count}, mean_line={mean_line:.1f}, early_comma_ratio={comma_ratio:.2f}"
+            )
+        if body_chars >= 520 and body_line_count >= 28 and (
+            (period_per_1k >= 45 and period_count >= 24)
+            or (line_period_ratio >= 0.52 and time_glue_count >= 4)
+        ):
+            messages.append(
+                f"short_genre_period_grid=style:{style}, periods={period_count}, period_per_1k={period_per_1k:.1f}, "
+                f"line_period_ratio={line_period_ratio:.2f}, time_glue={time_glue_count}"
             )
         normalized_title = re.sub(r"[\s#]+", "", title)
         if re.search(r"(?:母亲节|五月十二日|5月12日|五月十二|520)", normalized_title):
@@ -559,6 +573,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         or message.startswith("short_genre_complete_article_buffer=")
         or message.startswith("short_genre_no_long_clumsy_lines=")
         or message.startswith("short_genre_short_line_grid=")
+        or message.startswith("short_genre_period_grid=")
         or message.startswith("short_genre_prose_block_compression=")
         or message.startswith("short_genre_diagnostic_date_title=")
         or message.startswith("short_genre_repair_stuffing=")
@@ -623,6 +638,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         if "short_genre_body_lines=" in joined_messages or "short_genre_prose_block_compression=" in joined_messages:
             repair_hints.append(
                 "for short-genre prose compression, do not add one more paragraph; rewrite the visible page into about 28-55 actual body lines across 4-7 clusters, preserving punctuation at line ends and using a few longer clumsy lines plus short factual retreats"
+            )
+        if "short_genre_period_grid=" in joined_messages:
+            repair_hints.append(
+                "for short_genre_period_grid, stop writing closed sentence rows. Rebuild 4-7 breathing clusters: let one action/reply line run on with a line-final comma, keep one longer clumsy line, then land a short fact-retreat; remove `后来/已经/当时` glue instead of only changing punctuation"
             )
         if "short_genre_literary_story_closure=" in joined_messages:
             repair_hints.append(
