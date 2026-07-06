@@ -1135,6 +1135,17 @@ class AnlinToolingTests(unittest.TestCase):
                 messages,
             )
 
+    def test_clean_run_preflight_flags_overloaded_beizulan_title(self) -> None:
+        body = standard_prompt_prop_title_loop_sample("# 备注栏")
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(
+                any(message.startswith("standard_prompt_prop_title_loop=") for message in messages),
+                messages,
+            )
+
     def test_clean_run_preflight_flags_exact_standard_prompt_prop_title(self) -> None:
         body = "\n".join(
             [
@@ -8013,10 +8024,12 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(text_result.returncode, 0, text_result.stderr)
             self.assertIn("checkpoint_decision: not_pass_review_required", text_result.stdout)
             self.assertIn("checkpoint_pass: false", text_result.stdout)
+            self.assertIn("formal_gate: not_pass", text_result.stdout)
+            self.assertIn("Do not call the article clean", text_result.stdout)
             self.assertIn("repair_mode: source_reset_thinning", text_result.stdout)
             self.assertIn("next_repair_action:", text_result.stdout)
 
-    def test_style_profile_nonstandard_fallback_is_inconclusive_not_strict_failure(self) -> None:
+    def test_style_profile_nonstandard_fallback_is_inconclusive_not_pass(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             draft = Path(temp) / "draft.md"
             draft.write_text(
@@ -8115,14 +8128,14 @@ class AnlinToolingTests(unittest.TestCase):
                 encoding="utf-8",
                 check=False,
             )
-            self.assertEqual(sincere_result.returncode, 0, sincere_result.stderr)
+            self.assertNotEqual(sincere_result.returncode, 0)
             sincere_report = json.loads(sincere_result.stdout)
             self.assertEqual(sincere_report["profile_scope"]["scope"], "global")
             self.assertTrue(sincere_report["profile_scope"]["fallback"])
             self.assertIn("genre:sincere: document_count=2 < 4", sincere_report["profile_scope"]["skipped"])
             self.assertEqual(sincere_report["summary"]["status"], "inconclusive")
             self.assertEqual(sincere_report["summary"]["checkpoint_decision"], "profile_inconclusive_fallback")
-            self.assertTrue(sincere_report["summary"]["checkpoint_pass"])
+            self.assertFalse(sincere_report["summary"]["checkpoint_pass"])
             self.assertFalse(sincere_report["summary"]["profile_gate_applicable"])
             self.assertEqual(sincere_report["summary"]["repair_mode"], "matched_placebo_required")
             self.assertIn("matched-original placebo", sincere_report["summary"]["next_repair_action"])
@@ -8144,7 +8157,9 @@ class AnlinToolingTests(unittest.TestCase):
                 encoding="utf-8",
                 check=False,
             )
-            self.assertEqual(text_result.returncode, 0, text_result.stderr)
+            self.assertNotEqual(text_result.returncode, 0)
+            self.assertIn("formal_gate: not_pass", text_result.stdout)
+            self.assertIn("Do not call the article clean", text_result.stdout)
             self.assertIn("profile_gate_applicable: false", text_result.stdout)
 
     def test_merge_short_lines_reduces_generated_line_grid(self) -> None:
@@ -8746,6 +8761,32 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings), findings)
             self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings), findings)
+
+    def test_checker_accepts_dirty_sleeve_or_bare_foot_seen_by_rider_as_rough_signal(self) -> None:
+        body = "\n".join(
+            [
+                "# 袖口",
+                "",
+                "骑手递袋子的时候看了我一眼，又看了我的袖子。",
+                "袖口上脏了一块，不知道什么时候蹭上去的。",
+                "我把袖口往下扯了扯，接过来说了声谢谢。",
+                "光着一只脚踩在瓷砖上，脚趾冻得发白。",
+                "楼道门口那点汤被我踩到，拖鞋打滑，扶了一下墙才站稳。",
+                *(["水龙头在厨房响了一下，杯子边上有水，窗帘半挂着，脚趾又抽了一下。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings), findings)
 
     def test_checker_does_not_count_private_spill_as_public_engine(self) -> None:
         body = "\n".join(

@@ -404,7 +404,7 @@ def apply_profile_scope_limits(summary: dict[str, Any], profile_scope: dict[str,
     limited = dict(summary)
     limited["status"] = "inconclusive"
     limited["checkpoint_decision"] = "profile_inconclusive_fallback"
-    limited["checkpoint_pass"] = True
+    limited["checkpoint_pass"] = False
     limited["repair_mode"] = "matched_placebo_required"
     limited["next_repair_action"] = (
         "The requested non-standard genre fell back to global priors. Treat this as review evidence only; use "
@@ -560,6 +560,7 @@ def format_report(report: dict[str, Any]) -> str:
         f"status: {report['summary']['status']}",
         f"checkpoint_decision: {report['summary']['checkpoint_decision']}",
         f"checkpoint_pass: {str(report['summary']['checkpoint_pass']).lower()}",
+        f"formal_gate: {'pass' if report['summary']['checkpoint_pass'] else 'not_pass'}",
         f"repair_mode: {report['summary'].get('repair_mode', 'unknown')}",
         f"next_repair_action: {report['summary'].get('next_repair_action', '')}",
         f"profile_gate_applicable: {str(report['summary'].get('profile_gate_applicable', True)).lower()}",
@@ -580,6 +581,11 @@ def format_report(report: dict[str, Any]) -> str:
             f"{item['severity']}:{item.get('level', 'yellow')} | {item['family']} | {item['metric']} | "
             f"observed={item['observed']} | expected={item['expected']} | {item['rule']} | "
             f"{item['suggestion']}"
+        )
+    if not report["summary"]["checkpoint_pass"]:
+        lines.append(
+            "formal_gate_note: In finalized/formal evaluation this result is unresolved. "
+            "Do not call the article clean, stable, ready, or pass until checkpoint_pass=true."
         )
     lines.append("note: This audit reports corpus-prior drift only; validate with hard gates, blind rounds, and placebo calibration.")
     return "\n".join(lines)
@@ -625,7 +631,7 @@ def main() -> int:
 
     if report["summary"]["error_count"] > 0:
         return 1
-    if args.strict and report["summary"]["status"] in {"review", "revise"}:
+    if args.strict and not report["summary"].get("checkpoint_pass", False):
         return 1
     return 0
 
