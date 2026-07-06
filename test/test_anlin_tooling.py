@@ -3058,6 +3058,79 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("clean-eval写稿路径不是相对draft.md", rules)
             self.assertIn("clean-eval未写入draft.md", rules)
 
+    def test_clean_eval_trace_allows_jsonl_relative_input_with_absolute_display_title(self) -> None:
+        events = [
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "Test-Path .anlin-clean-eval-mode"},
+                        "metadata": {"output": "True\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "Get-Location"},
+                        "metadata": {
+                            "output": "C:\\Users\\34025\\.config\\opencode\\skills\\anlin-writing-workspace\\iteration-20260706-58\\eval-09-2024-classmate-wedding\n"
+                        },
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "write",
+                    "state": {
+                        "title": "C:\\Users\\34025\\.config\\opencode\\skills\\anlin-writing-workspace\\iteration-20260706-58\\eval-09-2024-classmate-wedding\\draft.md",
+                        "input": {
+                            "filePath": "draft.md",
+                            "content": "日寄\n\n正文",
+                        },
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate"},
+                        "metadata": {"output": "CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "read",
+                    "state": {
+                        "title": "C:\\Users\\34025\\.config\\opencode\\skills\\anlin-writing-workspace\\iteration-20260706-58\\eval-09-2024-classmate-wedding\\draft.md",
+                        "input": {"filePath": "draft.md"},
+                        "output": "日寄\n\n正文",
+                    },
+                },
+            },
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.jsonl"
+            path.write_text("\n".join(json.dumps(event, ensure_ascii=False) for event in events), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("clean-eval写稿路径不是相对draft.md", rules)
+
     def test_clean_eval_trace_jsonl_ignores_dumped_skill_body_reference_names(self) -> None:
         events = [
             {

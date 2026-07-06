@@ -251,7 +251,6 @@ def actual_nonrelative_draft_write_index(text: str) -> int:
     patterns = [
         r"(?im)^\s*(?:←|\?)?\s*Write\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
         r"(?im)^\s*TITLE\s+Write\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
-        r"(?im)^\s*TOOL\s+(?:write|filesystem_write_file)\b(?:\n[^\n]*){0,3}^\s*TITLE\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
         r"(?im)^\s*TOOL\s+(?:write|filesystem_write_file)\b(?:\n[^\n]*){0,3}^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*[A-Za-z]:/[^\n]*draft\.md",
         r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*[A-Za-z]:/[^\n]*draft\.md[^\n]*(?:content|write)",
         r"(?im)^\s*INPUT\s+[^\n]*(?:content|write)[^\n]*(?:path|file)[^\n]*[A-Za-z]:/[^\n]*draft\.md",
@@ -264,7 +263,6 @@ def actual_nonrelative_draft_write_index(text: str) -> int:
     ]
     loose_patterns = [
         r"(?i)(?:←|\?|TITLE)\s*Write\s+(?!\.?[/\\]?draft\.md\b).{0,260}draft\.md\b",
-        r"(?i)TOOL\s+(?:write|filesystem_write_file)\b.{0,260}TITLE\s+(?!\.?[/\\]?draft\.md\b).{0,260}draft\.md\b",
         r"(?i)TOOL\s+(?:write|filesystem_write_file)\b.{0,1200}INPUT\s+\{.{0,1200}(?:path|file)[^{}]{0,80}[A-Za-z]:/.{0,260}draft\.md\b",
     ]
     indices: list[int] = []
