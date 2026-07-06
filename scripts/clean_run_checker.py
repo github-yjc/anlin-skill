@@ -771,6 +771,9 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             "for overfilled length, cut unsupported/non-consequential texture after the visible shape is stable; do not add more body, screen, route, or money proof"
         )
     if "early_comma_ratio=" in joined_messages:
+        repair_hints.append(
+            "for early_comma_ratio, treat the first page as closed sentence-row prose. Rebuild the first 18-25 body lines into 4-6 breathing clusters: one line runs on with `，`, one rough action/speech/thought line gets longer because something changes, and one short line lands the failed decision or body/social consequence"
+        )
         if "rough_self_damage=missing" in joined_messages or underbuilt_source or near_miss_short:
             repair_hints.append(
                 "for early_comma_ratio combined with content repairs, make the content repair first, then run "
@@ -873,6 +876,13 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
                 "Reset the outside-contact source: a look from another person is not movement unless it changes "
                 "payment, reply, object state, door speed, dirty hand/clothing exposure, or the next action. Rebuild "
                 "the handoff as a consequence or remove it instead of preserving a silent witness."
+            )
+        elif "early_comma_ratio=" in joined_messages:
+            revision_frame = (
+                "Reset the sentence-row rhythm source: the opening page is made of closed `。` rows. Rebuild it into "
+                "breathing clusters before the next wrapper call: a continuing action can end with `，`, a longer "
+                "line should carry real movement or speech, and a short drop should land a consequence. Do not only "
+                "flip three periods into commas or paste a new metric-shaped first paragraph."
             )
         elif underbuilt_short_genre:
             revision_frame = (

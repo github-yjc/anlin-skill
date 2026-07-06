@@ -7873,6 +7873,32 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(draft_gate_report["summary"]["repair_mode"], "source_rewrite_required")
             self.assertIn("source structure", draft_gate_report["summary"]["next_repair_action"])
 
+    def test_style_profile_defaults_to_bundled_profile(self) -> None:
+        self.assertTrue(STYLE_PROFILE.is_file(), f"missing style profile: {STYLE_PROFILE}")
+        body = "\n".join(
+            [
+                "# 水池",
+                "",
+                "水龙头先空响了一下，",
+                "我把杯子拿过去，发现杯底还有一点灰。",
+                "于是又冲了一遍，手背蹭到裤腿上。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_PROFILE), str(draft), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(result.stdout)
+            self.assertEqual(report["profile_version"], "1.5")
+            self.assertEqual(report["corpus_file_count"], 38)
+
     def test_style_profile_strict_returns_nonzero_for_review_status(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             draft = Path(temp) / "draft.md"
@@ -8677,6 +8703,33 @@ class AnlinToolingTests(unittest.TestCase):
                 "手机卡了一下，没扫上，他又站了一会儿。",
                 "我再扫了一次，这次响了。",
                 "回去的时候踩到粥，拖鞋打滑，差点摔，扶着墙站住。",
+                *(["水龙头在厨房响了一下，杯子边上有水，窗帘半挂着，脚趾又抽了一下。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings), findings)
+            self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings), findings)
+
+    def test_checker_accepts_public_oil_stain_seen_by_rider_as_rough_signal(self) -> None:
+        body = "\n".join(
+            [
+                "# 油花",
+                "",
+                "骑手站在单元门口，手上拎着塑料袋。",
+                "我换了个手拎，袋子歪了一下，汤从盖子缝渗出来，滴在裤腿上。",
+                "骑手的视线跟着那滴油落到裤子上。",
+                "我拿手去蹭那块湿的地方，油已经渗进去了，越抹越大。",
+                "楼道门口那点汤被我踩到，拖鞋打滑，扶了一下墙才站稳。",
                 *(["水龙头在厨房响了一下，杯子边上有水，窗帘半挂着，脚趾又抽了一下。"] * 35),
             ]
         )

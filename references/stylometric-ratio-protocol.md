@@ -193,7 +193,7 @@ Run this layer after deterministic hard gates and before blind review:
 
 ```powershell
 python scripts/build_style_profile.py <corpus-dir> --output references/style-profile.json
-python scripts/check_style_profile.py draft.md --profile references/style-profile.json
+python scripts/check_style_profile.py draft.md
 python scripts/calibrate_style_profile.py <corpus-dir> --profile references/style-profile.json
 ```
 
@@ -208,8 +208,8 @@ Do not use profile success as a claim of authorship. It only means the draft did
 Examples:
 
 ```powershell
-python scripts/check_style_profile.py draft.md --profile references/style-profile.json --phase A --genre standard --draft-gate
-python scripts/check_style_profile.py draft.md --profile references/style-profile.json --genre sincere --draft-gate
+python scripts/check_style_profile.py draft.md --phase A --genre standard --draft-gate
+python scripts/check_style_profile.py draft.md --genre sincere --draft-gate
 ```
 
 The report records `profile_scope`, including whether it fell back. A stratum warning is still a drift cue, not proof of generation.

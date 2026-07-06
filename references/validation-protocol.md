@@ -44,7 +44,7 @@ python scripts/compare_anlin_corpus.py draft.md --corpus-dir <corpus-dir>
 
 ```powershell
 python scripts/build_style_profile.py <corpus-dir> --output references/style-profile.json
-python scripts/check_style_profile.py draft.md --profile references/style-profile.json --phase <A|B|C|D> --genre <standard|sincere|micro-hope|surreal> --draft-gate --strict
+python scripts/check_style_profile.py draft.md --phase <A|B|C|D> --genre <standard|sincere|micro-hope|surreal> --draft-gate --strict
 ```
 
 4. Review using `review-rubric.md`.
@@ -61,7 +61,7 @@ python scripts/check_anlin_violations.py draft.md
 python scripts/check_anlin_violations.py draft.md --strict --draft-gate --corpus-dir <corpus-dir>
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir <corpus-dir>
 python scripts/build_style_profile.py <corpus-dir> --output references/style-profile.json
-python scripts/check_style_profile.py draft.md --profile references/style-profile.json --draft-gate --strict
+python scripts/check_style_profile.py draft.md --draft-gate --strict
 python scripts/calibrate_style_profile.py <corpus-dir> --profile references/style-profile.json
 python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 ```
@@ -152,7 +152,7 @@ Finalized checkpoint pass gate:
 - Normal `check_anlin_violations.py draft.md` success is not sufficient.
 - Freeze the selected genre from the prompt, case metadata, or bounded draft before repair. A short sincere/micro-hope draft that becomes longer during repair should still be validated against the selected short-genre corridor, not reclassified as standard diary by accident.
 - Run `check_anlin_violations.py <finalized-draft> --strict --draft-gate --genre <selected-genre>` and require zero `error` findings.
-- Run `check_style_profile.py <finalized-draft> --profile <skill-dir>/references/style-profile.json --draft-gate --strict --genre <selected-genre>` when the bundled profile is available. A `revise` status means finalized repair failed. A missing profile makes the result `review`, not ready for blind rounds.
+- Run `check_style_profile.py <finalized-draft> --draft-gate --strict --genre <selected-genre>` when the bundled profile is available. The script automatically uses `references/style-profile.json` from the installed skill unless `--profile` or `--corpus-dir` overrides it. A `revise` status means finalized repair failed. A missing profile makes the result `review`, not ready for blind rounds.
 - The finalized article must exist in `<case-dir>/finalized/draft.md`. If the agent prints a repaired article to chat or a log but leaves that file unchanged from a non-pass bounded input, mark the finalized checkpoint invalid as an artifact failure.
 - Style-profile `yellow` with zero errors is acceptable for the finalized checkpoint; record the yellow families, but do not keep rewriting solely to remove yellow warnings. Blind rounds and placebo calibration decide whether those remaining cues matter.
 - Style-profile `review` is not a finalized checkpoint pass, even when `red_families` is empty. Use the report's `checkpoint_decision`; only `checkpoint_decision=pass` can enter blind-round preparation.

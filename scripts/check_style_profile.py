@@ -57,6 +57,7 @@ COGNITIVE_SUPPORT_KEYS = [
     "humor_friction",
     "emotion_displaced_logistics",
 ]
+BUNDLED_PROFILE = Path(__file__).resolve().parents[1] / "references" / "style-profile.json"
 
 
 def calibrate_level_for_family(family: str, level: str) -> str:
@@ -79,6 +80,18 @@ class ProfileFinding:
 
 def read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def resolve_profile(profile_arg: Path | None, corpus_dir: Path | None) -> dict[str, Any]:
+    if profile_arg:
+        return read_json(profile_arg)
+    if corpus_dir:
+        return build_profile(corpus_dir)
+    if BUNDLED_PROFILE.is_file():
+        return read_json(BUNDLED_PROFILE)
+    raise FileNotFoundError(
+        "Must provide --profile or --corpus-dir; bundled references/style-profile.json was not found."
+    )
 
 
 def beta_binomial_log_pmf(k: int, n: int, alpha: float, beta: float) -> float:
@@ -575,7 +588,12 @@ def format_report(report: dict[str, Any]) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check a draft against an Anlin stylometric profile.")
     parser.add_argument("draft", type=Path, help="Draft markdown/text file")
-    parser.add_argument("--profile", type=Path, default=None, help="Profile JSON produced by build_style_profile.py")
+    parser.add_argument(
+        "--profile",
+        type=Path,
+        default=None,
+        help="Profile JSON produced by build_style_profile.py; defaults to bundled references/style-profile.json when present",
+    )
     parser.add_argument("--corpus-dir", type=Path, default=None, help="Build an in-memory profile from this corpus if --profile is omitted")
     parser.add_argument("--draft-gate", action="store_true", help="Apply generated-draft-only hard gates for AI-surface features")
     parser.add_argument("--phase", default=None, help="Optional corpus phase for stratified audit, e.g. A/B/C/D")
@@ -586,12 +604,10 @@ def main() -> int:
     parser.add_argument("--json", action="store_true", help="Output JSON")
     args = parser.parse_args()
 
-    if args.profile:
-        profile = read_json(args.profile)
-    elif args.corpus_dir:
-        profile = build_profile(args.corpus_dir)
-    else:
-        parser.error("Must provide --profile or --corpus-dir.")
+    try:
+        profile = resolve_profile(args.profile, args.corpus_dir)
+    except FileNotFoundError as error:
+        parser.error(str(error))
 
     report = check_draft(
         args.draft,
