@@ -334,6 +334,30 @@ def literary_simile_caption_matches(lines: list[str]) -> list[tuple[int, str]]:
     return matches
 
 
+def soft_witness_matches(lines: list[str]) -> list[tuple[int, str]]:
+    witness_pattern = re.compile(
+        r"(?:看了我一眼|看了我两眼|又往下看|往下看了一眼|往里看了一眼|往屋里看了一眼|瞥了我一眼|看了看我)"
+    )
+    consequence_pattern = re.compile(
+        r"(?:"
+        r"等我|没走|站着|举着|问|说|提醒|指了|递回|退回|扫码|付款|二维码|"
+        r"袋子[^。！？\n]{0,18}(?:漏|破|洒|断)|"
+        r"(?:汤|红油|外卖)[^。！？\n]{0,24}(?:洒|漏|淌|流)|"
+        r"我[^。！？\n]{0,24}(?:赶紧|慌|没答|没回|答不上|擦|蹭|掉|摔|滑|差点|跪|塞|缩|躲)|"
+        r"(?:门|袋子|手机|手|脚|拖鞋)[^。！？\n]{0,28}(?:撞|夹|掉|滑|断|漏|洒|卡)"
+        r")"
+    )
+    matches: list[tuple[int, str]] = []
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if not witness_pattern.search(stripped):
+            continue
+        window = "\n".join(item.strip() for item in lines[index : index + 3])
+        if not consequence_pattern.search(window):
+            matches.append((index + 1, stripped))
+    return matches
+
+
 def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]:
     messages: list[str] = []
     leaked_terms = [term for term in PROCESS_LEAK_TERMS if term in article_text]
@@ -376,6 +400,10 @@ def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]
     if simile_matches:
         examples = " | ".join(f"L{line_no}:{excerpt[:42]}" for line_no, excerpt in simile_matches[:3])
         messages.append(f"literary_simile_caption=present count={len(simile_matches)} examples={examples}")
+    witness_matches = soft_witness_matches(lines)
+    if witness_matches:
+        examples = " | ".join(f"L{line_no}:{excerpt[:42]}" for line_no, excerpt in witness_matches[:3])
+        messages.append(f"soft_witness_no_consequence=present count={len(witness_matches)} examples={examples}")
     dash_lines = [f"L{index}:{line.strip()[:42]}" for index, line in enumerate(lines, start=1) if "——" in line]
     if dash_lines:
         messages.append(f"em_dash=present count={len(dash_lines)} examples={' | '.join(dash_lines[:3])}")
@@ -694,6 +722,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         repair_hints.append(
             "for high_signal_opening, rewrite the first 8-12 body lines from body, room, payment, door, charger, sink, or another useless action before any holiday/feed/gift/order prop leaks in"
         )
+    if "soft_witness_no_consequence=present" in joined_messages:
+        repair_hints.append(
+            "for soft_witness_no_consequence, do not keep a rider, cashier, neighbor, or stranger as a silent camera. Make the handoff change payment, reply, bag/object state, dirty hand/clothing exposure, door movement, or the next action; otherwise delete the witness"
+        )
     if underbuilt_short_genre:
         repair_hints.append(
             "for a short-genre source failure, do not solve by deleting memory or shrinking further; rewrite into 4-7 uneven clusters, keep a few longer clumsy lines, add one present practical cluster that changes action or reply, use a side-action title, and discard or bury one prompt-supplied family prop instead of preserving every prompt noun"
@@ -835,6 +867,12 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
                 "Reset the opening source: do not begin with the prompt topic, feed list, holiday label, gift surface, "
                 "or wrong-food prop. Start from a body/room/payment/door/sink/charger action that would still exist "
                 "without the assignment, then let one prompt surface leak later."
+            )
+        elif "soft_witness_no_consequence=present" in joined_messages:
+            revision_frame = (
+                "Reset the outside-contact source: a look from another person is not movement unless it changes "
+                "payment, reply, object state, door speed, dirty hand/clothing exposure, or the next action. Rebuild "
+                "the handoff as a consequence or remove it instead of preserving a silent witness."
             )
         elif underbuilt_short_genre:
             revision_frame = (

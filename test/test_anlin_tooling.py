@@ -1181,6 +1181,58 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
 
+    def test_clean_run_preflight_flags_soft_witness_without_consequence(self) -> None:
+        body_lines = [
+            "醒来以后水龙头还是冷的，",
+            "其实我把脸洗了一半，发现毛巾有一股潮味。",
+            "不过门口那个塑料袋被风吹了一下，",
+            "于是我去拿外卖，因为手机一直在震。",
+            "骑手看了我一眼，又往下看了一眼，然后骑车走了。",
+            "我把门带上，才发现棉裤膝盖那里磨得发白。",
+            "袖口也有油渍，不知道什么时候蹭上去的。",
+            "好像今天也就这样。",
+        ] * 8
+        body = "\n".join(["# 红油", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
+            self.assertIn("soft_witness_no_consequence=present", preflight.stdout)
+            self.assertIn("Reset the outside-contact source", preflight.stdout)
+            self.assertIn("silent witness", preflight.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+
+    def test_clean_run_preflight_allows_witness_that_changes_action(self) -> None:
+        body = "\n".join(
+            [
+                "# 红油",
+                "",
+                "外卖员把袋子递过来，说路上洒了一点。",
+                "他看了我一眼，又看了一眼我的手，我把手往口袋里塞了一下，",
+                "袋子提手突然裂开，红油顺着塑料袋往下淌。",
+                "我赶紧把门关小一点，拿旧报纸垫在地上。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertFalse(
+                any(message.startswith("soft_witness_no_consequence=") for message in messages),
+                messages,
+            )
+
     def test_clean_run_preflight_flags_em_dash_surface(self) -> None:
         body = "\n".join(
             [
@@ -6936,6 +6988,21 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Reset the opening source", checker)
         self.assertIn("他看了我一眼，大概看到", combined)
         self.assertIn("changes the next action", combined)
+
+    def test_soft_witness_is_source_guidance_not_only_checker(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        checker = (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8")
+        combined = "\n".join([skill, clean, runtime, checker])
+        self.assertIn("not a silent camera", skill)
+        self.assertIn("rider or cashier who only looks once and leaves is still decoration", clean)
+        self.assertIn("soft witness-only handoff", clean)
+        self.assertIn("Treat a silent witness as decoration", runtime)
+        self.assertIn("the contact has failed", runtime)
+        self.assertIn("soft_witness_no_consequence", checker)
+        self.assertIn("Reset the outside-contact source", checker)
+        self.assertIn("payment, reply, bag/object state", combined)
 
     def test_skill_load_order_keeps_background_as_post_scene_fact_gate(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
