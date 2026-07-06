@@ -163,7 +163,7 @@ If date, background, genre, and output mode are already clear, do not ask. If th
 
 ### 2. Build The State Card
 
-Route genre before applying article length, rhythm, and repair targets. `日寄` / broad daily montage / several daily pressure surfaces usually means standard diary. Mother's Day, direct thanks/apology, companionship, or a family memory that would be cheapened by forced jokes can route to sincere mode. Small acceptance can route to micro-hope; loosened causality can route to surreal only when the scene earns it. Ordinary family pressure, family dinner, or one `我妈` scene can still be standard diary.
+Route genre before applying article length, rhythm, and repair targets. `日寄` / broad daily montage / several daily pressure surfaces usually means standard diary. Mother's Day, direct thanks/apology, companionship, or a family memory that would be cheapened by forced jokes can route to sincere mode. It can also be sincere when the mother figure is carried indirectly through `她` plus holiday/no-message pressure and concrete care logistics such as food sent home, `吃了吗`, `还有没有菜`, `天冷了多穿点`, or a bag tied by hand; the article does not need to say `妈妈` to earn the route. Small acceptance can route to micro-hope; loosened causality can route to surreal only when the scene earns it. Ordinary family pressure, family dinner, or one `我妈` scene can still be standard diary.
 
 For clean-eval generation, build the source state from `references/clean-generation-brief.md` only: friction -> pressure displacement -> off-axis consequence -> fact gate -> complete titled draft. Do not open `runtime-brief.md` before the first complete `draft.md`.
 

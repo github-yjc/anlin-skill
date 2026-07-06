@@ -3291,6 +3291,15 @@ SINCERE_CARE_MEMORY_MARKERS = [
     "发烧",
     "摸我的额头",
 ]
+SINCERE_CARE_LOGISTICS_MARKERS = [
+    "塑料袋",
+    "带回去",
+    "外面的鸡蛋",
+    "别忘了吃",
+    "还有没有菜",
+    "天冷了多穿",
+    "吃了吗",
+]
 SHORT_GENRE_PRESENT_ANCHOR_GROUPS = {
     "body_or_dirty": [
         "袜子",
@@ -3428,7 +3437,13 @@ def sincere_mother_surface(surface: str) -> bool:
     has_mother_subject = any(marker in surface for marker in SINCERE_MOTHER_SUBJECT_MARKERS)
     message_hits = {marker for marker in SINCERE_HOLIDAY_OR_MESSAGE_MARKERS if marker in surface}
     care_hits = {marker for marker in SINCERE_CARE_MEMORY_MARKERS if marker in surface}
-    return has_mother_subject and bool(message_hits) and len(care_hits) >= 2
+    care_logistics_hits = {marker for marker in SINCERE_CARE_LOGISTICS_MARKERS if marker in surface}
+    pronoun_mother_context = (
+        bool(message_hits)
+        and "她" in surface
+        and len(care_hits | care_logistics_hits) >= 2
+    )
+    return bool(message_hits) and ((has_mother_subject and len(care_hits) >= 2) or pronoun_mother_context)
 
 
 def detect_style(text: str) -> str:

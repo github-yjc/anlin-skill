@@ -26,7 +26,7 @@ Ask internally:
 
 If there is no friction, do not manufacture a grand theme. Use a small daily mismatch.
 
-Choose genre before applying length and rhythm targets. `日寄` or a broad daily montage means standard diary. Mother's Day, direct thanks/apology, companionship, or a family memory that would be cheapened by forced jokes can be sincere mode. Small acceptance can be micro-hope. Loosened causality can be surreal only when the scene earns it. Ordinary family pressure, family dinner, or `我妈` appearing in a standard daily montage does not automatically make the draft sincere.
+Choose genre before applying length and rhythm targets. `日寄` or a broad daily montage means standard diary. Mother's Day, direct thanks/apology, companionship, or a family memory that would be cheapened by forced jokes can be sincere mode. Sincere routing can be indirect: holiday/no-message pressure plus `她` and care logistics such as food sent home, a tied plastic bag, `吃了吗`, `还有没有菜`, or `天冷了多穿点` can carry the mother figure without naming `妈妈`. Small acceptance can be micro-hope. Loosened causality can be surreal only when the scene earns it. Ordinary family pressure, family dinner, or `我妈` appearing in a standard daily montage does not automatically make the draft sincere.
 
 Do not start from the user's topic sentence. The topic is often too clean. Start from a small misfit that could have happened even if nobody had asked for the topic: a stuck app badge, a wrong condiment, a dirty charging cable, a half-finished reply, a body itch, a bad route, a household object in the wrong place, or another person's offhand line.
 

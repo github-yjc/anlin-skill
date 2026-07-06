@@ -43,7 +43,7 @@ The goal is anonymous blind-evaluation robustness under reported conditions. Do 
 Route genre before choosing length or rhythm:
 
 - **Standard diary**: use when the user explicitly asks for `日寄`, asks for a broad daily montage, or gives several daily pressure surfaces. It needs the full broken-line corridor below.
-- **Sincere**: use when the prompt is mainly mother/family thanks, Mother's Day, direct gratitude, apology, companionship, or a memory that would be cheapened by forced jokes. It can be shorter, but still needs concrete cost, restraint, one rough ordinary detail, and a loose ending. Do not turn every family prompt into sincere mode; family dinner, family pressure, or social embarrassment can still be standard diary.
+- **Sincere**: use when the prompt is mainly mother/family thanks, Mother's Day, direct gratitude, apology, companionship, or a memory that would be cheapened by forced jokes. It can be shorter, but still needs concrete cost, restraint, one rough ordinary detail, and a loose ending. It may be sincere even if the mother figure is mostly `她`, when the pressure is holiday/no-message plus concrete care logistics such as food sent home, a tied bag, `吃了吗`, `还有没有菜`, or `天冷了多穿点`. Do not turn every family prompt into sincere mode; family dinner, family pressure, or social embarrassment can still be standard diary.
 - **Micro-hope**: use only when the prompt asks for small acceptance/hope or the body naturally turns that way. Keep logistics and bad timing; avoid encouragement slogans.
 - **Surreal**: use only when the prompt or selected scene truly supports loosened causality. Keep body, money, social, or object coordinates so it does not become symbolic prose.
 

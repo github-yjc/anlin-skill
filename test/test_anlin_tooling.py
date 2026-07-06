@@ -1293,6 +1293,39 @@ class AnlinToolingTests(unittest.TestCase):
         )
         self.assertEqual(detect_style(body), "sincere")
 
+    def test_detect_style_routes_pronoun_mother_care_logistics_to_sincere(self) -> None:
+        body = "\n".join(
+            [
+                "# 油",
+                "",
+                "洗完那个碗，手上还有油，",
+                "冰箱里的灯是白的，",
+                "那袋鸡蛋还在，",
+                "塑料袋扎得很紧。一个结叠一个结，我拆了一会儿才打开。",
+                "上次回去，走之前她在厨房忙了一阵，",
+                "出来拎着这个袋子，说带回去吧，外面的鸡蛋不好。",
+                "我接过来的时候碰到她的手，比我的凉很多。",
+                "她又说了句别忘了吃。",
+                "五月十二号，手机在洗手池旁边亮了一下。",
+                "我没点开。",
+                "上一次聊天是周二，",
+                "她问还有没有菜，我说有。",
+                "她说那就好，又说天冷了多穿点。",
+                "我打了一个字，又删了。",
+            ]
+        )
+        self.assertNotIn("妈妈", body)
+        self.assertNotIn("我妈", body)
+        self.assertNotIn("母亲", body)
+        self.assertEqual(detect_style(body), "sincere")
+
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertFalse(any(message.startswith("body_chinese_chars=") for message in messages), messages)
+            self.assertTrue(any(message.startswith("short_genre_") for message in messages), messages)
+
     def test_clean_run_preflight_flags_short_sincere_tiny_row_grid(self) -> None:
         body = "\n".join(
             [
