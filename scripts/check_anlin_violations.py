@@ -1151,6 +1151,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "社交拒绝室内冷感过密",
     "社交拒绝纹理替代后果不足",
     "社交拒绝编剧化回礼",
+    "社交拒绝私密转账假后果",
     "逗号密度过高",
     "行末逗号比例",
     "节奏过度均匀",
@@ -3307,6 +3308,73 @@ def check_social_decline_scripted_return_gift(findings: list[Finding], lines: li
             return
 
 
+def check_social_decline_private_transfer_loop(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
+        return
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if len(visible_lines) < 35:
+        return
+    body = "\n".join(visible_lines)
+    social_hits = sum(body.count(term) for term in SOCIAL_DECLINE_TERMS)
+    has_invitation_context = any(term in body for term in ("狗哥", "结婚", "婚礼", "随礼", "份子钱", "高铁", "来不来", "去不了", "走不开"))
+    if social_hits < 4 or not has_invitation_context:
+        return
+    transfer_terms = ("转账", "支付宝", "微信钱包", "微信转", "备注", "收款", "余额")
+    private_status_terms = ("没领", "未领取", "钱没收", "交易失败", "已读但钱", "备注写不上", "等了一会儿")
+    transfer_lines = [line for line in visible_lines if any(term in line for term in transfer_terms)]
+    private_status_lines = [line for line in visible_lines if any(term in line for term in private_status_terms)]
+    if len(transfer_lines) < 2 or not private_status_lines:
+        return
+    transfer_index = min(
+        visible_lines.index(line)
+        for line in transfer_lines + private_status_lines
+    )
+    post_transfer_lines = visible_lines[transfer_index + 1 :]
+    visible_consequence_terms = (
+        "门口",
+        "楼道",
+        "邻居",
+        "店员",
+        "收银",
+        "外卖",
+        "老板",
+        "摊主",
+        "等我扫码",
+        "地址",
+        "打车",
+        "车票",
+        "退票",
+        "出门",
+        "下楼",
+        "走到",
+        "弄洒",
+        "洒在",
+        "漏在",
+        "蹭到",
+        "踩",
+        "摔",
+        "肚子响",
+        "咕噜",
+        "裤脚",
+        "鞋底",
+        "手抖",
+    )
+    consequence_lines = [line for line in post_transfer_lines if any(term in line for term in visible_consequence_terms)]
+    if len(consequence_lines) >= 2:
+        return
+    first_private = next(line for line in visible_lines if any(term in line for term in private_status_terms))
+    findings.append(
+        Finding(
+            "warning",
+            "社交拒绝私密转账假后果",
+            visible_lines.index(first_private) + 1,
+            clean_excerpt(first_private),
+            "生成稿高风险：拒绝婚礼后用旧饭钱、转账、备注、已读、未领取等私密 app 循环替代真实后果，仍然停在屏幕里。让转账触发可见回复、门口/路线/付款/身体麻烦，或删掉转账，改用会改变行动的低状态后果。",
+        )
+    )
+
+
 def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str], text: str) -> None:
     title, content_lines = split_title_and_content_lines(lines)
     if not looks_like_standard_diary_gate_target(title, content_lines, text):
@@ -4276,6 +4344,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_illness_body_proof_overdensity(findings, lines, text)
     check_social_decline_room_texture_overfill(findings, lines, text)
     check_social_decline_scripted_return_gift(findings, lines, text)
+    check_social_decline_private_transfer_loop(findings, lines, text)
     check_prose_block_compression(findings, lines, text)
     check_short_line_poem_surface(findings, lines, text)
     check_line_length_uniformity(findings, lines, text)

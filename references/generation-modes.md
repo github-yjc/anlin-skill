@@ -326,6 +326,7 @@ Before finalizing, remove the most "written" surface:
 - If the draft is "accurate but quiet", it is probably generated. Raise the amplitude through a social cut, body collapse, or bad system analogy.
 - If the draft's only roughness is debt, charging cable, or quiet room detail, it is still too polite. Repair an existing scene into one ugly self-own or social misfire that would be slightly embarrassing to quote; do not satisfy this by adding a decorative named friend or game scene.
 - If a social-refusal draft resolves through a polished courtesy reversal such as a red packet, `沾点喜气`, `心意到了`, or the other person neatly forgiving `忙项目`, remove the reversal. Let the refusal leave a plain, partial, or inconvenient consequence instead.
+- If the refusal aftermath stays inside transfer UI, read receipts, remarks, and unaccepted money, it is still prompt-shaped. Keep a transfer only when it forces a visible reply, route/payment/body problem, doorway interruption, or other action change.
 - If one side object becomes title, opening hook, and ending proof, it has turned into a generated motif. Keep at most two of those jobs; make the third job belong to a body, reply, route, payment, or unfinished chore.
 - If the whole article can be described as one closed night, break time or place. Add a memory or outside scene caused by a small object, not by "I remembered".
 - If the ending repays an early object too beautifully, remove the repayment. End on a loose tail that could annoy the narrator tomorrow.

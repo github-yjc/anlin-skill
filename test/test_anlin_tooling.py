@@ -5150,6 +5150,37 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: 社交拒绝编剧化回礼" for item in findings), findings)
 
+    def test_checker_draft_gate_rejects_private_transfer_loop_in_social_decline(self) -> None:
+        body_lines = (
+            [
+                "洗碗的时候漏网上卡着几片菜叶，我伸手抠了一下。",
+                "狗哥发微信说下个月结婚，问我来不来。",
+                "往前翻还有几条他让我帮他取快递的语音，他问我在不在宿舍。",
+                "我看了高铁和随礼，红包加路费有点顶。",
+                "最后回他说最近忙项目，去不了，恭喜啊兄弟。",
+                "突然想起那顿饭钱，打开支付宝找到狗哥。",
+                "我输了六十六，备注写不上，发了。",
+                "等了一会儿，交易失败，系统提示对方未领取。",
+                "我又打开看了一眼，已读但钱没收。",
+            ]
+            + ["手机屏幕亮了一下，手指在充电线旁边停住，水龙头还在响。"] * 16
+            + ["我把杯子拿起来又放下，客厅蓝光照着茶几。"] * 16
+        )
+        body = "\n".join(["# 下个月", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 社交拒绝私密转账假后果" for item in findings), findings)
+
     def test_checker_draft_gate_rejects_non_diary_diagnostic_wedding_title(self) -> None:
         body_lines = (
             [
