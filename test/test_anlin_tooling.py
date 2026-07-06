@@ -4960,6 +4960,33 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: 社交拒绝室内冷感过密" for item in findings), findings)
 
+    def test_checker_draft_gate_rejects_social_decline_texture_without_consequence(self) -> None:
+        body_lines = (
+            [
+                "狗哥发微信说下个月结婚，问我来不来。",
+                "我看了高铁和随礼，红包加路费有点顶。",
+                "最后回他说最近走不开，恭喜啊。",
+                "他回了个抱拳。",
+            ]
+            + ["手机屏幕亮了一下，手指在充电线旁边停住，水龙头还在响。"] * 18
+            + ["我把杯子拿起来又放下，裤脚蹭到灰，快递盒还在门口。"] * 18
+            + ["回来时手机还亮着，屏幕有点烫，手背上有一道白印。"] * 8
+        )
+        body = "\n".join(["# 充电线", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 社交拒绝纹理替代后果不足" for item in findings), findings)
+
     def test_checker_draft_gate_rejects_non_diary_diagnostic_wedding_title(self) -> None:
         body_lines = (
             [
@@ -8042,6 +8069,18 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("The old record should not be a museum tour", runtime)
         self.assertIn("make the present day answer it badly", modes)
         self.assertIn("old record is a trigger, not the engine", skill)
+
+    def test_social_decline_source_guidance_requires_reply_aftermath_engine(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        checker = (ROOT / "scripts" / "check_anlin_violations.py").read_text(encoding="utf-8")
+        for text in (skill, clean, runtime):
+            self.assertIn("post-refusal consequence", text)
+            self.assertIn("reply aftermath", text)
+        self.assertIn("Before saving, ask whether the article would still move if all room texture except one object were deleted", skill)
+        self.assertIn("privately delete all room texture except one object", clean)
+        self.assertIn("社交拒绝纹理替代后果不足", checker)
 
     @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_run_blind_test_supports_multiple_placebo_rounds(self) -> None:

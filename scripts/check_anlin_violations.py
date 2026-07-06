@@ -1149,6 +1149,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "疾病病例报告闭环",
     "疾病身体证明过密",
     "社交拒绝室内冷感过密",
+    "社交拒绝纹理替代后果不足",
     "逗号密度过高",
     "行末逗号比例",
     "节奏过度均匀",
@@ -3239,8 +3240,26 @@ def check_social_decline_room_texture_overfill(findings: list[Finding], lines: l
     if body_chars < 850:
         return
     social_hits = sum(body.count(term) for term in SOCIAL_DECLINE_TERMS)
+    social_lines = sum(1 for line in visible_lines if any(term in line for term in TEXTURE_SOCIAL_TERMS))
+    body_route_lines = sum(
+        1
+        for line in visible_lines
+        if any(term in line for term in TEXTURE_OVERFILL_GROUPS["body"])
+        or any(term in line for term in TEXTURE_OVERFILL_GROUPS["screen"])
+        or any(term in line for term in TEXTURE_OVERFILL_GROUPS["route_object"])
+    )
     room_cold_lines = sum(1 for line in visible_lines if any(term in line for term in ROOM_COLD_FILLER_TERMS))
     room_cold_tail_lines = sum(1 for line in visible_lines[-10:] if any(term in line for term in ROOM_COLD_FILLER_TERMS))
+    if social_hits >= 5 and body_route_lines >= 22 and social_lines <= 4:
+        findings.append(
+            Finding(
+                "warning",
+                "社交拒绝纹理替代后果不足",
+                0,
+                f"social_hits={social_hits}, body_route_lines={body_route_lines}, social_lines={social_lines}",
+                "生成稿高风险：婚礼/邀请/随礼/拒绝线已经足够明显，但文章主要靠身体、屏幕、路线、物件纹理运转，真实社交后果不足。删掉一个纹理簇，让拒绝后的回复、钱/路线决定、旧债、错话或对方反应改变下一步行动。",
+            )
+        )
     if social_hits >= 5 and room_cold_lines >= 14 and room_cold_tail_lines >= 2:
         findings.append(
             Finding(
