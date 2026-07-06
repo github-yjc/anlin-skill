@@ -6,7 +6,9 @@ Use this file for the first draft of a formal blind-evaluation article. It is a 
 
 Do not announce that you are loading references or building a state card. Do not print process notes, checker summaries, or "now I will" lines. If the user asked for prose, the first visible line must be the title.
 
-Do not print an English or Chinese scene plan between tool calls. Avoid visible text such as `Let me plan`, `The preflight says`, `Scene 1`, `Line 1`, `Total:`, `I need about`, or a bullet list of metrics to fix. Do not manually enumerate every line, calculate Chinese-character totals, or write a metric table before saving. Use a rough visual corridor, persist the best complete `draft.md`, then let `clean_run_checker.py` count exactly. If a preflight forces a rewrite, make the next visible non-tool text the final article after reading `draft.md`; keep planning private.
+Do not print an English or Chinese scene plan between tool calls. Avoid visible text such as `Let me plan`, `The preflight says`, `Scene 1`, `Line 1`, `Total:`, `I need about`, or a bullet list of metrics to fix. Do not manually enumerate every line, calculate Chinese-character totals, add/subtract estimated characters, or write a metric table before saving. Use a rough visual corridor, persist the best complete `draft.md`, then let `clean_run_checker.py` count exactly. If a preflight forces a rewrite, make the next visible non-tool text the final article after reading `draft.md`; keep planning private.
+
+If a candidate title and body already exist in your head, write `draft.md` immediately. Do not first put the article in a visible code fence, label it `Final version`, list body lines with counts, or compute whether it has 895 or 950 characters. A persisted imperfect article is a valid clean-eval artifact that the wrapper can diagnose; a long visible calculation with no `draft.md` is an invalid run.
 
 After a stop boundary, do not add a wrapper sentence. The final visible response must begin with the title from `draft.md`, not with `完成`, `以下是`, `最终文章`, `Clean run`, `Here is`, `按协议`, a markdown fence, or `---`.
 
@@ -217,7 +219,7 @@ For private-holiday, romance-feed, wrong-food, delivery-order, or takeout prompt
 
 Before writing `draft.md`, do a private source preflight:
 
-- body is already at least 950 Chinese characters and 45-70 body lines; for standard clean-eval aim nearer 55-68 rather than the exact boundary
+- body visually looks like a full standard diary in the known corridor; do not hand-count characters or rows before saving
 - if the body is under 900 Chinese characters, treat it as incomplete for a standard diary; if it is 900-949 with 45-75 similar short rows, treat it as underbuilt only when the source engine is also weak
 - if the body is 35-44 lines or 850-949 characters and only two connector families appear, add one full off-axis life cluster before saving; this is a source completion problem, not a checker repair problem
 - at least a few real <=8-character drops are already present; they should land a failed decision, ugly reply, practical retreat, or body/social lowering, not decorative captions
