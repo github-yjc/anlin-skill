@@ -420,6 +420,40 @@ EXPOSED_SOCIAL_CONSEQUENCE_TERMS = [
     "等我扫码",
     "站那里没走",
 ]
+SOCIAL_DECLINE_TERMS = [
+    "狗哥",
+    "结婚",
+    "婚礼",
+    "随礼",
+    "红包",
+    "份子钱",
+    "高铁",
+    "车票",
+    "恭喜",
+    "来不来",
+    "来不",
+    "去不了",
+    "走不开",
+    "抱拳",
+]
+ROOM_COLD_FILLER_TERMS = [
+    "暖气",
+    "冷",
+    "凉",
+    "冰",
+    "手指",
+    "脚趾",
+    "拖鞋",
+    "泡面",
+    "筷子",
+    "袖口",
+    "油",
+    "水龙头",
+    "洗手",
+    "厨房",
+    "窗户",
+    "冷风",
+]
 UNSUPPORTED_GAME_ROLE_TERMS = [
     "排位",
     "星耀一",
@@ -1112,6 +1146,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "具体纹理堆叠过密",
     "疾病病例报告闭环",
     "疾病身体证明过密",
+    "社交拒绝室内冷感过密",
     "逗号密度过高",
     "行末逗号比例",
     "节奏过度均匀",
@@ -3190,6 +3225,35 @@ def check_illness_body_proof_overdensity(findings: list[Finding], lines: list[st
         )
 
 
+def check_social_decline_room_texture_overfill(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
+        return
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if len(visible_lines) < 40:
+        return
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < 850:
+        return
+    social_hits = sum(body.count(term) for term in SOCIAL_DECLINE_TERMS)
+    room_cold_lines = sum(1 for line in visible_lines if any(term in line for term in ROOM_COLD_FILLER_TERMS))
+    room_cold_tail_lines = sum(1 for line in visible_lines[-10:] if any(term in line for term in ROOM_COLD_FILLER_TERMS))
+    if social_hits >= 5 and room_cold_lines >= 14 and room_cold_tail_lines >= 2:
+        findings.append(
+            Finding(
+                "warning",
+                "社交拒绝室内冷感过密",
+                0,
+                (
+                    f"social_hits={social_hits}, room_cold_lines={room_cold_lines}, "
+                    f"room_cold_tail_lines={room_cold_tail_lines}"
+                ),
+                "生成稿高风险：婚礼/邀请/随礼压力被暖气、冷、手指、泡面、洗手等室内冷感包反复替代。保留一个房间侧物即可；让拒绝回复、钱、旧关系、路程、错话或对方反应改变下一步行动。",
+            )
+        )
+
+
 def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str], text: str) -> None:
     title, content_lines = split_title_and_content_lines(lines)
     if not looks_like_standard_diary_gate_target(title, content_lines, text):
@@ -4157,6 +4221,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_generated_texture_overfill(findings, lines, text)
     check_illness_case_report_loop(findings, lines, text)
     check_illness_body_proof_overdensity(findings, lines, text)
+    check_social_decline_room_texture_overfill(findings, lines, text)
     check_prose_block_compression(findings, lines, text)
     check_short_line_poem_surface(findings, lines, text)
     check_line_length_uniformity(findings, lines, text)

@@ -4700,6 +4700,60 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: 无依据具体地标" for item in findings), findings)
 
+    def test_checker_draft_gate_rejects_social_decline_room_cold_overfill(self) -> None:
+        body_lines = (
+            [
+                "狗哥发微信说下个月结婚，问我来不来。",
+                "我看了高铁和随礼，红包加起来差不多一千多。",
+                "最后发了句最近走不开，恭喜啊。",
+                "他回了个抱拳。",
+            ]
+            + ["暖气片还是凉的，手指在袖口里缩着，泡面汤上有油。"] * 24
+            + ["水龙头拧开还是冰的，厨房窗户漏着冷风，我去洗手。"] * 12
+            + ["回来坐下，暖气片还是凉的，手指又开始僵了。"] * 8
+        )
+        body = "\n".join(["# 暖气片", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 社交拒绝室内冷感过密" for item in findings), findings)
+
+    def test_checker_allows_social_decline_with_one_room_side_object(self) -> None:
+        body_lines = (
+            [
+                "狗哥发微信说下个月结婚，问我来不来。",
+                "我看了高铁，又问了随礼，红包加路费有点顶。",
+                "暖气片响了一声就停了。",
+                "我把泡面推到桌角，手指在输入框里停了一下。",
+                "最后发了句最近走不开，恭喜啊。",
+                "他回了个抱拳，又问还记不记得大学时候那家店。",
+            ]
+            + ["我把手机扣在桌上，去门口捡掉下去的充电线。"] * 20
+            + ["回来时椅子轮子卡住，我弯腰拽了一下，裤脚沾到灰。"] * 12
+        )
+        body = "\n".join(["# 日寄", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("社交拒绝室内冷感过密" in item["rule"] for item in findings), findings)
+
     def test_checker_draft_gate_rejects_background_display_stuffing(self) -> None:
         body = "\n".join(
             [
