@@ -46,6 +46,8 @@ These apply to all normal generation:
 36. No early prompt-prop takeover: a present-action anchor must hold the opening, not just appear as a preface. If the first few body lines already introduce eggs, plastic bag, rain, mother, holiday feed, and the unsent message as a chain, cut the chain and let the first 8-12 lines stay with today's practical failure before one memory prop leaks in.
 37. No local patch for a failed sincere spine: when a short sincere draft already runs through a neat egg/rain/holiday/no-message/final-residue chain, do not repair by adding one practical detail while preserving the same title, opening object, memory order, and ending. Reset the source: current practical failure first, new side-action title after the new body exists, at most one old memory prop as a cropped leak, no unrelated repair stuffing.
 38. No main-prop title loop in short sincere: do not let a title like `鸡蛋`, `一袋鸡蛋`, `塑料袋`, `屏幕`, or `没发出去的消息` become the object that opens the body, proves the memory, carries the withheld message, and closes the ending. Prefer a side-action title from today's failed action. If a prompt-prop title remains, the body and tail must stop using it as the emotional proof.
+39. No short-genre expansion drift: once a sincere or micro-hope corridor is selected, repair must not turn it into a standard diary by adding relation exposition, transfer/account scenes, extra social packets, or 900+ character proof-story bulk. Keep the selected genre locked and repair by cutting drift, not by satisfying another genre's length/rhythm gates.
+40. No unsupported major family status: do not invent that the mother or close family member is dead, gone, no longer there, or unreachable to make a short sincere piece feel heavier. Unless the user supplied it, lower the pressure to a current failed reply, missed call, unfinished transfer, room chore, or visible action stop.
 
 ## Strong Defaults
 
@@ -154,6 +156,7 @@ Avoid:
 - stretching into standard diary only to satisfy a global profile
 - adding game/body/route/background labels because the short genre feels too quiet
 - adding new delivery, food, gift, media, route, game, or background packets to manufacture short-genre thickness after a checker/profile warning
+- turning a short sincere repair into standard diary bulk, especially by adding relation exposition, transfer/account scenes, or unsupported major family facts
 
 ## Micro-Hope Piece
 

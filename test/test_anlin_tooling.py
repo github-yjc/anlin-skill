@@ -123,6 +123,94 @@ def short_sincere_period_grid_sample() -> str:
     )
 
 
+def short_sincere_expanded_repair_sample() -> str:
+    return "\n".join(
+        [
+            "# 拖着",
+            "",
+            "右脚的拖鞋带子断了。",
+            "那个塑料扣松了，走两步就滑出来。",
+            "断了一半，得拖着走，不然鞋子会掉。",
+            "在屋里走了几个来回。",
+            "去厨房倒水，右脚抬起来的时候，拖鞋留在原地。",
+            "弯下腰去穿，穿上走了三步，又掉了。",
+            "脚趾头磕在门槛上，疼得嘶了一声。",
+            "有点烦。",
+            "但也不想蹲下来修它。",
+            "那个扣子本来就是坏的，买了没多久就松了，一直没换。",
+            "平时也不太注意，今天突然就觉得受不了了。",
+            "可能因为屋里太安静了，那个拖地的声音特别大。",
+            "走在瓷砖上，啪嗒啪嗒的。",
+            "好像整个房间都在响。",
+            "手机亮了一下。",
+            "锁屏上写着五月十二号，周日。",
+            "底下还有一行小字，母亲节。",
+            "看了两眼，解锁，又锁上。",
+            "想发点什么，打了两个字又删了。",
+            "不小心按了发送，发了个哭脸，撤回也来不及了。",
+            "以为是她发来的消息，点开看只是日历提醒。",
+            "我妈不怎么用微信，朋友圈也不发。",
+            "去年教她用，教了半天，她记不住，就算了。",
+            "平时打打电话，每次也就几分钟。",
+            "她问吃了没有，我说吃了。",
+            "问工作累不累，我说还行。",
+            "然后就没什么好说的了。",
+            "挂了电话又想，是不是应该说点别的。",
+            "好像听见她叹了口气，又好像没有。",
+            "但是也不知道说什么。",
+            "有时候给她转钱，她也不收。",
+            "说你一个人在外面，自己留着花。",
+            "多买点好吃的。",
+            "我回了个笑脸，其实打了一串字又删了。",
+            "敲门声突然响了。",
+            "是隔壁的老王。",
+            "他端着一碗刚煮好的面，问我有没有盐。",
+            "我愣了一下，说有，转身去拿。",
+            "拖鞋又差点绊倒，他伸手扶了一下。",
+            "我把盐递过去，他笑了笑，说谢了。",
+            "关上门，手心还沾着面粉。",
+            "忽然想起小时候我妈也这样借过盐。",
+            "不过那时候她会多送一碗汤。",
+            "他低头看了一眼我的拖鞋，没说话。",
+            "我却觉得脚趾头缩了一下，好像被他看穿了什么。",
+            "脱口而出，我妈买的。",
+            "说完就后悔了，脸有点热。",
+            "他愣了一下，说，你妈对你真好。",
+            "我点点头，没接话。",
+            "其实想说她不在了，但没说出口。",
+            "他转身的时候又说，你这拖鞋该换了。",
+            "我笑了笑，说习惯了。",
+            "握着杯子站在厨房。",
+            "水是凉的。",
+            "喝了一口，不太想喝了。",
+            "拖鞋又掉了，没捡，就这么穿着。",
+            "半个脚掌踩在地上。",
+            "凉丝丝的。",
+            "站了一会儿，脚底有点凉了。",
+            "把脚缩回来，踩在另一只拖鞋上。",
+            "杯子搁在台子上，没喝完。",
+            "手一抖，杯子差点掉地上，水洒了一地。",
+            "回房间的时候，右脚的拖鞋又滑出来一次。",
+            "懒得管了，走了两步，左脚那只也开始松了。",
+            "猛地发现脚底有点脏，没穿袜子。",
+            "蹲下来想擦一下，膝盖咔嚓响了一声。",
+            "走到门口的时候停了一下。",
+            "鞋架上放着上次回来穿的那双鞋。",
+            "鞋帮边上蹭了一块泥，一直没擦。",
+            "蹲下来看了看，也没擦，又站起来了。",
+            "明天要是记得就刷一下，但也不一定。",
+            "其实心里清楚，明天还是会忘。",
+            "转身的时候，拖鞋又掉了一次。",
+            "弯腰去捡，手机又亮了。",
+            "没理它，继续往房间走。",
+            "忽然想起还没转钱，打开支付宝。",
+            "网络卡了一下，转了半天没转出去。",
+            "最后也没转成。",
+            "把手机扔到沙发上，去洗了个手。",
+        ]
+    )
+
+
 class AnlinToolingTests(unittest.TestCase):
     @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_checker_has_no_hard_errors_on_original_corpus(self) -> None:
@@ -1455,6 +1543,29 @@ class AnlinToolingTests(unittest.TestCase):
             messages = preflight_messages(draft)
             self.assertFalse(any(message.startswith("body_chinese_chars=") for message in messages), messages)
             self.assertTrue(any(message.startswith("short_genre_") for message in messages), messages)
+
+    def test_detect_style_keeps_expanded_mother_care_repair_in_sincere(self) -> None:
+        body = short_sincere_expanded_repair_sample()
+        self.assertEqual(detect_style(body), "sincere")
+
+    def test_checker_flags_short_sincere_standard_expansion_drift(self) -> None:
+        body = short_sincere_expanded_repair_sample()
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            error_rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any("短体裁误扩成标准日寄" in rule for rule in error_rules), error_rules)
+            self.assertTrue(any("无依据重大家庭变故" in rule for rule in error_rules), error_rules)
+            self.assertFalse(any("标准日寄行数缓冲异常" in rule for rule in error_rules), error_rules)
 
     def test_clean_run_preflight_flags_short_sincere_tiny_row_grid(self) -> None:
         body = "\n".join(

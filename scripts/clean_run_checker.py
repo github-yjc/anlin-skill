@@ -51,6 +51,7 @@ from check_anlin_violations import (  # noqa: E402
     short_genre_present_action_anchor_risk,
     short_genre_prompt_prop_too_early_risk,
     short_genre_repair_stuffing_groups,
+    set_forced_genre,
     split_title_and_content_lines,
 )
 
@@ -775,10 +776,15 @@ def main() -> int:
     parser.add_argument("--strict", action="store_true")
     parser.add_argument("--draft-gate", action="store_true")
     parser.add_argument("--corpus-dir", type=Path, default=None)
+    parser.add_argument("--genre", default=None, help="Optional clean-eval genre lock: standard, sincere, micro-hope, or surreal")
     parser.add_argument("--fail-on-warning", action="store_true")
     parser.add_argument("--state", type=Path, default=None)
     parser.add_argument("--reset", action="store_true")
     args = parser.parse_args()
+    try:
+        set_forced_genre(args.genre)
+    except ValueError as error:
+        parser.error(str(error))
 
     draft = args.draft.resolve()
     if not draft.is_file():
@@ -858,6 +864,8 @@ def main() -> int:
         command.append("--strict")
     if args.draft_gate:
         command.append("--draft-gate")
+    if args.genre:
+        command.extend(["--genre", args.genre])
     if args.corpus_dir is not None:
         command.extend(["--corpus-dir", str(args.corpus_dir)])
     if args.fail_on_warning:

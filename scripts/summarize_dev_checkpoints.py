@@ -209,8 +209,10 @@ def summarize_hard_findings(findings: list[dict[str, Any]]) -> tuple[int, int]:
     return errors, warnings
 
 
-def run_hard_gate(draft: Path, corpus_dir: Path | None) -> tuple[list[dict[str, Any]], CommandReport]:
+def run_hard_gate(draft: Path, corpus_dir: Path | None, genre: str | None = None) -> tuple[list[dict[str, Any]], CommandReport]:
     command = [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"]
+    if genre:
+        command.extend(["--genre", genre])
     if corpus_dir is not None:
         command.extend(["--corpus-dir", str(corpus_dir)])
     report = run_command(command)
@@ -405,7 +407,7 @@ def build_stage_audits(
             continue
         seen.add(resolved)
         audit_draft = copy_for_controller(resolved, audit_root, f"stage-{key}")
-        hard_findings, _hard_command = run_hard_gate(audit_draft, corpus_dir)
+        hard_findings, _hard_command = run_hard_gate(audit_draft, corpus_dir, genre)
         hard_errors, hard_warnings = summarize_hard_findings(hard_findings)
         style_report_data, _style_command = run_style_gate(audit_draft, profile, phase, genre)
         status, profile_status, profile_decision, red_families, yellow_families, notes = stage_status_for(hard_errors, style_report_data)
@@ -574,7 +576,7 @@ def build_checkpoint(
 ) -> CheckpointReport:
     draft = draft.resolve()
     audit_draft = copy_for_controller(draft, audit_root, name)
-    hard_findings, _hard_command = run_hard_gate(audit_draft, corpus_dir)
+    hard_findings, _hard_command = run_hard_gate(audit_draft, corpus_dir, genre)
     style_report_data, _style_command = run_style_gate(audit_draft, profile, phase, genre)
     corpus_report_data, _corpus_command = run_corpus_compare(audit_draft, corpus_dir)
     trace_findings, _trace_command = run_trace_gate(trace_log if bounded else None)

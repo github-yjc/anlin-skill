@@ -1047,6 +1047,8 @@ DRAFT_GATE_RULE_PREFIXES = (
     "短真诚标题物件闭环",
     "短真诚小小说闭合",
     "短体裁局部材料回环",
+    "短体裁误扩成标准日寄",
+    "无依据重大家庭变故",
 )
 DRAFT_GATE_RULE_NAMES: set[str] = {"呼吸点缺失"}
 
@@ -1055,6 +1057,28 @@ STANDARD_DIARY_ATTEMPT_MIN_CHARS = 300
 STANDARD_DIARY_ATTEMPT_MIN_LINES = 12
 STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS = 900
 STANDARD_DIARY_DRAFT_OVERFULL_CHARS = 1350
+VALID_GENRES = {"standard", "sincere", "micro-hope", "surreal"}
+FORCED_GENRE: str | None = None
+
+
+def set_forced_genre(genre: str | None) -> None:
+    global FORCED_GENRE
+    if not genre:
+        FORCED_GENRE = None
+        return
+    normalized = genre.strip().lower()
+    aliases = {
+        "standard-diary": "standard",
+        "standard_diary": "standard",
+        "microhope": "micro-hope",
+        "micro_hope": "micro-hope",
+        "surreal-literary": "surreal",
+        "surreal_literary": "surreal",
+    }
+    normalized = aliases.get(normalized, normalized)
+    if normalized not in VALID_GENRES:
+        raise ValueError(f"unsupported genre: {genre}")
+    FORCED_GENRE = normalized
 
 
 def clean_excerpt(line: str) -> str:
@@ -1686,6 +1710,30 @@ def check_background_fact_specificity(findings: list[Finding], lines: list[str])
                 break
 
 
+MAJOR_FAMILY_LOSS_PATTERNS = [
+    re.compile(r"(?:我妈|妈妈|母亲|她)[^。！？\n]{0,18}(?:不在了|去世|过世|没了|走了)"),
+    re.compile(r"(?:不在了|去世|过世|没了|走了)[^。！？\n]{0,18}(?:我妈|妈妈|母亲|她)"),
+]
+
+
+def check_major_family_status_fabrication(findings: list[Finding], lines: list[str]) -> None:
+    joined = "\n".join(lines)
+    family_context = any(term in joined for term in ("我妈", "妈妈", "母亲", "母亲节", "吃了没有", "吃了吗"))
+    if not family_context:
+        return
+    for line_number, line in enumerate(lines, start=1):
+        if any(pattern.search(line) for pattern in MAJOR_FAMILY_LOSS_PATTERNS):
+            findings.append(
+                Finding(
+                    "warning",
+                    "无依据重大家庭变故",
+                    line_number,
+                    clean_excerpt(line),
+                    "生成稿高风险：不要为了修复短真诚厚度或情感重量，凭空写母亲去世、不在、重大失联等关系事实。除非用户明确给出，把它降级为未回、说不出口、电话没打通、手上动作停住等当前可见后果。",
+                )
+            )
+
+
 def check_game_match_report_surface(findings: list[Finding], lines: list[str]) -> None:
     patterns = [
         re.compile(r"点撤退"),
@@ -2179,6 +2227,79 @@ def check_short_genre_repair_stuffing(findings: list[Finding], lines: list[str],
             0,
             f"style={style}, body_chars={body_chars}, groups={groups}",
             "短真诚/微小希望修复不能靠新增外卖、食品、礼物包、媒体、游戏、路线或背景包来凑厚度和长行。保留短体裁，在已选对象、消息、房间、身体、记忆事实内重排动作、回复和事实后撤；必要时删一个新素材包。",
+            )
+        )
+
+
+SHORT_GENRE_RELATION_EXPOSITION_TERMS = [
+    "平时",
+    "每次",
+    "去年",
+    "有时候",
+    "小时候",
+    "上次",
+    "那时候",
+    "转钱",
+    "支付宝",
+    "其实想说",
+    "就没什么好说的",
+]
+
+
+def check_short_genre_standard_expansion_drift(findings: list[Finding], lines: list[str], text: str) -> None:
+    style = detect_style(text)
+    if style not in {"sincere", "micro-hope"}:
+        return
+    title, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [
+        line.strip()
+        for line in content_lines
+        if line.strip() and not line.strip().startswith("<!--")
+    ]
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < 850 or len(visible_lines) < 55:
+        return
+    exposition_hits = [term for term in SHORT_GENRE_RELATION_EXPOSITION_TERMS if term in body]
+    stuffing_groups = short_genre_repair_stuffing_groups(body)
+    family_context = sincere_mother_surface("\n".join([title, body])) or any(
+        term in body for term in ("我妈", "妈妈", "母亲", "母亲节")
+    )
+    if not family_context:
+        return
+    drift_score = 0
+    reasons: list[str] = []
+    if body_chars >= 900:
+        drift_score += 1
+        reasons.append(f"body_chars={body_chars}")
+    if len(visible_lines) >= 65:
+        drift_score += 2
+        reasons.append(f"body_lines={len(visible_lines)}")
+    if len(exposition_hits) >= 3:
+        drift_score += 1
+        reasons.append(f"relation_exposition={exposition_hits[:6]}")
+    if len(stuffing_groups) >= 2:
+        drift_score += 1
+        reasons.append(f"new_material_groups={list(stuffing_groups)[:4]}")
+    if drift_score < 3:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "短体裁误扩成标准日寄",
+            0,
+            json.dumps(
+                {
+                    "style": style,
+                    "body_chars": body_chars,
+                    "body_lines": len(visible_lines),
+                    "exposition_hits": exposition_hits[:8],
+                    "stuffing_groups": stuffing_groups,
+                    "reasons": reasons,
+                },
+                ensure_ascii=False,
+            ),
+            "短真诚/微小希望修复不能因为全局比例或行数压力扩成标准日寄。锁定原体裁：删关系说明和新素材包，回到一个当前动作、一个记忆漏点、一个笨拙回复或事实后撤；不要用更多人物、转账、旧年说明、邻居功能戏来制造完整感。",
         )
     )
 
@@ -3445,6 +3566,11 @@ SINCERE_CARE_LOGISTICS_MARKERS = [
     "还有没有菜",
     "天冷了多穿",
     "吃了吗",
+    "吃了没有",
+    "吃饭没有",
+    "自己留着花",
+    "多买点好吃",
+    "转钱",
 ]
 SHORT_GENRE_PRESENT_ANCHOR_GROUPS = {
     "body_or_dirty": [
@@ -3584,16 +3710,19 @@ def sincere_mother_surface(surface: str) -> bool:
     message_hits = {marker for marker in SINCERE_HOLIDAY_OR_MESSAGE_MARKERS if marker in surface}
     care_hits = {marker for marker in SINCERE_CARE_MEMORY_MARKERS if marker in surface}
     care_logistics_hits = {marker for marker in SINCERE_CARE_LOGISTICS_MARKERS if marker in surface}
+    care_evidence = care_hits | care_logistics_hits
     pronoun_mother_context = (
         bool(message_hits)
         and "她" in surface
-        and len(care_hits | care_logistics_hits) >= 2
+        and len(care_evidence) >= 2
     )
-    return bool(message_hits) and ((has_mother_subject and len(care_hits) >= 2) or pronoun_mother_context)
+    return bool(message_hits) and ((has_mother_subject and len(care_evidence) >= 2) or pronoun_mother_context)
 
 
 def detect_style(text: str) -> str:
     """Conservatively infer genre for draft-gate routing."""
+    if FORCED_GENRE:
+        return FORCED_GENRE
     lower_text = text.lower()
     if any(marker in lower_text for marker in ["truthful", "sincere"]):
         return "sincere"
@@ -3796,6 +3925,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_literary_simile_caption(findings, lines)
     check_ai_variable_placeholders(findings, lines)
     check_background_fact_specificity(findings, lines)
+    check_major_family_status_fabrication(findings, lines)
     check_game_match_report_surface(findings, lines)
     check_current_office_persona(findings, text)
     check_work_consequence_chain(findings, lines)
@@ -3811,6 +3941,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_short_genre_prose_block_compression(findings, lines, text)
     check_short_genre_diagnostic_date_title(findings, lines, text)
     check_short_genre_repair_stuffing(findings, lines, text)
+    check_short_genre_standard_expansion_drift(findings, lines, text)
     check_short_genre_polished_minimalism(findings, lines, text)
     check_short_genre_period_grid(findings, lines, text)
     check_short_genre_present_action_anchor(findings, lines, text)
@@ -4009,11 +4140,16 @@ def main() -> int:
     parser.add_argument("--json", action="store_true", help="Output JSON findings")
     parser.add_argument("--strict", action="store_true", help="Promote blind-evaluation high-risk warnings to errors")
     parser.add_argument("--draft-gate", action="store_true", help="Promote generated-draft-only formal article gates; do not use for original-corpus calibration")
+    parser.add_argument("--genre", default=None, help="Optional genre lock for formal evaluation: standard, sincere, micro-hope, or surreal")
     parser.add_argument("--corpus-dir", type=Path, default=None, help="Optional corpus directory for high-overlap copy gate")
     parser.add_argument("--copy-jaccard-threshold", type=float, default=0.16, help="5-gram Jaccard threshold for corpus copy gate")
     parser.add_argument("--copy-shared-24gram-threshold", type=int, default=2, help="Shared 24-character n-gram count threshold for corpus copy gate")
     parser.add_argument("--fail-on-warning", action="store_true", help="Return nonzero for warnings as well as errors")
     args = parser.parse_args()
+    try:
+        set_forced_genre(args.genre)
+    except ValueError as error:
+        parser.error(str(error))
 
     text = read_text_flexible(args.file)
     findings = collect_findings(text)

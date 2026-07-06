@@ -28,6 +28,8 @@ If there is no friction, do not manufacture a grand theme. Use a small daily mis
 
 Choose genre before applying length and rhythm targets. `日寄` or a broad daily montage means standard diary. Mother's Day, direct thanks/apology, companionship, or a family memory that would be cheapened by forced jokes can be sincere mode. Sincere routing can be indirect: holiday/no-message pressure plus `她` and care logistics such as food sent home, a tied plastic bag, `吃了吗`, `还有没有菜`, or `天冷了多穿点` can carry the mother figure without naming `妈妈`. Small acceptance can be micro-hope. Loosened causality can be surreal only when the scene earns it. Ordinary family pressure, family dinner, or `我妈` appearing in a standard daily montage does not automatically make the draft sincere.
 
+In repair, selected genre is a state variable, not a byproduct of the latest draft shape. If the case, prompt, or bounded draft was sincere, keep repairing as sincere even when a bad repair has grown to 900+ characters, 70+ rows, or standard-diary-looking scene count. Do not "graduate" it to standard diary to satisfy global ratios; cut the drift and return to the short-genre corridor.
+
 Do not start from the user's topic sentence. The topic is often too clean. Start from a small misfit that could have happened even if nobody had asked for the topic: a stuck app badge, a wrong condiment, a dirty charging cable, a half-finished reply, a body itch, a bad route, a household object in the wrong place, or another person's offhand line.
 
 For standard diary mode, treat the first visible sentence as a blind-review risk surface. If it contains the user's main pressure word, date event, relationship label, or requested object, rewrite the opening. The opening should usually be a body/object/app residue that only later lets the prompt pressure leak in.
@@ -140,6 +142,8 @@ For short sincere or micro-hope repair, treat `短真诚小小说闭合` as a so
 For mother/holiday sincere repair, do not mistake compression for deletion. A "brief" childhood-rain line that includes raincoat, broken umbrella, school arrival, and "she said it was fine" is still a full proof prop. A "brief" egg line that includes trip home, plastic bag, mother's handoff, and remaining count is also a full proof prop. Pick one proof family to stay visible; turn any other family into one partial object residue or remove it entirely. This is especially important after `短真诚小小说闭合`, because local shortening often preserves the same designed argument.
 
 Treat `短体裁修复堆新素材` the same way: it means the repair imported new subject matter instead of fixing the source movement. Delete the extra food/delivery/gift/media/game/route/background packet, then rebuild within the selected object-message-room-body-memory set. If the piece still feels thin after that, accept a shorter matched-genre evaluation rather than turning it into a standard-diary inventory.
+
+Treat `短体裁误扩成标准日寄` as a genre-lock failure. The cure is not to satisfy standard diary gates; it is to delete relation exposition, extra social packets, transfer/account scenes, and any unsupported major family fact, then rebuild one current action plus one cropped memory leak. If the repair added `她不在了`, `去世`, or other major family status without user support, remove that fact first.
 
 Insight-caption phrasing such as `现在我意识到...` is a generated-draft risk even though originals can naturally use `突然意识到` or `才意识到`. Keep the natural cases when a scene earns them; delete the caption form when it explains the lesson of the scene.
 

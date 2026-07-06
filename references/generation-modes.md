@@ -71,6 +71,8 @@ Mode C titles should be chosen as handles, not evidence tags. A side-action titl
 
 Mode C repair should not import a new inventory. If the draft is too smooth, thin, or globally profile-drifting, do not answer by adding delivery history, extra named foods, gift boxes, video lessons, variety shows, game scenes, routes, city cues, or background labels. Those packets make the repair visible. Stay with the existing object/message/room/body/memory set: make one action clumsier, one reply worse, one chore more inconvenient, or one memory line longer and less polished. A new family of material is allowed only when it has a consequence, not when it merely raises texture density.
 
+Mode C repair also should not switch genre. If a sincere draft grows into a standard diary surface during repair, cut the expansion instead of accepting the new route. Remove relationship exposition, extra neighbor/function-person scenes, transfer/account bookkeeping, and unsupported major family status such as `她不在了`; then rebuild from one current failed action plus one cropped memory leak.
+
 ## Mode D: Body Intrusion
 
 Best for gout, sleep, pain, hunger, urine, stomach, heart, or fatigue.

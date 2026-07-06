@@ -150,8 +150,9 @@ For each serious generation case, create two external artifacts outside `<skill-
 Finalized checkpoint pass gate:
 
 - Normal `check_anlin_violations.py draft.md` success is not sufficient.
-- Run `check_anlin_violations.py <finalized-draft> --strict --draft-gate` and require zero `error` findings.
-- Run `check_style_profile.py <finalized-draft> --profile <skill-dir>/references/style-profile.json --draft-gate --strict` when the bundled profile is available. A `revise` status means finalized repair failed. A missing profile makes the result `review`, not ready for blind rounds.
+- Freeze the selected genre from the prompt, case metadata, or bounded draft before repair. A short sincere/micro-hope draft that becomes longer during repair should still be validated against the selected short-genre corridor, not reclassified as standard diary by accident.
+- Run `check_anlin_violations.py <finalized-draft> --strict --draft-gate --genre <selected-genre>` and require zero `error` findings.
+- Run `check_style_profile.py <finalized-draft> --profile <skill-dir>/references/style-profile.json --draft-gate --strict --genre <selected-genre>` when the bundled profile is available. A `revise` status means finalized repair failed. A missing profile makes the result `review`, not ready for blind rounds.
 - The finalized article must exist in `<case-dir>/finalized/draft.md`. If the agent prints a repaired article to chat or a log but leaves that file unchanged from a non-pass bounded input, mark the finalized checkpoint invalid as an artifact failure.
 - Style-profile `yellow` with zero errors is acceptable for the finalized checkpoint; record the yellow families, but do not keep rewriting solely to remove yellow warnings. Blind rounds and placebo calibration decide whether those remaining cues matter.
 - Style-profile `review` is not a finalized checkpoint pass, even when `red_families` is empty. Use the report's `checkpoint_decision`; only `checkpoint_decision=pass` can enter blind-round preparation.
@@ -175,7 +176,7 @@ python <skill-dir>/scripts/summarize_dev_checkpoints.py <case-dir> `
   --output-md <case-dir>/controller-audit/summary.md
 ```
 
-The summary script copies drafts and available clean-run stage snapshots into `<case-dir>/controller-audit/` before running the normal hard checker, so the controller can audit a stopped bounded draft without mutating the bounded generation directory or bypassing the clean-eval stop rule. If `--genre` is omitted, the script attempts to infer it from an `eval-<id>` or eval-name case directory; explicit `--genre` is preferred for formal reports, especially for non-standard short genres. If the finalized checkpoint is not available yet, omit `--finalized-draft`; the result is a partial development summary and must not be treated as final convergence evidence.
+The summary script copies drafts and available clean-run stage snapshots into `<case-dir>/controller-audit/` before running the normal hard checker, so the controller can audit a stopped bounded draft without mutating the bounded generation directory or bypassing the clean-eval stop rule. If `--genre` is omitted, the script attempts to infer it from an `eval-<id>` or eval-name case directory; explicit `--genre` is preferred for formal reports, especially for non-standard short genres. The summary uses this genre for both hard-gate and style-profile checks. If the finalized checkpoint is not available yet, omit `--finalized-draft`; the result is a partial development summary and must not be treated as final convergence evidence.
 
 The summary script exits nonzero unless both checkpoints are ready for blind rounds. This is intentional: a generated report is evidence, not a pass. Read `diagnosis`, `blind_round_readiness`, bounded status, finalized status, stage audit statuses, hard-error counts, style-profile status, and trace findings before deciding the next change.
 
