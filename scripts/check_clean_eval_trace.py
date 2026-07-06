@@ -40,8 +40,12 @@ class TraceFinding:
 
 
 def normalize_log(text: str) -> str:
-    # Strip ANSI escapes but keep command text and tool names.
-    return re.sub(r"\x1b\[[0-9;]*m", "", extract_json_event_trace(text)).replace("\\", "/")
+    # Strip ANSI escapes but keep command text and tool names. JSON event logs
+    # escape Windows paths as `C:\\...`; collapse those escaped separators so
+    # absolute write paths are not hidden as `C://...` after normalization.
+    stripped = re.sub(r"\x1b\[[0-9;]*m", "", extract_json_event_trace(text))
+    normalized = stripped.replace("\\\\", "/").replace("\\", "/")
+    return re.sub(r"([A-Za-z]:)/+", r"\1/", normalized)
 
 
 def extract_json_event_trace(text: str) -> str:
@@ -247,8 +251,12 @@ def actual_nonrelative_draft_write_index(text: str) -> int:
     patterns = [
         r"(?im)^\s*(?:←|\?)?\s*Write\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
         r"(?im)^\s*TITLE\s+Write\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
+        r"(?im)^\s*TOOL\s+(?:write|filesystem_write_file)\b(?:\n[^\n]*){0,3}^\s*TITLE\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
+        r"(?im)^\s*TOOL\s+(?:write|filesystem_write_file)\b(?:\n[^\n]*){0,3}^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*[A-Za-z]:/[^\n]*draft\.md",
         r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*[A-Za-z]:/[^\n]*draft\.md[^\n]*(?:content|write)",
+        r"(?im)^\s*INPUT\s+[^\n]*(?:content|write)[^\n]*(?:path|file)[^\n]*[A-Za-z]:/[^\n]*draft\.md",
         r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*/(?:skills|skill-dir|anlin-writing)/[^\n]*draft\.md[^\n]*(?:content|write)",
+        r"(?im)^\s*INPUT\s+[^\n]*(?:content|write)[^\n]*(?:path|file)[^\n]*/(?:skills|skill-dir|anlin-writing)/[^\n]*draft\.md",
         r"(?im)^\s*(?:\$|>|>>)?\s*(?:@['\"]\s*\|\s*)?(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?[A-Za-z]:/[^\n]*draft\.md\b",
         r"(?im)^\s*['\"]@?\s*\|\s*(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?[A-Za-z]:/[^\n]*draft\.md\b",
         r"(?im)^\s*(?:\$|>|>>)?\s*(?:@['\"]\s*\|\s*)?(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?[^'\"]*/(?:skills|skill-dir|anlin-writing)/[^\n]*draft\.md\b",
@@ -256,6 +264,8 @@ def actual_nonrelative_draft_write_index(text: str) -> int:
     ]
     loose_patterns = [
         r"(?i)(?:←|\?|TITLE)\s*Write\s+(?!\.?[/\\]?draft\.md\b).{0,260}draft\.md\b",
+        r"(?i)TOOL\s+(?:write|filesystem_write_file)\b.{0,260}TITLE\s+(?!\.?[/\\]?draft\.md\b).{0,260}draft\.md\b",
+        r"(?i)TOOL\s+(?:write|filesystem_write_file)\b.{0,1200}INPUT\s+\{.{0,1200}(?:path|file)[^{}]{0,80}[A-Za-z]:/.{0,260}draft\.md\b",
     ]
     indices: list[int] = []
     for haystack in (text, folded_text):
