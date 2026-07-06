@@ -1135,6 +1135,35 @@ class AnlinToolingTests(unittest.TestCase):
                 messages,
             )
 
+    def test_clean_run_preflight_flags_exact_standard_prompt_prop_title(self) -> None:
+        body = "\n".join(
+            [
+                "# 备注",
+                "",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertIn("standard_prompt_prop_title=备注", messages)
+
+    def test_clean_run_preflight_flags_em_dash_surface(self) -> None:
+        body = "\n".join(
+            [
+                "# 水槽",
+                "",
+                "拿筷子翻了翻——最底下还是有一小撮香菜。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(any(message.startswith("em_dash=present") for message in messages), messages)
+
     def test_checker_allows_standard_side_action_title_with_prompt_props(self) -> None:
         body = standard_prompt_prop_title_loop_sample("# 水槽")
         with tempfile.TemporaryDirectory() as temp:

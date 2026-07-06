@@ -39,6 +39,7 @@ from check_anlin_violations import (  # noqa: E402
     ROUGH_SELF_DAMAGE_PATTERNS,
     ROUGH_SELF_DAMAGE_TERMS,
     STANDARD_DIARY_DRAFT_OVERFULL_CHARS,
+    STANDARD_PROMPT_PROP_TITLE_TERMS,
     chinese_len,
     comment_chain_formula_hits,
     current_office_persona_hits,
@@ -374,6 +375,9 @@ def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]
     if simile_matches:
         examples = " | ".join(f"L{line_no}:{excerpt[:42]}" for line_no, excerpt in simile_matches[:3])
         messages.append(f"literary_simile_caption=present count={len(simile_matches)} examples={examples}")
+    dash_lines = [f"L{index}:{line.strip()[:42]}" for index, line in enumerate(lines, start=1) if "——" in line]
+    if dash_lines:
+        messages.append(f"em_dash=present count={len(dash_lines)} examples={' | '.join(dash_lines[:3])}")
     meta_ai_hits = meta_ai_topic_hits(article_text)
     if meta_ai_hits:
         messages.append(f"meta_ai_topic_hits={meta_ai_hits[:4]}")
@@ -519,6 +523,9 @@ def preflight_messages(draft: Path) -> list[str]:
         or (not rough_terms and not rough_patterns)
     )
     standard_prop_loop_risk = standard_prompt_prop_title_loop_risk(text.splitlines(), text)
+    normalized_title = re.sub(r"[\s#]+", "", title)
+    if normalized_title in STANDARD_PROMPT_PROP_TITLE_TERMS:
+        messages.append(f"standard_prompt_prop_title={normalized_title}")
     if standard_prop_loop_risk:
         messages.append(
             "standard_prompt_prop_title_loop="
@@ -586,6 +593,8 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         "learned_ending_button=",
         "quoted_dialogue=",
         "literary_simile_caption=",
+        "em_dash=",
+        "standard_prompt_prop_title=",
     )
     surface_only = all(message.startswith(surface_only_prefixes) for message in messages)
     compressed_shape = any("< 45" in message or "prose_block_shape=compressed" in message for message in messages)
@@ -735,6 +744,14 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if "binary_reframe=present" in joined_messages:
         repair_hints.append(
             "for binary_reframe, scan every line and remove all occurrences; replace each not-X/is-Y move with the physical fact, money action, or ugly reply already in that scene"
+        )
+    if "em_dash=present" in joined_messages:
+        repair_hints.append(
+            "for em_dash, replace each `——` with a comma, line break, action, or plain speech fragment; do not use dash as an explanation hinge"
+        )
+    if "standard_prompt_prop_title=" in joined_messages:
+        repair_hints.append(
+            "for standard_prompt_prop_title, retitle from a side consequence already in the draft, not from the prompt prop such as 备注、香菜、礼物、朋友圈 or 优惠券"
         )
     if "prompt_performing_dialogue=present" in joined_messages:
         repair_hints.append(
