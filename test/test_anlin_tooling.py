@@ -6638,6 +6638,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("The file content itself must carry the broken surface", skill)
         self.assertIn("bare caption rows are dangerous", clean)
         self.assertIn("do not delete punctuation to make many naked short rows", skill)
+        self.assertIn("600-850 body Chinese characters is usually not restrained", clean)
+        self.assertIn("A 600-850 character standard-diary candidate is usually not restrained", skill)
+        self.assertIn("Do not separate the witness and the ugly fact", clean)
+        self.assertIn("A soft witness is not enough", skill)
         self.assertIn("pain, heat, and fatigue alone are too polite", clean)
         self.assertIn("private case-report chain", runtime)
         self.assertIn("symptom list -> search result -> food taboo -> refrigerator inventory -> room smell -> ambient sound", skill)
@@ -6897,6 +6901,29 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertTrue(any(rule == "strict: AI治疗式人类化: 允许自己" for rule in rules))
+
+    def test_checker_does_not_treat_literal_unseen_note_as_therapeutic_humanizer(self) -> None:
+        body = "\n".join(
+            [
+                "# 充电线",
+                "",
+                "备注大概根本就没被看见。",
+                "外卖员把袋子递过来，我低头看了一眼订单。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("AI治疗式人类化: 被看见" in item["rule"] for item in findings), findings)
 
     def test_checker_draft_gate_rejects_current_game_match_sequence(self) -> None:
         body = "\n".join(

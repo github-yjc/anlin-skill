@@ -245,6 +245,24 @@ THERAPEUTIC_HUMANIZER_TERMS = [
     "善待自己",
     "自我接纳",
 ]
+LITERAL_SEEN_SUBJECTS = [
+    "备注",
+    "订单",
+    "消息",
+    "评论",
+    "截图",
+    "照片",
+    "屏幕",
+    "提示",
+    "字",
+    "名字",
+    "标签",
+    "二维码",
+    "通知",
+    "文件",
+    "单号",
+    "外卖单",
+]
 META_AI_TOPIC_TERMS = [
     "AI写",
     "AI 写",
@@ -1718,10 +1736,15 @@ def check_pseudo_humanizer_surface(findings: list[Finding], lines: list[str], te
 
 def check_therapeutic_humanizer_surface(findings: list[Finding], lines: list[str]) -> None:
     speaker_context = re.compile(r"(?:我|他|她|老板|老板娘|我妈|我爸|室友|舍友|朋友|同学|狗哥|水哥|Java大哥)[^。！？\n]{0,18}(?:说|问|回|劝|安慰)")
+    literal_seen_context = re.compile(
+        rf"(?:{'|'.join(map(re.escape, LITERAL_SEEN_SUBJECTS))})[^。！？\n]{{0,24}}(?:没|没有|根本没|根本就没|不)?被看见"
+    )
     for line_number, line in enumerate(lines, start=1):
         for term in THERAPEUTIC_HUMANIZER_TERMS:
             if term in line:
                 if speaker_context.search(line):
+                    continue
+                if term == "被看见" and literal_seen_context.search(line):
                     continue
                 findings.append(
                     Finding(
