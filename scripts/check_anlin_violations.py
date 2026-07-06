@@ -1150,6 +1150,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "疾病身体证明过密",
     "社交拒绝室内冷感过密",
     "社交拒绝纹理替代后果不足",
+    "社交拒绝编剧化回礼",
     "逗号密度过高",
     "行末逗号比例",
     "节奏过度均匀",
@@ -3275,6 +3276,37 @@ def check_social_decline_room_texture_overfill(findings: list[Finding], lines: l
         )
 
 
+def check_social_decline_scripted_return_gift(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
+        return
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if len(visible_lines) < 30:
+        return
+    body = "\n".join(visible_lines)
+    social_hits = sum(body.count(term) for term in SOCIAL_DECLINE_TERMS)
+    has_invitation_context = any(term in body for term in ("狗哥", "结婚", "婚礼", "随礼", "份子钱", "高铁", "来不来", "去不了"))
+    if social_hits < 4 or not has_invitation_context:
+        return
+    scripted_patterns = [
+        r"(?:狗哥|他|对方)[^。！？\n]{0,24}发(?:了|来)?(?:个|一个)?红包",
+        r"红包[^。！？\n]{0,24}(?:六块六|6\.6|一块两毛五|沾点喜气|心意到了|项目忙就算了)",
+        r"(?:附言|备注)[^。！？\n]{0,30}(?:心意到了|项目忙就算了|沾点喜气)",
+    ]
+    for line_number, line in enumerate(visible_lines, start=1):
+        if any(re.search(pattern, line) for pattern in scripted_patterns):
+            findings.append(
+                Finding(
+                    "warning",
+                    "社交拒绝编剧化回礼",
+                    line_number,
+                    clean_excerpt(line),
+                    "生成稿高风险：婚礼拒绝后的对方回红包、沾喜气、心意到了等反转太像模型在补一个精巧后果。让对方保持普通短回复、沉默、改话题、发地址/照片、或让现实付款/路线/身体失败承担后果；不要用礼貌反转替文章收束。",
+                )
+            )
+            return
+
+
 def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str], text: str) -> None:
     title, content_lines = split_title_and_content_lines(lines)
     if not looks_like_standard_diary_gate_target(title, content_lines, text):
@@ -4243,6 +4275,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_illness_case_report_loop(findings, lines, text)
     check_illness_body_proof_overdensity(findings, lines, text)
     check_social_decline_room_texture_overfill(findings, lines, text)
+    check_social_decline_scripted_return_gift(findings, lines, text)
     check_prose_block_compression(findings, lines, text)
     check_short_line_poem_surface(findings, lines, text)
     check_line_length_uniformity(findings, lines, text)
