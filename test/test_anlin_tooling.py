@@ -4754,6 +4754,32 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: 社交拒绝室内冷感过密" for item in findings), findings)
 
+    def test_checker_draft_gate_rejects_non_diary_diagnostic_wedding_title(self) -> None:
+        body_lines = (
+            [
+                "狗哥发微信说下个月结婚，问我来不来。",
+                "我看了一眼高铁票，又把手机扣在桌上。",
+                "水池里有个碗没洗，油浮在上面。",
+                "最后回他说最近走不开，恭喜啊。",
+            ]
+            + ["我把手机扣在桌上，去门口捡掉下去的充电线。"] * 20
+            + ["回来时椅子轮子卡住，我弯腰拽了一下，裤脚沾到灰。"] * 12
+        )
+        body = "\n".join(["# 狗哥的婚礼", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 题面诊断型标题" for item in findings), findings)
+
     def test_checker_allows_social_decline_with_one_room_side_object(self) -> None:
         body_lines = (
             [

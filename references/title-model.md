@@ -39,6 +39,7 @@ Choose the title after drafting:
 ## High-Risk Generated Titles
 
 - task labels: `春招日寄`, `情人节日寄`, `痛风日寄`, `母亲节日寄` when the user prompt already contains that exact topic and the body merely executes it
+- person-plus-event labels: `狗哥的婚礼`, `同学的婚礼`, `婚礼`, `结婚`, or similar titles for invitation/refusal prompts when the body is about whether to go, how much to give, or what excuse to send
 - calendar labels: `2024日寄`, `新年日寄`, `元旦日寄`, `跨年日寄`, `年度总结日寄` when the date or feed topic is the assignment rather than a lived side handle
 - tidy thesis titles: `不算坏事`, `没发出去的消息`, `给不存在的人写信`
 - short sincere main-prop loops: `鸡蛋`, `一袋鸡蛋`, `塑料袋`, `屏幕`, or `没发出去的消息` when the same prop opens the body, proves mother/family memory, and returns in the ending
@@ -50,6 +51,7 @@ High-risk does not mean forbidden. Some corpus titles directly name spring recru
 ## Repair Moves
 
 - If title is too diagnostic: replace with a side object, bodily handle, question, or plain `日寄`.
+- If an invitation/refusal title names the person plus event: retitle from the failed side action, wrong reply, route/payment hesitation, low-status object, or body residue created by the refusal.
 - If title is too bland: choose a modifier from a real body consequence, not from the prompt.
 - If title is too literary: remove the abstract feeling and use the object/action that caused it.
 - If title and ending close too neatly: keep the stronger one and lower the other into a practical consequence.

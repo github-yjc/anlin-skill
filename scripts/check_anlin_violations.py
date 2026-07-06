@@ -698,6 +698,7 @@ TOPIC_DIAGNOSTIC_TITLE_TERMS = [
     "情人节",
     "平安夜",
     "母亲节",
+    "结婚",
     "婚礼",
     "痛风",
     "跨年",
@@ -719,6 +720,7 @@ HIGH_SIGNAL_OPENING_TERMS = [
     "租房补贴",
     "情人节",
     "母亲节",
+    "结婚",
     "婚礼",
     "痛风",
     "跨年",
@@ -3024,7 +3026,7 @@ def check_diagnostic_title(findings: list[Finding], lines: list[str]) -> None:
     title, _ = split_title_and_content_lines(lines)
     if not title:
         return
-    if title != "日寄" and title.endswith("日寄"):
+    if title != "日寄":
         matched = [term for term in TOPIC_DIAGNOSTIC_TITLE_TERMS if term in title]
         if re.search(r"(?:19|20)\d{2}(?:年)?日寄$", title):
             matched.append("four_digit_year")
