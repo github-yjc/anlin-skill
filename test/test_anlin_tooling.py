@@ -2716,6 +2716,33 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("clean-eval未调用clean_run_checker", rules)
             self.assertIn("clean-eval未写入draft.md", rules)
 
+    def test_clean_eval_trace_flags_direct_normal_checker_even_after_clean_wrapper(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        → Read C:/skill/references/clean-generation-brief.md
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_PREFLIGHT: draft is not ready for checker call 1/2
+        $ python C:/skill/scripts/check_anlin_violations.py draft.md 2>&1 | Select-Object -First 5
+        [warning] line 33 AI二元解释句式
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval直接调用普通checker", rules)
+
     def test_clean_eval_trace_flags_parent_skill_directory_rediscovery(self) -> None:
         log = """
         → Skill "anlin-writing"

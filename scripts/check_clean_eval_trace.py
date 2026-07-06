@@ -141,6 +141,20 @@ def actual_clean_run_checker_index(text: str) -> int:
     return min(indices) if indices else -1
 
 
+def actual_normal_checker_index(text: str) -> int:
+    patterns = [
+        r"(?im)^\s*\$\s+[^\n]*check_anlin_violations\.py\b",
+        r"(?im)^\s*TITLE\s+[^\n]*check_anlin_violations\.py\b",
+        r"(?im)^\s*INPUT\s+[^\n]*(?:command|cmd)[^\n]*check_anlin_violations\.py\b",
+    ]
+    indices: list[int] = []
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if match:
+            indices.append(match.start())
+    return min(indices) if indices else -1
+
+
 def actual_draft_write_index(text: str) -> int:
     patterns = [
         r"(?im)^\s*(?:←\s*)?Write\s+draft\.md\b",
@@ -262,6 +276,16 @@ def collect_findings(text: str) -> list[TraceFinding]:
                 "clean-eval未调用clean_run_checker",
                 clean_excerpt(normalized, 0),
                 "Bounded clean-eval generation must use clean_run_checker.py. A run that uses only the normal checker belongs to ordinary/finalized repair, not the bounded checkpoint.",
+            )
+        )
+    normal_checker_index = actual_normal_checker_index(normalized)
+    if normal_checker_index >= 0:
+        findings.append(
+            TraceFinding(
+                "error",
+                "clean-eval直接调用普通checker",
+                clean_excerpt(normalized, normal_checker_index),
+                "Bounded clean-eval generation must use only clean_run_checker.py. Direct normal-checker calls expose diagnostics outside the two-call protocol and contaminate the source-guidance measurement.",
             )
         )
     first_write = actual_draft_write_index(normalized)
