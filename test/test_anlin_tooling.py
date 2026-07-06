@@ -3949,6 +3949,58 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertFalse(any("疾病病例报告闭环" in item["rule"] for item in findings))
 
+    def test_checker_draft_gate_rejects_illness_body_proof_overdensity_after_exposure(self) -> None:
+        body_lines = (
+            ["脚趾又烧起来了，大脚趾关节发酸，整只脚不敢挨地。"] * 7
+            + ["我拿起手机搜痛风，屏幕上写着富贵病和尿酸。"] * 5
+            + ["冰箱里剩半瓶可乐，厨房有腐乳，空调外机一直响。"] * 6
+            + ["外卖员站在门口等我扫码，提手断了，粥淌到手上。"] * 3
+            + ["我再坐回沙发，脚趾又胀了一下，手机还亮着那个页面。"] * 12
+            + ["房间里的味道很闷，药膏味和腐乳味混在一起。"] * 12
+        )
+        body = "\n".join(["# 外机", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 疾病身体证明过密" for item in findings), findings)
+
+    def test_checker_draft_gate_allows_illness_when_body_packet_is_thinned(self) -> None:
+        body_lines = (
+            [
+                "脚趾疼了一下，我把拖鞋踢到一边。",
+                "手机上那个页面还没关，我只看见富贵病三个字。",
+                "门铃响的时候我没站起来，外卖员又敲了一下。",
+                "我挪到门口扫码，手机卡了一下，他站着没走。",
+                "提手断了，粥淌到我手上。",
+                "我回屋踩到一点，拖鞋打滑，扶着墙站住。",
+                "表弟问还来不来，我打了个脚不行，又删了。",
+                "最后发了个嗯。",
+            ]
+            + ["楼道灯亮了一下，杯子还在茶几边上，粥慢慢凉了。"] * 24
+        )
+        body = "\n".join(["# 外机", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("疾病身体证明过密" in item["rule"] for item in findings), findings)
+
     def test_checker_warns_when_body_object_texture_replaces_social_movement(self) -> None:
         body_lines = (
             ["手上有灰，裤子上也有灰，水龙头边的杯子放在楼道里，门口的塑料袋也湿了。"] * 14
@@ -7233,6 +7285,58 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings))
             self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings))
+
+    def test_checker_accepts_public_payment_spill_as_rough_and_engine_signal(self) -> None:
+        body = "\n".join(
+            [
+                "# 外机",
+                "",
+                "门铃又响了一下，我拖着脚挪到门口。",
+                "外卖员站在楼梯口没走，手机举着等我扫码。",
+                "我一手拎袋子一手掏手机，提手断了，粥淌到手上。",
+                "手机卡了一下，没扫上，他又站了一会儿。",
+                "我再扫了一次，这次响了。",
+                "回去的时候踩到粥，拖鞋打滑，差点摔，扶着墙站住。",
+                *(["水龙头在厨房响了一下，杯子边上有水，窗帘半挂着，脚趾又抽了一下。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings), findings)
+            self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings), findings)
+
+    def test_checker_does_not_count_private_spill_as_public_engine(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "我在房间里把外卖袋子提手扯断，粥淌到手上。",
+                "手机卡了一下，屋里没别人。",
+                "回沙发的时候踩到粥，拖鞋打滑，扶着墙站住。",
+                *(["其实我觉得杯子有点旧，洗的时候水龙头轻轻响了一下。"] * 38),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertTrue(any("段落发动机信号偏弱" in item["rule"] for item in findings), findings)
 
     def test_checker_counts_quiet_dirty_hand_reaction_as_paragraph_engine(self) -> None:
         body = "\n".join(

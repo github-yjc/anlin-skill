@@ -339,6 +339,9 @@ TEXTURE_SOCIAL_TERMS = [
     "摊主",
     "店员",
     "收银",
+    "外卖员",
+    "骑手",
+    "快递员",
     "保安",
     "司机",
     "邻居",
@@ -393,6 +396,9 @@ EXPOSED_SOCIAL_CONSEQUENCE_TERMS = [
     "摊主",
     "店员",
     "收银",
+    "外卖员",
+    "骑手",
+    "快递员",
     "保安",
     "司机",
     "邻居",
@@ -407,6 +413,8 @@ EXPOSED_SOCIAL_CONSEQUENCE_TERMS = [
     "扶了一下",
     "看了我",
     "盯着我",
+    "等我扫码",
+    "站那里没走",
 ]
 UNSUPPORTED_GAME_ROLE_TERMS = [
     "排位",
@@ -873,6 +881,11 @@ ENGINE_SIGNAL_PATTERNS = [
     r"(?:拖鞋|鞋)[^。！？\n]{0,36}(?:左右脚不一样|一个高一个低|穿反|穿错)[\s\S]{0,90}(?:绊|摔|门槛|楼道|差点|看)",
     r"(?:绊|摔|栽|跪)[^。！？\n]{0,36}(?:门槛|楼道|墙|快递盒|泡沫|纸箱|手印|湿手印)",
     r"(?:快递盒|泡沫|纸箱)[^。！？\n]{0,40}(?:碰倒|倒|滚|撒|散了一地)",
+    r"(?:外卖员|骑手|快递员|老板|摊主|店员|收银)[\s\S]{0,100}(?:等(?:我)?扫码|站(?:在)?[^。！？\n]{0,16}(?:没走|等)|看着|举着)[\s\S]{0,120}(?:手机卡|没扫上|扫(?:了)?(?:一|两|二)?次|扫码|付款|二维码)",
+    r"(?:手机卡|没扫上|扫(?:了)?(?:一|两|二)?次|扫码|付款|二维码)[\s\S]{0,120}(?:外卖员|骑手|快递员|老板|摊主|店员|收银|他|她)[^。！？\n]{0,40}(?:等|站|看着|没走|举着)",
+    r"(?:提手|塑料袋|袋子)[^。！？\n]{0,24}(?:断|裂|破)[\s\S]{0,120}(?:粥|汤|饭|面|外卖)[^。！？\n]{0,30}(?:淌|洒|漏|流|泼)[\s\S]{0,120}(?:外卖员|骑手|快递员|老板|摊主|店员|收银|他看着|她看着|门口|楼道|扫码|付款)",
+    r"(?:粥|汤|饭|面|外卖)[^。！？\n]{0,30}(?:淌|洒|漏|流|泼)[^。！？\n]{0,40}(?:手|裤|鞋|拖鞋|地)[\s\S]{0,120}(?:外卖员|骑手|快递员|老板|摊主|店员|收银|他看着|她看着|等(?:我)?扫码|门口|楼道)",
+    r"(?:门口|楼道|门缝)[\s\S]{0,120}(?:粥|汤|外卖)[^。！？\n]{0,40}(?:脚底|踩到|拖鞋|鞋)[^。！？\n]{0,40}(?:滑|打滑|差点|摔)",
 ]
 SEALED_NIGHT_TERMS = ["失眠", "床", "枕", "闹钟", "睡", "手机", "通知", "群", "Boss", "直聘"]
 CLOSED_LOOP_TAIL_TERMS = ["到现在也没", "明天再", "还没请", "还没还", "又点开"]
@@ -967,6 +980,11 @@ ROUGH_SELF_DAMAGE_PATTERNS = [
     r"(?:手|手背|手上)[^。！？\n]{0,36}(?:灰|黑|脏)[\s\S]{0,120}(?:纸巾擦|擦了擦手|零钱|老板|店员|收银)",
     r"(?:拖鞋|鞋)[^。！？\n]{0,36}(?:左右脚不一样|一个高一个低|穿反|穿错)[\s\S]{0,90}(?:绊|摔|门槛|楼道|差点)",
     r"(?:绊|摔|栽|跪)[^。！？\n]{0,36}(?:门槛|楼道|墙|快递盒|泡沫|纸箱|手印|湿手印)",
+    r"(?:外卖员|骑手|快递员|老板|摊主|店员|收银)[\s\S]{0,100}(?:等(?:我)?扫码|站(?:在)?[^。！？\n]{0,16}(?:没走|等)|看着|举着)[\s\S]{0,120}(?:手机卡|没扫上|扫(?:了)?(?:一|两|二)?次|扫码|付款|二维码)",
+    r"(?:手机卡|没扫上|扫(?:了)?(?:一|两|二)?次|扫码|付款|二维码)[\s\S]{0,120}(?:外卖员|骑手|快递员|老板|摊主|店员|收银|他|她)[^。！？\n]{0,40}(?:等|站|看着|没走|举着)",
+    r"(?:提手|塑料袋|袋子)[^。！？\n]{0,24}(?:断|裂|破)[\s\S]{0,120}(?:粥|汤|饭|面|外卖)[^。！？\n]{0,30}(?:淌|洒|漏|流|泼)[\s\S]{0,120}(?:外卖员|骑手|快递员|老板|摊主|店员|收银|他看着|她看着|门口|楼道|扫码|付款)",
+    r"(?:粥|汤|饭|面|外卖)[^。！？\n]{0,30}(?:淌|洒|漏|流|泼)[^。！？\n]{0,40}(?:手|裤|鞋|拖鞋|地)[\s\S]{0,120}(?:外卖员|骑手|快递员|老板|摊主|店员|收银|他看着|她看着|等(?:我)?扫码|门口|楼道)",
+    r"(?:门口|楼道|门缝)[\s\S]{0,120}(?:粥|汤|外卖)[^。！？\n]{0,40}(?:脚底|踩到|拖鞋|鞋)[^。！？\n]{0,40}(?:滑|打滑|差点|摔)",
 ]
 AMBIENT_ENDING_PATTERNS = [
     r"(空调|外机|风扇|雨|灯|屏幕|手机|机器|冰箱)[^。！？\n]{0,16}(嗡|响|亮|暗|黑|震)[^。！？\n]{0,8}[。！？]?$",
@@ -1084,6 +1102,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "背景展示堆砌",
     "具体纹理堆叠过密",
     "疾病病例报告闭环",
+    "疾病身体证明过密",
     "逗号密度过高",
     "行末逗号比例",
     "节奏过度均匀",
@@ -3105,6 +3124,47 @@ def check_illness_case_report_loop(findings: list[Finding], lines: list[str], te
         )
 
 
+def check_illness_body_proof_overdensity(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
+        return
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if len(visible_lines) < 40:
+        return
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < 900:
+        return
+    lower_body = body.lower()
+    illness_hits = sum(lower_body.count(term.lower()) for term in ILLNESS_CASE_REPORT_TERMS)
+    illness_lines = sum(1 for line in visible_lines if any(term in line for term in ILLNESS_CASE_REPORT_TERMS))
+    body_texture_lines = sum(1 for line in visible_lines if any(term in line for term in TEXTURE_OVERFILL_GROUPS["body"]))
+    screen_lines = sum(1 for line in visible_lines if any(term in line for term in ILLNESS_CASE_SCREEN_TERMS))
+    room_food_lines = sum(1 for line in visible_lines if any(term in line for term in ILLNESS_CASE_ROOM_FOOD_TERMS))
+    exposed_social_lines = sum(1 for line in visible_lines if any(term in line for term in EXPOSED_SOCIAL_CONSEQUENCE_TERMS))
+    if (
+        illness_hits >= 7
+        and illness_lines >= 6
+        and body_texture_lines >= 18
+        and screen_lines >= 4
+        and room_food_lines >= 4
+        and 1 <= exposed_social_lines <= 4
+    ):
+        findings.append(
+            Finding(
+                "warning",
+                "疾病身体证明过密",
+                0,
+                (
+                    f"illness_hits={illness_hits}, illness_lines={illness_lines}, "
+                    f"body_texture_lines={body_texture_lines}, screen_lines={screen_lines}, "
+                    f"room_food_lines={room_food_lines}, exposed_social_lines={exposed_social_lines}"
+                ),
+                "生成稿高风险：已经有外部后果，但症状、搜索、手机、房间食物和身体动作仍反复证明同一个病痛。删掉一个症状/屏幕/房间包，让外部后果改变回复、付款、路线、门口位置或下一步行动。",
+            )
+        )
+
+
 def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str], text: str) -> None:
     title, content_lines = split_title_and_content_lines(lines)
     if not looks_like_standard_diary_gate_target(title, content_lines, text):
@@ -3277,7 +3337,7 @@ def check_rough_self_damage(findings: list[Finding], text: str) -> None:
                 "粗粝自毁信号不足",
                 0,
                 "present=[]",
-                "标准日寄不能只靠安静观察和物件真实感；加入一个粗粝自嘲、身体尴尬、社交误伤或不好看的笑点。",
+                "标准日寄不能只靠安静观察和物件真实感。不要用脏话硬补；让身体尴尬、付款失败、他人等待、东西弄脏、社交误伤或不好看的笑点改变动作。",
             )
         )
 
@@ -3427,7 +3487,7 @@ def check_engine_signal_density(findings: list[Finding], text: str) -> None:
                 "段落发动机信号偏弱",
                 0,
                 f"present={hits + pattern_hits}",
-                "标准日寄不能只是安静低落；至少需要误读、自毁、社交误伤、身体降格或荒谬系统解释中的几种。",
+                "标准日寄不能只是安静低落。不要靠骂词补信号；让误读、自毁、社交误伤、身体降格、公共交易失败或荒谬系统解释推动段落。",
             )
         )
 
@@ -4071,6 +4131,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_global_comma_density(findings, lines, text)
     check_generated_texture_overfill(findings, lines, text)
     check_illness_case_report_loop(findings, lines, text)
+    check_illness_body_proof_overdensity(findings, lines, text)
     check_prose_block_compression(findings, lines, text)
     check_short_line_poem_surface(findings, lines, text)
     check_line_length_uniformity(findings, lines, text)

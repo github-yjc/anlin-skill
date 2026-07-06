@@ -88,6 +88,7 @@ Recommended budget:
 - at most two visible high-signal prompt items. If the request lists roommate offer, class group physical exam, rent subsidy, job app, and resume, do not include all of them.
 - background facts used as invisible rails. If a scene only exists to show "Anlin plays 王者" or "Anlin is in Yunnan", cut the scene. If game changes action, memory, status, social relation, or cognition, it is allowed; if it only satisfies a perceived label, it fails.
 - if a repair warning mentions n-gram texture, body texture, route/object texture, or low dialogue/social movement, reduce repeated local packets before adding anything. A social consequence is useful only when it changes action or status; it is not a new quota to insert a cashier, neighbor, or vendor into every article.
+- if illness, injury, or body pain is the prompt surface, one external consequence should be selected before drafting. This can be payment, doorway, route, reply, other-person reaction, object failure, or food/medicine leakage; it is not a requirement to mention 外卖, shops, or neighbors.
 
 Avoid:
 
@@ -110,6 +111,7 @@ Avoid:
 - background-display stuffing: adding 王者、痛风、狗哥、外卖、知乎, or a city cue only because the background file permits it
 - a smooth chain of scenes where every object proves the same wound
 - polite melancholy in place of a real laugh, self-own, or social embarrassment
+- swear-word patching in place of a low-status event: `妈的`, `操`, `我服了`, or `真丢人` without changed action, public friction, body consequence, or social position
 - a tasteful withheld ending that could close any literary short story
 - literary captioning after a good image: `——那种...`, `终于可以...的放松`, `释然`, `自洽`, or a sentence that names the feeling instead of making something happen
 - game scenes that become proof of MOBA knowledge: first/second match, teammates, tactics, scoreboard, rank interface, win/loss sequence, or role vocabulary
