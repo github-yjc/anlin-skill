@@ -2639,6 +2639,8 @@ class AnlinToolingTests(unittest.TestCase):
         → Read C:/skill/references/clean-generation-brief.md
         → Read C:/skill/references/era-state.md
         $ Test-Path .anlin-clean-eval-mode
+        $ Get-Location
+        C:/eval-workspace/iteration-1/eval-01
         ← Write draft.md
         $ python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_NOTE: checker call 1/2
@@ -2666,6 +2668,8 @@ class AnlinToolingTests(unittest.TestCase):
         → Read C:/skill/references/clean-generation-brief.md
         $ Test-Path .anlin-clean-eval-mode
         True
+        $ Get-Location
+        C:/eval-workspace/iteration-1/eval-01
         ✗ Invalid Tool
         The arguments provided to the tool are invalid: Invalid input for tool write.
         "@ | Set-Content -Path "draft.md" -Encoding UTF8
@@ -2857,6 +2861,8 @@ class AnlinToolingTests(unittest.TestCase):
         → Skill "anlin-writing"
         $ Test-Path .anlin-clean-eval-mode
         True
+        $ Get-Location
+        C:/eval-workspace/iteration-1/eval-01
         → Read C:/skill/references/clean-generation-brief.md
         "@ | Set-Content -Path "C:/agent/config/opencode/skills/anlin-writing/iteration-49/eval-07/draft.md" -Encoding UTF8
         $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
@@ -2864,6 +2870,117 @@ class AnlinToolingTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "opencode-output.txt"
             path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval写稿路径不是相对draft.md", rules)
+            self.assertIn("clean-eval未写入draft.md", rules)
+
+    def test_clean_eval_trace_flags_missing_current_directory_before_write(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        → Read C:/skill/references/clean-generation-brief.md
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval写稿前未确认当前目录", rules)
+
+    def test_clean_eval_trace_flags_skill_directory_as_current_directory(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        $ Get-Location
+        C:/Users/agent/.config/opencode/skills/anlin-writing
+        → Read C:/skill/references/clean-generation-brief.md
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval当前目录是skill目录", rules)
+
+    def test_clean_eval_trace_flags_jsonl_absolute_file_path_under_skill_dir(self) -> None:
+        events = [
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "Test-Path .anlin-clean-eval-mode"},
+                        "metadata": {"output": "True\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "Get-Location"},
+                        "metadata": {"output": "C:/eval-workspace/iteration-55/eval-09\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "filesystem_write_file",
+                    "state": {
+                        "input": {
+                            "filePath": "C:\\Users\\agent\\.config\\opencode\\skills\\anlin-writing\\iteration-55\\eval-09\\draft.md",
+                            "content": "日寄\n\n正文",
+                        }
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate"},
+                        "metadata": {"output": "CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY\n"},
+                    },
+                },
+            },
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.jsonl"
+            path.write_text("\n".join(json.dumps(event, ensure_ascii=False) for event in events), encoding="utf-8")
             result = subprocess.run(
                 [sys.executable, str(CHECK_TRACE), str(path), "--json"],
                 capture_output=True,
@@ -2907,6 +3024,16 @@ class AnlinToolingTests(unittest.TestCase):
                     "state": {
                         "input": {"command": "Test-Path .anlin-clean-eval-mode"},
                         "metadata": {"output": "True\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "Get-Location"},
+                        "metadata": {"output": "C:/eval-workspace/iteration-1/eval-01\n"},
                     },
                 },
             },
@@ -2975,6 +3102,16 @@ class AnlinToolingTests(unittest.TestCase):
             {
                 "type": "tool_use",
                 "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "Get-Location"},
+                        "metadata": {"output": "C:/eval-workspace/iteration-1/eval-01\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
                     "tool": "filesystem_write_file",
                     "state": {"input": {"path": "draft.md", "content": "日寄\n\n正文"}},
                 },
@@ -3012,6 +3149,8 @@ class AnlinToolingTests(unittest.TestCase):
         log = """
         Thinking: I should not read `references/anti-ai-slop.md`, `references/title-model.md`, or `references/runtime-brief.md` before the first complete `draft.md`.
         $ Get-ChildItem -Force .anlin-clean-eval-mode
+        $ Get-Location
+        C:/eval-workspace/iteration-1/eval-01
         → Read C:/skill/references/clean-generation-brief.md
         → Read C:/skill/references/era-state.md
         ← Write draft.md
@@ -3125,6 +3264,8 @@ class AnlinToolingTests(unittest.TestCase):
         log = """
         → Read C:/skill/references/clean-generation-brief.md
         $ Test-Path .anlin-clean-eval-mode
+        $ Get-Location
+        C:/eval-workspace/iteration-1/eval-01
         ← Write draft.md
         $ python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_PREFLIGHT: draft is not ready for checker call 1/2
@@ -3152,6 +3293,8 @@ class AnlinToolingTests(unittest.TestCase):
         log = """
         → Read C:/skill/references/clean-generation-brief.md
         $ Test-Path .anlin-clean-eval-mode
+        $ Get-Location
+        C:/eval-workspace/iteration-1/eval-01
         ← Write draft.md
         $ python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY. DO NOT WRITE draft.md. DO NOT REPAIR. The next tool action must be reading draft.md once and outputting it unchanged.
@@ -3174,6 +3317,8 @@ class AnlinToolingTests(unittest.TestCase):
         log = """
         → Read C:/skill/references/clean-generation-brief.md
         $ Test-Path .anlin-clean-eval-mode
+        $ Get-Location
+        C:/eval-workspace/iteration-1/eval-01
         ← Write draft.md
         $ python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2. DO NOT WRITE draft.md.
@@ -3200,6 +3345,8 @@ class AnlinToolingTests(unittest.TestCase):
         If the wrapper prints `CLEAN_RUN_PREFLIGHT_STOP`, the draft still is not ready.
         Do not write `draft.md`, do not repair, and do not switch to `check_anlin_violations.py`.
         $ Test-Path .anlin-clean-eval-mode
+        $ Get-Location
+        C:/eval-workspace/iteration-1/eval-01
         ← Write draft.md
         $ python scripts/clean_run_checker.py draft.md --strict --draft-gate
         CLEAN_RUN_PREFLIGHT: draft is not ready for checker call 1/2
@@ -5714,13 +5861,17 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("At task start, check whether the current task workspace contains `.anlin-clean-eval-mode`", skill)
         self.assertIn("the first tool action should be a lightweight current-directory marker check", skill)
         self.assertIn("A first `Write draft.md` before this marker check is a contaminated clean-eval run", skill)
+        self.assertIn("a first write without current-directory confirmation is not a valid bounded run", skill)
         self.assertIn("write and read the article using the relative path `draft.md`", skill)
-        self.assertIn("never substitute a different date-stamped directory", skill)
+        self.assertIn("the file/path argument must be exactly `draft.md` or `.\\draft.md`", skill)
+        self.assertIn("Never substitute a different date-stamped directory", skill)
         self.assertIn("Use the relative path `draft.md` or `.\\draft.md`", clean)
         self.assertIn("Do not construct an absolute path from memory", clean)
+        self.assertIn("`Get-Location` / `pwd` is mandatory before the first write", clean)
         self.assertIn("`<skill-dir>` is only for resolving bundled references and scripts", skill)
         self.assertIn("it must not appear in the article write path", clean)
         self.assertIn("Do not write `<skill-dir>/<iteration-or-case>/draft.md`", clean)
+        self.assertIn("If `Get-Location` shows `<skill-dir>` or a path ending in `anlin-writing`, do not write", clean)
         self.assertIn("Draft in breathing clusters, not sentence rows", clean)
         self.assertIn("pain, heat, and fatigue alone are too polite", clean)
         self.assertIn("private case-report chain", runtime)
@@ -5729,8 +5880,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("If the user gives `有人说痛风是富贵病`", runtime)
         self.assertIn("cut one whole packet before adding any new material", skill)
         self.assertIn("This marker check should be the first tool action", clean)
-        self.assertIn("Do not write `draft.md` until this marker check is visible in the run trace", clean)
-        self.assertIn("marker check -> read this brief -> write one complete `draft.md` -> run `clean_run_checker.py`", clean)
+        self.assertIn("Do not write `draft.md` until both the marker check and current-directory confirmation are visible in the run trace", clean)
+        self.assertIn("marker check -> current-directory confirmation -> read this brief -> write one complete `draft.md` -> run `clean_run_checker.py`", clean)
         self.assertIn("Do not rediscover this skill after it has already triggered", clean)
         self.assertIn("do not glob, search, or list parent skill directories", skill)
         self.assertIn("If a bundled reference path cannot be resolved", skill)

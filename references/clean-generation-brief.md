@@ -18,19 +18,19 @@ First tool action for any formal draft workspace:
 Test-Path .anlin-clean-eval-mode
 ```
 
-If this returns true, choose clean-eval mode before drafting. Do not write `draft.md` until this marker check is visible in the run trace. In clean-eval mode, `clean_run_checker.py` is the only checker entrypoint; `check_anlin_violations.py` belongs to ordinary user repair, finalized repair, or controller validation, not the bounded generation directory.
+If this returns true, choose clean-eval mode before drafting. Then run `Get-Location` / `pwd` before the first write and confirm the current directory is the external case workspace. Do not write `draft.md` until both the marker check and current-directory confirmation are visible in the run trace. In clean-eval mode, `clean_run_checker.py` is the only checker entrypoint; `check_anlin_violations.py` belongs to ordinary user repair, finalized repair, or controller validation, not the bounded generation directory.
 
 For clean-eval generation, do not print the article to chat before the checker flow. First write the complete article to `draft.md` in the task workspace, run the bounded checker flow, then read `draft.md` once and output that exact content. A visible pre-check article followed by tools contaminates the run.
 
-Clean-eval tool order is part of the test, not a suggestion: marker check -> read this brief -> write one complete `draft.md` -> run `clean_run_checker.py`. The step "read this brief" means using the reference file path supplied by the already-triggered skill; it never means searching parent skill directories to locate the skill again. After this brief is loaded, do not draft trial paragraphs, scene plans, or repeated scratch versions in the terminal. If the article is imperfect, persist the best complete titled candidate to `draft.md` and let the wrapper diagnose it; a visible scratch article without `draft.md` is a failed run.
+Clean-eval tool order is part of the test, not a suggestion: marker check -> current-directory confirmation -> read this brief -> write one complete `draft.md` -> run `clean_run_checker.py`. The step "read this brief" means using the reference file path supplied by the already-triggered skill; it never means searching parent skill directories to locate the skill again. After this brief is loaded, do not draft trial paragraphs, scene plans, or repeated scratch versions in the terminal. If the article is imperfect, persist the best complete titled candidate to `draft.md` and let the wrapper diagnose it; a visible scratch article without `draft.md` is a failed run.
 
-Use the relative path `draft.md` or `.\draft.md` for the article file in the current task workspace. Do not construct an absolute path from memory, from a previous evaluation directory, or from a date-stamped folder. If the current directory is unclear, run `Get-Location` / `pwd`; do not guess.
+Use the relative path `draft.md` or `.\draft.md` for the article file in the current task workspace. When using a write/file tool, the file/path argument must be exactly `draft.md` or `.\draft.md`. Do not construct an absolute path from memory, from a previous evaluation directory, from `<skill-dir>`, or from a date-stamped folder. In clean-eval, `Get-Location` / `pwd` is mandatory before the first write, not optional; do not guess.
 
-Keep `<skill-dir>` separate from the output directory. `<skill-dir>` may appear in a checker command such as `python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate`, but it must not appear in the article write path. Do not write `<skill-dir>/<iteration-or-case>/draft.md`; write only `draft.md` in the current task workspace.
+Keep `<skill-dir>` separate from the output directory. `<skill-dir>` may appear in a checker command such as `python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate`, but it must not appear in the article write path. Do not write `<skill-dir>/<iteration-or-case>/draft.md`; write only `draft.md` in the current task workspace. If `Get-Location` shows `<skill-dir>` or a path ending in `anlin-writing`, do not write the article there; switch to an external case/task workspace or let the controller mark the run invalid.
 
 For ordinary user mode, the same quiet drafting rule applies, but the checker loop may continue until hard errors are cleared or the user is satisfied. The two-call stop rule belongs to clean-eval only.
 
-Before writing, check whether the current task workspace contains `.anlin-clean-eval-mode`. This marker check should be the first tool action before any `draft.md` write or checker command. If it exists, use clean-eval mode and do not call `check_anlin_violations.py` directly in that bounded directory. The wrapper `clean_run_checker.py` is the only checker entrypoint for clean-eval.
+Before writing, check whether the current task workspace contains `.anlin-clean-eval-mode`. This marker check should be the first tool action before any `draft.md` write or checker command. If it exists, use clean-eval mode, run `Get-Location` / `pwd`, and do not call `check_anlin_violations.py` directly in that bounded directory. The wrapper `clean_run_checker.py` is the only checker entrypoint for clean-eval.
 
 For clean-eval, this brief already contains the distilled anti-AI, title, rhythm, background, and scene constraints needed for the first draft. Do not open `anti-ai-slop.md`, `structure-patterns.md`, `title-model.md`, `generation-modes.md`, `runtime-brief.md`, corpus cards, judge rubrics, or style-ratio files before the first complete `draft.md`. Extra pre-draft files contaminate the source-guidance measurement and often cause checklist writing.
 
@@ -336,7 +336,7 @@ Do not use a calendar label as a quick modifier for standard clean-eval. Titles 
 
 ## Required Tool Flow
 
-Write the complete titled article to relative `draft.md` in the current task working directory. Do not write it inside the skill directory. Do not compose an absolute output path unless the user explicitly gave one for ordinary saved output. If the current working directory is the skill directory, switch to or create a task/eval workspace outside it before writing.
+Write the complete titled article to relative `draft.md` in the current task working directory. The write/file tool path must be exactly `draft.md` or `.\draft.md`. Do not write it inside the skill directory. Do not compose an absolute output path unless the user explicitly gave one for ordinary saved output. In clean-eval, run `Get-Location` / `pwd` before the first write; if the current working directory is the skill directory, switch to or create a task/eval workspace outside it before writing.
 
 For clean-eval mode, then run:
 

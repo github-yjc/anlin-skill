@@ -36,6 +36,8 @@ Latest source update after `iteration-20260706-53`: social-decline prompts now u
 
 Follow-up controller review of `iteration-20260706-54/eval-09-2024-classmate-wedding` found a tool-flow/source-repair gap rather than a blind-round-ready sample. The title improved from the diagnostic event label to a side-action handle and the draft no longer invented a real project chain or concrete campus landmark, but the bounded file still stopped at preflight before checker call 1/2. The serious new failure was rhythm invalidation: the generator ran `rebalance_line_rhythm.py`, then overwrote `draft.md` with a fresh 11-line prose-block version, then called the wrapper without another rhythm repair. Clean-eval trace validation now flags this as `节奏脚本后重写未重跑节奏修复`, and Layer 0/clean-generation guidance now says content rebuilds after rhythm scripts must preserve the line-broken corridor or rerun the relevant script before the next wrapper call. This is a protocol/source-shape fix, not a pass claim.
 
+Follow-up attempt `iteration-20260706-55/eval-09-2024-classmate-wedding` exposed a separate artifact-location failure before it could become quality evidence. The generator wrote the draft through an absolute `filePath` under `<skill-dir>/iteration-.../draft.md` instead of the external case workspace, then repeated the rhythm-script overwrite problem. The trace checker now treats only exact relative `draft.md` / `.\draft.md` writes as valid bounded artifacts, requires `Get-Location` / `pwd` before the first clean-eval write, rejects a current directory that is the distributable skill directory, and still flags stale rhythm repair after a later rewrite. Runtime guidance now states that the write/file tool path argument must be exactly `draft.md` or `.\draft.md`; `<skill-dir>` is only for bundled references and scripts. This fixes test integrity and portability; it is not a blind-round pass claim.
+
 Latest source/repair update after `iteration-20260705-26`: cross-year, annual-summary, social-feed, and old-chat prompts must not only avoid screen archaeology; they need a positive present-day engine. One old record can trigger the article, but it must cause a wrong reply, outside interruption, practical chore, body noise, route/payment problem, wrong slipper, leaking package, or other low consequence before the first draft is saved. The checker now also flags private old-record archive chains in generated draft-gate mode and recognizes practical misread/wrong-slipper/door-threshold consequences as paragraph-engine signals. Titles such as `2024日寄`, `新年日寄`, `跨年日寄`, or `年度总结日寄` remain diagnostic calendar labels unless the body earns them as a side handle. Finalized repair still must persist to `finalized/draft.md`, clear strict hard gate, and pass style-profile rather than staying at `review`.
 
 Follow-up retest `iteration-20260705-27/eval-08-2024-gout-flareup` used `deepseek/deepseek-v4-flash`, `--variant high`, and thinking enabled after commit `7e3ebef`. The bounded run correctly checked `.anlin-clean-eval-mode`, used `clean_run_checker.py`, and respected the actual `CLEAN_RUN_PREFLIGHT_STOP` boundary, but stopped before formal checker call 1/2 (`calls=0`, `preflights=3`). A trace-controller false positive initially reported stop-boundary escape because it treated the reference text mentioning `CLEAN_RUN_PREFLIGHT_STOP` as an actual wrapper output; `check_clean_eval_trace.py` now only treats standalone checker output lines beginning with the stop token as real stops. The copied finalized repair cleared strict hard errors, but style-profile remained `review` with red `ngram_texture` and `punctuation` families plus yellow cognitive/line-rhythm/structure/texture drift, so the case is still `systemic_gap` and not blind-round-ready. Root fixes from this case: illness/body prompts now have a source-level guard against private case-report chains, searched `有人说...` claims must become one cropped screen surface, and repeated symptom/food/screen packets should be cut before adding new roughness.
@@ -248,15 +250,16 @@ The old README-level technique summary is now mapped to maintained references:
 For clean-eval formal article generation:
 
 1. Load `references/clean-generation-brief.md` first and use its source loop for the first complete draft.
-2. Start from a small lived friction, not from a checklist.
-3. Select scenes from action, body, screen, money, route, social misfire, memory trigger, or useless residue.
-4. Open `anlin-background.md` only after selected scenes already contain facts that need checking.
-5. Write a complete titled `draft.md` before the first checker.
-6. Run `scripts/clean_run_checker.py draft.md --strict --draft-gate`.
-7. If `CLEAN_RUN_PREFLIGHT` appears, revise before the first checker call is consumed; if `CLEAN_RUN_PREFLIGHT_STOP` appears, output the current draft unchanged and let the controller record failure.
-8. If a rhythm script runs and `draft.md` is then rewritten or edited, rerun the relevant rhythm script before the next wrapper call or keep the repair inside the existing line-broken corridor.
-9. Do at most one repair/rewrite and at most two clean-eval checker calls.
-10. After the second checker call, output the current `draft.md` exactly.
+2. Check `.anlin-clean-eval-mode`, then run `Get-Location` / `pwd`; the current directory must be the external case workspace, not `<skill-dir>`.
+3. Start from a small lived friction, not from a checklist.
+4. Select scenes from action, body, screen, money, route, social misfire, memory trigger, or useless residue.
+5. Open `anlin-background.md` only after selected scenes already contain facts that need checking.
+6. Write a complete titled article using exactly relative `draft.md` / `.\draft.md` before the first checker.
+7. Run `scripts/clean_run_checker.py draft.md --strict --draft-gate`.
+8. If `CLEAN_RUN_PREFLIGHT` appears, revise before the first checker call is consumed; if `CLEAN_RUN_PREFLIGHT_STOP` appears, output the current draft unchanged and let the controller record failure.
+9. If a rhythm script runs and `draft.md` is then rewritten or edited, rerun the relevant rhythm script before the next wrapper call or keep the repair inside the existing line-broken corridor.
+10. Do at most one repair/rewrite and at most two clean-eval checker calls.
+11. After the second checker call, output the current `draft.md` exactly.
 
 For ordinary user generation, use the same scene-first drafting principles but do not apply the clean-eval two-call stop rule. Continue repairing hard errors and obvious process leakage until the article is usable or the user stops, while avoiding mechanical ratio chasing.
 

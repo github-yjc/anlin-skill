@@ -171,10 +171,9 @@ def actual_normal_checker_index(text: str) -> int:
 
 def actual_draft_write_index(text: str) -> int:
     patterns = [
-        r"(?im)^\s*(?:←\s*)?Write\s+draft\.md\b",
-        r"(?im)^\s*TITLE\s+Write\s+draft\.md\b",
-        r"(?im)^\s*TOOL\s+filesystem_write_file\b[^\n]*(?:\n[^\n]*){0,3}draft\.md\b",
-        r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*draft\.md[^\n]*(?:content|write)",
+        r"(?im)^\s*(?:←\s*)?Write\s+\.?[/\\]?draft\.md\b",
+        r"(?im)^\s*TITLE\s+Write\s+\.?[/\\]?draft\.md\b",
+        r"(?im)^\s*INPUT\s+[^\n]*\"(?:path|filePath|file)\"\s*:\s*\"(?:\.?/)?draft\.md\"[^\n]*(?:content|write)",
         r"(?im)^\s*(?:\$|>|>>)?\s*(?:@['\"]\s*\|\s*)?(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?\.?/?draft\.md['\"]?\b",
         r"(?im)^\s*['\"]@?\s*\|\s*(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?\.?/?draft\.md['\"]?\b",
     ]
@@ -184,6 +183,23 @@ def actual_draft_write_index(text: str) -> int:
         if match:
             indices.append(match.start())
     return min(indices) if indices else -1
+
+
+def actual_current_directory_check_index(text: str) -> int:
+    patterns = [
+        r"(?im)^\s*\$\s*(?:Get-Location|pwd)\b",
+        r"(?im)^\s*TITLE\s+[^\n]*(?:Get-Location|pwd)\b",
+        r"(?im)^\s*INPUT\s+[^\n]*(?:command|cmd)[^\n]*(?:Get-Location|pwd)\b",
+    ]
+    return first_regex_action_index(text, patterns)
+
+
+def actual_skill_directory_cwd_index(text: str) -> int:
+    patterns = [
+        r"(?im)^\s*OUTPUT\s+[^\n]*(?:\.config/opencode/skills|/skills)/anlin-writing\s*$",
+        r"(?im)^\s*[A-Za-z]:/[^\n]*(?:\.config/opencode/skills|/skills)/anlin-writing\s*$",
+    ]
+    return first_regex_action_index(text, patterns)
 
 
 def actual_draft_mutation_indices(text: str) -> list[int]:
@@ -369,6 +385,25 @@ def collect_findings(text: str) -> list[TraceFinding]:
                 "clean-eval写稿前未检查模式标记",
                 clean_excerpt(normalized, max(0, first_write - 80)),
                 "The first generation tool action in a bounded clean-eval workspace must check `.anlin-clean-eval-mode` before writing `draft.md`; otherwise the generator may use ordinary checker flow.",
+            )
+        )
+    if first_write >= 0 and actual_current_directory_check_index(pre_draft) < 0:
+        findings.append(
+            TraceFinding(
+                "error",
+                "clean-eval写稿前未确认当前目录",
+                clean_excerpt(normalized, max(0, first_write - 120)),
+                "Before the first clean-eval draft write, run Get-Location / pwd and confirm the current directory is the external case workspace. Marker checks alone do not prove the write tool is targeting the case directory.",
+            )
+        )
+    skill_cwd_index = actual_skill_directory_cwd_index(pre_draft)
+    if skill_cwd_index >= 0:
+        findings.append(
+            TraceFinding(
+                "error",
+                "clean-eval当前目录是skill目录",
+                clean_excerpt(pre_draft, skill_cwd_index),
+                "The distributable skill directory is not an output workspace. Switch to an external case/task directory before writing draft.md.",
             )
         )
     for reference in FORBIDDEN_PRE_DRAFT_REFERENCES:
