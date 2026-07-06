@@ -2306,6 +2306,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("NEXT_ACTION=run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`", preflight.stdout)
             self.assertIn("underbuilt source shape", preflight.stdout)
             self.assertIn("source-loop rewrite after the visible shape is reset", preflight.stdout)
+            self.assertIn("2-3 load-bearing action clusters", preflight.stdout)
             self.assertIn("do not patch with isolated line additions", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
@@ -2379,6 +2380,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("< 950 with source_shape_weak", preflight.stdout)
             self.assertIn("underbuilt source shape", preflight.stdout)
             self.assertIn("source-loop rewrite after the visible shape is reset", preflight.stdout)
+            self.assertIn("2-3 load-bearing action clusters", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
@@ -6424,6 +6426,13 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("A 900-949 character draft can still be underbuilt", clean)
         self.assertIn("source-loop rewrite before the first file write", clean)
         self.assertIn("Do not patch it by adding five more symptoms", clean)
+        self.assertIn("2-3 load-bearing action clusters", clean)
+        self.assertIn("deleting it would break the next action", clean)
+        self.assertIn("phone/feed -> order food -> wrong item -> wash bowl -> bed", clean)
+        self.assertIn("It must be load-bearing", clean)
+        self.assertIn("It is not a required background/game/platform/detail packet", skill)
+        self.assertIn("load-bearing action clusters", (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8"))
+        self.assertIn("Layer 2 contradiction gates", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
         self.assertIn("A 900-949 character draft is a boundary case", skill)
         self.assertIn("do not make nearly every line carry body, money, route, screen", clean)
         self.assertIn("rebalance_line_rhythm.py draft.md --in-place", clean)
@@ -6601,6 +6610,23 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("period-heavy grid", clean)
         self.assertIn("The final visible response must begin with the title", clean)
         self.assertIn("Read `draft.md` once and output its content exactly", skill)
+
+    def test_standard_diary_load_bearing_clusters_are_source_guidance_not_background_quota(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        layer = (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8")
+        checker = (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8")
+        combined = "\n".join([skill, clean, runtime, layer, checker])
+
+        self.assertIn("2-3 load-bearing action clusters", combined)
+        self.assertIn("deleting it would break", clean)
+        self.assertIn("It is not a required background/game/platform/detail packet", skill)
+        self.assertIn("not the prompt's obvious screen/order/object", combined)
+        self.assertIn("phone/feed -> order food -> wrong item -> wash bowl -> bed", combined)
+        self.assertIn("decoration rather than paragraph engine", runtime)
+        self.assertIn("Layer 2 contradiction gates", layer)
+        self.assertIn("source reset: rebuild 2-3 load-bearing action clusters", checker)
 
     def test_runtime_docs_use_current_skill_name_and_output_locations(self) -> None:
         files = [

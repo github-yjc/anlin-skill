@@ -14,7 +14,7 @@ Files:
 Purpose:
 
 - Tell the agent the goal, output rules, clean-eval boundary, and the smallest writing surface.
-- Keep the first draft scene-led: friction -> scene slate -> fact gate -> draft -> bounded checker.
+- Keep the first draft scene-led: friction -> 2-3 load-bearing action clusters -> fact gate -> draft -> bounded checker.
 - Prevent visible process chatter and checker-loop contamination.
 - Own the clean-eval first-draft source loop so the generator does not need long repair or validation files before writing.
 
@@ -37,6 +37,8 @@ Purpose:
 - Keep features as a budget, not a shopping list.
 
 These files may guide ordinary drafting, explicit analysis, or repair after the first clean-eval checker pass, but they must not become visible subject matter. A negative example about AI, game, background, or detection is not a scene prompt. In clean-eval generation, Layer 1 is not a pre-draft requirement; Layer 0 must be enough to produce the first complete article.
+
+For repeated standard-diary failures, inspect whether Layer 0 produced load-bearing action clusters or only decorative texture. A cluster is load-bearing only if deleting it breaks the next action, reply, payment, route, body state, room position, or social position. Phone/feed/order/bed chains usually need one cluster outside the prompt's obvious screen/order/object and one exposed practical or social consequence before the first draft. Do not turn this into a new quota for games, places, recurring people, platforms, or background facts; those remain Layer 2 contradiction gates.
 
 ## Layer 2: Post-Scene Fact Gate
 

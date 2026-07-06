@@ -569,7 +569,9 @@ def preflight_messages(draft: Path) -> list[str]:
     if len(connectors) < 3:
         messages.append(f"connectors={connectors} < 3")
     if len(engine_hits) < 3:
-        messages.append("paragraph_engine=weak (add a scene-level misread, bodily interruption, social wound, or ugly self-own; do not inspect checker source/tests)")
+        messages.append(
+            "paragraph_engine=weak (source reset: rebuild 2-3 load-bearing action clusters that change reply/body/route/payment/room/social position; do not inspect checker source/tests)"
+        )
     if not rough_terms and not rough_patterns:
         messages.append("rough_self_damage=missing (add one organic ugly body/social/self-own consequence in your own words; do not inspect checker source/tests)")
     messages.extend(surface_preflight_messages(article_lines, "\n".join(article_lines)))
@@ -649,8 +651,13 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if underbuilt_source:
         repair_hints.append(
             "for an underbuilt source shape, do a source-loop rewrite after the visible shape is reset: "
-            "start from friction, add one off-axis consequence and one rough body/social turn, then write "
-            "near 55-68 actual body lines and 950-1150 Chinese characters; do not patch with isolated line additions"
+            "start from friction, rebuild 2-3 load-bearing action clusters, include one off-axis consequence and one rough "
+            "body/social turn, then write near 55-68 actual body lines and 950-1150 Chinese characters; do not patch with isolated line additions"
+        )
+    if "paragraph_engine=weak" in joined_messages and not underbuilt_source:
+        repair_hints.append(
+            "for paragraph_engine=weak, do not add one decorative scene. Replace the quiet chain with 2-3 load-bearing action clusters; "
+            "at least one should not be the prompt's obvious screen/order/object, and each should change what happens next"
         )
     if near_miss_short:
         repair_hints.append(
@@ -799,7 +806,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         elif underbuilt_source:
             revision_frame = (
                 "Rebuild the article shape, not just the metric: keep only the useful scene facts, restart from "
-                "the source loop, and rewrite `draft.md` as a complete line-broken article with a working middle. "
+                "the source loop, and rewrite `draft.md` around 2-3 load-bearing action clusters with a working middle. "
                 "Do not add a few isolated symptoms, app lines, or short captions on top of the weak draft; then "
                 "run this wrapper again."
             )
