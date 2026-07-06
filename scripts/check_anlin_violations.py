@@ -1045,6 +1045,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "短真诚题面物件过早",
     "短真诚标题物件闭环",
     "短真诚小小说闭合",
+    "短体裁局部材料回环",
 )
 DRAFT_GATE_RULE_NAMES: set[str] = {"呼吸点缺失"}
 
@@ -2592,6 +2593,112 @@ def check_short_genre_literary_story_closure(findings: list[Finding], lines: lis
     )
 
 
+LOCAL_PACKET_LOOP_FAMILIES = {
+    "screen_message": ["手机", "屏幕", "亮", "消息", "通知", "朋友圈", "微信"],
+    "chore_water_oil": ["碗", "水池", "水龙头", "油", "油渍", "洗洁精", "热水", "水壶"],
+    "withheld_reply": ["没回", "没点", "倒扣", "翻过", "没打字", "还在"],
+}
+
+
+def family_hit_count(lines: list[str], terms: list[str]) -> int:
+    return sum(1 for line in lines if any(term in line for term in terms))
+
+
+def regex_count(pattern: str, text: str) -> int:
+    return len(re.findall(pattern, text))
+
+
+def short_genre_local_packet_loop_risk(lines: list[str], text: str) -> dict[str, Any] | None:
+    """Detect short-genre repair that repeats one local packet to satisfy shape."""
+    style = detect_style(text)
+    if style not in {"sincere", "micro-hope"}:
+        return None
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [
+        line.strip()
+        for line in content_lines
+        if line.strip() and not line.strip().startswith("<!--")
+    ]
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    if body_chars < 430 or len(visible_lines) < 28:
+        return None
+
+    opening = visible_lines[: max(8, len(visible_lines) // 3)]
+    tail = visible_lines[-max(8, len(visible_lines) // 3) :]
+    opening_text = "\n".join(opening)
+    tail_text = "\n".join(tail)
+
+    family_repeats: dict[str, dict[str, int]] = {}
+    risk_score = 0
+    reasons: list[str] = []
+    for family, terms in LOCAL_PACKET_LOOP_FAMILIES.items():
+        open_hits = family_hit_count(opening, terms)
+        tail_hits = family_hit_count(tail, terms)
+        total_hits = family_hit_count(visible_lines, terms)
+        if open_hits >= 2 and tail_hits >= 2 and total_hits >= 5:
+            family_repeats[family] = {
+                "opening": open_hits,
+                "tail": tail_hits,
+                "total": total_hits,
+            }
+            risk_score += 1
+
+    phone_light_count = regex_count(r"手机[^。！？\n]{0,8}亮", body)
+    bowl_water_count = regex_count(r"(?:碗|水池|水龙头|油渍|洗洁精|水壶)[^。！？\n]{0,10}(?:还|泡|凉|黏|擦|响|挤)", body)
+    withheld_count = regex_count(r"(?:没回|没点|倒扣|翻过|没打字|还在)", body)
+    if phone_light_count >= 3:
+        risk_score += 2
+        reasons.append(f"phone_light_count={phone_light_count}")
+    if bowl_water_count >= 6:
+        risk_score += 2
+        reasons.append(f"bowl_water_count={bowl_water_count}")
+    if withheld_count >= 5:
+        risk_score += 1
+        reasons.append(f"withheld_count={withheld_count}")
+
+    overlap_5 = len(char_ngram_set(opening_text, 5) & char_ngram_set(tail_text, 5))
+    overlap_6 = len(char_ngram_set(opening_text, 6) & char_ngram_set(tail_text, 6))
+    if overlap_5 >= 8 or overlap_6 >= 4:
+        risk_score += 2
+        reasons.append(f"early_tail_overlap_5={overlap_5},6={overlap_6}")
+
+    if len(family_repeats) >= 2:
+        risk_score += 1
+        reasons.append(f"family_repeats={list(family_repeats)}")
+
+    if risk_score < 4:
+        return None
+    return {
+        "style": style,
+        "body_chars": body_chars,
+        "body_lines": len(visible_lines),
+        "risk_score": risk_score,
+        "family_repeats": family_repeats,
+        "phone_light_count": phone_light_count,
+        "bowl_water_count": bowl_water_count,
+        "withheld_count": withheld_count,
+        "early_tail_overlap_5": overlap_5,
+        "early_tail_overlap_6": overlap_6,
+        "reasons": reasons[:6],
+    }
+
+
+def check_short_genre_local_packet_loop(findings: list[Finding], lines: list[str], text: str) -> None:
+    risk = short_genre_local_packet_loop_risk(lines, text)
+    if not risk:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "短体裁局部材料回环",
+            0,
+            json.dumps(risk, ensure_ascii=False),
+            "短真诚/微小希望修复高风险：同一组手机亮、消息、碗水油、未回复动作被拿来扩写尾部，像按检测项补稿。不要继续加同组细节；删除一轮重复包，换成会改变下一步动作的不同现实后果，或直接从新的当前动作重写。",
+        )
+    )
+
+
 def check_connector_overuse(findings: list[Finding], text: str) -> None:
     style = detect_style(text)
     if style != "standard" or chinese_len(text) < 650:
@@ -3670,6 +3777,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_short_genre_prompt_prop_too_early(findings, lines, text)
     check_short_genre_main_prop_title_loop(findings, lines, text)
     check_short_genre_literary_story_closure(findings, lines, text)
+    check_short_genre_local_packet_loop(findings, lines, text)
     check_connector_overuse(findings, text)
     check_diagnostic_title(findings, lines)
     check_high_signal_opening(findings, lines)

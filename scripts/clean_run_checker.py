@@ -46,6 +46,7 @@ from check_anlin_violations import (  # noqa: E402
     meta_ai_topic_hits,
     prompt_performing_dialogue_hits,
     short_genre_literary_story_risk,
+    short_genre_local_packet_loop_risk,
     short_genre_main_prop_title_loop_risk,
     short_genre_present_action_anchor_risk,
     short_genre_prompt_prop_too_early_risk,
@@ -445,6 +446,12 @@ def preflight_messages(draft: Path) -> list[str]:
                 "short_genre_literary_story_closure="
                 + json.dumps(short_story_risk, ensure_ascii=False)
             )
+        local_loop_risk = short_genre_local_packet_loop_risk(text.splitlines(), text)
+        if local_loop_risk:
+            messages.append(
+                "short_genre_local_packet_loop="
+                + json.dumps(local_loop_risk, ensure_ascii=False)
+            )
         present_anchor_risk = short_genre_present_action_anchor_risk(text.splitlines(), text)
         if present_anchor_risk:
             messages.append(
@@ -558,6 +565,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         or message.startswith("short_genre_present_action_anchor=")
         or message.startswith("short_genre_prompt_prop_too_early=")
         or message.startswith("short_genre_main_prop_title_loop=")
+        or message.startswith("short_genre_local_packet_loop=")
         for message in messages
     )
     title_issue = any(message.startswith("missing_title=") for message in messages)
@@ -619,6 +627,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         if "short_genre_literary_story_closure=" in joined_messages:
             repair_hints.append(
                 "for short_genre_literary_story_closure, cut one proof family completely rather than making every family shorter: a childhood-rain/raincoat/school line is still a full memory prop, and an eggs/plastic-bag/home-trip line is still a full object-memory prop. Keep one visible pressure family, let at most one other become a partial residue, and do not preserve no-message + eggs + childhood-rain as the same designed argument"
+            )
+        if "short_genre_local_packet_loop=" in joined_messages:
+            repair_hints.append(
+                "for short_genre_local_packet_loop, do not extend by repeating the same phone/message/bowl/water/oil packet. Delete one repeated packet, then either restart from a different present action or add one consequence that changes reply, room position, body, or next action; do not keep counting lines and appending the same tail"
             )
         if "short_genre_repair_stuffing=" in joined_messages:
             repair_hints.append(

@@ -876,6 +876,77 @@ class AnlinToolingTests(unittest.TestCase):
                 messages,
             )
 
+    def test_clean_run_preflight_flags_short_sincere_local_packet_loop(self) -> None:
+        body = "\n".join(
+            [
+                "洗洁精快用完了",
+                "",
+                "我挤了半天，只出来一点稀的",
+                "碗边的油渍擦不掉",
+                "手在水里泡得发皱，指节都泛白了",
+                "手机在客厅充电，屏幕突然亮了",
+                "我走过去，看见是微信弹窗",
+                "母亲节快乐",
+                "四个字，底下是十几个同学发的同款",
+                "我划掉通知，没点进去",
+                "其实想回一句，但不知道发给谁",
+                "上次回家，我妈煮了一袋鸡蛋让我带走，塑料袋装着，还是温的，",
+                "我拎着那袋鸡蛋走到车站，手心被勒出红印，一路都没松手。",
+                "雨声从窗户缝里钻进来，小时候她送我上学，也是这样的雨，",
+                "她举着一把破伞，我躲在她腋下，书包还是湿了。",
+                "现在手机屏幕又亮了，是室友发来的消息",
+                "问要不要一起吃宵夜",
+                "我回了个好，然后放下手机",
+                "水池里的碗还泡着",
+                "水已经凉了",
+                "我回到水池边，发现油渍还在",
+                "手指搓了搓，搓出一点黏的",
+                "油已经凝了",
+                "我拿起洗洁精瓶子晃了晃，里面有水声",
+                "还是挤不出来",
+                "手机又亮了，这次是妈妈发的",
+                "你吃了吗",
+                "三个字",
+                "我盯着屏幕，手还泡在水里",
+                "水很凉，指尖发白",
+                "我没回，把手机倒扣在台面上",
+                "碗还泡着，水更凉了",
+                "我关掉水龙头，水滴声还在响",
+                "手机屏幕暗了，但消息还在那儿",
+                "我擦干手，手背有点痒，明天再说吧，我想",
+                "然后去拿另一条干毛巾擦碗，碗边的油渍还在，得用热水泡",
+                "我走到灶台边，拧开火，水壶开始响",
+                "手机又亮了，这次还是妈妈发的消息",
+                "我盯着屏幕，手还泡在水里，水很凉，指尖发白",
+                "我没回，把手机倒扣在台面上，碗还泡着，水更凉了",
+                "水壶响得更急了，我关掉火，水开了，但碗还没泡",
+                "我倒了点热水进碗里，油渍化开一点，用毛巾擦了擦，还是黏",
+                "雨还在下，我听见隔壁在关门，有人出去了",
+                "我站了一会儿，觉得有点饿，但不想吃宵夜",
+                "碗还没泡完，明天再说吧",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(
+                any(message.startswith("short_genre_local_packet_loop=") for message in messages),
+                messages,
+            )
+
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            findings = json.loads(result.stdout)
+            error_rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any("短体裁局部材料回环" in rule for rule in error_rules), error_rules)
+
     def test_checker_does_not_flag_side_action_title_as_main_prop_loop(self) -> None:
         body = "\n".join(
             [
