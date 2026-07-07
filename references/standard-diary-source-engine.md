@@ -130,7 +130,7 @@ Build a refusal chain, not a refusal mention. The chain starts before sending, b
 
 The roughness must be active, not ornamental. A line like `好的` followed by more wet sleeve, hot-water noise, balance checking, or room objects is still too private. Let the plain response or refusal lie push the narrator into one lower move while it is happening: the hand leaves a dirty mark on the phone before replying, somebody at the door waits while the answer is unfinished, a route/payment action fails in public, the narrator sends a smaller wrong reply, or a body/door problem makes the next action uglier. This single consequence should also shape the rhythm: one line continues because the hand/reply/payment has not finished, one rougher line keeps moving, and one short drop lands the bad answer or body/social lowering.
 
-Do not turn the message surface into a numbered chat log. Lines such as `X发了第二条`, `又发来一条`, `下面还有一条`, or `后面跟着一个定位` often read like the model is using message order to move the plot. Prefer one cropped surface that changes action: a voice bar that cannot be opened with a wet hand, an address preview that changes route/payment hesitation, an unread mark that makes the reply worse, or one plain response that shrinks the next action.
+Do not turn the message surface into a numbered chat log. Lines such as `X发了第二条`, `第二条只...`, `又发来一条`, `下面还有一条`, `下面还有一个...`, or `后面跟着一个定位` often read like the model is using message order to move the plot. Prefer one cropped surface that changes action: a voice bar that cannot be opened with a wet hand, an address preview that changes route/payment hesitation, an unread mark that makes the reply worse, or one plain response that shrinks the next action.
 
 Keep `忙项目` as an excuse surface unless the user supplied real work facts. Do not turn it into leave, half-day leave, `请不下来`, 调休, 排班, wage deduction, attendance, leader, deadline, current office group, project delivery, or shift logic. The refusal should lower the reply/action; it should not prove that the narrator has a full current office plot.
 
@@ -139,6 +139,8 @@ Refusal chain upper bound: chain means one consequence transfer, not plot contin
 Before saving, mentally delete every room/object detail except one handle. If the remaining social chain is only `message -> ticket/suili calculation -> I said no -> he said OK`, it is still a screen summary. Rebuild until the post-refusal response, wrong reply, old debt, payment/route hesitation, or body/social interruption changes a later action by itself.
 
 If deleting every room/object detail except one makes the article stop moving, the refusal did not become an engine. Rebuild from the reply aftermath before saving `draft.md`.
+
+Also check the page shape before saving: standard diary should have uneven breathing clusters, not a list of 80+ one-sentence rows. If there are no obvious long moving rows, merge neighboring short rows and rebuild the action before writing `draft.md`.
 
 Use the water-drip test for this family: if the draft can be summarized as `side object keeps failing -> invitation arrives -> ticket/gift calculation -> side object keeps failing`, the refusal is not load-bearing. The post-refusal response, deleted reply, payment/route hesitation, old debt, or body/social interruption must force at least one later action that would disappear if the invitation were removed. Otherwise the side object has replaced the social engine.
 

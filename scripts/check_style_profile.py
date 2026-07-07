@@ -709,8 +709,10 @@ def format_repair_brief(report: dict[str, Any]) -> str:
                     "standard_shape_guard: do not shrink a standard-diary repair below about 900 body Chinese characters or turn it into 70+ similar short rows; keep several rough long action/speech/thought rows inside 4-6 breathing clusters.",
                     "standard_line_shape_guard: the persisted standard draft must visibly stay line-broken, usually around 45-70 body lines; do not compress it into 8-15 long prose paragraphs or a few very long rows.",
                     "standard_cluster_variance_guard: line-broken is not a target count. Do not cut the draft into equal 10-20 character sentence rows; each repaired cluster needs at least one moving longer action/speech/thought row and a few earned short failure drops.",
+                    "standard_prewrite_shape_check: before the single atomic write, inspect the visible body. If it is mostly one short sentence per row, has no moving long rows, or would exceed about 75-80 body lines, merge and rebuild the action clusters before saving; do not leave this for the checker after the write.",
                     "standard_rough_exposure_guard: at least one repaired cluster should expose a low body/social/practical consequence that changes the next action; private wet sleeves, room noise, balances, or screen checks do not count unless another person, payment, door, reply, route, or body failure is still active.",
                     "standard_private_wet_guard: wet sleeves, wet pants, wet slippers, leaking water, basins, or hot-water noise inside the room are still private texture unless they force an outside/social/payment/route/reply change while the pressure is active.",
+                    "standard_message_order_guard: in invitation/refusal repairs, ordinal message labels such as second message, `第二条只...`, `下面还有...`, or `后面跟着...` are plot glue. Replace them with one cropped screen surface that changes hand, reply, payment, route, or body action.",
                 ]
                 if genre == "standard"
                 else []
