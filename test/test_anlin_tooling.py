@@ -3397,6 +3397,38 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertNotIn("clean-eval未写入draft.md", rules)
 
+    def test_clean_eval_trace_accepts_patch_when_draft_context_precedes_patch(self) -> None:
+        log = """
+        opencode.exe : At C:/Users/34025/AppData/Roaming/npm/opencode.ps1:14 char:3
+        +   & "$basedir/node_modules/opencode-ai/bin/opencode.exe" $args
+        → Skill "anlin-writing"
+        $ Test-Path -LiteralPath ".anlin-clean-eval-mode"; Get-Location
+        True
+        C:/eval-workspace/iteration-95/eval-09/bounded
+        → Read C:/skill/references/clean-generation-brief.md
+        → Read C:/skill/references/standard-diary-source-engine.md
+        我现在写入首版 `draft.md`。主题会压低成一个晚上的实际动作链。
+        % Patch 1 file
+        首版已保存，接下来只用 clean-eval wrapper 检查。
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --genre standard
+        CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2. DO NOT WRITE draft.md.
+        → Read draft.md
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("clean-eval未写入draft.md", rules)
+
     def test_clean_eval_trace_rejects_formatted_patch_without_draft_context(self) -> None:
         log = """
         → Skill "anlin-writing"
@@ -7476,6 +7508,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("at least one later cluster should be driven by the refusal aftermath itself", runtime)
         self.assertIn("If deleting every room/object detail except one makes the article stop moving", engine)
         self.assertIn("the refusal, not the sleeve or bowl, must produce the next action", engine)
+        self.assertIn("Build a refusal chain, not a refusal mention", engine)
+        self.assertIn("make a visible refusal chain", clean)
+        self.assertIn("If `社交拒绝纹理替代后果不足` appears", runtime)
+        self.assertIn("The chain must survive if every side object except one is removed", runtime)
 
     def test_clean_eval_rhythm_repair_order_is_unambiguous_in_runtime_docs(self) -> None:
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
@@ -7594,6 +7630,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Clean-eval freezes the fresh-agent result after bounded preflight and limited checker-driven repair", skill)
         self.assertIn("standard diary around 55-65 body lines", skill)
         self.assertIn("short sincere/micro-hope around 4-7 uneven clusters", skill)
+        self.assertIn("A hard-gate-clean finalized draft can still fail", skill)
+        self.assertIn("45-50-line standard prose article with almost no short drops", skill)
         self.assertIn("repairs bounce between opposite profile failures", skill)
         self.assertIn("style-profile remains `revise`, or remains `review` with red `line_rhythm`", runtime)
         self.assertIn("five independent yellow drift families", skill)

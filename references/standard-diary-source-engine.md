@@ -117,6 +117,15 @@ Use this source order:
 3. Make the refusal alter a visible next move within the next cluster: the reply gets worse, money/route becomes impossible, a payment or transfer stalls, a person waits, a body/object problem interrupts the answer, or the old debt changes the hand.
 4. Then move away from the room/object texture. Keep one room-side handle at most; the refusal, not the sleeve or bowl, must produce the next action.
 
+Build a refusal chain, not a refusal mention. The chain starts before sending, but it only counts if something after sending changes the narrator's next action:
+
+- the other person's plain response removes the narrator from the list, changes the address/table/seat, or makes the narrator answer too small
+- the lie such as `忙项目` damages the next action: a transfer stalls, a reply is deleted, a door/hand/body problem interrupts, or an old debt changes whether he answers
+- the money/route decision leaves a visible unfinished act, not a completed ledger
+- the article exits the chat through a practical consequence caused by the refusal, not through a return to the opening bowl/sleeve/water object
+
+Before saving, mentally delete every room/object detail except one handle. If the remaining social chain is only `message -> ticket/suili calculation -> I said no -> he said OK`, it is still a screen summary. Rebuild until the post-refusal response, wrong reply, old debt, payment/route hesitation, or body/social interruption changes a later action by itself.
+
 If deleting every room/object detail except one makes the article stop moving, the refusal did not become an engine. Rebuild from the reply aftermath before saving `draft.md`.
 
 ## Title And Tail
