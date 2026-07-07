@@ -6848,7 +6848,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Do not run `rebalance_line_rhythm.py`, `split_long_lines.py`, `merge_short_lines.py`, or `soften_line_endings.py` before the first `clean_run_checker.py` call", standard_engine)
         self.assertIn("phone/feed -> order food -> wrong item -> wash bowl -> bed", standard_engine)
         self.assertIn("Private grime is not an event", standard_engine)
-        self.assertIn("A rider or cashier who only looks once and leaves is still decoration", standard_engine)
+        self.assertIn("A rider or cashier who only looks once, points once, or speaks once and then leaves is still decoration", standard_engine)
         self.assertIn("One material family cannot own all three kernels", standard_engine)
         self.assertIn("it has become a stain ledger", standard_engine)
         self.assertIn("Do not repair an engine warning by adding another oil/stain/body line", clean)
@@ -7145,10 +7145,19 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Do not run line-rhythm scripts before the first wrapper call", readme)
         self.assertIn("The engine is the consequence transfer, not the repeated material", engine)
         self.assertIn("A public hinge should open a second consequence", engine)
+        self.assertIn("A later private inspection does not turn a contact into social consequence", engine)
+        self.assertIn("the hinge ended too early", engine)
+        self.assertIn("while the person waits", engine)
         self.assertNotIn("deepseek", engine.lower())
         self.assertNotIn("mimo", engine.lower())
         self.assertNotIn("minimax", engine.lower())
         self.assertNotIn("gpt", engine.lower())
+
+    def test_clean_eval_rhythm_repair_order_is_unambiguous_in_runtime_docs(self) -> None:
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        self.assertIn("Any later `Write draft.md`, `Edit draft.md`, `Set-Content`, or `Out-File` cancels", clean)
+        self.assertIn("Reading the file, thinking about the repair, or visually deciding the rhythm looks okay does not refresh it", clean)
+        self.assertIn("节奏脚本后重写未重跑节奏修复", (ROOT / "scripts" / "check_clean_eval_trace.py").read_text(encoding="utf-8"))
 
     def test_runtime_docs_use_current_skill_name_and_output_locations(self) -> None:
         files = [

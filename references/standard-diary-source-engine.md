@@ -19,12 +19,14 @@ something happens, so I must do the next thing
 Use functions, not feature labels:
 
 1. **Side engine**: a daily action that would exist without the prompt fails or lowers the body. A sink, sleeve, door, key, charger, slipper, bag, stairwell, bowl, payment, route, or room chore changes the next move.
-2. **Public hinge**: another person, app, payment step, object handoff, door movement, or visible body problem forces a reply, wait, point, hold, return, wipe, drop, hide, pay, answer, leave, or change of room/route/body.
+2. **Public hinge**: another person, app, payment step, object handoff, door movement, or visible body problem forces a reply, wait, point, hold, return, wipe, drop, hide, pay, answer, leave, or change of room/route/body while that outside pressure is still active.
 3. **Off-axis residue**: a small unrelated daily branch changes the next action. It is not random decoration; deleting it should break a later reply, object state, body state, or room position.
 
 The user's topic is pressure, not a route map. Let one prompt surface leak after the first engine has already moved the body or room. A complete article does not mean complete prompt coverage.
 
 One material family cannot own all three kernels. If `oil/stain/sleeve/bowl/phone` or any other noun family appears in the title, handoff, table, sink, pants, and tail, the article is not richer; it has become a stain ledger. Keep the strongest occurrence, then make the next kernel change medium: a reply, payment, door, route, neighbor/cashier/rider sentence, room position, or mistaken explanation. The engine is the consequence transfer, not the repeated material.
+
+The public hinge has to leave a mark before it disappears. A later private inspection does not turn a contact into social consequence. If the scene is `rider points at leak -> narrator takes bag -> rider leaves -> narrator studies oil on pants`, the hinge ended too early. Keep the outside pressure inside the next move: the narrator fails to answer, asks for paper, blocks the doorway, wipes a hand on pants while the person waits, a payment/refund stalls, or a neighbor has to step around the stain. One plain sentence or forced hand movement is enough; do not build a dialogue ladder.
 
 ## Standard Diary Mass
 
@@ -57,9 +59,9 @@ That chain is too close to the assignment even when the details are concrete. Be
 - the wrong reply, dirty hand, wrong slipper, broken handle, cold water, or payment/app issue forces a practical retreat
 - an off-axis chore or object creates a later consequence, not a symbolic echo
 
-Private grime is not an event. Oil stains, sleeve dirt, sticky fingers, burps, mirror face, hair, smell, or clothing inspection only count when they change payment, reply, door, bag, body movement, or social position.
+Private grime is not an event. Oil stains, sleeve dirt, sticky fingers, burps, mirror face, hair, smell, or clothing inspection only count when they change payment, reply, door, bag, body movement, or social position before the public pressure has dissolved.
 
-A rider or cashier who only looks once and leaves is still decoration. Start from bag, payment, door, reply, hand, or body consequence, not from gaze.
+A rider or cashier who only looks once, points once, or speaks once and then leaves is still decoration if nothing in the narrator's next action changes until later private inspection. Start from bag, payment, door, reply, hand, or body consequence, not from gaze or a single neutral notice.
 
 If the contact already points out the stain, asks for paper, waits, or makes the narrator fail to answer, do not keep proving the same stain for the rest of the article. Spend the next movement somewhere else: the missing paper changes the door, the failed reply changes the phone, a payment/app residue changes the room, or a small unrelated chore comes back wrong. A public hinge should open a second consequence, not authorize more private inspection.
 
@@ -77,7 +79,7 @@ Before saving `draft.md`, ask only these five questions:
 
 1. If the feed/order/holiday noun is removed, does the article still have a moving body?
 2. Does at least one non-prompt cluster change reply, payment, route, door, room position, body state, or social position?
-3. Would deleting the outside contact or off-axis branch break a later action?
+3. Would deleting the outside contact or off-axis branch break a later action before it disappears, rather than only removing a witness to private inspection?
 4. Is the draft already a complete titled article rather than a plan, scratch version, or metric repair?
 5. Is the body built from breathing clusters with several rough long rows, rather than 80-100 short fact rows?
 
