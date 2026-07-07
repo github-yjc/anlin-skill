@@ -425,8 +425,8 @@ def pick_corpus_records(
 # Prompt builder
 # ---------------------------------------------------------------------------
 
-def build_subagent_prompt(output_dir: Path, num_total: int) -> str:
-    """Build a self-contained subagent prompt for the blind distinguisher."""
+def build_judge_prompt(output_dir: Path, num_total: int) -> str:
+    """Build a self-contained prompt for the isolated blind distinguisher."""
     sample_files = sorted(
         p.name for p in output_dir.iterdir()
         if p.is_file() and p.name.startswith('sample-') and p.suffix == '.txt'
@@ -781,7 +781,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     draft_file = next((k for k, v in mapping.items() if v['is_draft']), 'NONE')
     print(str(output_dir))
     print()
-    prompt = build_subagent_prompt(output_dir, total)
+    prompt = build_judge_prompt(output_dir, total)
     (output_dir / 'prompt.txt').write_text(prompt, encoding='utf-8')
     print(prompt)
     print()

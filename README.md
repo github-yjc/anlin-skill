@@ -12,7 +12,7 @@ The full 38-article corpus is a developer/controller input, not a runtime depend
 
 ## Current Status
 
-Status: not yet proven. This skill is still under active development. It is not ready to claim the `<=10%` stable impostor-identification target because no current evidence package contains all of the required pieces: 15 clean-eval generation cases, at least a calibrated `3 impostor + 1 placebo` blind-round package, low stable-identification rate, low placebo false-accusation rate, and uncontaminated controller logs. A larger `8 impostor + 2 placebo` package is the preferred serious-confirmation tier when corpus, judge budget, and controller isolation are available.
+Status: not yet proven. This skill is still under active development. It is not ready to claim the `<=10%` stable impostor-identification target because no current evidence package contains all required pieces: 15 clean-eval generation cases, a calibrated `8 impostor + 2 placebo` blind-round package, low stable-identification rate, low placebo false-accusation rate, and uncontaminated controller logs.
 
 The latest documented boundary is preserved in `references/development-log.md`. In short: the compact `--repair-brief` interface fixed the specific terminal-only finalized-repair artifact failure, but the newest targeted retest still did not become blind-round-ready because style-profile validation remained `review` with unresolved rhythm and texture drift. The next work should improve finalized minimum repair and first-draft source guidance before expanding blind rounds.
 
@@ -152,10 +152,6 @@ python scripts/check_style_profile.py draft.md --draft-gate --strict --repair-br
 python scripts/rebalance_line_rhythm.py draft.md --in-place
 python scripts/calibrate_style_profile.py $env:ANLIN_CORPUS_DIR --profile references/style-profile.json
 python scripts/summarize_dev_checkpoints.py <case-dir> --bounded-draft <case-dir>/draft.md --finalized-draft <case-dir>/finalized/draft.md --trace-log <case-dir>/opencode-output.txt --corpus-dir $env:ANLIN_CORPUS_DIR --profile references/style-profile.json --genre <standard|sincere|micro-hope|surreal> --output-json <case-dir>/controller-audit/summary.json --output-md <case-dir>/controller-audit/summary.md
-# Minimum smoke / requirement-aligned blind package:
-python scripts/run_blind_test.py draft.md $env:ANLIN_CORPUS_DIR --rounds 3 --placebo-rounds 1 --match-genre auto
-
-# Preferred serious-confirmation package:
 python scripts/run_blind_test.py draft.md $env:ANLIN_CORPUS_DIR --rounds 8 --placebo-rounds 2 --min-fragment-chars 550 --match-genre auto
 python scripts/check_clean_eval_trace.py <case-dir>/opencode-output.txt --json
 ```

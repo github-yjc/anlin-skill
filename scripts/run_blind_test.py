@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from prepare_blind_test import prepare_blind_test, build_subagent_prompt
+from prepare_blind_test import prepare_blind_test, build_judge_prompt
 
 
 JUDGE_PROFILES = [
@@ -79,7 +79,7 @@ def create_round(
         include_titles=True,
         match_genre=match_genre,
     )
-    prompt = build_subagent_prompt(round_dir, len(mapping)).replace(
+    prompt = build_judge_prompt(round_dir, len(mapping)).replace(
         "PROFILE: holistic-reader",
         f"PROFILE: {profile}",
     )
@@ -108,14 +108,14 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Prepare multiple Anlin blind-evaluation rounds.")
     parser.add_argument("draft_path", type=Path, help="Draft markdown/text file")
     parser.add_argument("corpus_dir", type=Path, help="Directory containing original Anlin files")
-    parser.add_argument("--rounds", type=int, default=3, help="Number of impostor rounds")
+    parser.add_argument("--rounds", type=int, default=8, help="Number of impostor rounds")
     parser.add_argument("--num-samples", type=int, default=5, help="Original samples per impostor round")
     parser.add_argument("--fragment-chars", type=int, default=0, help="Legacy diagnostic mode; 0 keeps complete articles")
     parser.add_argument("--min-fragment-chars", type=int, default=0, help="Minimum Chinese characters required for generated samples")
     parser.add_argument("--length-tolerance", type=float, default=0.65, help="Allowed relative length difference for complete-article impostor rounds")
     parser.add_argument("--match-genre", default="none", choices=("none", "auto", "standard", "sincere", "micro-hope", "surreal"), help="Optional genre/length matching anchor for impostor and placebo rounds")
     parser.add_argument("--include-placebo", action="store_true", help="Add one placebo round containing originals only")
-    parser.add_argument("--placebo-rounds", type=int, default=0, help="Number of all-original placebo calibration rounds")
+    parser.add_argument("--placebo-rounds", type=int, default=2, help="Number of all-original placebo calibration rounds")
     parser.add_argument("--profiles", default=",".join(JUDGE_PROFILES), help="Comma-separated judge profiles to rotate across impostor rounds")
     parser.add_argument("--seed", type=int, default=1, help="Base random seed")
     parser.add_argument("--output-root", type=Path, default=None, help="Output root directory")

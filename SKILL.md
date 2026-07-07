@@ -314,7 +314,6 @@ python scripts/calibrate_style_profile.py <corpus-dir> --profile references/styl
 python scripts/check_clean_eval_trace.py <case-dir>/opencode-output.txt --json
 python scripts/summarize_dev_checkpoints.py <case-dir> --bounded-draft <case-dir>/draft.md --finalized-draft <case-dir>/finalized/draft.md --trace-log <case-dir>/opencode-output.txt --corpus-dir <corpus-dir> --profile references/style-profile.json
 python scripts/prepare_blind_test.py draft.md <corpus-dir> --min-fragment-chars 550 --seed 1
-python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 3 --placebo-rounds 1 --match-genre auto
 python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment-chars 550 --placebo-rounds 2 --match-genre auto
 python -m unittest discover -s test
 ```

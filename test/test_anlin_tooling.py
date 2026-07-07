@@ -7431,25 +7431,33 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotIn(provider_token, validation_lower)
             self.assertNotIn(provider_token, runtime_combined)
 
-    def test_isolated_judge_templates_are_active_and_legacy_prompt_file_is_not_runtime(self) -> None:
+    def test_isolated_judge_templates_are_active_without_legacy_prompt_file(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         layer_map = (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8")
         validation = (ROOT / "references" / "validation-protocol.md").read_text(encoding="utf-8")
         judge_templates = (ROOT / "references" / "judge-prompt-templates.md").read_text(encoding="utf-8")
-        legacy = (ROOT / "references" / "subagent-prompts.md").read_text(encoding="utf-8")
         development_log = (ROOT / "references" / "development-log.md").read_text(encoding="utf-8")
+        prepare_blind = (ROOT / "scripts" / "prepare_blind_test.py").read_text(encoding="utf-8")
+        run_blind = (ROOT / "scripts" / "run_blind_test.py").read_text(encoding="utf-8")
 
         self.assertIn("judge-prompt-templates.md", readme)
         self.assertIn("references/judge-prompt-templates.md", layer_map)
         self.assertIn("Controller Judge Prompt Templates", judge_templates)
         self.assertIn("They do not require any special parallel-agent capability", judge_templates)
-        self.assertIn("3 impostor + 1 placebo", validation)
         self.assertIn("8 impostor + 2 placebo", validation)
-        self.assertIn("Do not mix the two denominators", validation)
-        self.assertIn("compatibility pointer", legacy)
-        self.assertIn("Do not treat this legacy filename as a runtime dependency", legacy)
+        self.assertNotIn("3 impostor + 1 placebo", validation)
+        self.assertNotIn("3+1", validation)
+        self.assertNotIn("--rounds 3", validation)
+        self.assertFalse((ROOT / "references" / "subagent-prompts.md").exists())
         self.assertIn("Documentation architecture cleanup on 2026-07-07", development_log)
+        self.assertIn("Strict blind-package correction on 2026-07-07", development_log)
         self.assertIn("not new evidence that the `<=10%` target has been reached", development_log)
+        self.assertIn('default=8, help="Number of impostor rounds"', run_blind)
+        self.assertIn('default=2, help="Number of all-original placebo calibration rounds"', run_blind)
+        self.assertIn("build_judge_prompt", prepare_blind)
+        self.assertIn("build_judge_prompt", run_blind)
+        self.assertNotIn("build_subagent_prompt", prepare_blind)
+        self.assertNotIn("build_subagent_prompt", run_blind)
 
         active_docs = [
             ROOT / "SKILL.md",
@@ -7465,6 +7473,9 @@ class AnlinToolingTests(unittest.TestCase):
             text = path.read_text(encoding="utf-8")
             self.assertNotIn("references/subagent-prompts.md", text)
             self.assertNotIn("子代理", text)
+            self.assertNotIn("3 impostor + 1 placebo", text)
+            self.assertNotIn("3+1", text)
+            self.assertNotIn("--rounds 3", text)
 
     def test_readme_uses_portable_skill_and_corpus_paths(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
