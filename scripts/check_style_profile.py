@@ -699,12 +699,14 @@ def format_repair_brief(report: dict[str, Any]) -> str:
     lines.extend(
         [
             "repair_directive: write a complete revised draft.md before any further metric analysis. Do not print a proposed full article to the terminal; persist it to draft.md, then rerun the formal gates.",
+            "hard_gate_priority: if the preceding hard gate showed blocking findings, the one source rewrite must clear those first; use this profile brief to shape the same move, not to ignore hard-gate roughness or fact failures.",
             "repair_loop_budget: exactly one complete source rewrite, then one hard-gate plus repair-brief rerun. If it still does not pass, stop and record unresolved repair-path drift instead of making another metric patch.",
             "single_write_budget: after this brief, exactly one Write/Edit draft.md is allowed in this finalized attempt. A second write/edit or a third gate run is invalid controller evidence, even if the article improves.",
             "after_rerun_stop: after the rerun, stop on pass or not-pass. Do not calculate thresholds, do not argue that checker metrics conflict, and do not write another version in the same finalized attempt.",
             *(
                 [
                     "standard_shape_guard: do not shrink a standard-diary repair below about 900 body Chinese characters or turn it into 70+ similar short rows; keep several rough long action/speech/thought rows inside 4-6 breathing clusters.",
+                    "standard_rough_exposure_guard: at least one repaired cluster should expose a low body/social/practical consequence that changes the next action; private wet sleeves, room noise, balances, or screen checks do not count unless another person, payment, door, reply, route, or body failure is still active.",
                 ]
                 if genre == "standard"
                 else []
