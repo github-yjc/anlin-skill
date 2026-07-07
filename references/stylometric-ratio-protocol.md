@@ -201,6 +201,13 @@ For strict reporting, keep the profile file, skill commit, corpus path, corpus f
 
 Do not use profile success as a claim of authorship. It only means the draft did not drift beyond selected measurable corpus priors under this profile.
 
+There are two profile interfaces:
+
+- **Repair brief**: `check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre <genre>`. Use this inside finalized repair or ordinary repair when a generator must revise the article. It should return a compact source-action brief, not the full metric table. Under `--strict`, a nonzero exit usually means "not passed; write a revised draft.md" rather than "the tool crashed."
+- **Full report**: `check_style_profile.py draft.md --draft-gate --strict --genre <genre>` without `--repair-brief`. Use this after the artifact is frozen for controller/developer audit. It should preserve full findings, observed values, interval diagnostics, family counts, and calibration evidence.
+
+Do not replace the full report with the repair brief in controller summaries, calibration reports, or development logs. Do not hand the full report to a repair agent as a metric checklist when the goal is to write a better article.
+
 ### Phase/Genre Strata
 
 `style-profile.json` stores global, phase, genre, and phase+genre summaries. Use the stratum only when the target has an explicit phase or genre and the stratum has enough originals; otherwise the checker falls back to global priors.

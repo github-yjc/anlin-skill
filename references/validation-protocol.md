@@ -22,6 +22,19 @@ Report only:
 
 Do not report "无法区分", "本人级", "原文级", or "Anlin本人会这么写".
 
+## Evidence Preservation
+
+Validation artifacts are part of the evidence chain. Do not delete generation logs, checker outputs, controller summaries, blind-round mappings, judge transcripts, stage snapshots, or failed-run notes merely because the docs are reorganized.
+
+Use this ownership split:
+
+- README may summarize the latest boundary for users.
+- `references/development-log.md` preserves chronological failed-run evidence, model/provider availability notes, verification summaries, and architecture-change rationale.
+- External case workspaces preserve raw generated drafts, `finalized/draft.md`, trace logs, `.anlin-clean-run-state.json`, `.anlin-clean-run-snapshots/`, controller summaries, and blind-round directories.
+- The distributable runtime skill should not contain local output workspaces or machine-specific paths. Promote only durable prompts, calibration cards, smoke drafts, or reference summaries into the skill repository.
+
+Moving or rephrasing logs is allowed only when the factual content remains recoverable from tracked files or preserved external artifacts. If there is uncertainty, keep the raw log and add a summary instead of replacing it.
+
 ## Modes
 
 ### Draft Review
@@ -153,6 +166,7 @@ Finalized checkpoint pass gate:
 - Freeze the selected genre from the prompt, case metadata, or bounded draft before repair. A short sincere/micro-hope draft that becomes longer during repair should still be validated against the selected short-genre corridor, not reclassified as standard diary by accident.
 - Run `check_anlin_violations.py <finalized-draft> --strict --draft-gate --genre <selected-genre>` and require zero `error` findings.
 - During the repair loop, run `check_style_profile.py <finalized-draft> --draft-gate --strict --repair-brief --genre <selected-genre>` when the bundled profile is available. The repair brief is the generator-facing interface; it folds the long metric list into source actions so the repairing agent does not optimize every ratio one by one. After the finalized artifact is frozen, the controller may rerun `check_style_profile.py <finalized-draft> --draft-gate --strict --genre <selected-genre>` without `--repair-brief` for the full report. The script automatically uses `references/style-profile.json` from the installed skill unless `--profile` or `--corpus-dir` overrides it. A `revise` status means finalized repair failed. A missing profile makes the result `review`, not ready for blind rounds.
+- Under `--strict --repair-brief`, a nonzero exit normally means the draft did not pass the profile gate and should be repaired by writing a complete revised `finalized/draft.md`. It is not by itself a tool failure. The repairing agent should not respond by reading hidden thresholds, printing a proposed final article only in the terminal, or continuing to analyze full metrics.
 - The finalized article must exist in `<case-dir>/finalized/draft.md`. If the agent prints a repaired article to chat or a log but leaves that file unchanged from a non-pass bounded input, mark the finalized checkpoint invalid as an artifact failure.
 - Style-profile `yellow` with zero errors is acceptable for the finalized checkpoint; record the yellow families, but do not keep rewriting solely to remove yellow warnings. Blind rounds and placebo calibration decide whether those remaining cues matter.
 - Style-profile `review` is not a finalized checkpoint pass, even when `red_families` is empty. Use the report's `checkpoint_decision`; only `checkpoint_decision=pass` can enter blind-round preparation.

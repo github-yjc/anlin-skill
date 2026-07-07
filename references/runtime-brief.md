@@ -2,6 +2,8 @@
 
 Use this file for ordinary non-formal drafting, explicit analysis, or repair after the first clean-eval checker pass. For clean-eval generation, do not open this file before the first complete `draft.md`; `clean-generation-brief.md` owns the first-draft source loop. The larger reference files are for calibration and critique.
 
+Do not load `references/development-log.md`, `references/validation-protocol.md`, `references/blind-judge-angles.md`, or `evals/README.md` as drafting material. They are controller/developer evidence, not prose ingredients.
+
 ## Target
 
 The target is anonymous blind-evaluation performance: a generated text should not be stably identified as generated under documented test conditions. Never claim real authorship or objective indistinguishability.

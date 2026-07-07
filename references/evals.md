@@ -2,6 +2,10 @@
 
 这些 prompts 用于测试 skill 是否能处理不同日期、体裁和验证模式。它们不是证明“完全拟合”的测试，只是压力场景。
 
+Status: legacy supplementary notes. The formal 15-case evaluation set lives in `evals/evals.json`, and the current protocol lives in `evals/README.md` plus `references/validation-protocol.md`. Preserve this file because it records early scenario intent and assertions, but do not use it as the sole source for current clean-eval, finalized repair, or blind-round claims.
+
+When this file conflicts with `evals/evals.json` or `references/validation-protocol.md`, use the newer structured files and record the discrepancy in the development log instead of silently deleting the older note.
+
 ## Eval 1: 2022 春招失败标准日寄
 
 Prompt: `模拟 Anlin 在 2022-04-18 晚上写一篇标准日寄。背景：春招失败，舍友拿到大厂 offer，自己刷招聘软件和王者荣耀。`

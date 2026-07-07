@@ -2,6 +2,8 @@
 
 Use this file for the first draft of a formal blind-evaluation article. It is a compact runtime contract distilled from the longer references. Detailed files remain available for repair, validation, and research, but the first draft should not load them as a checklist.
 
+Do not load controller/developer documents such as `references/development-log.md`, `references/validation-protocol.md`, `references/blind-judge-angles.md`, or `evals/README.md` before the first complete `draft.md`. They preserve evidence and judge protocol; they are not source material for the article.
+
 ## Output Silence
 
 Do not announce that you are loading references or building a state card. Do not print process notes, checker summaries, or "now I will" lines. If the user asked for prose, the first visible line must be the title.

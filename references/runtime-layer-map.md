@@ -4,6 +4,16 @@ This file is for the developer, auditors, and failed-run diagnosis. Do not load 
 
 The core architecture is layered so generation agents do not turn every review cue into article material.
 
+## Document Ownership
+
+- `README.md` is the GitHub/user-facing entry. It should explain purpose, status, installation, usage, validation entry points, and limitations without front-loading the full iteration history.
+- `SKILL.md` is the runtime contract for a generation or repair agent. It should stay portable, model-agnostic, and free of local machine paths.
+- Layer 0 and Layer 1 references shape article generation. They may be loaded before or during drafting according to the workflow.
+- Layer 2 references are fact gates. They prevent contradiction and unsupported specificity; they are not scene generators.
+- Layer 3 references are repair/calibration libraries. In clean-eval, do not load them before the first complete draft unless the protocol explicitly allows it.
+- Layer 4 references and scripts are controller/developer validation. They can fail a draft, record evidence, or diagnose repeated failures, but they should not be handed to a fresh generator as hidden style advice.
+- `references/development-log.md` preserves chronological evidence and failed-run diagnoses. It is not runtime guidance. Do not delete log content; when reorganizing docs, move or summarize only after the full factual record is preserved in git.
+
 ## Layer 0: Entry Contract
 
 Files:
@@ -93,6 +103,7 @@ Files:
 - `references/validation-protocol.md`
 - `references/blind-judge-angles.md`
 - `references/subagent-prompts.md`
+- `references/development-log.md`
 - `evals/evals.json`
 - `evals/README.md`
 - `scripts/` validation and repair helpers, especially `summarize_dev_checkpoints.py` for bounded/finalized development attribution

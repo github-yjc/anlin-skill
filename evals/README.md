@@ -2,6 +2,8 @@
 
 结构化评测集，用于定量测量 anlin-writing skill 是否通过风格验证门禁。评测不证明「与原文无法区分」，只证明生成物满足 skill 规定的客观和主观质量标准。
 
+本目录是控制器/开发者测试入口，不是普通用户输出目录。正式测试产生的 `draft.md`、`finalized/draft.md`、trace log、checker report、blind-round 目录和汇总 JSON/MD 都应写入外部评测工作区。不要把这些过程产物写进可分发 skill 本体；也不要删除它们，除非已经确认日志和关键结果被完整迁移到受控位置。
+
 ## 文件结构
 
 ```
@@ -9,6 +11,8 @@ evals/
 ├── evals.json    # 15 个结构化测试用例
 └── README.md     # 本文件
 ```
+
+`references/evals.md` 是早期非结构化评测说明，保留作历史和补充语义，不作为正式 15 用例清单。正式 clean-eval / blind-round 入口以 `evals/evals.json` 的 `realistic_prompt` 和本 README 为准。
 
 ## 用例概览
 
@@ -63,6 +67,8 @@ python <skill-dir>/scripts/check_anlin_violations.py draft.md
 注意：退出码 0 只表示未触发可自动检测的阻断项，不保证风格匹配。脚本无法检测蒙太奇结构、情感层次、声音质量等主观维度。
 
 ### 步骤 3：运行 Style Critic 子代理审查
+
+这一节是早期人工/代理评审口径的保留说明。当前正式控制器流程还必须结合 `references/validation-protocol.md`、`references/blind-judge-angles.md`、strict/draft-gate hard gate、style-profile full report、placebo 校准和双检查点汇总。不要只凭本节 5 门禁分数宣称 ready for blind rounds。
 
 对 `standard-diary` 和 `mixed` 用例，使用 5 门禁评分：
 - emotional-oscillation（情感振荡）：笑/痛/温情/嘴硬是否混频
