@@ -9053,6 +9053,84 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("repair_mode: source_reset_thinning", text_result.stdout)
             self.assertIn("next_repair_action:", text_result.stdout)
 
+    def test_style_profile_repair_brief_is_compact_generator_interface(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(
+                "\n".join(
+                    [
+                        "# 水龙头",
+                        "",
+                        *(["水龙头开小了还是溅出来。"] * 52),
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            red_summary = {
+                "min": 0.0,
+                "q05": 0.0,
+                "q10": 0.0,
+                "median": 0.0,
+                "q90": 0.0,
+                "q95": 0.0,
+                "max": 0.0,
+                "mean": 0.0,
+                "mad": 0.0,
+            }
+            profile = Path(temp) / "profile.json"
+            profile.write_text(
+                json.dumps(
+                    {
+                        "version": "test",
+                        "corpus_file_count": 38,
+                        "expected_corpus_count": 38,
+                        "value_summary": {
+                            "body_chars": red_summary,
+                            "paragraph_blocks": red_summary,
+                            "line_mean_chars": red_summary,
+                            "punct_period_per_1k": red_summary,
+                        },
+                        "value_families": {
+                            "body_chars": "length",
+                            "paragraph_blocks": "structure",
+                            "line_mean_chars": "line_rhythm",
+                            "punct_period_per_1k": "punctuation",
+                        },
+                        "count_summary": {},
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECK_PROFILE),
+                    str(draft),
+                    "--profile",
+                    str(profile),
+                    "--draft-gate",
+                    "--strict",
+                    "--repair-brief",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("Anlin style-profile repair brief", result.stdout)
+            self.assertIn("repair_directive: write a complete revised draft.md before any further metric analysis", result.stdout)
+            self.assertIn("Do not print a proposed full article", result.stdout)
+            self.assertIn("root_families:", result.stdout)
+            self.assertIn("punctuation:", result.stdout)
+            self.assertIn("line_rhythm:", result.stdout)
+            self.assertNotIn("findings:", result.stdout)
+            self.assertNotIn("observed=", result.stdout)
+            self.assertNotIn("q10-q90", result.stdout)
+            self.assertNotIn("count80", result.stdout)
+
     def test_style_profile_review_with_red_punctuation_gets_source_reset_action(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             draft = Path(temp) / "draft.md"

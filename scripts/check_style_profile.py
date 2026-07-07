@@ -42,6 +42,34 @@ SUGGESTIONS = {
     "other": "Inspect this signal manually against placebo originals before treating it as decisive.",
 }
 
+REPAIR_BRIEF_ACTIONS = {
+    "length": "change length only through lived action, a failed exchange, body cost, money, route, or social consequence; do not pad.",
+    "structure": "change scene movement: cut designed prompt echoes, opening-tail loops, or decorative off-axis material before adding anything.",
+    "title": "retitle from the earned side action or weak handle; do not use a diagnostic prompt label.",
+    "line_rhythm": "rewrite visible body movement into breathing clusters with rough long action/speech/thought rows and a few short failure drops.",
+    "ngram_texture": "delete one repeated local packet or line-start template; replace its function with a different action or social consequence.",
+    "punctuation": "use local cluster surgery: rebuild only a few unfinished action/reply/payment/door/body spots; do not globally merge or split rows.",
+    "connectors": "create a turn that naturally needs connection: failed reply, payment handoff, body interruption, route/object change; do not paste connector words.",
+    "texture": "remove body/object proof that does not change the next action; replace it with reply, payment, route, room, or social position movement.",
+    "cognitive_mechanism": "repair the order of thinking inside scenes; do not insert labels or explain what the scene means.",
+    "ai_slop": "replace explanatory scaffold with physical fact, body consequence, app surface, money action, or plain speech.",
+    "other": "inspect manually against matched originals; do not treat this as a quota.",
+}
+
+REPAIR_FAMILY_ORDER = [
+    "ai_slop",
+    "punctuation",
+    "line_rhythm",
+    "connectors",
+    "ngram_texture",
+    "structure",
+    "texture",
+    "cognitive_mechanism",
+    "length",
+    "title",
+    "other",
+]
+
 TOPIC_SENSITIVE_SOFT_ONLY_FAMILIES = {"structure", "texture", "cognitive_mechanism", "title"}
 YELLOW_REVIEW_FAMILY_THRESHOLD = 5
 SOFT_REVISE_FAMILY_THRESHOLD = 11
@@ -598,6 +626,65 @@ def format_report(report: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def ordered_repair_families(summary: dict[str, Any]) -> list[str]:
+    seen: set[str] = set()
+    families: list[str] = []
+    for source in ("error_families", "red_families", "yellow_families", "warning_families"):
+        for family in summary.get(source, []):
+            if family not in seen:
+                families.append(family)
+                seen.add(family)
+    return sorted(
+        families,
+        key=lambda family: (
+            REPAIR_FAMILY_ORDER.index(family) if family in REPAIR_FAMILY_ORDER else len(REPAIR_FAMILY_ORDER),
+            family,
+        ),
+    )
+
+
+def format_repair_brief(report: dict[str, Any]) -> str:
+    summary = report["summary"]
+    families = ordered_repair_families(summary)
+    lines = [
+        "Anlin style-profile repair brief",
+        f"draft: {report['draft']}",
+        f"status: {summary['status']}",
+        f"checkpoint_pass: {str(summary['checkpoint_pass']).lower()}",
+        f"formal_gate: {'pass' if summary['checkpoint_pass'] else 'not_pass'}",
+        f"repair_mode: {summary.get('repair_mode', 'unknown')}",
+        f"root_families: {', '.join(families) or '(none)'}",
+        f"next_repair_action: {summary.get('next_repair_action', '')}",
+    ]
+    if summary["checkpoint_pass"]:
+        lines.extend(
+            [
+                "repair_directive: no profile rewrite is required. Keep hard-gate, overlap, trace, blind, and placebo validation separate.",
+                "controller_note: rerun without --repair-brief only when you need the full metric report.",
+            ]
+        )
+        return "\n".join(lines)
+
+    lines.extend(
+        [
+            "repair_directive: write a complete revised draft.md before any further metric analysis. Do not print a proposed full article to the terminal; persist it to draft.md, then rerun the formal gates.",
+            "do_not: do not use individual metrics as a TODO list, do not calculate thresholds, do not tune punctuation or connector counts, and do not keep thinking until every profile line is mentally solved.",
+            "source_actions:",
+        ]
+    )
+    for family in families[:5]:
+        lines.append(f"  - {family}: {REPAIR_BRIEF_ACTIONS.get(family, REPAIR_BRIEF_ACTIONS['other'])}")
+    if len(families) > 5:
+        lines.append("  - remaining families: handle only if they still appear after the source rewrite; do not solve them one by one before writing.")
+    lines.extend(
+        [
+            "validation_loop: after writing draft.md, run the strict hard gate and this repair brief once. If the same opposite failures bounce again, stop and record unresolved repair-path drift.",
+            "controller_note: rerun without --repair-brief for full corpus-prior evidence, calibration, or reporting. The brief is the generator-facing repair interface.",
+        ]
+    )
+    return "\n".join(lines)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check a draft against an Anlin stylometric profile.")
     parser.add_argument("draft", type=Path, help="Draft markdown/text file")
@@ -614,6 +701,7 @@ def main() -> int:
     parser.add_argument("--min-stratum-docs", type=int, default=4, help="Minimum documents required before using a phase/genre stratum")
     parser.add_argument("--include-info", action="store_true", help="Include q10-q90 / 80%% predictive informational drift")
     parser.add_argument("--strict", action="store_true", help="Return nonzero when profile status is review or revise, even without hard errors")
+    parser.add_argument("--repair-brief", action="store_true", help="Output a compact generator-facing repair brief instead of the full finding list")
     parser.add_argument("--json", action="store_true", help="Output JSON")
     args = parser.parse_args()
 
@@ -633,6 +721,8 @@ def main() -> int:
     )
     if args.json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
+    elif args.repair_brief:
+        print(format_repair_brief(report))
     else:
         print(format_report(report))
 
