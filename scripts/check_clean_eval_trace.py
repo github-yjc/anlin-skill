@@ -30,6 +30,12 @@ VISIBLE_PROCESS_CHATTER_PATTERNS = [
     re.compile(r"(?i)the checker (?:requires|reports|detected|says)"),
 ]
 RHYTHM_SCRIPTS_PATTERN = r"(?:rebalance_line_rhythm|split_long_lines|merge_short_lines|soften_line_endings)\.py\b"
+FORMATTED_PATCH_DRAFT_CONTEXT_BODY = (
+    r"^\s*%\s*Patch\s+\d+\s+files?\b"
+    r"(?:(?!^\s*(?:\$|TOOL|TITLE|INPUT|←|Write|Edit|OUTPUT\s+CLEAN_RUN|CLEAN_RUN)).[\s\S]){0,600}"
+    r"\bdraft\.md\b"
+)
+FORMATTED_PATCH_DRAFT_CONTEXT_PATTERN = r"(?im)" + FORMATTED_PATCH_DRAFT_CONTEXT_BODY
 
 
 @dataclass(frozen=True)
@@ -275,6 +281,11 @@ def actual_draft_write_index(text: str) -> int:
     patterns = [
         r"(?im)^\s*(?:←\s*)?Write\s+\.?[/\\]?draft\.md\b",
         r"(?im)^\s*TITLE\s+Write\s+\.?[/\\]?draft\.md\b",
+        # Formatted OpenCode logs can collapse file edits to only
+        # `% Patch 1 file`, without the path. Count it only when the same
+        # action block still names draft.md, so unrelated patches do not hide
+        # a missing persisted article.
+        FORMATTED_PATCH_DRAFT_CONTEXT_PATTERN,
         r"(?im)^\s*INPUT\s+[^\n]*\"(?:path|filePath|file)\"\s*:\s*\"(?:\.?/)?draft\.md\"[^\n]*(?:content|write)",
         r"(?im)^\s*INPUT\s+[^\n]*\"(?:path|filePath|file)\"\s*:\s*\"[A-Za-z]:/[^\n\"]*/draft\.md\"[^\n]*(?:content|write)",
         r"(?im)^\s*INPUT\s+[^\n]*(?:content|write)[^\n]*\"(?:path|filePath|file)\"\s*:\s*\"(?:\.?/)?draft\.md\"",
@@ -312,6 +323,7 @@ def actual_draft_mutation_indices(text: str) -> list[int]:
     patterns = [
         r"(?im)^\s*(?:←\s*)?(?:Write|Edit)\s+\.?[/\\]?draft\.md\b",
         r"(?im)^\s*TITLE\s+(?:Write|Edit)\s+\.?[/\\]?draft\.md\b",
+        FORMATTED_PATCH_DRAFT_CONTEXT_PATTERN,
         r"(?im)^\s*TOOL\s+filesystem_(?:write|edit)_file\b[^\n]*(?:\n[^\n]*){0,4}draft\.md\b",
         r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*draft\.md[^\n]*(?:content|write|edit|old_string|new_string)",
         r"(?im)^\s*(?:\$|>|>>)?\s*(?:@['\"]\s*\|\s*)?(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?\.?[/\\]?draft\.md['\"]?\b",
@@ -632,7 +644,9 @@ def collect_findings(text: str) -> list[TraceFinding]:
         post_stop_patterns = [
             (
                 "stop后继续写稿",
-                r"(?m)^\s*(?:←\s*)?(?:Write|Edit)\s+draft\.md\b|^\s*TITLE\s+(?:Write|Edit)\s+draft\.md\b|^\s*TOOL\s+filesystem_(?:write|edit)_file\b",
+                r"(?m)^\s*(?:←\s*)?(?:Write|Edit)\s+draft\.md\b|^\s*TITLE\s+(?:Write|Edit)\s+draft\.md\b|"
+                + FORMATTED_PATCH_DRAFT_CONTEXT_BODY
+                + r"|^\s*TOOL\s+filesystem_(?:write|edit)_file\b",
                 0,
             ),
             (

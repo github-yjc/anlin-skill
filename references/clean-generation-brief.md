@@ -161,6 +161,8 @@ Rough self-damage is narrower than ordinary awkwardness. A neighbor looking once
 
 Private grime is not enough by itself. `手上有灰`, `指甲缝里有泥`, `案板很脏`, or `垃圾桶快满了` only become engine when another person, a payment action, a failed reply, a body noise, or a practical maneuver exposes them. If nobody in the world reacts and the narrator only inspects the object, it is still object texture, not paragraph movement.
 
+For hallway or stairwell witnesses, keep the low-status chain plain and continuous. A useful line is not "阿姨看了我一眼"; it is the neighbor/aunt naming the leak, smell, dirty sleeve, blocked door, or floor mark while the narrator is still wiping, letting them pass, closing the door, failing to answer, or moving the body badly. After that, switch medium; do not keep proving the same sleeve, stain, oil, or bag for the rest of the article.
+
 Generated drafts often smuggle AI binary framing through ordinary self-correction. Treat these as unsafe before the checker, even when they sound colloquial: `也不是疼，就是...`, `其实不是想X，就是...`, `不是认识，就是...`, `不是因为X，而是因为Y`, `不是X。是Y`, `我不是叔叔，我只是...`, `最疼的不是X，是Y`, and similar cross-line forms. Replace them with the positive physical fact or social action: the knee softens, the hand has black dirt, the rider checks the phone first, someone says one ugly line.
 
 Scan the whole article for this surface, not just the first matched sentence. Generated drafts often contain two or three softened versions after one obvious `不是X，是Y` is fixed. Remove all occurrences before the next checker call. If the only remaining preflight issue is binary reframe or another surface leak, make a local replacement only; do not expand the draft, add short drops, add money/body/platform facts, or introduce a new scene.

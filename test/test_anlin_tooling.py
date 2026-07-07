@@ -3363,6 +3363,68 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertFalse(any(item["severity"] == "error" for item in findings), findings)
             self.assertTrue(any(item["rule"] == "无效工具调用" for item in findings), findings)
 
+    def test_clean_eval_trace_accepts_formatted_opencode_patch_write(self) -> None:
+        log = """
+        opencode.exe : At C:/Users/34025/AppData/Roaming/npm/opencode.ps1:14 char:3
+        +   & "$basedir/node_modules/opencode-ai/bin/opencode.exe" $args
+        → Skill "anlin-writing"
+        $ Test-Path -LiteralPath ".anlin-clean-eval-mode"
+        True
+        $ Get-Location
+        Path
+        ----
+        C:/eval-workspace/iteration-92/eval-09/bounded
+        → Read C:/skill/references/clean-generation-brief.md
+        → Read C:/skill/references/standard-diary-source-engine.md
+        Thinking: **Drafting a project plan**
+        % Patch 1 file
+        已写入第一版 `draft.md`。
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --genre standard
+        CLEAN_RUN_PREFLIGHT: draft is not ready for checker call 1/2
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("clean-eval未写入draft.md", rules)
+
+    def test_clean_eval_trace_rejects_formatted_patch_without_draft_context(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path -LiteralPath ".anlin-clean-eval-mode"
+        True
+        $ Get-Location
+        C:/eval-workspace/iteration-93/eval-09/bounded
+        → Read C:/skill/references/clean-generation-brief.md
+        % Patch 1 file
+        已更新说明。
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --genre standard
+        CLEAN_RUN_PREFLIGHT: draft is not ready for checker call 1/2
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval未写入draft.md", rules)
+
     def test_clean_eval_trace_rejects_missing_persisted_draft_even_if_reference_mentions_checker(self) -> None:
         log = """
         $ Test-Path .anlin-clean-eval-mode
@@ -7111,6 +7173,12 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("generated caption grid", standard_engine)
         self.assertIn("6-8 breathing clusters", standard_engine)
         self.assertIn("several rough long rows", standard_engine)
+        self.assertIn("Cluster Grammar, Not Metrics", standard_engine)
+        self.assertIn("what is still happening after this line?", standard_engine)
+        self.assertIn("Do not let `已经/现在/只是/可能` carry most of the article's movement", standard_engine)
+        self.assertIn("Hallway witnesses work only when the witness and the ugly fact stay in the same action chain", standard_engine)
+        self.assertIn("For hallway or stairwell witnesses", clean)
+        self.assertIn("For hallway/aunt/neighbor repairs", (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8"))
         self.assertIn("ask only these five questions", standard_engine)
         self.assertNotIn("ask only these four questions", standard_engine)
         self.assertIn("This is a hard tool-order rule", clean)
@@ -9459,6 +9527,42 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings), findings)
             self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings), findings)
+
+    def test_checker_accepts_hallway_aunt_dirty_sleeve_as_rough_and_engine_signal(self) -> None:
+        body = "\n".join(
+            [
+                "# 堵住的下水口",
+                "",
+                "我用旧牙刷去戳下水口，袖口粘了一块黑东西。",
+                "门外有人敲，我拎着垃圾袋出去，垃圾袋先漏了。",
+                "楼道里的阿姨停在半层，说你这个袋子破了，地上都是汤。",
+                "我蹲下去擦，袖口那块黑印蹭到墙角，留了一道灰。",
+                "阿姨把青菜换到另一只手，等着我让路，又说你别拿袖子擦，越擦越黑。",
+                "我嗯了一声，更不知道手该放哪。",
+                "她又指了一下门，说你先关上吧，味道出来了。",
+                "我说好，声音有点小。",
+                *(["不过水龙头咳了一下，我发现杯子边上还有油，因为手指一直黏着。"] * 30),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings), findings)
+            self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings), findings)
+
+            clean_draft = Path(temp) / "clean-draft.md"
+            clean_draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(clean_draft)
+            self.assertFalse(any(message.startswith("private_grime_without_public_consequence=") for message in messages), messages)
+            self.assertFalse(any(message.startswith("rough_self_damage=missing") for message in messages), messages)
 
     def test_checker_counts_rider_paper_exchange_as_paragraph_engine(self) -> None:
         body = "\n".join(

@@ -28,6 +28,8 @@ One material family cannot own all three kernels. If `oil/stain/sleeve/bowl/phon
 
 The public hinge has to leave a mark before it disappears. A later private inspection does not turn a contact into social consequence. If the scene is `rider points at leak -> narrator takes bag -> rider leaves -> narrator studies oil on pants`, the hinge ended too early. Keep the outside pressure inside the next move: the narrator fails to answer, asks for paper, blocks the doorway, wipes a hand on pants while the person waits, a payment/refund stalls, or a neighbor has to step around the stain. One plain sentence or forced hand movement is enough; do not build a dialogue ladder.
 
+Hallway witnesses work only when the witness and the ugly fact stay in the same action chain. `阿姨/邻居 says the bag leaked, the sleeve is dirty, the floor smells, or the door should close -> narrator wipes, lets them pass, answers badly, drops something, changes the door, or moves the body differently` is a hinge. `阿姨看了一眼 -> narrator later notices the sleeve` is still private texture.
+
 After a public hinge works, move away from the proof object. A delivery leak can expose the room or hand, but the next cluster should not keep proving `oil` through table, sink, pants, mirror, and tail. Let a different consequence take over: the door closes wrong, a landlord message arrives at a bad moment, the trash route changes, a reply fails, or a small chore returns broken. If the same noun family is still explaining the article after two clusters, cut it before saving.
 
 ## First Two Clusters
@@ -61,6 +63,12 @@ Do not make every row the same size. Do not create rhythm by deleting punctuatio
 Connected movement does not mean comma-drag. In the first saved draft, a cluster can trail through one or two visible line-final commas, but it also needs hard-stop action lines and a few short failure drops. Do not make a 50-line draft where almost every line is one comma chain, and do not make a 60-line draft where every row is a sealed period sentence. Rhythm should come from hand, reply, payment, body, door, and object movement changing direction.
 
 Natural connector words should be born inside those turns. If no line needs `其实`, `不过`, `发现`, `结果`, `于是`, `因为`, or `所以`, the scenes are probably just listed facts. Add a cause or correction inside an existing action rather than sprinkling connector words onto finished sentences.
+
+## Cluster Grammar, Not Metrics
+
+If a cluster can be summarized as `A happened. B happened. C happened.`, it will likely become a period-row grid. Before saving, make the cluster answer a smaller movement question: `what is still happening after this line?` One row may end with `，` because the hand, reply, payment, door, or body has not finished moving. One row may use `不过/结果/于是/因为/所以` only because the next action truly changes. One short row lands the failed answer or body/social drop. Do this in syntax, not by changing punctuation on finished captions.
+
+Do not let `已经/现在/只是/可能` carry most of the article's movement. Those words can stay when true, but if they are the only connectors, the draft is probably still a static sequence. A stronger turn usually comes from a failed attempt, wrong reply, object leak, person waiting, payment stall, or physical interruption.
 
 ## Private-Holiday / Takeout Guard
 
