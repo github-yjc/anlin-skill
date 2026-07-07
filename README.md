@@ -47,7 +47,7 @@ Use the smallest document set that matches the task:
 | Audience / task | Read |
 |---|---|
 | GitHub user or installer | this `README.md` |
-| Runtime article generation | `SKILL.md`, then `references/clean-generation-brief.md`; add `references/standard-diary-source-engine.md` for standard diary |
+| Runtime article generation | `SKILL.md`, then `references/clean-eval-first-draft-minimum.md`; add `references/standard-diary-source-engine.md` for standard diary; use `references/clean-generation-brief.md` after wrapper findings |
 | Ordinary repair after a draft exists | `references/runtime-brief.md`, `references/feature-budget.md`, `references/anti-ai-slop.md`, then targeted fact/voice/title references as needed |
 | Fact and background checks | `references/anlin-background.md`, `references/background-fact-classes.json`, `references/era-state.md` |
 | Controller validation and blind testing | `references/validation-protocol.md`, `references/stylometric-ratio-protocol.md`, `references/blind-judge-angles.md`, `evals/README.md` |
@@ -56,7 +56,7 @@ Use the smallest document set that matches the task:
 
 Clean-eval first drafts should not load controller or development-log files before the first complete `draft.md`; those files exist for validation, diagnosis, and maintenance.
 
-For source-load conflict audits, `references/clean-generation-brief.md` owns the first formal draft. `runtime-brief.md`, `generation-modes.md`, and `anti-ai-slop.md` remain available after the first draft or for ordinary repair, but they should not be preloaded as a checklist in clean-eval first-draft generation.
+For source-load conflict audits, `references/clean-eval-first-draft-minimum.md` owns the first formal draft. `references/clean-generation-brief.md`, `runtime-brief.md`, `generation-modes.md`, and `anti-ai-slop.md` remain available after the first draft or for ordinary repair, but they should not be preloaded as a checklist in clean-eval first-draft generation.
 
 ## Architecture
 
@@ -66,7 +66,8 @@ The important design choice is separation of layers. The generation agent should
 anlin-writing/
 ├── SKILL.md                         # routing, clean-eval boundary, output rules
 ├── references/
-│   ├── clean-generation-brief.md     # first-draft contract
+│   ├── clean-eval-first-draft-minimum.md # short first-draft contract
+│   ├── clean-generation-brief.md     # expanded clean-eval repair contract
 │   ├── standard-diary-source-engine.md # compact standard-diary middle engine
 │   ├── runtime-layer-map.md          # architecture map for audits
 │   ├── runtime-brief.md              # compact generation theory
@@ -128,7 +129,7 @@ The old README-level technique summary is now mapped to maintained references:
 
 For clean-eval formal article generation:
 
-1. Load `references/clean-generation-brief.md` first and use its source loop for the first complete draft.
+1. Load `references/clean-eval-first-draft-minimum.md` first and use its source loop for the first complete draft.
 2. For standard diary clean-eval, load `references/standard-diary-source-engine.md`; for short non-standard genres, stay with the clean brief.
 3. Check `.anlin-clean-eval-mode`, then run `Get-Location` / `pwd`; the current directory must be the external case workspace, not `<skill-dir>`.
 4. Start from a small lived friction, not from a checklist.

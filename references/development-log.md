@@ -15,6 +15,7 @@ Preservation rule: do not delete log entries. When reorganizing docs, move or re
 - Next direction: simplify finalized minimum repair and continue improving first-draft source guidance before expanding blind rounds.
 - Current active-protocol recognition rate: `N/A - no valid 8 impostor + 2 placebo blind package yet`. The legacy `3 impostor + 1 placebo` diagnostic result remains historical evidence only and must not be reported as current target progress.
 - Progress reporting rule: after every ten development iterations, report bounded status, finalized status, `blind_round_readiness`, valid blind package count, stable generated-sample identification rate or `N/A`, placebo false-accusation rate or `N/A`, invalid rounds, and the next blocking mechanism.
+- Latest architecture change: clean-eval first drafts now route through the short `clean-eval-first-draft-minimum.md` before optional `standard-diary-source-engine.md`; the long `clean-generation-brief.md` remains available after wrapper findings as the detailed repair contract. This is meant to reduce pre-draft checklist overload while preserving all repair guidance.
 
 ## Preserved README Status Log
 
