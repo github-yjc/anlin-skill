@@ -672,6 +672,8 @@ def ordered_repair_families(summary: dict[str, Any]) -> list[str]:
 
 def format_repair_brief(report: dict[str, Any]) -> str:
     summary = report["summary"]
+    document = report.get("document") or {}
+    genre = document.get("genre")
     families = ordered_repair_families(summary)
     lines = [
         "Anlin style-profile repair brief",
@@ -700,6 +702,13 @@ def format_repair_brief(report: dict[str, Any]) -> str:
             "repair_loop_budget: exactly one complete source rewrite, then one hard-gate plus repair-brief rerun. If it still does not pass, stop and record unresolved repair-path drift instead of making another metric patch.",
             "single_write_budget: after this brief, exactly one Write/Edit draft.md is allowed in this finalized attempt. A second write/edit or a third gate run is invalid controller evidence, even if the article improves.",
             "after_rerun_stop: after the rerun, stop on pass or not-pass. Do not calculate thresholds, do not argue that checker metrics conflict, and do not write another version in the same finalized attempt.",
+            *(
+                [
+                    "standard_shape_guard: do not shrink a standard-diary repair below about 900 body Chinese characters or turn it into 70+ similar short rows; keep several rough long action/speech/thought rows inside 4-6 breathing clusters.",
+                ]
+                if genre == "standard"
+                else []
+            ),
             "exit_note: with --strict --repair-brief, a nonzero exit usually means this profile gate is not passed, not that the tool is broken. Revise draft.md from the source actions and rerun the gates.",
             "path_contract: use the checker commands already given by the loaded skill. Do not Glob, list, grep, or read checker scripts, tests, hidden thresholds, or old logs to find a better target.",
             "do_not: do not use individual metrics as a TODO list, do not calculate thresholds, do not tune punctuation or connector counts, and do not keep thinking until every profile line is mentally solved.",

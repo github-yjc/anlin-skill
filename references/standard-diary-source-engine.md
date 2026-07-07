@@ -128,6 +128,8 @@ Build a refusal chain, not a refusal mention. The chain starts before sending, b
 - the money/route decision leaves a visible unfinished act, not a completed ledger
 - the article exits the chat through a practical consequence caused by the refusal, not through a return to the opening bowl/sleeve/water object
 
+Do not turn the message surface into a numbered chat log. Lines such as `X发了第二条`, `又发来一条`, `下面还有一条`, or `后面跟着一个定位` often read like the model is using message order to move the plot. Prefer one cropped surface that changes action: a voice bar that cannot be opened with a wet hand, an address preview that changes route/payment hesitation, an unread mark that makes the reply worse, or one plain response that shrinks the next action.
+
 Keep `忙项目` as an excuse surface unless the user supplied real work facts. Do not turn it into leave, wage deduction, attendance, leader, deadline, current office group, project delivery, or shift logic. The refusal should lower the reply/action; it should not prove that the narrator has a full current office plot.
 
 Refusal chain upper bound: chain means one consequence transfer, not plot continuation. Keep the aftermath on the same evening or one very small next-day residue. One refusal consequence may cause one or two visible actions, then the article should exit through an unfinished reply, payment/route hesitation, body/door problem, or low object. Do not grow it into several days of follow-up messages, class-group photos, commute scenes, coworker reactions, office biography, wedding logistics,伴郎/喜酒 turns, or gift-reversal etiquette. If the draft becomes too long, cut chronology first; do not repair by adding more texture or changing punctuation.

@@ -7537,6 +7537,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("generated caption grid", standard_engine)
         self.assertIn("6-8 breathing clusters", standard_engine)
         self.assertIn("several rough long rows", standard_engine)
+        self.assertIn("Do not turn the message surface into a numbered chat log", standard_engine)
+        self.assertIn("Do not move the plot by message order such as `X发了第二条`", clean)
         self.assertIn("Cluster Grammar, Not Metrics", standard_engine)
         self.assertIn("what is still happening after this line?", standard_engine)
         self.assertIn("Do not let `已经/现在/只是/可能` carry most of the article's movement", standard_engine)
@@ -7551,6 +7553,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("several different natural small connectors", skill)
         self.assertIn("repeating `其实/已经/当时` as glue", skill)
         self.assertIn("convert chat pressure into one screen/action/body consequence", skill)
+        self.assertIn("avoid message-order glue such as `X发了第二条`", skill)
         self.assertIn("Treat social-feed prompts the same way", skill)
         self.assertIn("Do not stack three posts", skill)
         self.assertIn("A complete article is not a complete inventory of prompt nouns", skill)
@@ -9374,6 +9377,8 @@ class AnlinToolingTests(unittest.TestCase):
                     "--draft-gate",
                     "--strict",
                     "--repair-brief",
+                    "--genre",
+                    "standard",
                 ],
                 capture_output=True,
                 text=True,
@@ -9389,6 +9394,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("repair_loop_budget: exactly one complete source rewrite", result.stdout)
             self.assertIn("single_write_budget: after this brief, exactly one Write/Edit draft.md is allowed", result.stdout)
             self.assertIn("after_rerun_stop: after the rerun, stop on pass or not-pass", result.stdout)
+            self.assertIn("standard_shape_guard: do not shrink a standard-diary repair below about 900", result.stdout)
             self.assertIn("exit_note: with --strict --repair-brief", result.stdout)
             self.assertIn("not that the tool is broken", result.stdout)
             self.assertIn("path_contract: use the checker commands already given by the loaded skill", result.stdout)
@@ -9413,6 +9419,8 @@ class AnlinToolingTests(unittest.TestCase):
                     str(profile),
                     "--draft-gate",
                     "--strict",
+                    "--genre",
+                    "standard",
                 ],
                 capture_output=True,
                 text=True,
@@ -9459,6 +9467,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("one complete source rewrite after the not-pass brief", finalized_minimum)
         self.assertIn("A second `Write draft.md` or `Edit draft.md` in the same finalized attempt is invalid", finalized_minimum)
         self.assertIn("After the rerun, stop on pass or not-pass", finalized_minimum)
+        self.assertIn("70+ similar short rows", finalized_minimum)
+        self.assertIn("Do not repair social-decline message surfaces by enumerating message order", finalized_minimum)
         self.assertIn("choose one primary source rewrite from the brief", runtime)
         self.assertIn("A second `Write draft.md` or `Edit draft.md` in the same finalized attempt is invalid controller evidence", runtime)
         self.assertIn("When multiple families appear, do not make one patch per family", finalized_minimum)
