@@ -30,6 +30,18 @@ The public hinge has to leave a mark before it disappears. A later private inspe
 
 After a public hinge works, move away from the proof object. A delivery leak can expose the room or hand, but the next cluster should not keep proving `oil` through table, sink, pants, mirror, and tail. Let a different consequence take over: the door closes wrong, a landlord message arrives at a bad moment, the trash route changes, a reply fails, or a small chore returns broken. If the same noun family is still explaining the article after two clusters, cut it before saving.
 
+## First Two Clusters
+
+For recurring prompt-heavy standard diary cases, build the first two clusters in this order before choosing the title:
+
+1. **Snag first**: spend the opening on a non-prompt practical snag that changes the body or room: door, slipper, sleeve, key, sink, charger, bag, payment, trash, stairwell, or a small broken chore. The prompt's obvious object should not be the first engine.
+2. **Topic late**: let the prompt surface enter only after the snag already moved the body, hand, room, reply, or route. `朋友圈`, `香菜`, `备注`, `礼物`, `红包`, `婚礼`, or another assignment object should arrive as pressure, not as the article's steering wheel.
+3. **Outside pressure active**: when another person, app, payment, doorway, or object handoff appears, keep it active for the next move. Somebody waits, asks, points, blocks, holds, returns, or forces a bad reply while the narrator is still doing the ugly practical thing.
+4. **One small failure lands**: each early cluster should contain one visible failure or retreat that can stand as a short line if the rhythm needs it: a bad answer, a hand that cannot find paper, a door closing wrong, a payment stall, a body sound, a missed reply, or an object left in the wrong place.
+5. **Medium changes**: the second cluster should change medium. If the first cluster was oil/food, the second should be reply, door, payment, route, room position, another person's plain sentence, or a different chore. Do not keep proving the first object.
+
+This is not a five-item content quota. It is a source order. If the article opens with the user's prompt object and only later adds a side action, restart before saving `draft.md`.
+
 ## Standard Diary Mass
 
 Each kernel needs enough visible movement to carry weight: action, interruption, after-effect. A standard diary first draft usually needs several breathing clusters, not one sentence per row and not prose paragraphs.
@@ -45,6 +57,10 @@ Do not treat line count as the target. A 700-900 character article split into 80
 If the opening page has no rough long action/speech/thought row, or if most adjacent rows are 4-10 Chinese characters, do not save it. Merge the facts into moving syntax first: let the hand keep moving while the payment fails, let the door/reply/body continue across a comma line, or let another person's plain sentence force the next action. The saved first draft should not need a rhythm script just to stop being a tiny-line grid.
 
 Do not make every row the same size. Do not create rhythm by deleting punctuation. Do not run a rhythm script to create the first page shape; scripts are only allowed after the wrapper reports a shape problem.
+
+Connected movement does not mean comma-drag. In the first saved draft, a cluster can trail through one or two visible line-final commas, but it also needs hard-stop action lines and a few short failure drops. Do not make a 50-line draft where almost every line is one comma chain, and do not make a 60-line draft where every row is a sealed period sentence. Rhythm should come from hand, reply, payment, body, door, and object movement changing direction.
+
+Natural connector words should be born inside those turns. If no line needs `其实`, `不过`, `发现`, `结果`, `于是`, `因为`, or `所以`, the scenes are probably just listed facts. Add a cause or correction inside an existing action rather than sprinkling connector words onto finished sentences.
 
 ## Private-Holiday / Takeout Guard
 

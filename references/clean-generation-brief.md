@@ -44,6 +44,8 @@ After reading `clean-generation-brief.md` in clean-eval mode, stop reading refer
 
 For standard diary clean-eval, load `references/standard-diary-source-engine.md` after this brief and then write `draft.md`. That file is part of the minimal first-draft pack. It is shorter than this reference on purpose: use it to build the middle from consequence kernels, not as another checklist. Do not run rhythm scripts before the first wrapper call.
 
+For standard diary, treat that source engine's "First Two Clusters" order as the default start when the prompt contains a tempting object such as feed, wrong food, gift, wedding, old record, illness, or a message. Start with a practical snag that would exist without the prompt, let the prompt surface arrive late, keep outside pressure active long enough to change the next move, and then change medium. This prevents first drafts from becoming prompt-object ledgers before the checker sees them.
+
 ## Target
 
 The goal is anonymous blind-evaluation robustness under reported conditions. Do not claim real authorship, provenance, or indistinguishability. The article itself must not mention validation, corpus, generated text, or methodology.
