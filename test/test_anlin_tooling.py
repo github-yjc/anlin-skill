@@ -2737,9 +2737,13 @@ class AnlinToolingTests(unittest.TestCase):
             "收银员扫完水以后看了我一眼，又看了一眼我的手，我把手往口袋里塞了一下，",
             "裤子后面全是灰，在走廊灯下面看得很清楚，像我把便宜房间穿在身上出来了，",
         ]
-        medium_lines = (["于是我坐在地上继续拆那个纸箱。"] * 25) + (
-            ["突然发现地址还停在输入框里。"] * 24
-        ) + (["好像这屋子也没完全认得我。"] * 24)
+        medium_lines = [
+            "于是我坐在地上继续拆那个纸箱，",
+            "胶带粘到手背上，撕下来还有点疼，",
+            "突然发现地址还停在输入框里。",
+            "好像这屋子也没完全认得我，",
+            "收银小票被水泡软了，贴在鞋边。",
+        ] * 14
         short_lines = ["很丢人。", "没发。", "手很脏。", "要命。"]
         body = "\n".join(["# 小票", "", *long_lines, *medium_lines, *short_lines])
         with tempfile.TemporaryDirectory() as temp:
@@ -3103,6 +3107,26 @@ class AnlinToolingTests(unittest.TestCase):
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
+
+    def test_clean_run_checker_preflight_blocks_standard_period_row_grid(self) -> None:
+        cluster = [
+            "充电线压在杯子下面，手机还是一会儿亮一会儿灭。",
+            "我把外卖袋放到桌上，油从袋底慢慢洇出来。",
+            "骑手站在门口等我找纸，我手上全是洗手液泡沫。",
+            "门关得太快，袋子角撞到门框，又滴了一点汤。",
+            "我低头擦裤脚，发现那块酱油印比刚才更大。",
+        ]
+        body = "\n".join(["# 充电线", "", *(cluster * 11)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            command = [sys.executable, str(CLEAN_RUN_CHECKER), str(draft), "--strict", "--draft-gate", "--genre", "standard"]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+
+            self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
+            self.assertIn("period_row_grid=present", preflight.stdout)
+            self.assertIn("one finished `。` sentence per row", preflight.stdout)
+            self.assertIn("breathing clusters", preflight.stdout)
 
     def test_clean_run_final_normalize_preserves_existing_line_corridor(self) -> None:
         cluster = [
@@ -7161,6 +7185,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("consequence verb before drafting", combined)
         self.assertIn("not a camera angle", combined)
         self.assertIn("look, glance, sweep, notice", combined)
+        self.assertIn("do not write a gaze line first", clean)
+        self.assertIn("No gaze-first contact repair", budget)
+        self.assertIn("bag, payment, door", budget)
 
     def test_pure_ambient_ending_is_source_guidance_not_only_checker(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

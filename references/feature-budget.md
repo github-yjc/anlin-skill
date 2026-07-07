@@ -52,6 +52,7 @@ These apply to all normal generation:
 42. No standard prompt-prop title loop: in standard diary, do not let `备注`, `香菜`, `礼物`, `玫瑰`, `优惠券`, `朋友圈`, or another prompt prop become title, opening engine, and tail proof at the same time. These nouns can appear when the scene earns them, but if they organize the whole article, reset the source through a side consequence such as door/hallway exposure, payment, dirty hand, wrong reply, sink, rider/shopkeeper, or another person's reaction.
 43. No social-feed inventory opening: do not open a generated standard diary by listing posts, gifts, transfers, screenshots, or holiday objects from a feed. `满屏都是花和转账截图` is still prompt inventory even though it is one sentence. Keep one cropped screen surface only after a body/room/payment/door/sink/side action exists, and make it change the next move.
 44. No witness-only roughness: another person seeing oil, sleeves, bare feet, hair, room mess, or a stain is not a low-status event unless the look changes payment, reply, bag/object state, door speed, dirty hand/clothing exposure, or the next action. Choose a consequence verb before drafting, not a camera angle; look, glance, sweep, notice, silence, light, and sound are not consequence verbs by themselves.
+45. No gaze-first contact repair: for riders, cashiers, neighbors, shopkeepers, and hallway strangers, do not start from `看了我一眼`, `往下看`, `瞥了一眼`, `扫了一下`, or `没说什么` and then add texture. Start from bag, payment, door, reply, hand, or body consequence.
 
 ## Strong Defaults
 

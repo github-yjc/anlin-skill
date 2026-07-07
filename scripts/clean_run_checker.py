@@ -566,6 +566,7 @@ def preflight_messages(draft: Path) -> list[str]:
         or body_line_count > 90
         or (45 <= body_line_count <= 75 and long_line_count < 6)
         or (len(first_twenty) >= 8 and comma_ratio < 0.15)
+        or (body_chars >= 900 and body_line_count >= 45 and period_per_1k >= 45 and short_breath_count < 4)
         or len(connectors) < 3
         or len(engine_hits) < 3
         or (not rough_terms and not rough_patterns)
@@ -610,6 +611,14 @@ def preflight_messages(draft: Path) -> list[str]:
     if body_line_count >= 45 and short_breath_count < 4:
         messages.append(
             f"short_breath_lines={short_breath_count} < 4 (keep a few <=8-Chinese-character breath drops; do not make every line a finished caption)"
+        )
+    if body_chars >= 900 and body_line_count >= 45 and (
+        (period_per_1k >= 45 and period_count >= 35)
+        or (line_period_ratio >= 0.65 and short_breath_count < 4)
+    ):
+        messages.append(
+            f"period_row_grid=present (periods={period_count}, period_per_1k={period_per_1k:.1f}, "
+            f"line_period_ratio={line_period_ratio:.2f}; rebuild breathing clusters instead of one finished sentence per row)"
         )
     if body_line_count >= 70 and short_line_ratio >= 0.45:
         messages.append(f"short_line_grid={short_line_ratio:.2f} (do not create line breaks by deleting punctuation)")
@@ -733,6 +742,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if missing_breath:
         repair_hints.append(
             "for short_breath_lines, add a few real <=8-character drops such as an ugly reply, failed decision, or small retreat; do not add decorative one-word captions"
+        )
+    if "period_row_grid=present" in joined_messages:
+        repair_hints.append(
+            "for period_row_grid, stop writing one finished `。` sentence per row. Rebuild 4-6 breathing clusters: a continuing action can end with `，`, one rough action/speech/thought line carries movement, then a short drop lands the failed decision or body/social consequence"
         )
     if standard_prompt_loop:
         repair_hints.append(
@@ -906,7 +919,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
                 "payment, reply, object state, door speed, dirty hand/clothing exposure, or the next action. Rebuild "
                 "the handoff as a consequence or remove it instead of preserving a silent witness."
             )
-        elif "early_comma_ratio=" in joined_messages:
+        elif "period_row_grid=present" in joined_messages or "early_comma_ratio=" in joined_messages:
             revision_frame = (
                 "Reset the sentence-row rhythm source: the opening page is made of closed `。` rows. Rebuild it into "
                 "breathing clusters before the next wrapper call: a continuing action can end with `，`, a longer "
