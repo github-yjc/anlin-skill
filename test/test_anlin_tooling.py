@@ -7062,11 +7062,13 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Keep the concrete pool outside the distributable skill", validation)
         self.assertIn("Do not add model-name branches", validation)
         self.assertIn("Development tests should now rotate across multiple model surfaces", readme)
+        self.assertIn("longcat/LongCat-2.0", readme)
+        self.assertIn("lowest-use available surfaces", readme)
         self.assertIn("runtime instructions should stay model-agnostic", readme)
         self.assertIn("开发测试应轮换生成模型", eval_readme)
         self.assertIn("不要把某个模型上轮失败的分析追加给下轮生成 agent", eval_readme)
         validation_lower = validation.lower()
-        for provider_token in ["deepseek", "mimo", "minimax", "gpt-5.5", "big-pickle"]:
+        for provider_token in ["deepseek", "mimo", "minimax", "gpt-5.5", "big-pickle", "longcat"]:
             self.assertNotIn(provider_token, validation_lower)
             self.assertNotIn(provider_token, runtime_combined)
 
