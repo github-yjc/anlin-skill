@@ -3681,9 +3681,8 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertIn("clean-eval写稿路径不是相对draft.md", rules)
-            self.assertIn("clean-eval未写入draft.md", rules)
 
-    def test_clean_eval_trace_flags_jsonl_absolute_file_path_under_external_workspace(self) -> None:
+    def test_clean_eval_trace_allows_jsonl_absolute_file_path_under_current_workspace(self) -> None:
         events = [
             {
                 "type": "tool_use",
@@ -3702,7 +3701,7 @@ class AnlinToolingTests(unittest.TestCase):
                     "state": {
                         "input": {"command": "Get-Location"},
                         "metadata": {
-                            "output": "C:\\Users\\34025\\.config\\opencode\\skills\\anlin-writing-workspace\\iteration-20260706-57\\eval-09-2024-classmate-wedding\n"
+                            "output": "C:\\Users\\34025\\Documents\\Codex\\anlin-eval-workspace\\iteration-20260706-57\\eval-09-2024-classmate-wedding\n"
                         },
                     },
                 },
@@ -3712,10 +3711,10 @@ class AnlinToolingTests(unittest.TestCase):
                 "part": {
                     "tool": "write",
                     "state": {
-                        "title": "C:\\Users\\34025\\.config\\opencode\\skills\\anlin-writing-workspace\\iteration-20260706-57\\eval-09-2024-classmate-wedding\\draft.md",
+                        "title": "C:\\Users\\34025\\Documents\\Codex\\anlin-eval-workspace\\iteration-20260706-57\\eval-09-2024-classmate-wedding\\draft.md",
                         "input": {
                             "content": "日寄\n\n正文",
-                            "filePath": "C:\\Users\\34025\\.config\\opencode\\skills\\anlin-writing-workspace\\iteration-20260706-57\\eval-09-2024-classmate-wedding\\draft.md",
+                            "filePath": "C:\\Users\\34025\\Documents\\Codex\\anlin-eval-workspace\\iteration-20260706-57\\eval-09-2024-classmate-wedding\\draft.md",
                         }
                     },
                 },
@@ -3741,11 +3740,94 @@ class AnlinToolingTests(unittest.TestCase):
                 encoding="utf-8",
                 check=False,
             )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("clean-eval写稿路径不是相对draft.md", rules)
+            self.assertNotIn("clean-eval未写入draft.md", rules)
+
+    def test_clean_eval_trace_accepts_opencode_export_json(self) -> None:
+        session = {
+            "info": {"directory": "C:\\case", "title": "eval"},
+            "messages": [
+                {
+                    "parts": [
+                        {
+                            "type": "tool",
+                            "tool": "bash",
+                            "state": {"input": {"command": "Test-Path .anlin-clean-eval-mode; Get-Location"}, "output": "True\nC:\\case\n"},
+                        }
+                    ]
+                },
+                {
+                    "parts": [
+                        {"type": "tool", "tool": "skill", "state": {"input": {"name": "anlin-writing"}, "output": "do not read references/anti-ai-slop.md"}},
+                        {"type": "tool", "tool": "read", "state": {"input": {"filePath": "C:\\skill\\references\\clean-generation-brief.md"}, "output": "brief"}},
+                        {"type": "tool", "tool": "write", "state": {"title": "C:\\case\\draft.md", "input": {"filePath": "C:\\case\\draft.md", "content": "日寄\n\n正文"}, "output": "Wrote file successfully."}},
+                        {
+                            "type": "tool",
+                            "tool": "bash",
+                            "state": {"input": {"command": "python C:\\skill\\scripts\\clean_run_checker.py draft.md --strict --draft-gate"}, "output": "CLEAN_RUN_STOP: FINAL BOUNDARY\n"},
+                        },
+                        {"type": "tool", "tool": "read", "state": {"input": {"filePath": "C:\\case\\draft.md"}, "output": "日寄\n\n正文"}},
+                    ]
+                },
+            ],
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-export.json"
+            path.write_text(json.dumps(session, ensure_ascii=False), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("clean-eval未调用clean_run_checker", rules)
+            self.assertNotIn("clean-eval未写入draft.md", rules)
+            self.assertNotIn("clean-eval首稿前加载修复/评审引用", rules)
+
+    def test_clean_eval_trace_flags_checker_source_inspection(self) -> None:
+        events = [
+            {
+                "type": "tool_use",
+                "part": {"tool": "bash", "state": {"input": {"command": "Test-Path .anlin-clean-eval-mode; Get-Location"}, "metadata": {"output": "True\nC:\\case\n"}}},
+            },
+            {
+                "type": "tool_use",
+                "part": {"tool": "write", "state": {"input": {"filePath": "draft.md", "content": "日寄\n\n正文"}}},
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate"},
+                        "metadata": {"output": "CLEAN_RUN_PREFLIGHT: early_comma_ratio=0.00\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {"tool": "grep", "state": {"input": {"pattern": "early_comma_ratio", "path": "C:/skill/scripts"}}},
+            },
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.jsonl"
+            path.write_text("\n".join(json.dumps(event, ensure_ascii=False) for event in events), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
             self.assertNotEqual(result.returncode, 0)
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
-            self.assertIn("clean-eval写稿路径不是相对draft.md", rules)
-            self.assertIn("clean-eval未写入draft.md", rules)
+            self.assertIn("clean-eval读取checker源码", rules)
 
     def test_clean_eval_trace_allows_jsonl_relative_input_with_absolute_display_title(self) -> None:
         events = [
@@ -7065,6 +7147,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("still persist `draft.md`", clean)
         self.assertIn("visible scratch article without `draft.md` is a failed run", clean)
         self.assertIn("The wrapper `clean_run_checker.py` is the only checker entrypoint", clean)
+        self.assertIn("The wrapper message is the public repair interface", clean)
+        self.assertIn("do not grep `early_comma_ratio`", clean)
+        self.assertIn("The wrapper output is the whole repair interface", skill)
         self.assertIn("Choose the checker by mode before running any command", skill)
         self.assertIn("do not switch to `check_anlin_violations.py`", runtime)
         self.assertIn("Developer Two-Checkpoint Evaluation", validation)

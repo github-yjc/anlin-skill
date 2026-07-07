@@ -408,7 +408,7 @@ python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate -
 python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate --genre sincere
 ```
 
-If the wrapper prints `CLEAN_RUN_PREFLIGHT`, revise before the first checker call is consumed. Do not inspect checker source or tests for hidden tokens.
+If the wrapper prints `CLEAN_RUN_PREFLIGHT`, revise before the first checker call is consumed. The wrapper message is the public repair interface. Do not inspect checker source or tests for hidden tokens, do not grep `early_comma_ratio`, and do not read `clean_run_checker.py` or `check_anlin_violations.py`; if the message is too hard to satisfy, change the source shape rather than reverse-engineering the metric.
 
 Use the preflight message as a shape diagnosis, not as permission to thrash between prose blocks and tiny grids:
 

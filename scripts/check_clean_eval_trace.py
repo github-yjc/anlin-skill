@@ -59,6 +59,10 @@ def extract_json_event_trace(text: str) -> str:
     and visible reasoning, but do not scan dumped skill/reference bodies as
     tool actions.
     """
+    exported_trace = extract_opencode_export_trace(text)
+    if exported_trace is not None:
+        return exported_trace
+
     lines = [line for line in text.splitlines() if line.strip()]
     if not lines:
         return text
@@ -134,6 +138,69 @@ def extract_json_event_trace(text: str) -> str:
     return "\n".join(chunks) if chunks else text
 
 
+def extract_opencode_export_trace(text: str) -> str | None:
+    """Convert `opencode export <session>` JSON to the same compact trace."""
+    try:
+        exported = json.loads(text)
+    except json.JSONDecodeError:
+        return None
+    if not isinstance(exported, dict) or not isinstance(exported.get("messages"), list):
+        return None
+
+    chunks: list[str] = []
+    info = exported.get("info")
+    if isinstance(info, dict) and isinstance(info.get("directory"), str):
+        chunks.append(f"CWD {info['directory']}")
+
+    for message in exported["messages"]:
+        if not isinstance(message, dict):
+            continue
+        for part in message.get("parts", []):
+            if not isinstance(part, dict):
+                continue
+            part_type = part.get("type")
+            if part_type == "reasoning":
+                reasoning = part.get("text")
+                if isinstance(reasoning, str) and reasoning.strip():
+                    chunks.append(f"Thinking: {reasoning}")
+                continue
+            if part_type == "text":
+                visible_text = part.get("text")
+                if isinstance(visible_text, str) and visible_text.strip():
+                    chunks.append(f"TEXT {visible_text}")
+                continue
+            if part_type != "tool":
+                continue
+
+            tool = part.get("tool") or ""
+            state = part.get("state")
+            if not isinstance(state, dict):
+                state = {}
+            tool_input = state.get("input")
+            title = state.get("title") or part.get("title") or ""
+            chunks.append(f"TOOL {tool}")
+            if title:
+                chunks.append(f"TITLE {title}")
+            if tool_input is not None:
+                chunks.append(f"INPUT {json.dumps(sanitized_tool_input(tool_input), ensure_ascii=False)}")
+
+            if tool == "skill":
+                continue
+
+            metadata = state.get("metadata")
+            output = state.get("output")
+            if isinstance(metadata, dict) and isinstance(metadata.get("output"), str):
+                output = metadata["output"]
+            include_output = tool in {"bash", "shell", "terminal", "cmd", "powershell"} or (
+                isinstance(tool_input, dict)
+                and isinstance(tool_input.get("command"), str)
+            )
+            if include_output and isinstance(output, str) and output.strip():
+                chunks.append(f"OUTPUT {output}")
+
+    return "\n".join(chunks) if chunks else text
+
+
 def sanitized_tool_input(value: Any) -> Any:
     """Keep action-bearing fields while omitting large free-text payloads."""
     if isinstance(value, dict):
@@ -195,11 +262,23 @@ def actual_normal_checker_index(text: str) -> int:
     return min(indices) if indices else -1
 
 
+def actual_checker_source_inspection_index(text: str) -> int:
+    patterns = [
+        r"(?im)^\s*TOOL\s+(?:read|filesystem_read_file)\b(?:\n(?!TOOL\s)[^\n]*){0,4}(?:clean_run_checker|check_anlin_violations)\.py\b",
+        r"(?im)^\s*TOOL\s+grep\b(?:\n(?!TOOL\s)[^\n]*){0,4}(?:/scripts\b|/scripts/|\\scripts\b|\\scripts\\)",
+        r"(?im)^\s*(?:\$|INPUT|TITLE)\s+[^\n]*(?:rg|grep|Select-String|Get-Content|gc|cat|type|Read)[^\n]*(?:clean_run_checker|check_anlin_violations)\.py\b",
+    ]
+    return first_regex_action_index(text, patterns)
+
+
 def actual_draft_write_index(text: str) -> int:
     patterns = [
         r"(?im)^\s*(?:←\s*)?Write\s+\.?[/\\]?draft\.md\b",
         r"(?im)^\s*TITLE\s+Write\s+\.?[/\\]?draft\.md\b",
         r"(?im)^\s*INPUT\s+[^\n]*\"(?:path|filePath|file)\"\s*:\s*\"(?:\.?/)?draft\.md\"[^\n]*(?:content|write)",
+        r"(?im)^\s*INPUT\s+[^\n]*\"(?:path|filePath|file)\"\s*:\s*\"[A-Za-z]:/[^\n\"]*/draft\.md\"[^\n]*(?:content|write)",
+        r"(?im)^\s*INPUT\s+[^\n]*(?:content|write)[^\n]*\"(?:path|filePath|file)\"\s*:\s*\"(?:\.?/)?draft\.md\"",
+        r"(?im)^\s*INPUT\s+[^\n]*(?:content|write)[^\n]*\"(?:path|filePath|file)\"\s*:\s*\"[A-Za-z]:/[^\n\"]*/draft\.md\"",
         r"(?im)^\s*(?:\$|>|>>)?\s*(?:@['\"]\s*\|\s*)?(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?\.?/?draft\.md['\"]?\b",
         r"(?im)^\s*['\"]@?\s*\|\s*(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?\.?/?draft\.md['\"]?\b",
     ]
@@ -289,13 +368,8 @@ def actual_nonrelative_draft_write_index(text: str) -> int:
         r"(?im)^\s*←\s*Write\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
         r"(?im)^\s*\?\s*Write\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
         r"(?im)^\s*TITLE\s+Write\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
-        r"(?im)^\s*TOOL\s+(?:write|filesystem_write_file)\b(?:\n[^\n]*){0,3}^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*[A-Za-z]:/[^\n]*draft\.md",
-        r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*[A-Za-z]:/[^\n]*draft\.md[^\n]*(?:content|write)",
-        r"(?im)^\s*INPUT\s+[^\n]*(?:content|write)[^\n]*(?:path|file)[^\n]*[A-Za-z]:/[^\n]*draft\.md",
         r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*/(?:skills|skill-dir|anlin-writing)/[^\n]*draft\.md[^\n]*(?:content|write)",
         r"(?im)^\s*INPUT\s+[^\n]*(?:content|write)[^\n]*(?:path|file)[^\n]*/(?:skills|skill-dir|anlin-writing)/[^\n]*draft\.md",
-        r"(?im)^\s*(?:\$|>|>>)?\s*(?:@['\"]\s*\|\s*)?(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?[A-Za-z]:/[^\n]*draft\.md\b",
-        r"(?im)^\s*['\"]@?\s*\|\s*(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?[A-Za-z]:/[^\n]*draft\.md\b",
         r"(?im)^\s*(?:\$|>|>>)?\s*(?:@['\"]\s*\|\s*)?(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?[^'\"]*/(?:skills|skill-dir|anlin-writing)/[^\n]*draft\.md\b",
         r"(?im)^\s*['\"]@?\s*\|\s*(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?[^'\"]*/(?:skills|skill-dir|anlin-writing)/[^\n]*draft\.md\b",
     ]
@@ -400,6 +474,16 @@ def collect_findings(text: str) -> list[TraceFinding]:
                 "clean-eval直接调用普通checker",
                 clean_excerpt(normalized, normal_checker_index),
                 "Bounded clean-eval generation must use only clean_run_checker.py. Direct normal-checker calls expose diagnostics outside the two-call protocol and contaminate the source-guidance measurement.",
+            )
+        )
+    checker_source_index = actual_checker_source_inspection_index(normalized)
+    if checker_source_index >= 0:
+        findings.append(
+            TraceFinding(
+                "error",
+                "clean-eval读取checker源码",
+                clean_excerpt(normalized, checker_source_index),
+                "Clean-eval generators may use only the wrapper output as the repair interface. Do not grep/read checker scripts or tests for hidden tokens after a preflight or checker report.",
             )
         )
     first_write = actual_draft_write_index(normalized)
