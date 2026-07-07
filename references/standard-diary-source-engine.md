@@ -36,6 +36,10 @@ Write clusters like this in the article, without labels:
 - one rougher line can run longer because a hand, reply, payment, body, or object has to keep moving
 - one short drop can land a failed decision, bad reply, or low body/social fact
 
+Do not treat line count as the target. A 700-900 character article split into 80-100 tiny rows is not closer to the voice; it is a generated caption grid. Before the first write, the page should look like 6-8 breathing clusters, not a list of facts. In most clusters, at least one visible row should be long because action or speech is still moving; short rows are punctuation for failure, not the main body.
+
+If the opening page has no rough long action/speech/thought row, or if most adjacent rows are 4-10 Chinese characters, do not save it. Merge the facts into moving syntax first: let the hand keep moving while the payment fails, let the door/reply/body continue across a comma line, or let another person's plain sentence force the next action. The saved first draft should not need a rhythm script just to stop being a tiny-line grid.
+
 Do not make every row the same size. Do not create rhythm by deleting punctuation. Do not run a rhythm script to create the first page shape; scripts are only allowed after the wrapper reports a shape problem.
 
 ## Private-Holiday / Takeout Guard
@@ -69,11 +73,12 @@ End on a practical leftover: unfinished reply, wrong object, cold food, route, p
 
 ## Last Private Source Check
 
-Before saving `draft.md`, ask only these four questions:
+Before saving `draft.md`, ask only these five questions:
 
 1. If the feed/order/holiday noun is removed, does the article still have a moving body?
 2. Does at least one non-prompt cluster change reply, payment, route, door, room position, body state, or social position?
 3. Would deleting the outside contact or off-axis branch break a later action?
 4. Is the draft already a complete titled article rather than a plan, scratch version, or metric repair?
+5. Is the body built from breathing clusters with several rough long rows, rather than 80-100 short fact rows?
 
-If the answer to any of the first three is no, restart the middle from the kernels above. If the answer to the fourth is yes, write `draft.md` now.
+If the answer to any of the first three is no, restart the middle from the kernels above. If the fourth is no, write the complete titled article before checking. If the fifth is no, merge and rebuild the visible movement before saving. If all five answers are yes, write `draft.md` now.
