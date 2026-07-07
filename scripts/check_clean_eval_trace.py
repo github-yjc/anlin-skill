@@ -462,6 +462,21 @@ def collect_findings(text: str) -> list[TraceFinding]:
                     f"Clean-eval first draft may only load the minimal generation pack; defer `{reference}` until after the first complete draft/checker pass.",
                 )
             )
+
+    first_checker = actual_clean_run_checker_index(normalized)
+    if first_checker >= 0:
+        pre_checker = normalized[:first_checker]
+        rhythm_before_first_checker = actual_rhythm_script_indices(pre_checker)
+        if rhythm_before_first_checker:
+            index = rhythm_before_first_checker[0]
+            findings.append(
+                TraceFinding(
+                    "error",
+                    "clean-eval首个wrapper前运行节奏脚本",
+                    clean_excerpt(pre_checker, index),
+                    "The first saved clean-eval draft must be measured before rhythm scripts touch it. Use rhythm scripts only after clean_run_checker.py reports a shape problem.",
+                )
+            )
     parent_skill_index = actual_parent_skill_search_index(pre_draft)
     if parent_skill_index >= 0:
         findings.append(

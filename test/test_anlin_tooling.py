@@ -3407,6 +3407,35 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertIn("节奏脚本后重写未重跑节奏修复", rules)
 
+    def test_clean_eval_trace_flags_rhythm_script_before_first_wrapper(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        $ Get-Location
+        C:/eval-workspace/iteration-81/eval-03/bounded
+        → Read C:/skill/references/clean-generation-brief.md
+        → Read C:/skill/references/standard-diary-source-engine.md
+        ← Write draft.md
+        $ python C:/skill/scripts/soften_line_endings.py draft.md --in-place
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate
+        CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval首个wrapper前运行节奏脚本", rules)
+
     def test_clean_eval_trace_allows_rewrite_after_rhythm_script_when_rerun_before_checker(self) -> None:
         log = """
         → Skill "anlin-writing"
@@ -6648,6 +6677,7 @@ class AnlinToolingTests(unittest.TestCase):
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        standard_engine = (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8")
         runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
         title_model = (ROOT / "references" / "title-model.md").read_text(encoding="utf-8")
         anti_ai = (ROOT / "references" / "anti-ai-slop.md").read_text(encoding="utf-8")
@@ -6662,6 +6692,15 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Clean-eval reference stop rule", skill)
         self.assertIn("`references/runtime-brief.md` is not a harmless supplement before the first draft", skill)
         self.assertIn("After reading `clean-generation-brief.md` in clean-eval mode, stop reading references", clean)
+        self.assertIn("references/standard-diary-source-engine.md", skill)
+        self.assertIn("compact middle-engine supplement", skill)
+        self.assertIn("standard-diary-source-engine.md", clean)
+        self.assertIn("Build The Middle First", standard_engine)
+        self.assertIn("something happens, so I must do the next thing", standard_engine)
+        self.assertIn("Do not run `rebalance_line_rhythm.py`, `split_long_lines.py`, `merge_short_lines.py`, or `soften_line_endings.py` before the first `clean_run_checker.py` call", standard_engine)
+        self.assertIn("phone/feed -> order food -> wrong item -> wash bowl -> bed", standard_engine)
+        self.assertIn("Private grime is not an event", standard_engine)
+        self.assertIn("A rider or cashier who only looks once and leaves is still decoration", standard_engine)
         self.assertIn("`runtime-brief.md` is not a harmless supplement before the first draft", clean)
         self.assertIn("Use this loop instead of opening the long runtime or review files", clean)
         self.assertIn("repair by replacing failed scene functions, not by adding feature labels", clean)
@@ -6918,6 +6957,25 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Layer 2 contradiction gates", layer)
         self.assertIn("source reset: rebuild 2-3 load-bearing action clusters", checker)
 
+    def test_standard_diary_source_engine_is_layer0_not_repair_library(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        engine = (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8")
+        layer = (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        combined = "\n".join([skill, clean, layer, readme])
+
+        self.assertIn("standard-diary-source-engine.md", combined)
+        self.assertIn("minimal generation pack", engine)
+        self.assertIn("choose three private consequence kernels", engine)
+        self.assertIn("The user's topic is pressure, not a route map", engine)
+        self.assertIn("The first saved article is what the controller is measuring", engine)
+        self.assertIn("Do not run line-rhythm scripts before the first wrapper call", readme)
+        self.assertNotIn("deepseek", engine.lower())
+        self.assertNotIn("mimo", engine.lower())
+        self.assertNotIn("minimax", engine.lower())
+        self.assertNotIn("gpt", engine.lower())
+
     def test_runtime_docs_use_current_skill_name_and_output_locations(self) -> None:
         files = [
             ROOT / "README.md",
@@ -6995,7 +7053,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("cut one whole packet before adding any new material", skill)
         self.assertIn("This marker check should be the first tool action", clean)
         self.assertIn("Do not write `draft.md` until both the marker check and current-directory confirmation are visible in the run trace", clean)
-        self.assertIn("marker check -> current-directory confirmation -> read this brief -> write one complete `draft.md` -> run `clean_run_checker.py`", clean)
+        self.assertIn("marker check -> current-directory confirmation -> read this brief -> for standard diary read `standard-diary-source-engine.md` -> write one complete `draft.md` -> run `clean_run_checker.py`", clean)
         self.assertIn("Do not rediscover this skill after it has already triggered", clean)
         self.assertIn("do not glob, search, or list parent skill directories", skill)
         self.assertIn("If a bundled reference path cannot be resolved", skill)
@@ -8034,6 +8092,17 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("A/standard", profile["strata"]["phase_genre"])
             self.assertTrue(profile["count_summary"]["ai_binary_reframe"]["hard_generated"])
             self.assertIn("Do not force rare features to appear.", profile["principles"])
+
+    def test_style_profile_help_renders_percent_text(self) -> None:
+        result = subprocess.run(
+            [sys.executable, str(CHECK_PROFILE), "--help"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("80% predictive informational drift", result.stdout)
 
     @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_style_profile_has_no_hard_errors_on_original_corpus(self) -> None:

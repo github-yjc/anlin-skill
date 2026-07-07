@@ -605,7 +605,7 @@ def main() -> int:
     parser.add_argument("--phase", default=None, help="Optional corpus phase for stratified audit, e.g. A/B/C/D")
     parser.add_argument("--genre", default=None, help="Optional genre for stratified audit, e.g. standard/sincere/micro-hope/surreal")
     parser.add_argument("--min-stratum-docs", type=int, default=4, help="Minimum documents required before using a phase/genre stratum")
-    parser.add_argument("--include-info", action="store_true", help="Include q10-q90 / 80% predictive informational drift")
+    parser.add_argument("--include-info", action="store_true", help="Include q10-q90 / 80%% predictive informational drift")
     parser.add_argument("--strict", action="store_true", help="Return nonzero when profile status is review or revise, even without hard errors")
     parser.add_argument("--json", action="store_true", help="Output JSON")
     args = parser.parse_args()

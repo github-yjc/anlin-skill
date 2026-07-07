@@ -14,7 +14,7 @@ The full 38-article corpus is a developer/controller input, not a runtime depend
 
 The skill is not yet proven to meet the `<=10%` stable impostor-identification target. The latest documented clean-eval cases still show bounded-generation, validation-scope, or tool-flow failures before blind rounds. The newest serious case family, `iteration-20260705-32` through `iteration-20260706-44` for `eval-07-2024-mothers-day-sincere`, reached some cleaner checker boundaries after the sincere-mode wrapper fix, but several runs still stop at preflight, fail to persist `draft.md` in the case workspace, or remain only reviewable under a small sincere stratum. The bundled style-profile is not applicable as a finalized short-genre pass/fail gate when the matching sincere stratum has too few originals and falls back to global priors. Blind-round preparation supports `--match-genre auto|standard|sincere|micro-hope|surreal` so short sincere/micro-hope drafts and their placebo rounds are compared against genre/length/line-count-nearer originals instead of random standard diaries. This fixes a validation confound; it is not a pass claim. No current report yet contains 15 clean-eval generation runs plus calibrated `3 impostor + 1 placebo` style rounds sufficient to claim the target.
 
-The current architecture pass is addressing source-level guidance, not only detection. The main risk found in review was that several deep repair references still used old "must / at least / until clear" wording that could make a generation agent treat review signals as content quotas. This has been tightened so clean-eval generation keeps a bounded generator role, while ordinary user mode can continue repairing hard errors and controller validation remains separate. Recent repair risk is no longer only rhythm ping-pong: a draft can pass the strict hard gate but remain style-profile `review` because repair overfills body, money, route, screen, food/weather, and explicit cognition. The runtime now treats this as a thinning/source-repair problem, not a reason to add more features.
+The current architecture pass is addressing source-level guidance, not only detection. The main risk found in review was that several deep repair references still used old "must / at least / until clear" wording that could make a generation agent treat review signals as content quotas. This has been tightened so clean-eval generation keeps a bounded generator role, while ordinary user mode can continue repairing hard errors and controller validation remains separate. Recent repair risk is no longer only rhythm ping-pong: a draft can pass the strict hard gate but remain style-profile `review` because repair overfills body, money, route, screen, food/weather, and explicit cognition. The runtime now treats this as a thinning/source-repair problem, not a reason to add more features. A compact `references/standard-diary-source-engine.md` is now part of the minimal clean-eval pack for standard diary only, so a fresh generator sees a short consequence-kernel engine immediately before the first draft instead of turning the longer clean brief into a visible plan/checklist.
 
 Development tests should now rotate across multiple model surfaces and report the exact model string plus reasoning/thinking setting for each case. Current controller pool: `deepseek/deepseek-v4-pro`, `deepseek/deepseek-v4-flash`, `mimo/mimo-v2.5`, `mimo/mimo-v2.5-pro`, `opencode-go/minimax-m3`, and `gateway/gpt-5.5`. This is a controller protocol, not runtime prose advice: failures from different models are generalized into source/checker improvements, and no model-specific branches should be added to the generation instructions.
 
@@ -241,6 +241,7 @@ anlin-writing/
 ├── SKILL.md                         # routing, clean-eval boundary, output rules
 ├── references/
 │   ├── clean-generation-brief.md     # first-draft contract
+│   ├── standard-diary-source-engine.md # compact standard-diary middle engine
 │   ├── runtime-layer-map.md          # architecture map for audits
 │   ├── runtime-brief.md              # compact generation theory
 │   ├── generation-modes.md           # scene modes and prompt-displacement lenses
@@ -298,16 +299,17 @@ The old README-level technique summary is now mapped to maintained references:
 For clean-eval formal article generation:
 
 1. Load `references/clean-generation-brief.md` first and use its source loop for the first complete draft.
-2. Check `.anlin-clean-eval-mode`, then run `Get-Location` / `pwd`; the current directory must be the external case workspace, not `<skill-dir>`.
-3. Start from a small lived friction, not from a checklist.
-4. Select scenes from action, body, screen, money, route, social misfire, memory trigger, or useless residue.
-5. Open `anlin-background.md` only after selected scenes already contain facts that need checking.
-6. Write a complete titled article using exactly relative `draft.md` / `.\draft.md` before the first checker.
-7. Run `scripts/clean_run_checker.py draft.md --strict --draft-gate`.
-8. If `CLEAN_RUN_PREFLIGHT` appears, revise before the first checker call is consumed; if `CLEAN_RUN_PREFLIGHT_STOP` appears, output the current draft unchanged and let the controller record failure.
-9. If a rhythm script runs and `draft.md` is then rewritten or edited, rerun the relevant rhythm script before the next wrapper call or keep the repair inside the existing line-broken corridor.
-10. Do at most one repair/rewrite and at most two clean-eval checker calls.
-11. After the second checker call, output the current `draft.md` exactly.
+2. For standard diary clean-eval, load `references/standard-diary-source-engine.md`; for short non-standard genres, stay with the clean brief.
+3. Check `.anlin-clean-eval-mode`, then run `Get-Location` / `pwd`; the current directory must be the external case workspace, not `<skill-dir>`.
+4. Start from a small lived friction, not from a checklist.
+5. Select scenes from action, body, screen, money, route, social misfire, memory trigger, or useless residue.
+6. Open `anlin-background.md` only after selected scenes already contain facts that need checking.
+7. Write a complete titled article using exactly relative `draft.md` / `.\draft.md` before the first checker. Do not run line-rhythm scripts before the first wrapper call.
+8. Run `scripts/clean_run_checker.py draft.md --strict --draft-gate`.
+9. If `CLEAN_RUN_PREFLIGHT` appears, revise before the first checker call is consumed; if `CLEAN_RUN_PREFLIGHT_STOP` appears, output the current draft unchanged and let the controller record failure.
+10. If a rhythm script runs and `draft.md` is then rewritten or edited, rerun the relevant rhythm script before the next wrapper call or keep the repair inside the existing line-broken corridor.
+11. Do at most one repair/rewrite and at most two clean-eval checker calls.
+12. After the second checker call, output the current `draft.md` exactly.
 
 For ordinary user generation, use the same scene-first drafting principles but do not apply the clean-eval two-call stop rule. Continue repairing hard errors and obvious process leakage until the article is usable or the user stops, while avoiding mechanical ratio chasing.
 

@@ -26,7 +26,7 @@ If this returns true, choose clean-eval mode before drafting. Then run `Get-Loca
 
 For clean-eval generation, do not print the article to chat before the checker flow. First write the complete article to `draft.md` in the task workspace, run the bounded checker flow, then read `draft.md` once and output that exact content. A visible pre-check article followed by tools contaminates the run.
 
-Clean-eval tool order is part of the test, not a suggestion: marker check -> current-directory confirmation -> read this brief -> write one complete `draft.md` -> run `clean_run_checker.py`. The step "read this brief" means using the reference file path supplied by the already-triggered skill; it never means searching parent skill directories to locate the skill again. After this brief is loaded, do not draft trial paragraphs, scene plans, or repeated scratch versions in the terminal. If the article is imperfect, persist the best complete titled candidate to `draft.md` and let the wrapper diagnose it; a visible scratch article without `draft.md` is a failed run.
+Clean-eval tool order is part of the test, not a suggestion: marker check -> current-directory confirmation -> read this brief -> for standard diary read `standard-diary-source-engine.md` -> write one complete `draft.md` -> run `clean_run_checker.py`. The step "read this brief" means using the reference file path supplied by the already-triggered skill; it never means searching parent skill directories to locate the skill again. After this brief is loaded, do not draft trial paragraphs, scene plans, or repeated scratch versions in the terminal. If the article is imperfect, persist the best complete titled candidate to `draft.md` and let the wrapper diagnose it; a visible scratch article without `draft.md` is a failed run.
 
 Use the relative path `draft.md` or `.\draft.md` for the article file in the current task workspace. When using a write/file tool, the file/path argument must be exactly `draft.md` or `.\draft.md`. Do not construct an absolute path from memory, from a previous evaluation directory, from `<skill-dir>`, or from a date-stamped folder. In clean-eval, `Get-Location` / `pwd` is mandatory before the first write, not optional; do not guess.
 
@@ -38,7 +38,9 @@ Before writing, check whether the current task workspace contains `.anlin-clean-
 
 For clean-eval, this brief already contains the distilled anti-AI, title, rhythm, background, and scene constraints needed for the first draft. Do not open `anti-ai-slop.md`, `structure-patterns.md`, `title-model.md`, `generation-modes.md`, `runtime-brief.md`, corpus cards, judge rubrics, or style-ratio files before the first complete `draft.md`. Extra pre-draft files contaminate the source-guidance measurement and often cause checklist writing.
 
-After reading `clean-generation-brief.md` in clean-eval mode, stop reading references. `runtime-brief.md` is not a harmless supplement before the first draft. If you want more guidance, use the source loop below and write the complete `draft.md`; deeper files are only for repair or controller analysis after the first wrapper pass.
+After reading `clean-generation-brief.md` in clean-eval mode, stop reading references except `standard-diary-source-engine.md` for standard diary clean-eval. `runtime-brief.md` is not a harmless supplement before the first draft. If you want more guidance, use the source loop below and write the complete `draft.md`; deeper files are only for repair or controller analysis after the first wrapper pass.
+
+For standard diary clean-eval, load `references/standard-diary-source-engine.md` after this brief and then write `draft.md`. That file is part of the minimal first-draft pack. It is shorter than this reference on purpose: use it to build the middle from consequence kernels, not as another checklist. Do not run rhythm scripts before the first wrapper call.
 
 ## Target
 

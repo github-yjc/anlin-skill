@@ -10,6 +10,7 @@ Files:
 
 - `SKILL.md`
 - `references/clean-generation-brief.md`
+- `references/standard-diary-source-engine.md`
 
 Purpose:
 
@@ -17,6 +18,7 @@ Purpose:
 - Keep the first draft scene-led: friction -> 2-3 load-bearing action clusters -> fact gate -> draft -> bounded checker.
 - Prevent visible process chatter and checker-loop contamination.
 - Own the clean-eval first-draft source loop so the generator does not need long repair or validation files before writing.
+- For standard diary, keep the first-draft middle engine short and operational: `standard-diary-source-engine.md` tells the generator to choose consequence kernels and write the article, instead of reading long repair libraries as a checklist.
 
 Ordinary generation should start here and usually stay here until the first complete `draft.md` exists.
 
