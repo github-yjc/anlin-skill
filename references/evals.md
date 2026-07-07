@@ -2,7 +2,7 @@
 
 这些 prompts 用于测试 skill 是否能处理不同日期、体裁和验证模式。它们不是证明“完全拟合”的测试，只是压力场景。
 
-Status: legacy supplementary notes. The formal 15-case evaluation set lives in `evals/evals.json`, and the current protocol lives in `evals/README.md` plus `references/validation-protocol.md`. Preserve this file because it records early scenario intent and assertions, but do not use it as the sole source for current clean-eval, finalized repair, or blind-round claims.
+Status: legacy supplementary notes. The formal 15-case evaluation set lives in `evals/evals.json`, and the current protocol lives in `evals/README.md` plus `references/validation-protocol.md`. Preserve this file because it records early scenario intent and assertions, but do not use it as the sole source for current clean-eval, finalized repair, or blind-round claims. If a line below conflicts with newer protocol, treat the newer protocol as active and preserve the older line only as historical evidence.
 
 When this file conflicts with `evals/evals.json` or `references/validation-protocol.md`, use the newer structured files and record the discrepancy in the development log instead of silently deleting the older note.
 

@@ -76,8 +76,15 @@ python scripts/compare_anlin_corpus.py draft.md --corpus-dir <corpus-dir>
 python scripts/build_style_profile.py <corpus-dir> --output references/style-profile.json
 python scripts/check_style_profile.py draft.md --draft-gate --strict
 python scripts/calibrate_style_profile.py <corpus-dir> --profile references/style-profile.json
-python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
+python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 3 --placebo-rounds 1 --match-genre auto
+python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment-chars 550 --placebo-rounds 2 --match-genre auto
 ```
+
+Blind-round count tiers are explicit:
+
+- `3 impostor + 1 placebo` is the minimum smoke / requirement-aligned package. It is useful for targeted retests and for reporting whether the current candidate is even plausible under the original requested shape.
+- `8 impostor + 2 placebo` is the preferred serious-confirmation package. Use it before making stronger development claims, because it gives more chances to detect stable identification and judge false accusations.
+- Do not mix the two denominators in one pass-rate claim. Report each package separately with corpus availability, matching mode, judge isolation, confidence threshold, evidence-family threshold, invalid rounds, and placebo false-accusation rate.
 
 `--strict` is a corpus-calibrated blocking gate. It should fail generated drafts only for deterministic contamination or high-risk structural buttons that do not hard-fail original corpus files. Other blind-review risks remain warnings and must be interpreted with placebo/original calibration.
 
@@ -91,7 +98,7 @@ python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment
 
 `run_blind_test.py` prepares anonymous rounds and prints the judge prompts. If no LLM automation key is configured, the controller manually gives each prompt to an isolated judge and records verdicts.
 
-For short sincere, micro-hope, surreal, or otherwise non-standard drafts, add a matched-genre anchor instead of comparing only against random standard diary originals:
+For short sincere, micro-hope, surreal, or otherwise non-standard drafts, add a matched-genre anchor instead of comparing only against random standard diary originals. The command below is a genre-specific example; use `--match-genre auto` when the controller should infer the closest stratum:
 
 ```powershell
 python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 3 --placebo-rounds 1 --match-genre sincere
@@ -215,10 +222,16 @@ Terms:
 - `placebo round`: an anonymous all-original round with no generated article. The correct answer is `NONE`; it measures false accusations and calibrates whether judges are over-sensitive to original-text oddness.
 - `stable accusation`: a counted accusation that passes the confidence and evidence-family thresholds. Raw suspicion is recorded separately.
 
-Recommended command:
+Preferred serious-confirmation command:
 
 ```powershell
-python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
+python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment-chars 550 --placebo-rounds 2 --match-genre auto
+```
+
+Minimum smoke / requirement-aligned command:
+
+```powershell
+python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 3 --placebo-rounds 1 --match-genre auto
 ```
 
 Each round creates a clean directory containing only:
@@ -250,13 +263,13 @@ Judge rules:
 - If the round is an impostor round, exactly one sample is generated.
 - If the round is a placebo round, no sample is generated and the correct answer is `NONE`.
 - If the judge is forced to choose when there is no generated sample, that test design is invalid.
-- Use at least two placebo rounds for serious evaluation. They disguise original articles as ordinary test samples and measure whether the judge over-accuses real corpus articles.
+- Use at least one placebo round for the minimum `3+1` smoke package and at least two placebo rounds for serious confirmation. They disguise original articles as ordinary test samples and measure whether the judge over-accuses real corpus articles.
 - If placebo false accusations exceed 20%, treat the judge setup as over-sensitive and revise calibration before using the rate as evidence against the generation workflow.
 - If the same evidence families appear in placebo accusations and generated-sample accusations, report that cue as uncalibrated and do not use it alone as a generator failure root cause.
 
 ## Multi-Angle Judge Set
 
-For serious evaluation, read `blind-judge-angles.md` and use multiple profiles plus placebo. Minimum serious setup:
+For serious evaluation, read `blind-judge-angles.md` and use multiple profiles plus placebo. Serious-confirmation setup:
 
 - holistic reader: ordinary reader sense of naturalness, over-polish, and closure
 - stylometry/rhythm: line length, punctuation, connector terms, phrase repetition, and vocabulary domain
@@ -272,7 +285,7 @@ For serious evaluation, read `blind-judge-angles.md` and use multiple profiles p
 - background-display: supported background facts used as a visible dossier checklist rather than lived constraints
 - middle-randomness: middle-third off-axis branch, decorative texture, and prompt-execution completeness
 - stylometric-drift: function-word habits, punctuation, line-length distribution, and repeated sentence templates
-- placebo-calibrated reader: at least two all-original rounds; must be allowed and encouraged to answer `NONE`
+- placebo-calibrated reader: at least two all-original rounds in serious confirmation; at least one all-original round in the minimum `3+1` smoke package; must be allowed and encouraged to answer `NONE`
 
 Treat invalid format, timeout, or contaminated access as invalid, not as a pass or failure. Re-run invalid rounds or report them separately.
 
@@ -325,7 +338,7 @@ Do not use pass/fail language without sample counts.
 Recommended wording:
 
 ```text
-Under 8 impostor rounds and 2 placebo rounds, judges produced raw accusations in 2/8 impostor rounds, stable accusations in 1/8 impostor rounds under confidence >=75 and 3-family threshold, and falsely accused originals in 0/2 placebo rounds. This supports revision status X under these conditions only.
+Under 8 impostor rounds and 2 placebo rounds, judges produced raw accusations in 2/8 impostor rounds, stable accusations in 1/8 impostor rounds under confidence >=75 and 3-family threshold, and falsely accused originals in 0/2 placebo rounds. This supports revision status X under these conditions only. If the run used the minimum 3+1 package, report that denominator instead and do not compare it directly to an 8+2 run.
 ```
 
 If a judge sees `mapping.json`, original corpus filenames, skill files, previous analysis, or invokes any style/author skill, mark the round contaminated and exclude it.

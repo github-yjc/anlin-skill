@@ -1,6 +1,6 @@
 # Portable Corpus Profile
 
-**语料目录说明**：运行本 skill 不要求本地拥有 38 篇原文。完整原文目录只用于维护者重建 cards/profile，或用于拥有原文的 controller 做复制重叠、校准和盲评。若可用，用户可在请求中指定目录，或设置 `ANLIN_CORPUS_DIR` 环境变量；否则使用本文件、`references/corpus-cards/` 和 `references/samples-index.md` 做可携带审查，并在验证报告记录条件和限制。
+**语料目录说明**：运行本 skill 不要求本地拥有 38 篇原文。完整原文目录只用于开发/控制器重建 cards/profile，或用于拥有原文的 controller 做复制重叠、校准和盲评。若可用，用户可在请求中指定目录，或设置 `ANLIN_CORPUS_DIR` 环境变量；否则使用本文件、`references/corpus-cards/` 和 `references/samples-index.md` 做可携带审查，并在验证报告记录条件和限制。
 
 本文件让没有完整原文目录的人也能使用本 skill。它不是完整语料库，而是把 38 篇原文压缩成可携带的风格指纹、时期分布和样本覆盖说明。
 
@@ -65,7 +65,7 @@
 
 1. 运行 `scripts/check_anlin_violations.py draft.md`，清除确定性硬违规。
 2. 读 `references/samples-index.md`，抽 8-10 条片段做节奏对照。
-3. 用 `references/self-check.md` 的 §8.1、§8.2 做人工/子代理评分。
+3. 用 `references/self-check.md` 的 §8.1、§8.2 做人工或隔离评审评分。
 4. 若要报告质量，只能写明片段级审查条件、样本/片段数量、通过率和限制；不要写“通过片段级验证”这类绝对结论。
 
 ## 完整验证模式

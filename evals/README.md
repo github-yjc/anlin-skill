@@ -66,9 +66,9 @@ python <skill-dir>/scripts/check_anlin_violations.py draft.md
 
 注意：退出码 0 只表示未触发可自动检测的阻断项，不保证风格匹配。脚本无法检测蒙太奇结构、情感层次、声音质量等主观维度。
 
-### 步骤 3：运行 Style Critic 子代理审查
+### 步骤 3：运行隔离 Style Critic 评审
 
-这一节是早期人工/代理评审口径的保留说明。当前正式控制器流程还必须结合 `references/validation-protocol.md`、`references/blind-judge-angles.md`、strict/draft-gate hard gate、style-profile full report、placebo 校准和双检查点汇总。不要只凭本节 5 门禁分数宣称 ready for blind rounds。
+这一节是早期人工/隔离评审口径的保留说明。当前正式控制器流程还必须结合 `references/validation-protocol.md`、`references/blind-judge-angles.md`、strict/draft-gate hard gate、style-profile full report、placebo 校准和双检查点汇总。不要只凭本节 5 门禁分数宣称 ready for blind rounds。这里的 Style Critic 是隔离评审模板，可以由人工评审、单独上下文的模型评审或控制器调用实现；它不是 runtime 必需能力。
 
 对 `standard-diary` 和 `mixed` 用例，使用 5 门禁评分：
 - emotional-oscillation（情感振荡）：笑/痛/温情/嘴硬是否混频
@@ -84,7 +84,7 @@ python <skill-dir>/scripts/check_anlin_violations.py draft.md
 
 每个门禁 1-10 分。
 
-子代理必须只读取以下文件：
+隔离评审者必须只读取以下文件：
 - `draft.md`
 - `references/portable-corpus.md`
 - `references/samples-index.md`
@@ -170,7 +170,7 @@ python <skill-dir>/scripts/summarize_dev_checkpoints.py <case-dir> `
 3. 在声明的模型池中随机或轮询选择一个生成模型，打开可用的 reasoning/thinking 模式并记录设置
 4. agent 生成一篇含标题的完整文章 → 保存到外部评测工作区，例如 `<eval-workspace>/iteration-<n>/eval-<id>/draft.md`
 5. 运行 `check_anlin_violations.py`
-6. 运行 Style Critic 子代理评分
+6. 运行隔离 Style Critic 评分
 7. 汇总到外部评测工作区，例如 `<eval-workspace>/iteration-<n>/benchmark.json`
 
 ## 与盲测的关系

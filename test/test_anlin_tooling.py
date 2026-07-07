@@ -7274,7 +7274,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Clean-eval pre-draft hard no-load list", skill)
         self.assertIn("The table below is not permission to load extra files before a clean-eval first draft", skill)
         self.assertIn("Skill discovery stop rule", skill)
-        self.assertIn("do not glob, search, list parent skill directories, or launch an explore/subagent task", skill)
+        self.assertIn("do not glob, search, list parent skill directories, or launch delegated exploration solely to rediscover it", skill)
         self.assertIn("ask for the skill directory or record that deterministic validation is unavailable", skill)
         self.assertIn("Extra pre-draft files contaminate the source-guidance measurement", clean)
         self.assertIn("Before writing `draft.md`, do a private source preflight", clean)
@@ -7406,6 +7406,7 @@ class AnlinToolingTests(unittest.TestCase):
         validation = (ROOT / "references" / "validation-protocol.md").read_text(encoding="utf-8")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         eval_readme = (ROOT / "evals" / "README.md").read_text(encoding="utf-8")
+        development_log = (ROOT / "references" / "development-log.md").read_text(encoding="utf-8")
         runtime_files = [
             ROOT / "SKILL.md",
             ROOT / "references" / "clean-generation-brief.md",
@@ -7417,8 +7418,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("rotate generation models across a declared external pool", validation)
         self.assertIn("Keep the concrete pool outside the distributable skill", validation)
         self.assertIn("Do not add model-name branches", validation)
-        self.assertIn("Development tests should now rotate across multiple model surfaces", readme)
-        self.assertIn("longcat/LongCat-2.0", readme)
+        self.assertIn("Development tests should rotate across multiple available model surfaces", readme)
+        self.assertIn("Concrete local model pools belong in `references/development-log.md`, not in this user-facing README", readme)
+        self.assertNotIn("longcat/LongCat-2.0", readme)
+        self.assertIn("longcat/LongCat-2.0", development_log)
         self.assertIn("lowest-use available surfaces", readme)
         self.assertIn("runtime instructions should stay model-agnostic", readme)
         self.assertIn("开发测试应轮换生成模型", eval_readme)
@@ -7427,6 +7430,41 @@ class AnlinToolingTests(unittest.TestCase):
         for provider_token in ["deepseek", "mimo", "minimax", "gpt-5.5", "big-pickle", "longcat"]:
             self.assertNotIn(provider_token, validation_lower)
             self.assertNotIn(provider_token, runtime_combined)
+
+    def test_isolated_judge_templates_are_active_and_legacy_prompt_file_is_not_runtime(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        layer_map = (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8")
+        validation = (ROOT / "references" / "validation-protocol.md").read_text(encoding="utf-8")
+        judge_templates = (ROOT / "references" / "judge-prompt-templates.md").read_text(encoding="utf-8")
+        legacy = (ROOT / "references" / "subagent-prompts.md").read_text(encoding="utf-8")
+        development_log = (ROOT / "references" / "development-log.md").read_text(encoding="utf-8")
+
+        self.assertIn("judge-prompt-templates.md", readme)
+        self.assertIn("references/judge-prompt-templates.md", layer_map)
+        self.assertIn("Controller Judge Prompt Templates", judge_templates)
+        self.assertIn("They do not require any special parallel-agent capability", judge_templates)
+        self.assertIn("3 impostor + 1 placebo", validation)
+        self.assertIn("8 impostor + 2 placebo", validation)
+        self.assertIn("Do not mix the two denominators", validation)
+        self.assertIn("compatibility pointer", legacy)
+        self.assertIn("Do not treat this legacy filename as a runtime dependency", legacy)
+        self.assertIn("Documentation architecture cleanup on 2026-07-07", development_log)
+        self.assertIn("not new evidence that the `<=10%` target has been reached", development_log)
+
+        active_docs = [
+            ROOT / "SKILL.md",
+            ROOT / "README.md",
+            ROOT / "evals" / "README.md",
+            ROOT / "references" / "runtime-layer-map.md",
+            ROOT / "references" / "validation-protocol.md",
+            ROOT / "references" / "self-check.md",
+            ROOT / "references" / "portable-corpus.md",
+            ROOT / "references" / "evals.md",
+        ]
+        for path in active_docs:
+            text = path.read_text(encoding="utf-8")
+            self.assertNotIn("references/subagent-prompts.md", text)
+            self.assertNotIn("子代理", text)
 
     def test_readme_uses_portable_skill_and_corpus_paths(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")

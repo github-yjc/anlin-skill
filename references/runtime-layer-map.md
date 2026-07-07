@@ -102,7 +102,7 @@ Files:
 - `references/style-profile.json`
 - `references/validation-protocol.md`
 - `references/blind-judge-angles.md`
-- `references/subagent-prompts.md`
+- `references/judge-prompt-templates.md`
 - `references/development-log.md`
 - `evals/evals.json`
 - `evals/README.md`

@@ -12,7 +12,7 @@ The full 38-article corpus is a developer/controller input, not a runtime depend
 
 ## Current Status
 
-Status: not yet proven. This skill is still under active development. It is not ready to claim the `<=10%` stable impostor-identification target because no current evidence package contains all of the required pieces: 15 clean-eval generation cases, calibrated `3 impostor + 1 placebo` blind rounds, low stable-identification rate, low placebo false-accusation rate, and uncontaminated controller logs.
+Status: not yet proven. This skill is still under active development. It is not ready to claim the `<=10%` stable impostor-identification target because no current evidence package contains all of the required pieces: 15 clean-eval generation cases, at least a calibrated `3 impostor + 1 placebo` blind-round package, low stable-identification rate, low placebo false-accusation rate, and uncontaminated controller logs. A larger `8 impostor + 2 placebo` package is the preferred serious-confirmation tier when corpus, judge budget, and controller isolation are available.
 
 The latest documented boundary is preserved in `references/development-log.md`. In short: the compact `--repair-brief` interface fixed the specific terminal-only finalized-repair artifact failure, but the newest targeted retest still did not become blind-round-ready because style-profile validation remained `review` with unresolved rhythm and texture drift. The next work should improve finalized minimum repair and first-draft source guidance before expanding blind rounds.
 
@@ -80,11 +80,12 @@ anlin-writing/
 │   ├── anlin-characters.md           # character facts and constraints
 │   ├── review-rubric.md              # post-draft review gates
 │   ├── writing-checklist.md          # critique card, not pre-draft recipe
-│   ├── self-check.md                 # post-draft human/agent checklist
+│   ├── self-check.md                 # post-draft human/isolated-review checklist
 │   ├── stylometric-ratio-protocol.md # corpus-prior audit method
 │   ├── style-profile.json            # generated profile from 38 originals
 │   ├── validation-protocol.md        # clean-eval and blind testing protocol
 │   ├── blind-judge-angles.md         # multi-angle judge matrix
+│   ├── judge-prompt-templates.md     # isolated controller judge prompts
 │   ├── development-log.md            # preserved failed-run evidence and status boundaries
 │   ├── corpus-cards/                 # compact calibration cards, repair only
 │   └── portable-corpus.md            # fallback when originals are unavailable
@@ -151,7 +152,11 @@ python scripts/check_style_profile.py draft.md --draft-gate --strict --repair-br
 python scripts/rebalance_line_rhythm.py draft.md --in-place
 python scripts/calibrate_style_profile.py $env:ANLIN_CORPUS_DIR --profile references/style-profile.json
 python scripts/summarize_dev_checkpoints.py <case-dir> --bounded-draft <case-dir>/draft.md --finalized-draft <case-dir>/finalized/draft.md --trace-log <case-dir>/opencode-output.txt --corpus-dir $env:ANLIN_CORPUS_DIR --profile references/style-profile.json --genre <standard|sincere|micro-hope|surreal> --output-json <case-dir>/controller-audit/summary.json --output-md <case-dir>/controller-audit/summary.md
-python scripts/run_blind_test.py draft.md $env:ANLIN_CORPUS_DIR --rounds 8 --placebo-rounds 2 --min-fragment-chars 550
+# Minimum smoke / requirement-aligned blind package:
+python scripts/run_blind_test.py draft.md $env:ANLIN_CORPUS_DIR --rounds 3 --placebo-rounds 1 --match-genre auto
+
+# Preferred serious-confirmation package:
+python scripts/run_blind_test.py draft.md $env:ANLIN_CORPUS_DIR --rounds 8 --placebo-rounds 2 --min-fragment-chars 550 --match-genre auto
 python scripts/check_clean_eval_trace.py <case-dir>/opencode-output.txt --json
 ```
 
@@ -195,7 +200,9 @@ Fresh pass/fail claims should quote the exact command results. Older results in 
 
 Historical status notes and failed-run diagnoses belong in `references/development-log.md`. They may be summarized or moved, but their factual content should not be dropped. When a log is migrated, preserve it in git before replacing it with a shorter README summary.
 
-Development tests should now rotate across multiple model surfaces and record the exact model string plus reasoning/thinking setting. Recent local controller pools have included `longcat/LongCat-2.0`; when recent runs are imbalanced, choose from the lowest-use available surfaces before returning to high-use surfaces. This is testing metadata only: runtime instructions should stay model-agnostic, and model-specific failures should be generalized into source shape, fact handling, sentence form, rhythm, tool routing, or repair-loop behavior.
+Development tests should rotate across multiple available model surfaces and record the exact model string plus reasoning/thinking setting in controller logs, not in runtime instructions. When recent runs are imbalanced, choose from the lowest-use available surfaces before returning to high-use surfaces. This is testing metadata only: runtime instructions should stay model-agnostic, and model-specific failures should be generalized into source shape, fact handling, sentence form, rhythm, tool routing, or repair-loop behavior. Concrete local model pools belong in `references/development-log.md`, not in this user-facing README.
+
+If this repository is packaged for public distribution, exclude ignored local process directories such as `work/`. They are preserved locally for information-loss review and development forensics, but they are not part of the distributable skill surface.
 
 Prompt compliance is a manual controller gate. If the user told the generator not to write money/consumption/price, visible adjacent substitutions such as payment, price, discount, balance, checkout, purchase, or consumption ledgers should be recorded as a blocking prompt-compliance failure even when generic hard/style gates are clean.
 
