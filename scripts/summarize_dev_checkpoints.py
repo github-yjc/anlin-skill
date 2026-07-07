@@ -35,12 +35,33 @@ FINALIZED_FORBIDDEN_SOURCE_RE = re.compile(
     r"(?:scripts[\\/](?:check_anlin_violations|check_style_profile|clean_run_checker)\.py|test[\\/]test_anlin_tooling\.py)",
     re.IGNORECASE,
 )
+FINALIZED_REDISCOVERY_RE = re.compile(
+    r"(?:^|[\s$>✱])(?:Glob|Get-ChildItem|Select-String|rg|grep|find|dir|ls)\b"
+    r".{0,260}"
+    r"(?:check_anlin_violations|check_style_profile|clean_run_checker|test_anlin_tooling|anlin-writing)",
+    re.IGNORECASE,
+)
 FINALIZED_THRESHOLD_PROBE_RE = re.compile(
     r"(?:YELLOW_REVIEW_FAMILY_THRESHOLD|SOFT_REVISE_FAMILY_THRESHOLD|"
     r"(?:search(?:ed|ing)?|grep|rg|Select-String|threshold|constant|源码|阈值|常量)"
     r".{0,120}(?:early_comma_ratio|short_breath_lines|comma_per_1k))",
     re.IGNORECASE,
 )
+FINALIZED_HARD_GATE_RE = re.compile(
+    r"check_anlin_violations\.py[^\n]*--strict[^\n]*--draft-gate",
+    re.IGNORECASE,
+)
+FINALIZED_DRAFT_MUTATION_RE = re.compile(
+    r"(?:Write|Edit)\s+draft\.md|(?:Write|Edit)\s+[A-Za-z]:[^\n]*[\\/]finalized[\\/]draft\.md",
+    re.IGNORECASE,
+)
+FINALIZED_LOOP_LABELS = [
+    "逗号密度过高",
+    "标准日寄句号网格",
+    "行末逗号比例",
+    "社交拒绝纹理替代后果不足",
+    "社交拒绝室内冷感过密",
+]
 
 
 @dataclass(frozen=True)
@@ -286,14 +307,21 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
     if trace_log is None or not trace_log.is_file():
         return [], None
     findings: list[dict[str, Any]] = []
-    text = trace_log.read_text(encoding="utf-8", errors="replace").replace("\x00", "")
+    raw_text = trace_log.read_text(encoding="utf-8", errors="replace").replace("\x00", "")
+    text = re.sub(r"\x1b\[[0-9;]*m", "", raw_text)
     for line in text.splitlines():
         normalized = line.replace("\\", "/")
         source_match = FINALIZED_FORBIDDEN_SOURCE_RE.search(normalized)
+        rediscovery_match = FINALIZED_REDISCOVERY_RE.search(normalized)
         threshold_match = FINALIZED_THRESHOLD_PROBE_RE.search(normalized)
-        if not source_match and not threshold_match:
+        if not source_match and not rediscovery_match and not threshold_match:
             continue
-        rule = "finalized修复反查checker阈值" if threshold_match else "finalized修复读取checker源码"
+        if threshold_match:
+            rule = "finalized修复反查checker阈值"
+        elif rediscovery_match:
+            rule = "finalized修复重新搜索checker路径"
+        else:
+            rule = "finalized修复读取checker源码"
         findings.append(
             {
                 "severity": "error",
@@ -303,6 +331,25 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
                     "Finalized repair can use checker outputs and public references, but it must not read/grep checker "
                     "source, tests, or hidden threshold constants. Treat this finalized pass as contaminated and rerun "
                     "from the copied draft with output-only repair."
+                ),
+            }
+        )
+    hard_gate_runs = len(FINALIZED_HARD_GATE_RE.findall(text))
+    draft_mutations = len(FINALIZED_DRAFT_MUTATION_RE.findall(text))
+    repeated_labels = [label for label in FINALIZED_LOOP_LABELS if text.count(label) >= 2]
+    if hard_gate_runs >= 4 and draft_mutations >= 3 and len(repeated_labels) >= 2:
+        findings.append(
+            {
+                "severity": "error",
+                "rule": "finalized修复指标循环",
+                "excerpt": (
+                    f"hard_gate_runs={hard_gate_runs}; draft_mutations={draft_mutations}; "
+                    f"repeated_labels={', '.join(repeated_labels[:4])}"
+                ),
+                "suggestion": (
+                    "Finalized repair should use one source rewrite plus one validation loop. Repeated hard-gate "
+                    "bounces between rhythm, punctuation, or social-consequence labels are unresolved repair-path "
+                    "drift, not permission to keep tuning metrics."
                 ),
             }
         )
@@ -594,8 +641,8 @@ def finalized_scope(has_finalized: bool) -> str | None:
     if not has_finalized:
         return None
     return (
-        "Copied bounded draft in a separate finalized directory, ordinary multi-round repair, then strict hard-gate "
-        "and style-profile validation. This measures repair convergence and cannot retroactively improve bounded status."
+        "Copied bounded draft in a separate finalized directory, one source rewrite through the repair brief, then "
+        "strict hard-gate and style-profile validation. This measures repair convergence and cannot retroactively improve bounded status."
     )
 
 
@@ -888,7 +935,7 @@ def main() -> int:
         blind_round_readiness=blind_round_readiness(diagnosis),
         bounded_question="Did the skill naturally guide a fresh generator to a checker-ready article, and what happened by the two-call clean-eval boundary?",
         finalized_question=(
-            "Can ordinary multi-round repair converge under strict hard-gate and style-profile validation?"
+            "Can the public finalized repair interface converge under strict hard-gate and style-profile validation?"
             if finalized
             else None
         ),

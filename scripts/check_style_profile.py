@@ -697,7 +697,9 @@ def format_repair_brief(report: dict[str, Any]) -> str:
     lines.extend(
         [
             "repair_directive: write a complete revised draft.md before any further metric analysis. Do not print a proposed full article to the terminal; persist it to draft.md, then rerun the formal gates.",
+            "repair_loop_budget: exactly one complete source rewrite, then one hard-gate plus repair-brief rerun. If it still does not pass, stop and record unresolved repair-path drift instead of making another metric patch.",
             "exit_note: with --strict --repair-brief, a nonzero exit usually means this profile gate is not passed, not that the tool is broken. Revise draft.md from the source actions and rerun the gates.",
+            "path_contract: use the checker commands already given by the loaded skill. Do not Glob, list, grep, or read checker scripts, tests, hidden thresholds, or old logs to find a better target.",
             "do_not: do not use individual metrics as a TODO list, do not calculate thresholds, do not tune punctuation or connector counts, and do not keep thinking until every profile line is mentally solved.",
             f"primary_source_rewrite: {primary_source_rewrite(families)}",
             "source_actions:",
@@ -709,7 +711,7 @@ def format_repair_brief(report: dict[str, Any]) -> str:
         lines.append("  - remaining families: handle only if they still appear after the source rewrite; do not solve them one by one before writing.")
     lines.extend(
         [
-            "validation_loop: after writing draft.md, run the strict hard gate and this repair brief once. If the same opposite failures bounce again, stop and record unresolved repair-path drift.",
+            "validation_loop: after writing draft.md, run the strict hard gate and this repair brief once. If the same or opposite failures bounce again, stop and record unresolved repair-path drift; do not make a second metric-shaped edit.",
             "controller_note: rerun without --repair-brief for full corpus-prior evidence, calibration, or reporting. The brief is the generator-facing repair interface.",
         ]
     )

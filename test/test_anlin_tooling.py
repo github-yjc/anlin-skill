@@ -5075,6 +5075,112 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(payload["finalized"]["gate"]["trace_errors"], 1)
             self.assertEqual(payload["finalized"]["trace_findings"][0]["rule"], "finalized修复反查checker阈值")
 
+    def test_dev_checkpoint_summary_marks_finalized_checker_glob_trace_invalid(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            finalized_dir = case_dir / "finalized"
+            finalized_dir.mkdir(parents=True)
+            bounded = case_dir / "draft.md"
+            finalized = finalized_dir / "draft.md"
+            bounded.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 90)]), encoding="utf-8")
+            finalized.write_text(
+                "\n".join(["# 日寄", "", *(["其实我觉得杯子脏了，于是洗手差点吐出来，丢人。"] * 50)]),
+                encoding="utf-8",
+            )
+            trace = finalized_dir / "opencode-output.txt"
+            trace.write_text(
+                '\x1b[0m✱ \x1b[0mGlob "**/*check_anlin_violations*" in <skill-dir> · 1 match\n'
+                '✱ Glob "**/*check_style_profile*" in <skill-dir> · 1 match\n',
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(bounded),
+                    "--finalized-draft",
+                    str(finalized),
+                    "--finalized-trace-log",
+                    str(trace),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["finalized"]["gate"]["status"], "invalid")
+            self.assertEqual(payload["finalized"]["gate"]["trace_errors"], 2)
+            rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
+            self.assertEqual(rules, ["finalized修复重新搜索checker路径", "finalized修复重新搜索checker路径"])
+
+    def test_dev_checkpoint_summary_marks_finalized_metric_loop_invalid(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            finalized_dir = case_dir / "finalized"
+            finalized_dir.mkdir(parents=True)
+            bounded = case_dir / "draft.md"
+            finalized = finalized_dir / "draft.md"
+            bounded.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 90)]), encoding="utf-8")
+            finalized.write_text(
+                "\n".join(["# 日寄", "", *(["其实我觉得杯子脏了，于是洗手差点吐出来，丢人。"] * 50)]),
+                encoding="utf-8",
+            )
+            trace = finalized_dir / "opencode-output.txt"
+            trace.write_text(
+                "\n".join(
+                    [
+                        "$ python <skill-dir>/scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre standard",
+                        "[error] global strict: 标准日寄句号网格",
+                        "← Write draft.md",
+                        "$ python <skill-dir>/scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre standard",
+                        "[error] global strict: 逗号密度过高",
+                        "[error] global strict: 社交拒绝纹理替代后果不足",
+                        "← Edit draft.md",
+                        "$ python <skill-dir>/scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre standard",
+                        "[error] global strict: 标准日寄句号网格",
+                        "[error] global strict: 社交拒绝纹理替代后果不足",
+                        "← Write draft.md",
+                        "$ python <skill-dir>/scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre standard",
+                        "[error] global strict: 逗号密度过高",
+                        "[error] global strict: 社交拒绝纹理替代后果不足",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(bounded),
+                    "--finalized-draft",
+                    str(finalized),
+                    "--finalized-trace-log",
+                    str(trace),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["finalized"]["gate"]["status"], "invalid")
+            self.assertEqual(payload["finalized"]["gate"]["trace_errors"], 1)
+            self.assertEqual(payload["finalized"]["trace_findings"][0]["rule"], "finalized修复指标循环")
+            self.assertIn("unresolved repair-path drift", payload["finalized"]["trace_findings"][0]["suggestion"])
+
     def test_dev_checkpoint_summary_allows_public_checker_metric_output_in_finalized_trace(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             case_dir = Path(temp) / "case"
@@ -9221,8 +9327,10 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("artifact_contract: the revised complete article must be written back to draft.md", result.stdout)
             self.assertIn("repair_directive: write a complete revised draft.md before any further metric analysis", result.stdout)
             self.assertIn("Do not print a proposed full article", result.stdout)
+            self.assertIn("repair_loop_budget: exactly one complete source rewrite", result.stdout)
             self.assertIn("exit_note: with --strict --repair-brief", result.stdout)
             self.assertIn("not that the tool is broken", result.stdout)
+            self.assertIn("path_contract: use the checker commands already given by the loaded skill", result.stdout)
             self.assertIn("primary_source_rewrite:", result.stdout)
             self.assertIn("rewrite the visible body as 4-6 breathing clusters", result.stdout)
             self.assertIn("root_families:", result.stdout)
@@ -9287,8 +9395,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Do not print a proposed final article to the terminal and keep thinking", finalized_minimum)
         self.assertIn("Do not rediscover this skill by globbing", finalized_minimum)
         self.assertIn("Do not use TODO tools, plans, or long diagnostic narration", finalized_minimum)
+        self.assertIn("one complete source rewrite after the not-pass brief", finalized_minimum)
         self.assertIn("choose one primary source rewrite from the brief", runtime)
         self.assertIn("When multiple families appear, do not make one patch per family", finalized_minimum)
+        self.assertIn("one complete source rewrite, persist `finalized/draft.md`, and rerun the gates once", validation)
         self.assertIn("If the revised article is only printed in a log/chat but `draft.md` is unchanged", finalized_minimum)
         self.assertIn("prints a repaired article to chat or a log but leaves that file unchanged", validation)
         self.assertIn("finalized/draft.md", combined)
@@ -10733,8 +10843,12 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("post-refusal consequence", text)
             self.assertIn("reply aftermath", text)
         self.assertIn("The refusal aftermath also has to shape the page rhythm before saving", first_draft)
+        self.assertIn("keep it as a lie/excuse surface inside the reply", first_draft)
+        self.assertIn("salary deduction", first_draft)
         self.assertIn("the refusal chain itself creates the uneven rows", source_engine)
         self.assertIn("Public wet/dirty exposure can be a real hinge only when it changes social position or the next action", source_engine)
+        self.assertIn("Keep `忙项目` as an excuse surface", source_engine)
+        self.assertIn("wage deduction", source_engine)
         self.assertIn("If a social-decline repair has already gained a valid low-status/public hinge", finalized)
         self.assertIn("Before saving, ask whether the article would still move if all room texture except one object were deleted", skill)
         self.assertIn("privately delete all room texture except one object", clean)
