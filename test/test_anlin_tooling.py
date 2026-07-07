@@ -3141,6 +3141,36 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
 
+    def test_clean_run_checker_preflight_blocks_today_first_like_this_tail(self) -> None:
+        cluster = [
+            "其实水龙头咳了一下，水从接口那边斜着喷出来，",
+            "我觉得裤脚湿得像刚从鱼摊回来。",
+            "丢人。",
+            "后来发现胶带粘不上，手上全是灰，老板还问我要不要换贵的那种。",
+            "不过我没换，因为手机余额看起来比水管还紧。",
+            "很冷。",
+        ]
+        body = "\n".join(["# 胶带", "", *(cluster * 10), "今天先这样。"])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CLEAN_RUN_CHECKER), str(draft), "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+            self.assertIn("CLEAN_RUN_PREFLIGHT", result.stdout)
+            self.assertIn("learned_ending_button=present", result.stdout)
+            self.assertIn("unfinished practical action", result.stdout)
+
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+
     def test_clean_run_checker_preflight_blocks_pure_ambient_ending_without_consuming_call(self) -> None:
         cluster = [
             "其实水龙头咳了一下，水从接口那边斜着喷出来，",
@@ -7520,6 +7550,12 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Do not end by fading out on light, wind, appliance noise, screen glow", clean)
         self.assertIn("No learned ending button or ambient fade-out", budget)
         self.assertIn("End on an earned unfinished action", budget)
+        self.assertIn("今天先这样", clean)
+        self.assertIn("今天先这样", budget)
+        self.assertIn(
+            "administrative button",
+            (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8"),
+        )
 
     def test_skill_load_order_keeps_background_as_post_scene_fact_gate(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
@@ -7685,6 +7721,30 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertTrue(any(rule == "strict: 习得式结尾按钮" for rule in rules))
+
+    def test_checker_strict_rejects_today_first_like_this_learned_ending(self) -> None:
+        body = "\n".join(
+            [
+                "# 楼下那张红纸",
+                "",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+                "今天先这样。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any(rule == "strict: 习得式结尾按钮" for rule in rules), findings)
 
     def test_checker_draft_gate_rejects_dialogue_stack_and_game_report(self) -> None:
         body = "\n".join(
@@ -8293,7 +8353,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(profile["corpus_dir"], "<corpus-dir>")
             self.assertEqual(len(profile["documents"]), 38)
             self.assertEqual(profile["profile_kind"], "corpus_prior_predictive_intervals")
-            self.assertEqual(profile["version"], "1.5")
+            self.assertEqual(profile["version"], "1.6")
             self.assertIn("body_chars", profile["value_summary"])
             self.assertIn("ai_binary_reframe", profile["count_summary"])
             self.assertIn("unique_3gram_ratio", profile["value_summary"])
@@ -8427,7 +8487,7 @@ class AnlinToolingTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             report = json.loads(result.stdout)
-            self.assertEqual(report["profile_version"], "1.5")
+            self.assertEqual(report["profile_version"], "1.6")
             self.assertEqual(report["corpus_file_count"], 38)
 
     def test_style_profile_strict_returns_nonzero_for_review_status(self) -> None:
@@ -9306,6 +9366,39 @@ class AnlinToolingTests(unittest.TestCase):
             )
             findings = json.loads(result.stdout)
             self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings), findings)
+
+    def test_checker_counts_rider_manager_and_rent_chain_as_public_engine(self) -> None:
+        body = "\n".join(
+            [
+                "# 楼下那张红纸",
+                "",
+                "门铃响的时候，门口站着骑手，手套上全是油，递过来的袋子已经有点洇。",
+                "我伸手去接，他没收手。",
+                "问了一句是不是备注不要香菜那个。",
+                "我说嗯，他这才把袋子递过来。",
+                "他没走，说我下去给你拿点纸上来。",
+                "我赶紧说不用，已经把门关上了。",
+                "楼管在二楼拐角比着红纸，说裤子前头沾了油，回去拿点洗洁精擦擦，你这是要扔？一起扔了得了。",
+                "我点头，把袋子递过去。",
+                "他顺手接过，又低头去看那张红纸。",
+                "屏幕亮一下，是房东的微信，房租又该交，催了一下。",
+                "我点开看了看，没回，把手机扣在桌上。",
+                *(["不过我还是把碗端到桌上，因为水龙头咳了一下，门口那块油印还在往外扩。"] * 26),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings), findings)
+            self.assertFalse(any(item["rule"] == "纹理替代社交不足" for item in findings), findings)
 
     def test_checker_does_not_count_oil_stain_glance_without_consequence_as_rough(self) -> None:
         body = "\n".join(

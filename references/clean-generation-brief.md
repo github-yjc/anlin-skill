@@ -132,7 +132,7 @@ If a repair keeps returning to the same local packet, such as hand dirt, white f
 
 For takeout/food prompts, do not let the repair become `hand/oil/taste/hand/oil/taste` after the obvious prompt-prop loop is gone. Red oil, fingers, tongue, sweat, and smell can appear, but if they carry opening, middle, and tail by themselves the article becomes a private texture proof. Replace one body/oil packet with a small human or practical consequence: the rider/shopkeeper says one plain thing, the door/hallway exposes a stain, a payment/refund/reply fails, a neighbor hears the bag, or a room object forces a different action. Also avoid rows that pack several complete `。` sentences into one line; if a thought or action is still moving, let it run through a comma or split by action rather than making a period-heavy grid.
 
-After a material family has done its job, stop spending it. If `油/油印/袖口/碗/手机` appears in the title, public hinge, table, sink, clothing, and tail, the draft is not textured; it is repeating one proof object. Keep one strong material consequence, then switch the next movement to a different function: a bad reply, missing paper, payment/app residue, door position, neighbor/rider/cashier line, route change, or room chore that fails. Do not repair an engine warning by adding another oil/stain/body line.
+After a material family has done its job, stop spending it. If `油/油印/袖口/碗/手机` appears in the title, public hinge, table, sink, clothing, and tail, the draft is not textured; it is repeating one proof object. Keep one strong material consequence, then switch the next movement to a different function: a bad reply, missing paper, payment/app residue, door position, neighbor/rider/cashier line, route change, landlord/rent message, trash handoff, or room chore that fails. Do not repair an engine warning by adding another oil/stain/body line.
 
 Known failed source shape: a fluent 10-15 paragraph article, later line-broken by tools into 55-70 lines, still tends to keep prose logic, period-heavy rhythm, repeated connector glue, and binary reframe sentences. Do not use that path. Before saving the first `draft.md`, the visible article itself should already look like clusters of breath: one or two lines may run on with `，`, a longer action/speech/thought line may carry the load, then a short drop lands a bad reply, body lowering, failed decision, or practical retreat. The short drop is earned by the scene; it is not a caption row.
 
@@ -372,7 +372,7 @@ Roughness is not a swear-word budget. `妈的`, `操`, `我服了`, and similar 
 
 ## Ending
 
-Do not summarize, heal, or neatly explain the article. Avoid learned buttons such as `哦。`, `算了。`, `睡了。`, `屏幕暗了。`, or a pure sound ending unless the scene forces it.
+Do not summarize, heal, or neatly explain the article. Avoid learned buttons such as `哦。`, `算了。`, `睡了。`, `今天先这样。`, `就先这样。`, `屏幕暗了。`, or a pure sound ending unless the scene forces it.
 
 End on a loose practical consequence: body interruption, unfinished reply, wrong object, route, payment, cold food, next notification, or a small action that does not solve anything.
 

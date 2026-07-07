@@ -28,6 +28,8 @@ One material family cannot own all three kernels. If `oil/stain/sleeve/bowl/phon
 
 The public hinge has to leave a mark before it disappears. A later private inspection does not turn a contact into social consequence. If the scene is `rider points at leak -> narrator takes bag -> rider leaves -> narrator studies oil on pants`, the hinge ended too early. Keep the outside pressure inside the next move: the narrator fails to answer, asks for paper, blocks the doorway, wipes a hand on pants while the person waits, a payment/refund stalls, or a neighbor has to step around the stain. One plain sentence or forced hand movement is enough; do not build a dialogue ladder.
 
+After a public hinge works, move away from the proof object. A delivery leak can expose the room or hand, but the next cluster should not keep proving `oil` through table, sink, pants, mirror, and tail. Let a different consequence take over: the door closes wrong, a landlord message arrives at a bad moment, the trash route changes, a reply fails, or a small chore returns broken. If the same noun family is still explaining the article after two clusters, cut it before saving.
+
 ## Standard Diary Mass
 
 Each kernel needs enough visible movement to carry weight: action, interruption, after-effect. A standard diary first draft usually needs several breathing clusters, not one sentence per row and not prose paragraphs.
@@ -71,7 +73,7 @@ Choose the title after the body. Do not title from the diagnostic prompt prop wh
 
 Also avoid a title that merely names the most repeated material family. `油`, `油印`, `袖口`, `碗`, or `手机` can work only when the body weakens that object and leaves through another consequence. If the same material appears in the title and keeps returning as proof, retitle from an action or position: the door, a handoff, the missing paper, a wrong reply, a line that did not get sent, or another earned residue.
 
-End on a practical leftover: unfinished reply, wrong object, cold food, route, payment, body interruption, or a chore that did not resolve. Do not end on a clean ambient fade or a sentence written to explain the title.
+End on a practical leftover: unfinished reply, wrong object, cold food, route, payment, body interruption, or a chore that did not resolve. Do not end on a clean ambient fade, a sentence written to explain the title, or an administrative button such as `今天先这样` / `就先这样`. If that line is tempting, replace it with the concrete unfinished thing that made the narrator stop.
 
 ## Last Private Source Check
 
