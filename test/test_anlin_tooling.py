@@ -6701,6 +6701,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("phone/feed -> order food -> wrong item -> wash bowl -> bed", standard_engine)
         self.assertIn("Private grime is not an event", standard_engine)
         self.assertIn("A rider or cashier who only looks once and leaves is still decoration", standard_engine)
+        self.assertIn("One material family cannot own all three kernels", standard_engine)
+        self.assertIn("it has become a stain ledger", standard_engine)
+        self.assertIn("Do not repair an engine warning by adding another oil/stain/body line", clean)
         self.assertIn("`runtime-brief.md` is not a harmless supplement before the first draft", clean)
         self.assertIn("Use this loop instead of opening the long runtime or review files", clean)
         self.assertIn("repair by replacing failed scene functions, not by adding feature labels", clean)
@@ -6971,6 +6974,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("The user's topic is pressure, not a route map", engine)
         self.assertIn("The first saved article is what the controller is measuring", engine)
         self.assertIn("Do not run line-rhythm scripts before the first wrapper call", readme)
+        self.assertIn("The engine is the consequence transfer, not the repeated material", engine)
+        self.assertIn("A public hinge should open a second consequence", engine)
         self.assertNotIn("deepseek", engine.lower())
         self.assertNotIn("mimo", engine.lower())
         self.assertNotIn("minimax", engine.lower())
@@ -7088,6 +7093,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("style-profile remains `revise`, or remains `review` with red `line_rhythm`", runtime)
         self.assertIn("five independent yellow drift families", skill)
         self.assertIn("style-profile `review` or `inconclusive` is not", skill)
+        self.assertIn("do not argue that the checker regex is limited", skill)
+        self.assertIn("If `段落发动机信号偏弱` persists, replace the source engine", skill)
         self.assertIn("thin the draft instead of decorating it", runtime)
         self.assertIn("breathing clusters of 2-5 visible lines", runtime)
         self.assertIn("`finalized=review` is not a clean final success", validation)
@@ -9057,6 +9064,30 @@ class AnlinToolingTests(unittest.TestCase):
             )
             findings = json.loads(result.stdout)
             self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings), findings)
+            self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings), findings)
+
+    def test_checker_counts_rider_paper_exchange_as_paragraph_engine(self) -> None:
+        body = "\n".join(
+            [
+                "# 门口",
+                "",
+                "我还以为袋子只是热，拎起来才发现汤从角上慢慢漏出来，",
+                "骑手问我有没有纸，我手在口袋里摸了一下，空的，",
+                "他等了两秒才松手，系统里倒是已经显示送达，",
+                *(["不过我还是把碗端到桌上，因为水龙头咳了一下，门口那块油印还在往外扩。"] * 30),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
             self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings), findings)
 
     def test_checker_does_not_count_oil_stain_glance_without_consequence_as_rough(self) -> None:

@@ -24,6 +24,8 @@ Use functions, not feature labels:
 
 The user's topic is pressure, not a route map. Let one prompt surface leak after the first engine has already moved the body or room. A complete article does not mean complete prompt coverage.
 
+One material family cannot own all three kernels. If `oil/stain/sleeve/bowl/phone` or any other noun family appears in the title, handoff, table, sink, pants, and tail, the article is not richer; it has become a stain ledger. Keep the strongest occurrence, then make the next kernel change medium: a reply, payment, door, route, neighbor/cashier/rider sentence, room position, or mistaken explanation. The engine is the consequence transfer, not the repeated material.
+
 ## Standard Diary Mass
 
 Each kernel needs enough visible movement to carry weight: action, interruption, after-effect. A standard diary first draft usually needs several breathing clusters, not one sentence per row and not prose paragraphs.
@@ -55,9 +57,13 @@ Private grime is not an event. Oil stains, sleeve dirt, sticky fingers, burps, m
 
 A rider or cashier who only looks once and leaves is still decoration. Start from bag, payment, door, reply, hand, or body consequence, not from gaze.
 
+If the contact already points out the stain, asks for paper, waits, or makes the narrator fail to answer, do not keep proving the same stain for the rest of the article. Spend the next movement somewhere else: the missing paper changes the door, the failed reply changes the phone, a payment/app residue changes the room, or a small unrelated chore comes back wrong. A public hinge should open a second consequence, not authorize more private inspection.
+
 ## Title And Tail
 
 Choose the title after the body. Do not title from the diagnostic prompt prop when the same prop also opens and closes the article: `备注`, `香菜`, `礼物`, `玫瑰`, `优惠券`, `朋友圈`, holiday labels, or calendar labels are high risk in those cases.
+
+Also avoid a title that merely names the most repeated material family. `油`, `油印`, `袖口`, `碗`, or `手机` can work only when the body weakens that object and leaves through another consequence. If the same material appears in the title and keeps returning as proof, retitle from an action or position: the door, a handoff, the missing paper, a wrong reply, a line that did not get sent, or another earned residue.
 
 End on a practical leftover: unfinished reply, wrong object, cold food, route, payment, body interruption, or a chore that did not resolve. Do not end on a clean ambient fade or a sentence written to explain the title.
 
