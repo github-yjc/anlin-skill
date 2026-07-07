@@ -3377,6 +3377,72 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertIn("clean-eval直接调用普通checker", rules)
 
+    def test_clean_eval_trace_flags_ad_hoc_metric_probe(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        $ Get-Location
+        C:/eval-workspace/iteration-86/eval-03/bounded
+        → Read C:/skill/references/clean-generation-brief.md
+        ← Write draft.md
+        $ python -c "
+        import re
+        with open('draft.md', 'r', encoding='utf-8') as f:
+            body_lines = [line for line in f if line.strip()]
+        body_text = ''.join(body_lines)
+        print(f'Chinese chars in body: {len(re.findall(r"[\\u4e00-\\u9fff]", body_text))}')
+        print(f'Body lines: {len(body_lines)}')
+        print('Connectors found: 其实, 觉得')
+        "
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --genre standard
+        CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        → Read draft.md
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval自建指标预检", rules)
+
+    def test_clean_eval_trace_flags_multiple_pre_wrapper_draft_writes(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        $ Get-Location
+        C:/eval-workspace/iteration-86/eval-03/bounded
+        → Read C:/skill/references/clean-generation-brief.md
+        ← Write draft.md
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --genre standard
+        CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        → Read draft.md
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval首个wrapper前多次改写draft", rules)
+
     def test_clean_eval_trace_flags_rewrite_after_rhythm_script_without_rerun(self) -> None:
         log = """
         → Skill "anlin-writing"
@@ -6791,6 +6857,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("repair by replacing failed scene functions, not by adding feature labels", clean)
         self.assertIn("Clean-eval pre-draft hard no-load list", skill)
         self.assertIn("The table below is not permission to load extra files before a clean-eval first draft", skill)
+        self.assertIn("Skill discovery stop rule", skill)
+        self.assertIn("do not glob, search, list parent skill directories, or launch an explore/subagent task", skill)
+        self.assertIn("ask for the skill directory or record that deterministic validation is unavailable", skill)
         self.assertIn("Extra pre-draft files contaminate the source-guidance measurement", clean)
         self.assertIn("Before writing `draft.md`, do a private source preflight", clean)
         self.assertIn("If a candidate title and body already exist in your head, write `draft.md` immediately", clean)
@@ -6858,8 +6927,15 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("If you catch yourself counting lines or characters, stop and write the current complete candidate to `draft.md`", skill)
         self.assertIn("a 700-900 character article split into 80-100 tiny rows is a caption grid", skill)
         self.assertIn("newly hand-broken short grid", skill)
+        self.assertIn("After the first clean-eval `draft.md` write, the next metric tool must be the wrapper itself", skill)
+        self.assertIn("do not run `python -c`, `Measure-Object`, `wc`, homemade regex counters", skill)
+        self.assertIn("Do not repeatedly overwrite `draft.md` before the first wrapper", skill)
+        self.assertIn("Do not replace visible arithmetic with a private ad hoc script", skill)
         self.assertIn("Do not hand-count characters or line totals before the first file write", (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8"))
         self.assertIn("Status 0 at a stop boundary only means the protocol message was delivered", clean)
+        self.assertIn("After the first clean-eval `draft.md` write, do not run your own counting or metric probe before the wrapper", clean)
+        self.assertIn("homemade regex counters", clean)
+        self.assertIn("Do not rewrite `draft.md` repeatedly before the first wrapper", clean)
         self.assertIn("line count as the target", standard_engine)
         self.assertIn("generated caption grid", standard_engine)
         self.assertIn("6-8 breathing clusters", standard_engine)
@@ -7153,8 +7229,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Do not write `draft.md` until both the marker check and current-directory confirmation are visible in the run trace", clean)
         self.assertIn("marker check -> current-directory confirmation -> read this brief -> for standard diary read `standard-diary-source-engine.md` -> write one complete `draft.md` -> run `clean_run_checker.py`", clean)
         self.assertIn("Do not rediscover this skill after it has already triggered", clean)
-        self.assertIn("do not glob, search, or list parent skill directories", skill)
-        self.assertIn("If a bundled reference path cannot be resolved", skill)
+        self.assertIn("do not glob, search, list parent skill directories", skill)
+        self.assertIn("If a bundled reference or script path cannot be resolved", skill)
         self.assertIn("still persist `draft.md`", clean)
         self.assertIn("visible scratch article without `draft.md` is a failed run", clean)
         self.assertIn("The wrapper `clean_run_checker.py` is the only checker entrypoint", clean)

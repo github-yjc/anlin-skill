@@ -329,6 +329,25 @@ def actual_rhythm_script_indices(text: str) -> list[int]:
     return regex_action_indices(text, patterns)
 
 
+def actual_ad_hoc_metric_probe_index(text: str) -> int:
+    """Find generator-built metric probes that bypass the clean wrapper."""
+
+    metric_terms = (
+        r"Chinese chars|body_chinese_chars|Body lines|body_lines|Avg chars|mean_line|"
+        r"line_lengths?|Line lengths|Short lines|short_lines|short breath|Long lines|"
+        r"long_lines|comma[-_ ]?ending|period[-_ ]?ending|period per 1k|comma ratio|"
+        r"connector|Connectors found|re\.findall|Measure-Object\s+-(?:Character|Line|Word)"
+    )
+    patterns = [
+        rf"(?ims)^\s*\$\s*(?:python|py)\s+-c\s+['\"](?:(?!^\s*\$).){{0,3000}}(?:{metric_terms})",
+        rf"(?ims)^\s*INPUT\s+[^\n]*(?:command|cmd)[^\n]*(?:python|py)\s+-c(?:(?!^\s*(?:TOOL|TITLE|INPUT|\$)).){{0,3000}}(?:{metric_terms})",
+        r"(?im)^\s*\$\s*\(Get-Content\s+draft\.md\b[^\n]*Measure-Object\s+-(?:Character|Line|Word)",
+        r"(?im)^\s*\$\s*Get-Content\s+draft\.md\b[^\n]*Measure-Object\s+-(?:Character|Line|Word)",
+        r"(?im)^\s*\$\s*(?:wc|Measure-Object)\b[^\n]*(?:draft\.md|Character|Line|Word)",
+    ]
+    return first_regex_action_index(text, patterns)
+
+
 def clean_wrapper_auto_rhythm_index(text: str, checker_index: int) -> int:
     if checker_index < 0:
         return -1
@@ -486,6 +505,16 @@ def collect_findings(text: str) -> list[TraceFinding]:
                 "Clean-eval generators may use only the wrapper output as the repair interface. Do not grep/read checker scripts or tests for hidden tokens after a preflight or checker report.",
             )
         )
+    metric_probe_index = actual_ad_hoc_metric_probe_index(normalized)
+    if metric_probe_index >= 0:
+        findings.append(
+            TraceFinding(
+                "error",
+                "clean-eval自建指标预检",
+                clean_excerpt(normalized, metric_probe_index),
+                "Do not run homemade counting, line-length, connector, punctuation, or regex metric probes in bounded clean-eval. The wrapper is the metric interface; repair from its reported messages and the article itself.",
+            )
+        )
     first_write = actual_draft_write_index(normalized)
     if first_write < 0:
         findings.append(
@@ -550,6 +579,19 @@ def collect_findings(text: str) -> list[TraceFinding]:
     first_checker = actual_clean_run_checker_index(normalized)
     if first_checker >= 0:
         pre_checker = normalized[:first_checker]
+        if first_write >= 0:
+            writes_before_first_checker = [
+                index for index in actual_draft_mutation_indices(pre_checker) if index >= first_write
+            ]
+            if len(writes_before_first_checker) > 1:
+                findings.append(
+                    TraceFinding(
+                        "error",
+                        "clean-eval首个wrapper前多次改写draft",
+                        clean_excerpt(normalized, writes_before_first_checker[1]),
+                        "The first persisted clean-eval article is part of the measurement. After the first draft.md write, run clean_run_checker.py instead of repeatedly overwriting draft.md to chase visible metrics.",
+                    )
+                )
         rhythm_before_first_checker = actual_rhythm_script_indices(pre_checker)
         if rhythm_before_first_checker:
             index = rhythm_before_first_checker[0]

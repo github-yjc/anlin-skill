@@ -10,6 +10,8 @@ Do not print an English or Chinese scene plan between tool calls. Avoid visible 
 
 If a candidate title and body already exist in your head, write `draft.md` immediately. Do not first put the article in a visible code fence, label it `Final version`, list body lines with counts, or compute whether it has 895 or 950 characters. A persisted imperfect article is a valid clean-eval artifact that the wrapper can diagnose; a long visible calculation with no `draft.md` is an invalid run.
 
+After the first clean-eval `draft.md` write, do not run your own counting or metric probe before the wrapper. The next metric tool must be `clean_run_checker.py`, not `python -c`, `Measure-Object`, `wc`, homemade regex counters, line-length distributions, connector counters, or any script that prints body characters, body lines, short lines, long lines, comma ratios, period ratios, or connector lists. Do not rewrite `draft.md` repeatedly before the first wrapper to chase those numbers. If the saved draft is imperfect, let the wrapper name the shape problem.
+
 After a stop boundary, do not add a wrapper sentence. The final visible response must begin with the title from `draft.md`, not with `完成`, `以下是`, `最终文章`, `Clean run`, `Here is`, `按协议`, a markdown fence, or `---`.
 
 Skill references are local bundled files. Do not call `read_mcp_resource` for this skill. Read local files directly only when this brief tells you to.
