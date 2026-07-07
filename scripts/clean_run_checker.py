@@ -672,6 +672,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     messages = preflight_messages(draft)
     if not messages:
         return False, []
+    if len(messages) == 1 and messages[0].startswith("short_breath_lines="):
+        match = re.search(r"short_breath_lines=(\d+)\s*<\s*4", messages[0])
+        if match and int(match.group(1)) >= 3:
+            return False, []
     joined_messages = "; ".join(messages)
     repair_hints: list[str] = []
     surface_only_prefixes = (
@@ -737,7 +741,8 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if compressed_shape:
         repair_hints.append(
             "NEXT_ACTION=run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place` before any new prose rewrite; "
-            "then inspect the actual visible line count and rewrite only inside that line-broken shape"
+            "then inspect the actual visible line count and rewrite only inside that line-broken shape; "
+            "if you write or edit draft.md after this rhythm reset, rerun rebalance_line_rhythm.py before the wrapper"
         )
     if underbuilt_source:
         repair_hints.append(
@@ -757,7 +762,8 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if overfragmented_shape:
         repair_hints.append(
             "NEXT_ACTION=run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place` before hand rewriting; "
-            "then inspect the visible rows and preserve or rebuild at least six rough longer action/speech/thought lines"
+            "then inspect the visible rows and preserve or rebuild at least six rough longer action/speech/thought lines; "
+            "if you write or edit draft.md after this rhythm reset, rerun rebalance_line_rhythm.py before the wrapper"
         )
         repair_hints.append(
             "for short-grid drift, overfragmented grids, or too few long lines, do not rewrite into many tiny rows or 30-line prose blocks; "

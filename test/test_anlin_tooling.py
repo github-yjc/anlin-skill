@@ -2476,6 +2476,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("short_line_grid=", preflight.stdout)
             self.assertIn("rebalance_line_rhythm.py", preflight.stdout)
             self.assertIn("NEXT_ACTION=run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`", preflight.stdout)
+            self.assertIn("if you write or edit draft.md after this rhythm reset, rerun rebalance_line_rhythm.py before the wrapper", preflight.stdout)
             self.assertIn("short-grid drift", preflight.stdout)
             self.assertIn("Do not summarize, quote, or enumerate these diagnostics as a TODO list", preflight.stdout)
             self.assertIn("change scene movement, rhythm, or local surface only", preflight.stdout)
@@ -2752,6 +2753,41 @@ class AnlinToolingTests(unittest.TestCase):
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
+
+    def test_clean_run_checker_allows_single_short_breath_near_miss_to_reach_checker(self) -> None:
+        cluster = [
+            "其实门口那条毛巾又弹出来，冷风贴到脚踝上，",
+            "我用脚尖去顶，拖鞋后跟一歪，脚趾露出来有点丢人，",
+            "突然发现外卖袋底下也在渗汤，手心被塑料勒出一道白印，",
+            "于是去厕所找纸巾，抽纸盒空得很干净，只剩一个纸芯，",
+            "原来水壶也没插紧，灯亮了一下又灭，我把插头怼回去，",
+            "碗边那片香菜贴着筷子，夹了两次还是滑回汤里，",
+        ]
+        lines = (cluster * 8) + ["很丢人。", "没回。", "脚冷。", "我把碗推远了一点，手背还在发紧，"]
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 门缝", "", *lines]), encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertEqual(len(messages), 1, messages)
+            self.assertTrue(messages[0].startswith("short_breath_lines=3 < 4"), messages)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLEAN_RUN_CHECKER),
+                    str(draft),
+                    "--strict",
+                    "--draft-gate",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotIn("CLEAN_RUN_PREFLIGHT", result.stdout)
+            self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", result.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 1)
+            self.assertEqual(state["preflights"], 0)
 
     def test_clean_run_checker_allows_near_miss_long_line_count_to_reach_checker(self) -> None:
         long_lines = [
