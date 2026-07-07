@@ -28,7 +28,7 @@ The user's topic is pressure, not a route map. Let one prompt surface leak after
 
 One material family cannot own all three kernels. If `oil/stain/sleeve/bowl/phone` or any other noun family appears in the title, handoff, table, sink, pants, and tail, the article is not richer; it has become a stain ledger. Keep the strongest occurrence, then make the next kernel change medium: a reply, payment, door, route, neighbor/cashier/rider sentence, room position, or mistaken explanation. The engine is the consequence transfer, not the repeated material.
 
-The public hinge has to leave a mark before it disappears. A later private inspection does not turn a contact into social consequence. If the scene is `rider points at leak -> narrator takes bag -> rider leaves -> narrator studies oil on pants`, the hinge ended too early. Keep the outside pressure inside the next move: the narrator fails to answer, asks for paper, blocks the doorway, wipes a hand on pants while the person waits, a payment/refund stalls, or a neighbor has to step around the stain. One plain sentence or forced hand movement is enough; do not build a dialogue ladder.
+The public hinge has to leave a mark before it disappears. A later private inspection does not turn a contact into social consequence. If the scene is `rider points at leak -> narrator takes bag -> rider leaves -> narrator studies oil on pants`, the hinge ended too early. Keep the outside pressure inside the next move: the narrator fails to answer, asks for paper, blocks the doorway, wipes a hand on pants while the person waits, a payment/refund stalls, or a neighbor has to step around the stain. One plain sentence or forced hand movement is enough; do not build a dialogue ladder. A neutral question about a heater, delivery, order, balance, or hallway problem is still only a cameo when it does not touch the wet/dirty/payment/reply/body fact and change the next action.
 
 Hallway witnesses work only when the witness and the ugly fact stay in the same action chain. `阿姨/邻居 says the bag leaked, the sleeve is dirty, the floor smells, or the door should close -> narrator wipes, lets them pass, answers badly, drops something, changes the door, or moves the body differently` is a hinge. `阿姨看了一眼 -> narrator later notices the sleeve` is still private texture.
 
@@ -77,6 +77,7 @@ Do not let `已经/现在/只是/可能` carry most of the article's movement. T
 Recent failed clean-eval runs swung between two false solutions:
 
 - comma-drag: many lines become long comma chains because the model is trying to sound breathless
+- comma carpet: almost every visible row trails with `，`, the draft has almost no landed `。`, and only one or two rows carry real action/speech/thought movement
 - period-row grid: the repair turns every beat into a sealed `。` row such as `没管。`, `删了。`, `没回。`, `算了。`
 
 Both are the same source failure. The cluster does not know what is still happening. Before saving, rebuild the local movement instead of flipping marks:
@@ -85,7 +86,7 @@ Both are the same source failure. The cluster does not know what is still happen
 - a hard-stop line ends with `。` only when an action lands, a reply fails, a payment/route/body decision closes, or another person changes the position
 - a short drop is rare and functional: bad answer, failed decision, body lowering, social cost, or practical retreat
 
-If a repair is trying to fix high comma density, do not answer by adding one-period rows. If a repair is trying to fix too many hard stops, do not answer by making one giant comma sentence. Choose the action that did not finish, the person who is still waiting, the object that changes hands, or the reply that comes out wrong; punctuation follows that movement.
+If a repair is trying to fix high comma density, do not answer by adding one-period rows. If a repair is trying to fix too many hard stops, do not answer by making one giant comma sentence or an all-line-final-comma surface. Choose the action that did not finish, the person who is still waiting, the object that changes hands, or the reply that comes out wrong; punctuation follows that movement.
 
 Repair path for this failure is local, not global. Do not merge the whole article into longer comma rows, and do not split the whole article into hard-stop captions. Pick 3-5 places where the action is still physically or socially unfinished, delete the explanatory tail around each one, and rebuild only those places into breathing clusters: one continuing line, one rough longer action/speech/thought line, one short failure or retreat. Leave other landed actions with hard stops.
 
