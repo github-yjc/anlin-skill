@@ -775,7 +775,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         )
     if "period_row_grid=present" in joined_messages:
         repair_hints.append(
-            "for period_row_grid, stop writing one finished `。` sentence per row. Rebuild 4-6 breathing clusters: a continuing action can end with `，`, one rough action/speech/thought line carries movement, then a short drop lands the failed decision or body/social consequence"
+            "for period_row_grid, stop writing one finished `。` sentence per row, but do not globally merge rows into comma chains. "
+            "Use local cluster surgery: choose 3-5 places where a hand, reply, payment, door, body, or object is still moving; "
+            "delete explanation tails first; let only those local actions trail with `，`; keep hard stops where actions actually land; "
+            "then add a few short failure drops. The goal is breathing movement, not more punctuation."
         )
     if standard_prompt_loop:
         repair_hints.append(

@@ -85,6 +85,8 @@ Both are the same source failure. The cluster does not know what is still happen
 
 If a repair is trying to fix high comma density, do not answer by adding one-period rows. If a repair is trying to fix too many hard stops, do not answer by making one giant comma sentence. Choose the action that did not finish, the person who is still waiting, the object that changes hands, or the reply that comes out wrong; punctuation follows that movement.
 
+Repair path for this failure is local, not global. Do not merge the whole article into longer comma rows, and do not split the whole article into hard-stop captions. Pick 3-5 places where the action is still physically or socially unfinished, delete the explanatory tail around each one, and rebuild only those places into breathing clusters: one continuing line, one rough longer action/speech/thought line, one short failure or retreat. Leave other landed actions with hard stops.
+
 ## Private-Holiday / Takeout Guard
 
 For romance-feed, holiday-alone, wrong-food, delivery, or takeout prompts, do not let the draft reduce to:
