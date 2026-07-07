@@ -496,6 +496,81 @@ SOCIAL_DECLINE_TERMS = [
     "走不开",
     "抱拳",
 ]
+SOCIAL_DECLINE_PLAIN_RESPONSE_RE = re.compile(
+    r"(?:狗哥|他|她|对方|同学|朋友)?[^。！？\n]{0,8}(?:回|发|说)[^。！？\n]{0,18}"
+    r"(?:好的|好|行|嗯|OK|ok|抱拳|表情|收到|知道了|你先忙|没事)"
+)
+SOCIAL_DECLINE_REPLY_PRIVATE_LOOP_TERMS = [
+    "手机",
+    "屏幕",
+    "水",
+    "水滴",
+    "水龙头",
+    "热水器",
+    "袖口",
+    "袖子",
+    "裤腿",
+    "湿",
+    "油印",
+    "白印",
+    "指纹",
+    "充电",
+    "暖气",
+    "泡面",
+    "杯子",
+    "碗",
+    "厨房",
+    "房间",
+    "床",
+    "桌上",
+]
+SOCIAL_DECLINE_REPLY_VISIBLE_ACTION_TERMS = [
+    "门口",
+    "楼道",
+    "邻居",
+    "阿姨",
+    "外卖员",
+    "骑手",
+    "店员",
+    "收银",
+    "老板",
+    "房东",
+    "室友",
+    "问我",
+    "问了一句",
+    "指",
+    "等我",
+    "等着",
+    "站着没走",
+    "没走",
+    "扫码",
+    "付款",
+    "二维码",
+    "地址",
+    "定位",
+    "退票",
+    "车票",
+    "打车",
+    "路线",
+    "下楼",
+    "出门",
+    "走到",
+    "扶墙",
+    "让路",
+    "答不上",
+    "没答",
+    "掉在",
+    "洒在",
+    "漏到",
+    "摔",
+    "滑",
+    "跪",
+    "递给",
+    "接过",
+    "关门",
+    "门夹",
+    "门撞",
+]
 SOCIAL_DECLINE_REFUSAL_TERMS = [
     "去不了",
     "走不开",
@@ -1439,6 +1514,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "疾病身体证明过密",
     "社交拒绝室内冷感过密",
     "社交拒绝纹理替代后果不足",
+    "社交拒绝普通回复假后果",
     "社交拒绝编剧化回礼",
     "社交拒绝私密转账假后果",
     "社交拒绝后果过度生长",
@@ -3700,6 +3776,91 @@ def check_social_decline_room_texture_overfill(findings: list[Finding], lines: l
         )
 
 
+def social_decline_plain_reply_private_loop_risk(lines: list[str], text: str) -> dict[str, Any] | None:
+    title, content_lines = split_title_and_content_lines(lines)
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
+        return None
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if len(visible_lines) < 35:
+        return None
+    body = "\n".join(visible_lines)
+    if chinese_len(body) < 850:
+        return None
+    social_hits = sum(body.count(term) for term in SOCIAL_DECLINE_TERMS)
+    has_invitation_context = any(
+        term in body
+        for term in ("狗哥", "结婚", "婚礼", "随礼", "份子钱", "高铁", "来不来", "去不了", "走不开")
+    )
+    if social_hits < 4 or not has_invitation_context:
+        return None
+
+    refusal_index = None
+    for index, line in enumerate(visible_lines):
+        if any(term in line for term in SOCIAL_DECLINE_REFUSAL_TERMS):
+            refusal_index = index
+            break
+    if refusal_index is None:
+        return None
+
+    response_index = None
+    for index in range(refusal_index + 1, min(len(visible_lines), refusal_index + 9)):
+        line = visible_lines[index]
+        if line.startswith("我"):
+            continue
+        if SOCIAL_DECLINE_PLAIN_RESPONSE_RE.search(line):
+            response_index = index
+            break
+    if response_index is None:
+        return None
+
+    response_line = visible_lines[response_index]
+    # A response that itself changes address, headcount, route, or ticket state
+    # is less likely to be the narrow "OK then private stain" failure.
+    if re.search(r"(?:不把你|不算你|人数|名单|桌|座|地址|定位|时间|车票|退票|路线|不用来|留位)", response_line):
+        return None
+
+    post_lines = visible_lines[response_index + 1 : response_index + 13]
+    if not post_lines:
+        return None
+    post_text = "\n".join(post_lines)
+    visible_action_hits = [term for term in SOCIAL_DECLINE_REPLY_VISIBLE_ACTION_TERMS if term in post_text]
+    if len(visible_action_hits) >= 2:
+        return None
+    private_hits = [term for term in SOCIAL_DECLINE_REPLY_PRIVATE_LOOP_TERMS if term in post_text]
+    if not private_hits:
+        return None
+
+    private_lines = [
+        line
+        for line in post_lines
+        if any(term in line for term in SOCIAL_DECLINE_REPLY_PRIVATE_LOOP_TERMS)
+    ]
+    if visible_action_hits and len(private_lines) < 3:
+        return None
+    return {
+        "response_line": response_index + 1,
+        "response": clean_excerpt(response_line),
+        "private_hits": private_hits[:8],
+        "visible_action_hits": visible_action_hits[:6],
+        "private_line_count": len(private_lines),
+    }
+
+
+def check_social_decline_plain_reply_private_loop(findings: list[Finding], lines: list[str], text: str) -> None:
+    risk = social_decline_plain_reply_private_loop_risk(lines, text)
+    if not risk:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "社交拒绝普通回复假后果",
+            int(risk["response_line"]),
+            str(risk["response"]),
+            "生成稿高风险：拒绝后用“好的/OK/抱拳”等普通回复接一段屏幕、水痕、油印、袖口或房间纹理，仍是私密屏幕循环。普通回复必须改变下一步可见动作：更差的回复、门口等待、付款/路线停住、他人问/指/等、或身体/门/物件问题被社交压力当场改写；否则从 reply aftermath 重建。",
+        )
+    )
+
+
 def check_social_decline_scripted_return_gift(findings: list[Finding], lines: list[str], text: str) -> None:
     title, content_lines = split_title_and_content_lines(lines)
     if not looks_like_standard_diary_gate_target(title, content_lines, text):
@@ -4961,6 +5122,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_illness_case_report_loop(findings, lines, text)
     check_illness_body_proof_overdensity(findings, lines, text)
     check_social_decline_room_texture_overfill(findings, lines, text)
+    check_social_decline_plain_reply_private_loop(findings, lines, text)
     check_social_decline_scripted_return_gift(findings, lines, text)
     check_social_decline_private_transfer_loop(findings, lines, text)
     check_social_decline_overextended_aftermath(findings, lines, text)

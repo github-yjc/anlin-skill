@@ -6736,6 +6736,64 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: 社交拒绝纹理替代后果不足" for item in findings), findings)
 
+    def test_checker_draft_gate_rejects_plain_reply_private_screen_loop_in_social_decline(self) -> None:
+        body_lines = (
+            [
+                "水槽下面又漏了一点水，我把盆挪过去，手背先湿了。",
+                "狗哥发微信说下个月结婚，问我来不来。",
+                "我看了高铁和随礼，最后回他说最近忙项目，去不了，恭喜啊。",
+                "他回了个好的。",
+                "手上的水还把屏幕按出一个油印。",
+            ]
+            + ["我把手机翻过去，袖口还是潮，水龙头在厨房响，杯子边上有一圈白印。"] * 36
+        )
+        body = "\n".join(["# 水印日寄", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 社交拒绝普通回复假后果" for item in findings), findings)
+
+            messages = preflight_messages(draft)
+            self.assertTrue(
+                any(message.startswith("social_decline_plain_reply_private_loop=") for message in messages),
+                messages,
+            )
+
+    def test_checker_allows_plain_reply_when_it_changes_visible_social_action(self) -> None:
+        body_lines = (
+            [
+                "水槽下面又漏了一点水，我把盆挪过去，手背先湿了。",
+                "狗哥发微信说下个月结婚，问我来不来。",
+                "我看了高铁和随礼，最后回他说最近忙项目，去不了，恭喜啊。",
+                "他回了句行，那我先不把你算进桌了。",
+                "门口外卖员还举着袋子等我扫码，我手上全是水，手机按了两次都没扫上。",
+                "他又站了一会儿，问我是不是门口信号不好。",
+            ]
+            + ["我把袋子接过来，水顺着手腕往袖口里走，因为屏幕上那个付款页面还停着。"] * 34
+        )
+        body = "\n".join(["# 水印日寄", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("社交拒绝普通回复假后果" in item["rule"] for item in findings), findings)
+
     def test_checker_draft_gate_rejects_scripted_return_gift_in_social_decline(self) -> None:
         body_lines = (
             [
@@ -11187,16 +11245,23 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("post-refusal consequence", text)
             self.assertIn("reply aftermath", text)
         self.assertIn("The refusal aftermath also has to shape the page rhythm before saving", first_draft)
+        self.assertIn("plain OK reply plus a private screen mark is still a screen loop", first_draft)
         self.assertIn("keep it as a lie/excuse surface inside the reply", first_draft)
         self.assertIn("salary deduction", first_draft)
         self.assertIn("the refusal chain itself creates the uneven rows", source_engine)
         self.assertIn("Public wet/dirty exposure can be a real hinge only when it changes social position or the next action", source_engine)
+        self.assertIn("plain OK reply plus a private screen mark is still a screen loop", source_engine)
         self.assertIn("Keep `忙项目` as an excuse surface", source_engine)
         self.assertIn("wage deduction", source_engine)
         self.assertIn("If a social-decline repair has already gained a valid low-status/public hinge", finalized)
+        self.assertIn("plain OK reply plus a private screen mark is still a screen loop", finalized)
         self.assertIn("Before saving, ask whether the article would still move if all room texture except one object were deleted", skill)
+        self.assertIn("plain OK reply plus a private screen mark is still a screen loop", skill)
         self.assertIn("privately delete all room texture except one object", clean)
+        self.assertIn("plain OK reply plus a private screen mark is still a screen loop", clean)
+        self.assertIn("plain OK reply plus a private screen mark is still a screen loop", runtime)
         self.assertIn("社交拒绝纹理替代后果不足", checker)
+        self.assertIn("社交拒绝普通回复假后果", checker)
 
     @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_run_blind_test_supports_multiple_placebo_rounds(self) -> None:

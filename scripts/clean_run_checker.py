@@ -72,6 +72,7 @@ from check_anlin_violations import (  # noqa: E402
     short_genre_present_action_anchor_risk,
     short_genre_prompt_prop_too_early_risk,
     short_genre_repair_stuffing_groups,
+    social_decline_plain_reply_private_loop_risk,
     standard_prompt_prop_title_loop_risk,
     set_forced_genre,
     split_title_and_content_lines,
@@ -606,6 +607,12 @@ def preflight_messages(draft: Path) -> list[str]:
             "standard_prompt_prop_title_loop="
             + json.dumps(standard_prop_loop_risk, ensure_ascii=False)
         )
+    plain_reply_loop_risk = social_decline_plain_reply_private_loop_risk(text.splitlines(), text)
+    if plain_reply_loop_risk:
+        messages.append(
+            "social_decline_plain_reply_private_loop="
+            + json.dumps(plain_reply_loop_risk, ensure_ascii=False)
+        )
     if body_chars < 900:
         messages.append(f"body_chinese_chars={body_chars} < 900")
     elif body_chars < 950 and source_shape_weak:
@@ -863,6 +870,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         repair_hints.append(
             "for private_grime_without_public_consequence, do not add another stain, mirror check, burp, hair, smell, or sleeve detail. Make the existing grime change a public hinge: another person waits/asks/points/holds/returns, payment stalls, the door closes wrong, the bag leaks in the handoff, the narrator drops/wipes/hides/fails to answer, or cut the grime packet"
         )
+    if "social_decline_plain_reply_private_loop=" in joined_messages:
+        repair_hints.append(
+            "for social_decline_plain_reply_private_loop, an OK/plain response plus a private screen mark is still a screen loop. Rebuild the refusal aftermath so the reply changes a visible next action: a worse small reply, door waiting, payment/route stall, someone asking/pointing/waiting, or a body/door/object problem altered while pressure is live"
+        )
     if "bare_line_grid=" in joined_messages:
         repair_hints.append(
             "for bare_line_grid, keep sentence punctuation and merge naked caption rows into action/reply/thought lines; do not create lineation by stripping punctuation"
@@ -929,6 +940,12 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
                 "actual body rows, then rebuild inside that corridor with several longer action/speech/thought lines, "
                 "true short breath drops, and one rough social/body consequence. Do not answer this by writing a new "
                 "80+ row caption grid or a 30-line prose block."
+            )
+        elif "social_decline_plain_reply_private_loop=" in joined_messages:
+            revision_frame = (
+                "Reset the refusal-aftermath source: do not keep `he said OK -> private screen/water mark -> room object`. "
+                "Delete one room/screen packet and rebuild the next cluster so the ordinary response changes hand, reply, "
+                "payment, route, door, body, or social position before the article exits the chat."
             )
         elif underbuilt_source:
             revision_frame = (
