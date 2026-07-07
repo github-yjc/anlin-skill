@@ -9402,7 +9402,9 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("after_rerun_stop: after the rerun, stop on pass or not-pass", result.stdout)
             self.assertIn("standard_shape_guard: do not shrink a standard-diary repair below about 900", result.stdout)
             self.assertIn("standard_line_shape_guard: the persisted standard draft must visibly stay line-broken", result.stdout)
+            self.assertIn("standard_cluster_variance_guard: line-broken is not a target count", result.stdout)
             self.assertIn("standard_rough_exposure_guard: at least one repaired cluster should expose", result.stdout)
+            self.assertIn("standard_private_wet_guard: wet sleeves, wet pants, wet slippers", result.stdout)
             self.assertIn("exit_note: with --strict --repair-brief", result.stdout)
             self.assertIn("not that the tool is broken", result.stdout)
             self.assertIn("path_contract: use the checker commands already given by the loaded skill", result.stdout)
@@ -9478,6 +9480,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("The single write is atomic", finalized_minimum)
         self.assertIn("do not patch it with `Edit draft.md`", finalized_minimum)
         self.assertIn("70+ similar short rows", finalized_minimum)
+        self.assertIn("Room-only water, wet sleeves, wet pants, wet slippers", finalized_minimum)
+        self.assertIn("A 45-70-line corridor is not a target count", finalized_minimum)
         self.assertIn("8-15 long paragraphs", finalized_minimum)
         self.assertIn("Do not repair social-decline message surfaces by enumerating message order", finalized_minimum)
         self.assertIn("If a standard-diary hard gate reports `粗粝自毁信号不足`", finalized_minimum)
@@ -9485,6 +9489,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("choose one primary source rewrite from the brief", runtime)
         self.assertIn("Hard-gate findings outrank profile-family repair", runtime)
         self.assertIn("The finalized rewrite is atomic", runtime)
+        self.assertIn("line-broken does not mean equal short sentence rows", skill)
+        self.assertIn("do not mistake private wet texture for rough exposure", runtime)
         self.assertIn("a dozen long prose paragraphs", skill)
         self.assertIn("A second `Write draft.md` or `Edit draft.md` in the same finalized attempt is invalid controller evidence", runtime)
         self.assertIn("When multiple families appear, do not make one patch per family", finalized_minimum)
@@ -10484,6 +10490,35 @@ class AnlinToolingTests(unittest.TestCase):
             )
             findings = json.loads(result.stdout)
             self.assertTrue(any("粗粝自毁信号不足" in item["rule"] for item in findings), findings)
+
+    def test_checker_explains_private_wet_texture_is_not_rough_exposure(self) -> None:
+        body = "\n".join(
+            [
+                "# 热水",
+                "",
+                "屏幕上狗哥问下个月婚礼来不来。最近项目忙，可能去不了，我打了又删。",
+                "热水器底下积了一小滩水，我蹲下去摸了摸地面。",
+                "裤管立刻湿了半截，拖鞋也湿了。",
+                "我找了个盆搁底下接水，热水器还在滴滴答答。",
+                *(["其实我觉得水龙头有点旧，不过手机又响了一下，因为那条消息还没回。"] * 34),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertTrue(any("私密湿脏纹理替代粗粝" in item["rule"] for item in findings), findings)
+            self.assertTrue(any("粗粝自毁信号不足" in item["rule"] for item in findings), findings)
+            wet_finding = next(item for item in findings if "私密湿脏纹理替代粗粝" in item["rule"])
+            self.assertIn("私密纹理", wet_finding["suggestion"])
+            self.assertIn("外部/社交/付款/路线/回复动作", wet_finding["suggestion"])
 
     def test_checker_accepts_dirty_sleeve_or_bare_foot_seen_by_rider_as_rough_signal(self) -> None:
         body = "\n".join(
