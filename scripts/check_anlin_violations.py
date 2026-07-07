@@ -3784,7 +3784,7 @@ def social_decline_plain_reply_private_loop_risk(lines: list[str], text: str) ->
     if len(visible_lines) < 35:
         return None
     body = "\n".join(visible_lines)
-    if chinese_len(body) < 850:
+    if chinese_len(body) < STANDARD_DIARY_ATTEMPT_MIN_CHARS:
         return None
     social_hits = sum(body.count(term) for term in SOCIAL_DECLINE_TERMS)
     has_invitation_context = any(

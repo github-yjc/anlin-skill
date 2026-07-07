@@ -6745,7 +6745,7 @@ class AnlinToolingTests(unittest.TestCase):
                 "他回了个好的。",
                 "手上的水还把屏幕按出一个油印。",
             ]
-            + ["我把手机翻过去，袖口还是潮，水龙头在厨房响，杯子边上有一圈白印。"] * 36
+            + ["袖口还是潮，屏幕有水印，水龙头响。"] * 35
         )
         body = "\n".join(["# 水印日寄", "", *body_lines])
         with tempfile.TemporaryDirectory() as temp:
