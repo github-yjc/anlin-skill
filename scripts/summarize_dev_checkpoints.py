@@ -36,7 +36,9 @@ FINALIZED_FORBIDDEN_SOURCE_RE = re.compile(
     re.IGNORECASE,
 )
 FINALIZED_THRESHOLD_PROBE_RE = re.compile(
-    r"(?:YELLOW_REVIEW_FAMILY_THRESHOLD|SOFT_REVISE_FAMILY_THRESHOLD|early_comma_ratio|short_breath_lines|comma_per_1k)",
+    r"(?:YELLOW_REVIEW_FAMILY_THRESHOLD|SOFT_REVISE_FAMILY_THRESHOLD|"
+    r"(?:search(?:ed|ing)?|grep|rg|Select-String|threshold|constant|源码|阈值|常量)"
+    r".{0,120}(?:early_comma_ratio|short_breath_lines|comma_per_1k))",
     re.IGNORECASE,
 )
 

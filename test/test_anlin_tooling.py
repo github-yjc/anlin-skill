@@ -5043,6 +5043,53 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(payload["finalized"]["gate"]["trace_errors"], 1)
             self.assertEqual(payload["finalized"]["trace_findings"][0]["rule"], "finalized修复反查checker阈值")
 
+    def test_dev_checkpoint_summary_allows_public_checker_metric_output_in_finalized_trace(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            finalized_dir = case_dir / "finalized"
+            finalized_dir.mkdir(parents=True)
+            bounded = case_dir / "draft.md"
+            finalized = finalized_dir / "draft.md"
+            bounded.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 90)]), encoding="utf-8")
+            finalized.write_text(
+                "\n".join(["# 日寄", "", *(["其实我觉得杯子脏了，于是洗手差点吐出来，丢人。"] * 50)]),
+                encoding="utf-8",
+            )
+            trace = finalized_dir / "opencode-output.txt"
+            trace.write_text(
+                "\n".join(
+                    [
+                        "$ python scripts/check_style_profile.py draft.md --draft-gate --strict --genre standard",
+                        "warning:red | punctuation | punct_comma_per_1k | observed=107.0 | expected=q10-q90=67.0..94.0",
+                        '{"before": {"short_breath_lines": 27}, "after": {"short_breath_lines": 16}}',
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(bounded),
+                    "--finalized-draft",
+                    str(finalized),
+                    "--finalized-trace-log",
+                    str(trace),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["finalized"]["gate"]["trace_errors"], 0)
+            self.assertFalse(payload["finalized"]["trace_findings"])
+
     def test_clean_run_checker_merges_uniform_medium_grid_before_second_call(self) -> None:
         fragments = [
             "其实厕所灯坏了我站着很丢人",
