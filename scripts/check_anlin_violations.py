@@ -1340,6 +1340,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "社交拒绝编剧化回礼",
     "社交拒绝私密转账假后果",
     "标准日寄提示物标题闭环",
+    "标准日寄句号网格",
     "逗号密度过高",
     "行末逗号比例",
     "节奏过度均匀",
@@ -4128,6 +4129,41 @@ def check_global_comma_density(findings: list[Finding], lines: list[str], text: 
         )
 
 
+def check_standard_period_row_grid(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
+        return
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if len(visible_lines) < 45:
+        return
+    body = "\n".join(visible_lines)
+    chars = chinese_len(body)
+    if chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
+        return
+    period_count = body.count("。")
+    period_per_1k = period_count / chars * 1000 if chars else 0.0
+    line_period_ratio = sum(1 for line in visible_lines if line.endswith("。")) / max(1, len(visible_lines))
+    short_breath_count = sum(
+        1
+        for line in visible_lines
+        if 1 <= chinese_len(line) <= 8 and re.search(r"[。！？]$", line) and not re.search(r"[，,；;：:]", line)
+    )
+    if (period_per_1k >= 45 and period_count >= 35) or (line_period_ratio >= 0.65 and short_breath_count < 4):
+        findings.append(
+            Finding(
+                "warning",
+                "标准日寄句号网格",
+                0,
+                (
+                    f"body_chars={chars}, body_lines={len(visible_lines)}, periods={period_count}, "
+                    f"period_per_1k={period_per_1k:.1f}, line_period_ratio={line_period_ratio:.2f}, "
+                    f"short_breath_lines={short_breath_count}"
+                ),
+                "生成稿高风险：标准日寄不能修成一排封闭句号句。不要把逗号问题反向修成句号网格；重建呼吸簇，让一行动作/回复/身体还没结束时自然拖到下一行，另一些行用硬停顿或短落点承担失败决定、低处身体或社交后果。",
+            )
+        )
+
+
 def check_prose_block_compression(findings: list[Finding], lines: list[str], text: str) -> None:
     style = detect_style(text)
     if style != "standard":
@@ -4714,6 +4750,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_sealed_nocturne(findings, text)
     check_period_comma_ratio(findings, lines)
     check_global_comma_density(findings, lines, text)
+    check_standard_period_row_grid(findings, lines, text)
     check_generated_texture_overfill(findings, lines, text)
     check_illness_case_report_loop(findings, lines, text)
     check_illness_body_proof_overdensity(findings, lines, text)

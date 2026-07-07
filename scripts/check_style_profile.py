@@ -356,6 +356,13 @@ def summarize_status(findings: list[ProfileFinding]) -> dict[str, Any]:
             "Reset the rhythm corridor from scene movement: use breathing clusters and real action/speech/thought rows, "
             "then validate once. Do not bounce between tiny rows, prose blocks, and comma chains."
         )
+    elif status == "review" and "punctuation" in red_families:
+        repair_mode = "punctuation_source_reset"
+        next_repair_action = (
+            "Punctuation is a source-shape problem here, not a comma/period target. Rebuild several breathing clusters "
+            "from unfinished action, reply, payment, door/body movement, and short failure drops; do not swing from comma-drag "
+            "into one-period-per-row grids or from period grids into huge comma chains."
+        )
     elif status == "review":
         repair_mode = "manual_placebo_review"
         next_repair_action = (

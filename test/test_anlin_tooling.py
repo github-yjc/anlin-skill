@@ -7445,6 +7445,38 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn("minimax", engine.lower())
         self.assertNotIn("gpt", engine.lower())
 
+    def test_punctuation_pendulum_is_source_guidance_not_only_checker(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        engine = (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8")
+        profile = (ROOT / "scripts" / "check_style_profile.py").read_text(encoding="utf-8")
+        checker = (ROOT / "scripts" / "check_anlin_violations.py").read_text(encoding="utf-8")
+        combined = "\n".join([skill, clean, runtime, engine, profile, checker])
+
+        self.assertIn("Punctuation Pendulum Guard", engine)
+        self.assertIn("comma-drag", combined)
+        self.assertIn("period-row grid", combined)
+        self.assertIn("标准日寄句号网格", combined)
+        self.assertIn("punctuation_source_reset", profile)
+        self.assertIn("unfinished action, reply, payment, door/body movement", combined)
+        self.assertIn("do not swing", combined.lower())
+        self.assertNotIn("deepseek", engine.lower())
+        self.assertNotIn("mimo", engine.lower())
+        self.assertNotIn("minimax", engine.lower())
+
+    def test_social_decline_refusal_aftermath_is_layer0_source_kernel(self) -> None:
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        engine = (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8")
+        combined = "\n".join([clean, runtime, engine])
+
+        self.assertIn("Social-Decline Guard", engine)
+        self.assertIn("one load-bearing kernel must be the refusal aftermath itself", clean)
+        self.assertIn("at least one later cluster should be driven by the refusal aftermath itself", runtime)
+        self.assertIn("If deleting every room/object detail except one makes the article stop moving", engine)
+        self.assertIn("the refusal, not the sleeve or bowl, must produce the next action", engine)
+
     def test_clean_eval_rhythm_repair_order_is_unambiguous_in_runtime_docs(self) -> None:
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
         self.assertIn("Any later `Write draft.md`, `Edit draft.md`, `Set-Content`, or `Out-File` cancels", clean)
@@ -8074,6 +8106,37 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("逗号链", suggestion)
             self.assertIn("短硬停顿", suggestion)
             self.assertIn("不要继续撒逗号", suggestion)
+
+    def test_checker_draft_gate_rejects_standard_period_row_grid(self) -> None:
+        lines = [
+            "水龙头开小了还是溅出来。",
+            "碗沿那圈黑线怎么蹭都没掉。",
+            "手机在枕头边亮了一下。",
+            "我把袖口往下拽了拽。",
+            "门口有人把垃圾袋拎过去。",
+            "我站在那里看了几秒。",
+            "消息列表里那条还是没回。",
+            "锅里的水也没开。",
+            "冰箱响了一声。",
+            "后来就没动。",
+        ]
+        body = "\n".join(["# 洗到一半", "", *(lines * 12)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate", "--genre", "standard"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            period_findings = [item for item in findings if "标准日寄句号网格" in item["rule"]]
+            self.assertTrue(period_findings, findings)
+            self.assertEqual(period_findings[0]["severity"], "error")
+            self.assertIn("不要把逗号问题反向修成句号网格", period_findings[0]["suggestion"])
 
     def test_checker_draft_gate_rejects_uniform_line_rhythm(self) -> None:
         lines = [
@@ -8840,6 +8903,82 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("Do not call the article clean", text_result.stdout)
             self.assertIn("repair_mode: source_reset_thinning", text_result.stdout)
             self.assertIn("next_repair_action:", text_result.stdout)
+
+    def test_style_profile_review_with_red_punctuation_gets_source_reset_action(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(
+                "\n".join(
+                    [
+                        "# 洗到一半",
+                        "",
+                        *(["水龙头开小了还是溅出来。"] * 52),
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            yellow_summary = {
+                "min": 0.0,
+                "q05": 0.0,
+                "q10": 0.0,
+                "median": 0.0,
+                "q90": 0.0,
+                "q95": 0.0,
+                "max": 100000.0,
+                "mean": 0.0,
+                "mad": 0.0,
+            }
+            red_summary = dict(yellow_summary)
+            red_summary["max"] = 0.0
+            profile = Path(temp) / "profile.json"
+            profile.write_text(
+                json.dumps(
+                    {
+                        "version": "test",
+                        "corpus_file_count": 38,
+                        "expected_corpus_count": 38,
+                        "value_summary": {
+                            "body_chars": yellow_summary,
+                            "title_chars": yellow_summary,
+                            "line_mean_chars": yellow_summary,
+                            "paragraph_blocks": yellow_summary,
+                            "punct_period_per_1k": red_summary,
+                        },
+                        "value_families": {
+                            "body_chars": "length",
+                            "title_chars": "title",
+                            "line_mean_chars": "line_rhythm",
+                            "paragraph_blocks": "structure",
+                            "punct_period_per_1k": "punctuation",
+                        },
+                        "count_summary": {},
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECK_PROFILE),
+                    str(draft),
+                    "--profile",
+                    str(profile),
+                    "--draft-gate",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads(result.stdout)
+            self.assertEqual(report["summary"]["status"], "review")
+            self.assertIn("punctuation", report["summary"]["red_families"])
+            self.assertEqual(report["summary"]["repair_mode"], "punctuation_source_reset")
+            self.assertIn("Punctuation is a source-shape problem", report["summary"]["next_repair_action"])
+            self.assertIn("one-period-per-row grids", report["summary"]["next_repair_action"])
 
     def test_style_profile_nonstandard_fallback_is_inconclusive_not_pass(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

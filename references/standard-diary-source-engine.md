@@ -70,6 +70,21 @@ If a cluster can be summarized as `A happened. B happened. C happened.`, it will
 
 Do not let `已经/现在/只是/可能` carry most of the article's movement. Those words can stay when true, but if they are the only connectors, the draft is probably still a static sequence. A stronger turn usually comes from a failed attempt, wrong reply, object leak, person waiting, payment stall, or physical interruption.
 
+## Punctuation Pendulum Guard
+
+Recent failed clean-eval runs swung between two false solutions:
+
+- comma-drag: many lines become long comma chains because the model is trying to sound breathless
+- period-row grid: the repair turns every beat into a sealed `。` row such as `没管。`, `删了。`, `没回。`, `算了。`
+
+Both are the same source failure. The cluster does not know what is still happening. Before saving, rebuild the local movement instead of flipping marks:
+
+- a continuation line ends with `，` only when the hand, reply, payment, door, or body is still moving into the next line
+- a hard-stop line ends with `。` only when an action lands, a reply fails, a payment/route/body decision closes, or another person changes the position
+- a short drop is rare and functional: bad answer, failed decision, body lowering, social cost, or practical retreat
+
+If a repair is trying to fix high comma density, do not answer by adding one-period rows. If a repair is trying to fix too many hard stops, do not answer by making one giant comma sentence. Choose the action that did not finish, the person who is still waiting, the object that changes hands, or the reply that comes out wrong; punctuation follows that movement.
+
 ## Private-Holiday / Takeout Guard
 
 For romance-feed, holiday-alone, wrong-food, delivery, or takeout prompts, do not let the draft reduce to:
@@ -90,6 +105,19 @@ Private grime is not an event. Oil stains, sleeve dirt, sticky fingers, burps, m
 A rider or cashier who only looks once, points once, or speaks once and then leaves is still decoration if nothing in the narrator's next action changes until later private inspection. Start from bag, payment, door, reply, hand, or body consequence, not from gaze or a single neutral notice.
 
 If the contact already points out the stain, asks for paper, waits, or makes the narrator fail to answer, do not keep proving the same stain for the rest of the article. Spend the next movement somewhere else: the missing paper changes the door, the failed reply changes the phone, a payment/app residue changes the room, or a small unrelated chore comes back wrong. A public hinge should open a second consequence, not authorize more private inspection.
+
+## Social-Decline Guard
+
+For invitation, wedding, reunion, classmate-success, or similar social-decline prompts, one of the three kernels must be the refusal aftermath itself. Do not let sink, oil, sleeve, cold room, bowl, charger, or screen texture carry the whole article while the refusal stays inside a drafted message.
+
+Use this source order:
+
+1. Start from a side action that can stand without the prompt.
+2. Let the invitation enter as one cropped message surface.
+3. Make the refusal alter a visible next move within the next cluster: the reply gets worse, money/route becomes impossible, a payment or transfer stalls, a person waits, a body/object problem interrupts the answer, or the old debt changes the hand.
+4. Then move away from the room/object texture. Keep one room-side handle at most; the refusal, not the sleeve or bowl, must produce the next action.
+
+If deleting every room/object detail except one makes the article stop moving, the refusal did not become an engine. Rebuild from the reply aftermath before saving `draft.md`.
 
 ## Title And Tail
 
