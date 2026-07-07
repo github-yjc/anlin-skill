@@ -65,9 +65,8 @@ FINALIZED_REPAIR_BRIEF_GATE_RE = re.compile(
     re.IGNORECASE,
 )
 FINALIZED_DRAFT_MUTATION_RE = re.compile(
-    r"(?:Write|Edit)\s+draft\.md|"
-    r"(?:Write|Edit)\s+[A-Za-z]:[^\n]*[\\/]finalized[\\/]draft\.md|"
-    r"(?:Set-Content|Out-File)[^\n]*(?:draft\.md|finalized[\\/]draft\.md)",
+    r"^\s*(?:←\s*)?(?:Write|Edit)\s+(?:draft\.md|[A-Za-z]:[^\n]*[\\/]finalized[\\/]draft\.md)\b|"
+    r"^\s*\$\s+[^\n]*(?:Set-Content|Out-File)[^\n]*(?:draft\.md|finalized[\\/]draft\.md)",
     re.IGNORECASE,
 )
 FINALIZED_LOOP_LABELS = [
@@ -312,6 +311,27 @@ def run_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any]], Comman
     return parsed if isinstance(parsed, list) else [], report
 
 
+def collapse_wrapped_trace_lines(text: str) -> list[str]:
+    """Join wrapped OpenCode shell command lines without changing prose lines."""
+    collapsed: list[str] = []
+    continuation_re = re.compile(
+        r"^(?:ct|rict|ict|ate|gate|brief|standard|sincere|micro-hope|surreal|--[A-Za-z0-9_-]+)\b"
+    )
+    for line in text.splitlines():
+        stripped = line.strip()
+        if (
+            collapsed
+            and collapsed[-1].lstrip().startswith("$ ")
+            and stripped
+            and not stripped.startswith(("$", "←", "→", "[", "{", "}", "#"))
+            and continuation_re.search(stripped)
+        ):
+            collapsed[-1] = collapsed[-1].rstrip() + stripped
+        else:
+            collapsed.append(line)
+    return collapsed
+
+
 def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any]], CommandReport | None]:
     """Check finalized repair logs for source-code/threshold contamination.
 
@@ -324,7 +344,9 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
     findings: list[dict[str, Any]] = []
     raw_text = trace_log.read_text(encoding="utf-8", errors="replace").replace("\x00", "")
     text = re.sub(r"\x1b\[[0-9;]*m", "", raw_text)
-    for line in text.splitlines():
+    collapsed_lines = collapse_wrapped_trace_lines(text)
+    command_text = "\n".join(collapsed_lines)
+    for line in collapsed_lines:
         normalized = line.replace("\\", "/")
         source_match = FINALIZED_FORBIDDEN_SOURCE_RE.search(normalized)
         rediscovery_match = FINALIZED_REDISCOVERY_RE.search(normalized)
@@ -356,17 +378,19 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
                 ),
             }
         )
-    hard_gate_runs = len(FINALIZED_HARD_GATE_RE.findall(text))
-    repair_brief_runs = len(FINALIZED_REPAIR_BRIEF_GATE_RE.findall(text))
-    draft_mutations = len(FINALIZED_DRAFT_MUTATION_RE.findall(text))
-    repeated_labels = [label for label in FINALIZED_LOOP_LABELS if text.count(label) >= 2]
+    hard_gate_runs = len(FINALIZED_HARD_GATE_RE.findall(command_text))
+    repair_brief_runs = len(FINALIZED_REPAIR_BRIEF_GATE_RE.findall(command_text))
+    draft_mutations = sum(
+        1 for line in collapsed_lines if FINALIZED_DRAFT_MUTATION_RE.search(line.replace("\\", "/"))
+    )
+    repeated_labels = [label for label in FINALIZED_LOOP_LABELS if command_text.count(label) >= 2]
     loop_over_budget = (
         draft_mutations > 1
         or hard_gate_runs > 2
         or repair_brief_runs > 2
         or (hard_gate_runs >= 3 and repeated_labels)
     )
-    if loop_over_budget and (hard_gate_runs >= 2 or repair_brief_runs >= 2):
+    if loop_over_budget:
         findings.append(
             {
                 "severity": "error",

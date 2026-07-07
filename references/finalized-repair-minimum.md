@@ -14,6 +14,7 @@ Use this file only when a controller or user explicitly starts a finalized repai
 - Do not use TODO tools, plans, or long diagnostic narration as the repair artifact. The next useful action after a not-pass brief is reading the current `draft.md`, rewriting the whole article from one source action, and writing it back to `draft.md`.
 - In formal finalized checkpoints, this file is not an open-ended ordinary-user repair loop. The repair agent gets one complete source rewrite after the not-pass brief, then one hard-gate plus repair-brief rerun. If the result still does not pass, leave the best persisted `draft.md` and stop as unresolved controller evidence.
 - A second `Write draft.md` or `Edit draft.md` in the same finalized attempt is invalid controller evidence. After the rerun, stop on pass or not-pass. Do not calculate per-thousand thresholds, argue that checker metrics conflict, or write another version.
+- The single write is atomic. If you notice a typo, a compressed prose block, a missed hard-gate issue, or a line-shape problem after writing, do not patch it with `Edit draft.md`; rerun the gates and let the controller record unresolved repair evidence.
 
 ## Gate Order
 
@@ -44,6 +45,7 @@ If a standard-diary hard gate reports `粗粝自毁信号不足`, do not add a c
 If the hard gate is clean but the repair brief says `formal_gate: not_pass`, choose exactly one source rewrite before the next validation:
 
 - `punctuation` or `line_rhythm`: rebuild a few breathing clusters from action, reply, payment, door, object, or body movement. Add short drops only when an action lands badly. Do not globally merge rows into comma chains and do not split the draft into tiny rows. For standard diary, do not shrink the repair below about 900 body Chinese characters or turn it into 70+ similar short rows; keep several rough long action/speech/thought rows inside the clusters.
+- `length` or prose compression: keep the article visibly line-broken while rewriting. A standard repair should not become 8-15 long paragraphs or a few very long rows. If the source move needs more mass, add one active consequence cluster and preserve broken-line breathing; do not compress the whole draft into paragraph prose to avoid a period grid.
 - `connectors`: change what happens next so a turn is needed: failed reply, payment handoff, body interruption, route/object change, or another person's plain line. Do not paste connector words.
 - `texture` or `ngram_texture`: delete one repeated body, screen, room, money, route, food, or object packet. Replace its function with a social or practical consequence that changes reply, payment, route, room position, body state, or next action.
 - `structure` or `cognitive_mechanism`: cut prompt echoes, decorative proof details, and explicit cognition. Let a concrete object lead to a crooked read, a reality puncture, a defensive recovery, and a practical exit through action rather than explanation.

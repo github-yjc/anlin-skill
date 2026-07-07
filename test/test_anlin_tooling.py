@@ -5199,12 +5199,13 @@ class AnlinToolingTests(unittest.TestCase):
                     [
                         "$ python scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre standard",
                         "$ python scripts/check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre standard",
+                        "single_write_budget: after this brief, exactly one Write/Edit draft.md is allowed",
                         "← Write draft.md",
                         "$ python scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre standard",
                         "[error] global strict: 逗号密度过高",
                         "$ python scripts/check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre standard",
                         "现在要逐行计算逗号和句号的频率，因为工具给出了具体的阈值限制，逗号每千字不超过35个。",
-                        "← Write draft.md",
+                        "← Edit draft.md",
                         "$ python scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre standard",
                         "[error] global strict: 行末逗号比例",
                         "$ python scripts/check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre standard",
@@ -9397,8 +9398,10 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("hard_gate_priority: if the preceding hard gate showed blocking findings", result.stdout)
             self.assertIn("repair_loop_budget: exactly one complete source rewrite", result.stdout)
             self.assertIn("single_write_budget: after this brief, exactly one Write/Edit draft.md is allowed", result.stdout)
+            self.assertIn("atomic_write_rule: treat the one draft.md write as final", result.stdout)
             self.assertIn("after_rerun_stop: after the rerun, stop on pass or not-pass", result.stdout)
             self.assertIn("standard_shape_guard: do not shrink a standard-diary repair below about 900", result.stdout)
+            self.assertIn("standard_line_shape_guard: the persisted standard draft must visibly stay line-broken", result.stdout)
             self.assertIn("standard_rough_exposure_guard: at least one repaired cluster should expose", result.stdout)
             self.assertIn("exit_note: with --strict --repair-brief", result.stdout)
             self.assertIn("not that the tool is broken", result.stdout)
@@ -9472,12 +9475,17 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("one complete source rewrite after the not-pass brief", finalized_minimum)
         self.assertIn("A second `Write draft.md` or `Edit draft.md` in the same finalized attempt is invalid", finalized_minimum)
         self.assertIn("After the rerun, stop on pass or not-pass", finalized_minimum)
+        self.assertIn("The single write is atomic", finalized_minimum)
+        self.assertIn("do not patch it with `Edit draft.md`", finalized_minimum)
         self.assertIn("70+ similar short rows", finalized_minimum)
+        self.assertIn("8-15 long paragraphs", finalized_minimum)
         self.assertIn("Do not repair social-decline message surfaces by enumerating message order", finalized_minimum)
         self.assertIn("If a standard-diary hard gate reports `粗粝自毁信号不足`", finalized_minimum)
         self.assertIn("message -> calculation -> refusal -> he said OK -> room object", finalized_minimum)
         self.assertIn("choose one primary source rewrite from the brief", runtime)
         self.assertIn("Hard-gate findings outrank profile-family repair", runtime)
+        self.assertIn("The finalized rewrite is atomic", runtime)
+        self.assertIn("a dozen long prose paragraphs", skill)
         self.assertIn("A second `Write draft.md` or `Edit draft.md` in the same finalized attempt is invalid controller evidence", runtime)
         self.assertIn("When multiple families appear, do not make one patch per family", finalized_minimum)
         self.assertIn("one complete source rewrite, persist `finalized/draft.md`, and rerun the gates once", validation)
