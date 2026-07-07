@@ -9123,13 +9123,70 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("Anlin style-profile repair brief", result.stdout)
             self.assertIn("repair_directive: write a complete revised draft.md before any further metric analysis", result.stdout)
             self.assertIn("Do not print a proposed full article", result.stdout)
+            self.assertIn("exit_note: with --strict --repair-brief", result.stdout)
+            self.assertIn("not that the tool is broken", result.stdout)
             self.assertIn("root_families:", result.stdout)
             self.assertIn("punctuation:", result.stdout)
             self.assertIn("line_rhythm:", result.stdout)
             self.assertNotIn("findings:", result.stdout)
             self.assertNotIn("observed=", result.stdout)
             self.assertNotIn("q10-q90", result.stdout)
+            self.assertNotIn("q05-q95", result.stdout)
             self.assertNotIn("count80", result.stdout)
+            self.assertNotIn("robust_z", result.stdout)
+
+            full_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECK_PROFILE),
+                    str(draft),
+                    "--profile",
+                    str(profile),
+                    "--draft-gate",
+                    "--strict",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(full_result.returncode, 0)
+            self.assertIn("findings:", full_result.stdout)
+            self.assertIn("observed=", full_result.stdout)
+            self.assertIn("q05-q95", full_result.stdout)
+            self.assertIn("robust_z=", full_result.stdout)
+
+    def test_finalized_repair_docs_route_profile_brief_and_full_report_separately(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        validation = (ROOT / "references" / "validation-protocol.md").read_text(encoding="utf-8")
+        layer = (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        combined = "\n".join([skill, runtime, validation, layer, readme])
+
+        self.assertIn(
+            "check_anlin_violations.py draft.md --strict --draft-gate --genre <selected-genre>",
+            runtime,
+        )
+        self.assertIn(
+            "check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre <selected-genre>",
+            runtime,
+        )
+        for text in (skill, runtime, validation, layer):
+            self.assertIn("--repair-brief", text)
+            self.assertIn("draft.md", text)
+        for text in (skill, runtime, layer):
+            self.assertIn("terminal", text.lower())
+        self.assertIn("The repair brief is the generator-facing interface", validation)
+        self.assertIn("After the finalized artifact is frozen", validation)
+        self.assertIn("without `--repair-brief` for the full report", validation)
+        self.assertIn("controller may rerun the full style-profile report after the artifact is frozen", layer)
+        self.assertIn("terminal-only prose is an artifact failure", skill)
+        self.assertIn("terminal-only prose is an artifact failure", runtime)
+        self.assertIn("prints a repaired article to chat or a log but leaves that file unchanged", validation)
+        self.assertIn("finalized/draft.md", combined)
+        self.assertIn("nonzero, treat that as a normal not-pass signal, not a broken tool", runtime)
+        self.assertIn("full profile report after the artifact is frozen", readme)
 
     def test_style_profile_review_with_red_punctuation_gets_source_reset_action(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

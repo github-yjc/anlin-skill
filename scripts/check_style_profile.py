@@ -668,6 +668,7 @@ def format_repair_brief(report: dict[str, Any]) -> str:
     lines.extend(
         [
             "repair_directive: write a complete revised draft.md before any further metric analysis. Do not print a proposed full article to the terminal; persist it to draft.md, then rerun the formal gates.",
+            "exit_note: with --strict --repair-brief, a nonzero exit usually means this profile gate is not passed, not that the tool is broken. Revise draft.md from the source actions and rerun the gates.",
             "do_not: do not use individual metrics as a TODO list, do not calculate thresholds, do not tune punctuation or connector counts, and do not keep thinking until every profile line is mentally solved.",
             "source_actions:",
         ]
