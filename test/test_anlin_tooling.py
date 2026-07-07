@@ -6209,6 +6209,34 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertTrue(any(rule == "strict: 无依据工作后果链" for rule in rules), findings)
 
+    def test_checker_draft_gate_rejects_half_day_leave_escape_chain(self) -> None:
+        body = "\n".join(
+            [
+                "# 插线板",
+                "",
+                "狗哥问我下个月结婚来不来。",
+                "我说最近忙项目，去不了。",
+                "他回了个好的。",
+                "我盯着手机，想起那半天假请不下来，",
+                "手上的水还把屏幕按出一个油印。",
+                *(["其实我觉得水龙头突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"] * 34),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any(rule == "strict: 无依据工作后果链" for rule in rules), findings)
+
     def test_checker_allows_third_person_social_feed_office_surface(self) -> None:
         body = "\n".join(
             [
@@ -6242,6 +6270,33 @@ class AnlinToolingTests(unittest.TestCase):
                 any(item["rule"] == "strict: 无依据当前职场身份" for item in draft_gate_findings)
             )
             self.assertNotIn("current_office_persona=", clean_result.stdout)
+
+    def test_checker_allows_third_person_social_feed_shift_surface(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "大学同学发了张截图，",
+                "说他们这周排班满了，调休也调不开。",
+                "我把手机扣回床上，手指上还有拖鞋盒子的灰。",
+                *(["其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"] * 34),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(
+                any(item["rule"] == "strict: 无依据工作后果链" for item in findings),
+                findings,
+            )
 
     def test_checker_draft_gate_rejects_unsupported_family_identity(self) -> None:
         body = "\n".join(
