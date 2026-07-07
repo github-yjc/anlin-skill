@@ -95,7 +95,7 @@ def primary_source_rewrite(families: list[str]) -> str:
             "change how an existing scene thinks: concrete object -> crooked read -> reality puncture -> "
             "defensive recovery -> practical exit. Do not add abstract labels."
         )
-    return "make one source-level rewrite, persist the complete article to draft.md, then rerun the formal gates."
+    return "make one source-level rewrite, persist the complete article to draft.md, then stop; the controller reruns formal gates."
 
 TOPIC_SENSITIVE_SOFT_ONLY_FAMILIES = {"structure", "texture", "cognitive_mechanism", "title"}
 YELLOW_REVIEW_FAMILY_THRESHOLD = 5
@@ -409,7 +409,7 @@ def summarize_status(findings: list[ProfileFinding]) -> dict[str, Any]:
         repair_mode = "rhythm_source_reset"
         next_repair_action = (
             "Reset the rhythm corridor from scene movement: use breathing clusters and real action/speech/thought rows, "
-            "then validate once. Do not bounce between tiny rows, prose blocks, and comma chains."
+            "then write the complete artifact and stop. Let the controller validate; do not bounce between tiny rows, prose blocks, and comma chains."
         )
     elif status == "review" and "punctuation" in red_families:
         repair_mode = "punctuation_source_reset"
@@ -698,12 +698,12 @@ def format_repair_brief(report: dict[str, Any]) -> str:
 
     lines.extend(
         [
-            "repair_directive: write a complete revised draft.md before any further metric analysis. Do not print a proposed full article to the terminal; persist it to draft.md, then rerun the formal gates.",
+            "repair_directive: write a complete revised draft.md before any further metric analysis. Do not print a proposed full article to the terminal; persist it to draft.md, then stop. Controller validation reruns the formal gates.",
             "hard_gate_priority: if the preceding hard gate showed blocking findings, the one source rewrite must clear those first; use this profile brief to shape the same move, not to ignore hard-gate roughness or fact failures.",
-            "repair_loop_budget: exactly one complete source rewrite, then one hard-gate plus repair-brief rerun. If it still does not pass, stop and record unresolved repair-path drift instead of making another metric patch.",
+            "repair_loop_budget: exactly one complete source rewrite after this brief. Do not run a post-write gate loop inside the repair agent; the controller records pass or unresolved drift.",
             "single_write_budget: after this brief, exactly one Write/Edit draft.md is allowed in this finalized attempt. A second write/edit or a third gate run is invalid controller evidence, even if the article improves.",
-            "atomic_write_rule: treat the one draft.md write as final for this attempt. If you notice a typo, compressed prose block, or missed hard-gate issue after writing, do not patch it with Edit; rerun the gates and report unresolved.",
-            "after_rerun_stop: after the rerun, stop on pass or not-pass. Do not calculate thresholds, do not argue that checker metrics conflict, and do not write another version in the same finalized attempt.",
+            "atomic_write_rule: treat the one draft.md write as final for this attempt. If you notice a typo, compressed prose block, or missed hard-gate issue after writing, do not patch it with Edit; stop and let the controller rerun gates.",
+            "post_write_stop: after writing draft.md, stop. Do not run another gate sequence, calculate thresholds, argue that checker metrics conflict, or write another version in the same finalized attempt.",
             *(
                 [
                     "standard_shape_guard: do not shrink a standard-diary repair below about 900 body Chinese characters or turn it into 70+ similar short rows; keep several rough long action/speech/thought rows inside 4-6 breathing clusters.",
@@ -721,7 +721,7 @@ def format_repair_brief(report: dict[str, Any]) -> str:
                 if genre == "standard"
                 else []
             ),
-            "exit_note: with --strict --repair-brief, a nonzero exit usually means this profile gate is not passed, not that the tool is broken. Revise draft.md from the source actions and rerun the gates.",
+            "exit_note: with --strict --repair-brief, a nonzero exit usually means this profile gate is not passed, not that the tool is broken. Revise draft.md from the source actions, persist it, and stop for controller validation.",
             "path_contract: use the checker commands already given by the loaded skill. Do not Glob, list, grep, or read checker scripts, tests, hidden thresholds, or old logs to find a better target.",
             "do_not: do not use individual metrics as a TODO list, do not calculate thresholds, do not tune punctuation or connector counts, and do not keep thinking until every profile line is mentally solved.",
             f"primary_source_rewrite: {primary_source_rewrite(families)}",
@@ -734,7 +734,7 @@ def format_repair_brief(report: dict[str, Any]) -> str:
         lines.append("  - remaining families: handle only if they still appear after the source rewrite; do not solve them one by one before writing.")
     lines.extend(
         [
-            "validation_loop: after writing draft.md, run the strict hard gate and this repair brief once. If the same or opposite failures bounce again, stop and record unresolved repair-path drift; do not make a second metric-shaped edit.",
+            "validation_boundary: after writing draft.md, the repair agent stops. The controller reruns strict hard gate and full/brief profile reports; if the same or opposite failures bounce, record unresolved repair-path drift instead of sending the same agent into another metric-shaped edit.",
             "controller_note: rerun without --repair-brief for full corpus-prior evidence, calibration, or reporting. The brief is the generator-facing repair interface.",
         ]
     )

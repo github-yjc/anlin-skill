@@ -335,7 +335,7 @@ def collapse_wrapped_trace_lines(text: str) -> list[str]:
 def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any]], CommandReport | None]:
     """Check finalized repair logs for source-code/threshold contamination.
 
-    Finalized repair may run the formal hard/style gates repeatedly. It must not
+    Finalized repair may run at most one pre-write hard/style brief sequence. It must not
     read or grep checker source, tests, or hidden threshold constants to tune the
     article against implementation details.
     """
@@ -386,9 +386,9 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
     repeated_labels = [label for label in FINALIZED_LOOP_LABELS if command_text.count(label) >= 2]
     loop_over_budget = (
         draft_mutations > 1
-        or hard_gate_runs > 2
-        or repair_brief_runs > 2
-        or (hard_gate_runs >= 3 and repeated_labels)
+        or hard_gate_runs > 1
+        or repair_brief_runs > 1
+        or (hard_gate_runs >= 2 and repeated_labels)
     )
     if loop_over_budget:
         findings.append(
@@ -401,9 +401,10 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
                     f"repeated_labels={', '.join(repeated_labels[:4])}"
                 ),
                 "suggestion": (
-                    "Finalized repair should use one source rewrite plus one validation loop. Repeated hard-gate "
-                    "bounces between rhythm, punctuation, or social-consequence labels are unresolved repair-path "
-                    "drift, not permission to keep tuning metrics."
+                    "Finalized repair should use at most one pre-write hard/profile brief, one source rewrite, "
+                    "and then stop for controller validation. Repeated hard-gate bounces between rhythm, "
+                    "punctuation, or social-consequence labels are unresolved repair-path drift, not permission "
+                    "to keep tuning metrics."
                 ),
             }
         )
