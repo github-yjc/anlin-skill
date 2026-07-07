@@ -50,6 +50,8 @@ These apply to all normal generation:
 40. No short-genre expansion drift: once a sincere or micro-hope corridor is selected, repair must not turn it into a standard diary by adding relation exposition, transfer/account scenes, extra social packets, or 900+ character proof-story bulk. Keep the selected genre locked and repair by cutting drift, not by satisfying another genre's length/rhythm gates.
 41. No unsupported major family status: do not invent that the mother or close family member is dead, gone, no longer there, or unreachable to make a short sincere piece feel heavier. Unless the user supplied it, lower the pressure to a current failed reply, missed call, unfinished transfer, room chore, or visible action stop.
 42. No standard prompt-prop title loop: in standard diary, do not let `备注`, `香菜`, `礼物`, `玫瑰`, `优惠券`, `朋友圈`, or another prompt prop become title, opening engine, and tail proof at the same time. These nouns can appear when the scene earns them, but if they organize the whole article, reset the source through a side consequence such as door/hallway exposure, payment, dirty hand, wrong reply, sink, rider/shopkeeper, or another person's reaction.
+43. No social-feed inventory opening: do not open a generated standard diary by listing posts, gifts, transfers, screenshots, or holiday objects from a feed. `满屏都是花和转账截图` is still prompt inventory even though it is one sentence. Keep one cropped screen surface only after a body/room/payment/door/sink/side action exists, and make it change the next move.
+44. No witness-only roughness: another person seeing oil, sleeves, bare feet, hair, room mess, or a stain is not a low-status event unless the look changes payment, reply, bag/object state, door speed, dirty hand/clothing exposure, or the next action. Choose a consequence verb before drafting, not a camera angle.
 
 ## Strong Defaults
 
@@ -112,6 +114,8 @@ Avoid:
 - unsupported background specificity: named district/city/game-role detail inserted only to create realism
 - background-display stuffing: adding 王者、痛风、狗哥、外卖、知乎, or a city cue only because the background file permits it
 - a smooth chain of scenes where every object proves the same wound
+- a feed inventory compressed into one line, such as `满屏都是花和转账截图`
+- a rider/cashier/neighbor who only sees a stain or dirty sleeve and then disappears
 - polite melancholy in place of a real laugh, self-own, or social embarrassment
 - swear-word patching in place of a low-status event: `妈的`, `操`, `我服了`, or `真丢人` without changed action, public friction, body consequence, or social position
 - a tasteful withheld ending that could close any literary short story

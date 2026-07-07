@@ -45,6 +45,7 @@ from check_anlin_violations import (  # noqa: E402
     comment_chain_formula_hits,
     current_office_persona_hits,
     detect_style,
+    feed_inventory_opening_hits,
     meta_ai_topic_hits,
     prompt_performing_dialogue_hits,
     short_genre_literary_story_risk,
@@ -336,11 +337,11 @@ def literary_simile_caption_matches(lines: list[str]) -> list[tuple[int, str]]:
 
 def soft_witness_matches(lines: list[str]) -> list[tuple[int, str]]:
     witness_pattern = re.compile(
-        r"(?:看了我一眼|看了我两眼|又往下看|往下看了一眼|往里看了一眼|往屋里看了一眼|瞥了我一眼|看了看我)"
+        r"(?:看了我一眼|看了我两眼|又往下看|往下看了一眼|往里看了一眼|往屋里看了一眼|瞥了我一眼|看了看我|扫到[^。！？\n]{0,18}(?:油|袖|脚|裤|鞋|房间|屋里))"
     )
     consequence_pattern = re.compile(
         r"(?:"
-        r"等我|没走|站着|举着|问|说|提醒|指了|递回|退回|扫码|付款|二维码|"
+        r"等我|没走|站着|举着|问|提醒|指了|递回|退回|扫码|付款|二维码|"
         r"袋子[^。！？\n]{0,18}(?:漏|破|洒|断)|"
         r"(?:汤|红油|外卖)[^。！？\n]{0,24}(?:洒|漏|淌|流)|"
         r"我[^。！？\n]{0,24}(?:赶紧|慌|没答|没回|答不上|擦|蹭|掉|摔|滑|差点|跪|塞|缩|躲)|"
@@ -400,6 +401,10 @@ def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]
     if simile_matches:
         examples = " | ".join(f"L{line_no}:{excerpt[:42]}" for line_no, excerpt in simile_matches[:3])
         messages.append(f"literary_simile_caption=present count={len(simile_matches)} examples={examples}")
+    feed_inventory_matches = feed_inventory_opening_hits(lines)
+    if feed_inventory_matches:
+        examples = " | ".join(f"L{line_no}:{excerpt[:42]}" for line_no, excerpt in feed_inventory_matches[:3])
+        messages.append(f"feed_inventory_opening=present count={len(feed_inventory_matches)} examples={examples}")
     witness_matches = soft_witness_matches(lines)
     if witness_matches:
         examples = " | ".join(f"L{line_no}:{excerpt[:42]}" for line_no, excerpt in witness_matches[:3])
@@ -722,6 +727,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         repair_hints.append(
             "for high_signal_opening, rewrite the first 8-12 body lines from body, room, payment, door, charger, sink, or another useless action before any holiday/feed/gift/order prop leaks in"
         )
+    if "feed_inventory_opening=present" in joined_messages:
+        repair_hints.append(
+            "for feed_inventory_opening, do not replace one feed list with another. Keep at most one cropped screen surface, start from a side action that would exist without the prompt, and move out of the phone through body, door, payment, room, wrong reply, food/object consequence, or outside contact"
+        )
     if "soft_witness_no_consequence=present" in joined_messages:
         repair_hints.append(
             "for soft_witness_no_consequence, do not keep a rider, cashier, neighbor, or stranger as a silent camera. Make the handoff change payment, reply, bag/object state, dirty hand/clothing exposure, door movement, or the next action; otherwise delete the witness"
@@ -865,11 +874,12 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
                 "Retitle from a side consequence, cut one visible prompt-prop packet, rebuild the middle through a "
                 "practical or social consequence, then run this wrapper again. Do not merely replace the title word."
             )
-        elif "high_signal_opening=present" in joined_messages:
+        elif "high_signal_opening=present" in joined_messages or "feed_inventory_opening=present" in joined_messages:
             revision_frame = (
                 "Reset the opening source: do not begin with the prompt topic, feed list, holiday label, gift surface, "
-                "or wrong-food prop. Start from a body/room/payment/door/sink/charger action that would still exist "
-                "without the assignment, then let one prompt surface leak later."
+                "wrong-food prop, or inventory of screenshots/posts. Start from a body/room/payment/door/sink/charger "
+                "action that would still exist without the assignment, then let one cropped prompt surface leak later "
+                "and change the next action."
             )
         elif "soft_witness_no_consequence=present" in joined_messages:
             revision_frame = (

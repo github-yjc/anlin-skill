@@ -1192,6 +1192,67 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
 
+    def test_checker_draft_gate_flags_single_line_feed_inventory_opening(self) -> None:
+        body = "\n".join(
+            [
+                "# 门口",
+                "",
+                "朋友圈有个红点，点进去，满屏都是花和转账截图。",
+                "我把充电线按了三次才亮，",
+                "其实插头也没坏，就是手上有水，一直按不到底。",
+                "门口有人敲了一下，我拖着一只棉拖鞋过去，",
+                "外卖员站在楼梯口等我扫码，手机卡了一下没扫上。",
+                "袋子提手裂开，汤顺着手背往下淌，他看着也没说话。",
+                "我把门关小一点，袖口蹭到门框上，",
+                "回去踩到那点汤，拖鞋一滑，扶着墙站了半天。",
+                *(["不过水龙头咳了一下，我发现杯子边上还有油，因为手指一直黏着。"] * 26),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertIn("strict: 社交动态库存式开头", rules)
+
+    def test_clean_run_preflight_flags_single_line_feed_inventory_opening(self) -> None:
+        body_lines = [
+            "朋友圈有个红点，点进去，满屏都是花和转账截图。",
+            "我把充电线按了三次才亮，",
+            "其实插头也没坏，就是手上有水，一直按不到底。",
+            "门口有人敲了一下，我拖着一只棉拖鞋过去，",
+            "外卖员站在楼梯口等我扫码，手机卡了一下没扫上。",
+            "袋子提手裂开，汤顺着手背往下淌，他看着也没说话。",
+            "我把门关小一点，袖口蹭到门框上，",
+            "回去踩到那点汤，拖鞋一滑，扶着墙站了半天。",
+        ] * 8
+        body = "\n".join(["# 门口", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
+            self.assertIn("feed_inventory_opening=present", preflight.stdout)
+            self.assertIn("Reset the opening source", preflight.stdout)
+            self.assertIn("one cropped prompt surface", preflight.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+
     def test_clean_run_preflight_flags_soft_witness_without_consequence(self) -> None:
         body_lines = [
             "醒来以后水龙头还是冷的，",
@@ -1217,11 +1278,40 @@ class AnlinToolingTests(unittest.TestCase):
             preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
             self.assertIn("soft_witness_no_consequence=present", preflight.stdout)
-            self.assertIn("Reset the outside-contact source", preflight.stdout)
+            self.assertIn("do not keep a rider, cashier, neighbor, or stranger as a silent camera", preflight.stdout)
+            self.assertIn("Make the handoff change payment, reply, bag/object state", preflight.stdout)
             self.assertIn("silent witness", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
+
+    def test_clean_run_preflight_flags_oil_stain_scan_without_consequence(self) -> None:
+        body_lines = [
+            "醒来以后水龙头还是冷的，",
+            "其实我把脸洗了一半，发现毛巾有一股潮味。",
+            "不过门口那个塑料袋被风吹了一下，",
+            "于是我去拿外卖，因为手机一直在震。",
+            "骑手把袋子递过来，扫到我裤腿上那块油渍。",
+            "我侧了一下腿，说了声谢谢，他转身就走了。",
+            "我回屋坐下，把手机翻过去，",
+            "好像今天也就这样。",
+        ] * 8
+        body = "\n".join(["# 油渍", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
+            self.assertIn("soft_witness_no_consequence=present", preflight.stdout)
+            self.assertIn("do not keep a rider, cashier, neighbor, or stranger as a silent camera", preflight.stdout)
+            self.assertIn("Make the handoff change payment, reply, bag/object state", preflight.stdout)
 
     def test_clean_run_preflight_allows_witness_that_changes_action(self) -> None:
         body = "\n".join(
@@ -8744,6 +8834,7 @@ class AnlinToolingTests(unittest.TestCase):
                 "我换了个手拎，袋子歪了一下，汤从盖子缝渗出来，滴在裤腿上。",
                 "骑手的视线跟着那滴油落到裤子上。",
                 "我拿手去蹭那块湿的地方，油已经渗进去了，越抹越大。",
+                "手机卡了一下没扫上，他又站在门口等了一会儿。",
                 "楼道门口那点汤被我踩到，拖鞋打滑，扶了一下墙才站稳。",
                 *(["水龙头在厨房响了一下，杯子边上有水，窗帘半挂着，脚趾又抽了一下。"] * 35),
             ]
@@ -8761,6 +8852,30 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings), findings)
             self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings), findings)
+
+    def test_checker_does_not_count_oil_stain_glance_without_consequence_as_rough(self) -> None:
+        body = "\n".join(
+            [
+                "# 油渍",
+                "",
+                "骑手把袋子递过来，扫到我裤腿上那块油渍。",
+                "我侧了一下腿，说了声谢谢，他转身就走了。",
+                "我回屋坐下，把手机翻过去，",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertTrue(any("粗粝自毁信号不足" in item["rule"] for item in findings), findings)
 
     def test_checker_accepts_dirty_sleeve_or_bare_foot_seen_by_rider_as_rough_signal(self) -> None:
         body = "\n".join(
