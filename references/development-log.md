@@ -13,6 +13,8 @@ Preservation rule: do not delete log entries. When reorganizing docs, move or re
 - Latest repaired mechanism: compact `--repair-brief` fixed the specific terminal-only finalized-repair artifact failure by making the repair agent write back `finalized/draft.md`.
 - Latest unresolved mechanism: finalized repair still did not reach blind-round readiness because style-profile validation remained `review` with rhythm and texture drift.
 - Next direction: simplify finalized minimum repair and continue improving first-draft source guidance before expanding blind rounds.
+- Current active-protocol recognition rate: `N/A - no valid 8 impostor + 2 placebo blind package yet`. The legacy `3 impostor + 1 placebo` diagnostic result remains historical evidence only and must not be reported as current target progress.
+- Progress reporting rule: after every ten development iterations, report bounded status, finalized status, `blind_round_readiness`, valid blind package count, stable generated-sample identification rate or `N/A`, placebo false-accusation rate or `N/A`, invalid rounds, and the next blocking mechanism.
 
 ## Preserved README Status Log
 

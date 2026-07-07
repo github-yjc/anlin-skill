@@ -14,6 +14,8 @@ The full 38-article corpus is a developer/controller input, not a runtime depend
 
 Status: not yet proven. This skill is still under active development. It is not ready to claim the `<=10%` stable impostor-identification target because no current evidence package contains all required pieces: 15 clean-eval generation cases, a calibrated `8 impostor + 2 placebo` blind-round package, low stable-identification rate, low placebo false-accusation rate, and uncontaminated controller logs.
 
+Current active-protocol recognition rate is `N/A`: no draft has yet reached a valid `8 impostor + 2 placebo` blind package under the active readiness rules. Checker pass rates, style-profile status, and legacy smaller diagnostic rounds are not substitutes for that rate.
+
 The latest documented boundary is preserved in `references/development-log.md`. In short: the compact `--repair-brief` interface fixed the specific terminal-only finalized-repair artifact failure, but the newest targeted retest still did not become blind-round-ready because style-profile validation remained `review` with unresolved rhythm and texture drift. The next work should improve finalized minimum repair and first-draft source guidance before expanding blind rounds.
 
 ## Quick Start
