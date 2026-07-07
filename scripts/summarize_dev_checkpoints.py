@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -27,6 +28,17 @@ COMPARE_CORPUS = ROOT / "scripts" / "compare_anlin_corpus.py"
 CHECK_TRACE = ROOT / "scripts" / "check_clean_eval_trace.py"
 DEFAULT_PROFILE = ROOT / "references" / "style-profile.json"
 EVALS_JSON = ROOT / "evals" / "evals.json"
+
+FINALIZED_FORBIDDEN_SOURCE_RE = re.compile(
+    r"(?:Read|Grep|Select-String|Get-Content|rg|grep)\b"
+    r".{0,220}"
+    r"(?:scripts[\\/](?:check_anlin_violations|check_style_profile|clean_run_checker)\.py|test[\\/]test_anlin_tooling\.py)",
+    re.IGNORECASE,
+)
+FINALIZED_THRESHOLD_PROBE_RE = re.compile(
+    r"(?:YELLOW_REVIEW_FAMILY_THRESHOLD|SOFT_REVISE_FAMILY_THRESHOLD|early_comma_ratio|short_breath_lines|comma_per_1k)",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -262,6 +274,39 @@ def run_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any]], Comman
     return parsed if isinstance(parsed, list) else [], report
 
 
+def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any]], CommandReport | None]:
+    """Check finalized repair logs for source-code/threshold contamination.
+
+    Finalized repair may run the formal hard/style gates repeatedly. It must not
+    read or grep checker source, tests, or hidden threshold constants to tune the
+    article against implementation details.
+    """
+    if trace_log is None or not trace_log.is_file():
+        return [], None
+    findings: list[dict[str, Any]] = []
+    text = trace_log.read_text(encoding="utf-8", errors="replace").replace("\x00", "")
+    for line in text.splitlines():
+        normalized = line.replace("\\", "/")
+        source_match = FINALIZED_FORBIDDEN_SOURCE_RE.search(normalized)
+        threshold_match = FINALIZED_THRESHOLD_PROBE_RE.search(normalized)
+        if not source_match and not threshold_match:
+            continue
+        rule = "finalized修复反查checker阈值" if threshold_match else "finalized修复读取checker源码"
+        findings.append(
+            {
+                "severity": "error",
+                "rule": rule,
+                "excerpt": line.strip()[:500],
+                "suggestion": (
+                    "Finalized repair can use checker outputs and public references, but it must not read/grep checker "
+                    "source, tests, or hidden threshold constants. Treat this finalized pass as contaminated and rerun "
+                    "from the copied draft with output-only repair."
+                ),
+            }
+        )
+    return findings, None
+
+
 def style_status(style_report: dict[str, Any] | None) -> str | None:
     if not style_report:
         return None
@@ -290,9 +335,13 @@ def summarize_gate(
     yellow_families = summary.get("yellow_families", []) if isinstance(summary, dict) else []
     notes: list[str] = []
 
-    if bounded:
-        if trace_errors:
+    if trace_errors:
+        if bounded:
             notes.append("clean-eval trace contamination detected")
+        else:
+            notes.append("finalized repair trace contamination detected")
+
+    if bounded:
         if clean_calls is None:
             notes.append("missing clean-run state; confirm the bounded generator used clean_run_checker.py")
         elif clean_calls > 2:
@@ -579,7 +628,10 @@ def build_checkpoint(
     hard_findings, _hard_command = run_hard_gate(audit_draft, corpus_dir, genre)
     style_report_data, _style_command = run_style_gate(audit_draft, profile, phase, genre)
     corpus_report_data, _corpus_command = run_corpus_compare(audit_draft, corpus_dir)
-    trace_findings, _trace_command = run_trace_gate(trace_log if bounded else None)
+    if bounded:
+        trace_findings, _trace_command = run_trace_gate(trace_log)
+    else:
+        trace_findings, _trace_command = run_finalized_trace_gate(trace_log)
     clean_state = load_clean_state(draft) if bounded else {}
     stage_audits = (
         build_stage_audits(
@@ -768,6 +820,7 @@ def main() -> int:
     parser.add_argument("--bounded-draft", type=Path, default=None, help="Bounded clean-eval draft path")
     parser.add_argument("--finalized-draft", type=Path, default=None, help="Finalized repair draft path")
     parser.add_argument("--trace-log", type=Path, default=None, help="Captured bounded generation log for check_clean_eval_trace.py")
+    parser.add_argument("--finalized-trace-log", type=Path, default=None, help="Captured finalized repair log for source/threshold contamination checks")
     parser.add_argument("--corpus-dir", type=Path, default=None, help="Optional full original corpus directory")
     parser.add_argument("--profile", type=Path, default=DEFAULT_PROFILE, help="style-profile.json path")
     parser.add_argument("--phase", default=None, help="Optional phase for style profile")
@@ -817,7 +870,7 @@ def main() -> int:
             profile=args.profile,
             phase=args.phase,
             genre=effective_genre,
-            trace_log=None,
+            trace_log=args.finalized_trace_log,
         )
         finalized = flag_unchanged_finalized_artifact(bounded=bounded, finalized=finalized)
 

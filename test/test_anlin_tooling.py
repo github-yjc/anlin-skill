@@ -4884,6 +4884,103 @@ class AnlinToolingTests(unittest.TestCase):
                 )
             )
 
+    def test_dev_checkpoint_summary_marks_finalized_checker_source_trace_invalid(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            finalized_dir = case_dir / "finalized"
+            finalized_dir.mkdir(parents=True)
+            bounded = case_dir / "draft.md"
+            finalized = finalized_dir / "draft.md"
+            bounded.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 90)]), encoding="utf-8")
+            finalized.write_text(
+                "\n".join(["# 日寄", "", *(["其实我觉得杯子脏了，于是洗手差点吐出来，丢人。"] * 50)]),
+                encoding="utf-8",
+            )
+            trace = finalized_dir / "opencode-output.txt"
+            nul_source_line = "\x00".join("→ Read C:/Users/34025/.config/opencode/skills/anlin-writing/scripts/check_style_profile.py")
+            trace.write_text(
+                "\n".join(
+                    [
+                        nul_source_line,
+                        "$ rg YELLOW_REVIEW_FAMILY_THRESHOLD scripts\\check_style_profile.py",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(bounded),
+                    "--finalized-draft",
+                    str(finalized),
+                    "--finalized-trace-log",
+                    str(trace),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["finalized"]["gate"]["status"], "invalid")
+            self.assertEqual(payload["finalized"]["gate"]["trace_errors"], 2)
+            self.assertTrue(
+                any(
+                    "finalized repair trace contamination detected" in note
+                    for note in payload["finalized"]["gate"]["notes"]
+                )
+            )
+            rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
+            self.assertIn("finalized修复读取checker源码", rules)
+            self.assertIn("finalized修复反查checker阈值", rules)
+
+    def test_dev_checkpoint_summary_marks_finalized_threshold_only_trace_invalid(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            finalized_dir = case_dir / "finalized"
+            finalized_dir.mkdir(parents=True)
+            bounded = case_dir / "draft.md"
+            finalized = finalized_dir / "draft.md"
+            bounded.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 90)]), encoding="utf-8")
+            finalized.write_text(
+                "\n".join(["# 日寄", "", *(["其实我觉得杯子脏了，于是洗手差点吐出来，丢人。"] * 50)]),
+                encoding="utf-8",
+            )
+            trace = finalized_dir / "opencode-output.txt"
+            trace.write_text("I searched for SOFT_REVISE_FAMILY_THRESHOLD before editing.\n", encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(bounded),
+                    "--finalized-draft",
+                    str(finalized),
+                    "--finalized-trace-log",
+                    str(trace),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["finalized"]["gate"]["status"], "invalid")
+            self.assertEqual(payload["finalized"]["gate"]["trace_errors"], 1)
+            self.assertEqual(payload["finalized"]["trace_findings"][0]["rule"], "finalized修复反查checker阈值")
+
     def test_clean_run_checker_merges_uniform_medium_grid_before_second_call(self) -> None:
         fragments = [
             "其实厕所灯坏了我站着很丢人",
@@ -7366,6 +7463,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("finalized repair checkpoint", layer_map)
         self.assertIn("normal checker success alone is not a finalized pass", layer_map)
         self.assertIn("finalized is only `review`, it is still unresolved", layer_map)
+        self.assertIn("must not read or grep checker source", layer_map)
+        self.assertIn("Do not read or grep checker source, test files, or hidden threshold constants", skill)
+        self.assertIn("Do not read or grep checker source, test files, or hidden threshold constants", validation)
+        self.assertIn("A finalized pass after source/threshold inspection is contaminated", skill)
         self.assertIn("Generated articles do not belong in the skill directory", runtime)
         self.assertIn("Natural connector coverage should be solved before the checker", clean)
         self.assertIn("If a finalized standard diary reports `高频词覆盖不足`", skill)
@@ -7394,6 +7495,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("`逗号密度过高` means the repair has become comma-drag", runtime)
         self.assertIn("long lines made only by chaining clauses with commas", clean)
         self.assertIn("reread for semantic damage", skill)
+        self.assertIn("FINALIZED_THRESHOLD_PROBE_RE", summary_script)
+        self.assertIn("--finalized-trace-log", summary_script)
 
     def test_short_genre_repair_stuffing_is_source_guidance_not_only_checker(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
