@@ -1,12 +1,14 @@
 # Standard Diary Source Engine
 
-Use this file only for clean-eval standard-diary first drafts, after `clean-generation-brief.md` and before the first `draft.md`. It is part of the minimal generation pack, not a repair checklist.
+Use this file only for clean-eval standard-diary first drafts, after `clean-eval-first-draft-minimum.md` and before the first `draft.md`. It is part of the minimal generation pack, not a repair checklist.
 
 ## One Quiet Move
 
 Do not print a plan, line count, title options, scene list, or trial article. Do not run `rebalance_line_rhythm.py`, `split_long_lines.py`, `merge_short_lines.py`, or `soften_line_endings.py` before the first `clean_run_checker.py` call. The first saved article is what the controller is measuring.
 
 If you catch yourself estimating rows, counting characters, or explaining what the article needs, stop. Write the complete titled candidate to `draft.md` and let the wrapper measure it.
+
+Do not use a prose-block escape hatch. A first draft made of 8-15 smooth paragraphs, followed by a promise to split it later, is already a failed source start. The saved file must visibly be the article: clusters of short and long body lines where action, reply, object, body, or payment movement decides the break. If the candidate in your head needs a rhythm script before it looks like broken diary prose, rebuild the source movement before writing.
 
 ## Build The Middle First
 
@@ -131,6 +133,8 @@ Refusal chain upper bound: chain means one consequence transfer, not plot contin
 Before saving, mentally delete every room/object detail except one handle. If the remaining social chain is only `message -> ticket/suili calculation -> I said no -> he said OK`, it is still a screen summary. Rebuild until the post-refusal response, wrong reply, old debt, payment/route hesitation, or body/social interruption changes a later action by itself.
 
 If deleting every room/object detail except one makes the article stop moving, the refusal did not become an engine. Rebuild from the reply aftermath before saving `draft.md`.
+
+Use the water-drip test for this family: if the draft can be summarized as `side object keeps failing -> invitation arrives -> ticket/gift calculation -> side object keeps failing`, the refusal is not load-bearing. The post-refusal response, deleted reply, payment/route hesitation, old debt, or body/social interruption must force at least one later action that would disappear if the invitation were removed. Otherwise the side object has replaced the social engine.
 
 ## Title And Tail
 

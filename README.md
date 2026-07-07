@@ -16,7 +16,7 @@ Status: not yet proven. This skill is still under active development. It is not 
 
 Current active-protocol recognition rate is `N/A`: no draft has yet reached a valid `8 impostor + 2 placebo` blind package under the active readiness rules. Checker pass rates, style-profile status, and legacy smaller diagnostic rounds are not substitutes for that rate.
 
-The latest documented boundary is preserved in `references/development-log.md`. In short: the compact `--repair-brief` interface fixed the specific terminal-only finalized-repair artifact failure, but the newest targeted retest still did not become blind-round-ready because style-profile validation remained `review` with unresolved rhythm and texture drift. The next work should improve finalized minimum repair and first-draft source guidance before expanding blind rounds.
+The latest documented boundary is preserved in `references/development-log.md`. In short: the compact `--repair-brief` interface fixed the specific terminal-only finalized-repair artifact failure, but the newest targeted retest still did not become blind-round-ready. Bounded generation stopped at preflight before checker call 1/2, and finalized repair still failed style-profile validation with rhythm, connector, texture, and punctuation drift. The next work should continue improving finalized minimum repair and first-draft source guidance before expanding blind rounds.
 
 ## Quick Start
 

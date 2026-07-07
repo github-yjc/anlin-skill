@@ -48,6 +48,8 @@ For a standard diary / `日寄` clean-eval draft, the first saved article should
 
 Do not hand-count. Look at the page shape. If it is visibly a prose block, a tiny-row grid, or a neat sentence grid, rebuild the source movement before saving.
 
+The first saved file is not allowed to be a prose draft waiting for later lineation. If you can describe your candidate as 8-15 paragraphs that a script will split, it is not a clean-eval first draft yet. Rebuild it into roughly 6-8 visible breathing clusters before writing: each cluster should have an unfinished action/reply/body/payment/object movement, one rougher line that keeps moving, and a landing or short failure drop when the action actually closes. Do not depend on `rebalance_line_rhythm.py`, `split_long_lines.py`, or later punctuation repair to create the first article shape.
+
 ## Cluster Grammar
 
 Write breathing clusters, not sentence rows. A cluster can be 2-5 visible lines:
@@ -71,6 +73,8 @@ For feed, holiday, wrong-food, invitation, old-chat, annual-summary, illness, de
 - game is allowed only when it changes action, status, social relation, or cognition; it is never a required background label
 
 If the draft can be summarized as `phone/feed -> order food -> wrong item -> wash bowl -> bed`, or `message -> price ledger -> refusal -> old chat -> room object`, restart the middle before saving.
+
+For invitation, wedding, reunion, or other social-decline prompts, one kernel must be the refusal aftermath itself. A side object may open the article, but the refusal must change a later action through a bad reply, ordinary response, route/payment hesitation, old debt, door/body interruption, or visible social lowering. Keep the chain small: one consequence transfer, one or two later actions, then a loose practical exit. Do not let sink, water, charger, sleeve, food, or another room object carry the whole article while the refusal remains a chat summary; also do not expand it into several days of wedding logistics or workplace biography.
 
 ## Title And Ending
 

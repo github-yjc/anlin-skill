@@ -70,6 +70,33 @@ REPAIR_FAMILY_ORDER = [
     "other",
 ]
 
+
+def primary_source_rewrite(families: list[str]) -> str:
+    family_set = set(families)
+    if {"punctuation", "line_rhythm"} & family_set:
+        return (
+            "rewrite the visible body as 4-6 breathing clusters from the same scene facts: "
+            "one unfinished action/reply/body/payment line can trail, one rough line can keep moving, "
+            "and one short drop can land failure. Do not globally merge rows, split every sentence, "
+            "or tune punctuation counts."
+        )
+    if {"connectors", "structure"} & family_set:
+        return (
+            "rebuild one consequence chain so the next action changes by reply, payment, route, body, "
+            "door, object, or social position. Do not paste connector words or add a decorative scene."
+        )
+    if {"texture", "ngram_texture"} & family_set:
+        return (
+            "delete one repeated proof packet and replace its function with a different practical or "
+            "social consequence. Do not thicken the draft with more body, screen, route, money, or object tags."
+        )
+    if "cognitive_mechanism" in family_set:
+        return (
+            "change how an existing scene thinks: concrete object -> crooked read -> reality puncture -> "
+            "defensive recovery -> practical exit. Do not add abstract labels."
+        )
+    return "make one source-level rewrite, persist the complete article to draft.md, then rerun the formal gates."
+
 TOPIC_SENSITIVE_SOFT_ONLY_FAMILIES = {"structure", "texture", "cognitive_mechanism", "title"}
 YELLOW_REVIEW_FAMILY_THRESHOLD = 5
 SOFT_REVISE_FAMILY_THRESHOLD = 11
@@ -649,6 +676,8 @@ def format_repair_brief(report: dict[str, Any]) -> str:
     lines = [
         "Anlin style-profile repair brief",
         f"draft: {report['draft']}",
+        "artifact_path: draft.md",
+        "artifact_contract: the revised complete article must be written back to draft.md; terminal-only prose does not count.",
         f"status: {summary['status']}",
         f"checkpoint_pass: {str(summary['checkpoint_pass']).lower()}",
         f"formal_gate: {'pass' if summary['checkpoint_pass'] else 'not_pass'}",
@@ -670,6 +699,7 @@ def format_repair_brief(report: dict[str, Any]) -> str:
             "repair_directive: write a complete revised draft.md before any further metric analysis. Do not print a proposed full article to the terminal; persist it to draft.md, then rerun the formal gates.",
             "exit_note: with --strict --repair-brief, a nonzero exit usually means this profile gate is not passed, not that the tool is broken. Revise draft.md from the source actions and rerun the gates.",
             "do_not: do not use individual metrics as a TODO list, do not calculate thresholds, do not tune punctuation or connector counts, and do not keep thinking until every profile line is mentally solved.",
+            f"primary_source_rewrite: {primary_source_rewrite(families)}",
             "source_actions:",
         ]
     )

@@ -10,8 +10,12 @@ Use this file only when a controller or user explicitly starts a finalized repai
 - A nonzero `--strict --repair-brief` exit usually means not passed, not a broken tool.
 - Do not print a proposed final article to the terminal and keep thinking.
 - Do not tune ratios one by one. Use the brief to choose one source-level rewrite.
+- Do not rediscover this skill by globbing, listing parent skill directories, or searching sibling skills. Use the already-triggered skill path as `<skill-dir>`. If that path is unavailable, stop as unresolved rather than inspecting checker source, tests, hidden thresholds, or old logs.
+- Do not use TODO tools, plans, or long diagnostic narration as the repair artifact. The next useful action after a not-pass brief is reading the current `draft.md`, rewriting the whole article from one source action, and writing it back to `draft.md`.
 
 ## Gate Order
+
+From inside the `finalized/` directory, run the gates exactly through Python. Do not start with a plain strict checker and call that a pass.
 
 Run the hard gate first:
 
@@ -27,6 +31,8 @@ python <skill-dir>/scripts/check_style_profile.py draft.md --draft-gate --strict
 
 After the artifact is frozen, the controller may run `check_style_profile.py` again without `--repair-brief` for the full report. The repair agent should not use that full report as its writing interface.
 
+If the repair brief returns nonzero, shows `formal_gate: not_pass`, or shows `checkpoint_pass: false`, treat that as normal repair input. Do not open the full profile report, do not calculate thresholds, and do not continue discussing findings. Read `draft.md`, apply one primary source rewrite, write the complete article back to `draft.md`, then rerun the two gates once.
+
 ## Repair Choice
 
 If the hard gate has errors, fix the source function that caused the error and write a complete `draft.md`. Do not defend the draft or argue with the checker.
@@ -38,7 +44,10 @@ If the hard gate is clean but the repair brief says `formal_gate: not_pass`, cho
 - `texture` or `ngram_texture`: delete one repeated body, screen, room, money, route, food, or object packet. Replace its function with a social or practical consequence that changes reply, payment, route, room position, body state, or next action.
 - `structure` or `cognitive_mechanism`: cut prompt echoes, decorative proof details, and explicit cognition. Let a concrete object lead to a crooked read, a reality puncture, a defensive recovery, and a practical exit through action rather than explanation.
 
+When multiple families appear, do not make one patch per family. Use the brief's primary source rewrite as the top action. In social-decline drafts, prefer rebuilding the refusal aftermath and rhythm together: remove one room/object proof packet, make the post-refusal response or payment/route/body problem change a later action, and rewrite the visible body as breathing clusters. That source move can address punctuation, line rhythm, connectors, texture, and structure at once.
+
 ## Stop Rule
 
 Validate after writing the revised `draft.md`. If the same opposite failures bounce again, such as period grid -> comma drag, too few short drops -> tiny-row grid, or texture thinning -> underbuilt source, stop and record unresolved finalized repair. The next fix belongs in the skill architecture or first-draft source guidance, not in another metric-shaped rewrite.
 
+If the revised article is only printed in a log/chat but `draft.md` is unchanged, mark artifact failure. If `draft.md` changes but the style gate is still `review` or `revise`, mark finalized unresolved or failed according to the controller summary; do not call it ready for blind rounds.
