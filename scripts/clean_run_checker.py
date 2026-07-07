@@ -30,6 +30,7 @@ REBALANCE_LINE_RHYTHM = ROOT / "scripts" / "rebalance_line_rhythm.py"
 SNAPSHOT_DIR_NAME = ".anlin-clean-run-snapshots"
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_anlin_violations import (  # noqa: E402
+    AMBIENT_ENDING_PATTERNS,
     BACKGROUND_DISPLAY_GROUPS,
     ENGINE_SIGNAL_PATTERNS,
     ENGINE_SIGNAL_TERMS,
@@ -308,6 +309,15 @@ def learned_ending_button_matches(lines: list[str]) -> list[str]:
     return [line for line in tail if re.sub(r"\s+", "", line) in LEARNED_ENDING_LINES]
 
 
+def ambient_ending_matches(lines: list[str]) -> list[str]:
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.strip().startswith("<!--")]
+    if not visible_lines:
+        return []
+    last_line = visible_lines[-1]
+    return [last_line] if any(re.search(pattern, last_line) for pattern in AMBIENT_ENDING_PATTERNS) else []
+
+
 def quoted_dialogue_matches(lines: list[str]) -> list[tuple[int, str]]:
     patterns = [
         re.compile(r"(?:说|问|喊|回|继续说|又说|老板|摊主|店员|司机|我妈|室友)[^。！？\n]{0,12}[“\"『「]"),
@@ -393,6 +403,10 @@ def surface_preflight_messages(lines: list[str], article_text: str) -> list[str]
     if ending_matches:
         examples = " | ".join(line[:24] for line in ending_matches[:3])
         messages.append(f"learned_ending_button=present examples={examples}")
+    ambient_matches = ambient_ending_matches(lines)
+    if ambient_matches:
+        examples = " | ".join(line[:24] for line in ambient_matches[:3])
+        messages.append(f"pure_ambient_ending=present examples={examples}")
     quote_matches = quoted_dialogue_matches(lines)
     if quote_matches:
         examples = " | ".join(f"L{line_no}:{excerpt[:42]}" for line_no, excerpt in quote_matches[:3])
@@ -640,6 +654,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         "literary_simile_caption=",
         "em_dash=",
         "standard_prompt_prop_title=",
+        "pure_ambient_ending=",
     )
     surface_only = all(message.startswith(surface_only_prefixes) for message in messages)
     compressed_shape = any("< 45" in message or "prose_block_shape=compressed" in message for message in messages)
@@ -825,6 +840,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if "learned_ending_button=present" in joined_messages:
         repair_hints.append(
             "for learned_ending_button, replace the tail button with an unfinished practical action, wrong object, payment, route, reply, or body interruption already earned by the scene"
+        )
+    if "pure_ambient_ending=present" in joined_messages:
+        repair_hints.append(
+            "for pure_ambient_ending, do not fade out on light, wind, appliance noise, or screen glow. End on the already-earned unfinished action, wrong object, route/payment/reply, or body interruption that the scene forced"
         )
     if "quoted_dialogue=present" in joined_messages:
         repair_hints.append(

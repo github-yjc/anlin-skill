@@ -2623,7 +2623,7 @@ class AnlinToolingTests(unittest.TestCase):
             "我最近在干什么。",
             "在捡钥匙。",
             "在擦裤子上的菜汤。",
-            "在等屋里的灯自己亮。",
+            "在把钥匙从鞋柜下面抠出来。",
         ]
         boost_targets = [0, 5, 6, 10, 11, 16, 18, 19, 30, 31]
         boost_index = 0
@@ -3079,6 +3079,31 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
 
+    def test_clean_run_checker_preflight_blocks_pure_ambient_ending_without_consuming_call(self) -> None:
+        cluster = [
+            "其实水龙头咳了一下，水从接口那边斜着喷出来，",
+            "我觉得裤脚湿得像刚从鱼摊回来。",
+            "丢人。",
+            "后来发现胶带粘不上，手上全是灰，老板还问我要不要换贵的那种。",
+            "不过我没换，因为手机余额看起来比水管还紧。",
+            "很冷。",
+        ]
+        body = "\n".join(["# 胶带", "", *(cluster * 10), "外面路灯还亮着。"])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            command = [sys.executable, str(CLEAN_RUN_CHECKER), str(draft), "--strict", "--draft-gate"]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+
+            self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
+            self.assertIn("CLEAN_RUN_PREFLIGHT", preflight.stdout)
+            self.assertIn("pure_ambient_ending=present", preflight.stdout)
+            self.assertIn("already-earned unfinished action", preflight.stdout)
+
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+
     def test_clean_run_final_normalize_preserves_existing_line_corridor(self) -> None:
         cluster = [
             "昨天搬到这边，搬家公司的人问我几楼，",
@@ -3250,6 +3275,34 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertIn("clean-eval未调用clean_run_checker", rules)
             self.assertIn("clean-eval未写入draft.md", rules)
+
+    def test_clean_eval_trace_ignores_reference_text_that_mentions_relative_write(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        $ Get-Location
+        C:/eval-workspace/iteration-77/eval-03/bounded
+        → Read C:/skill/references/clean-generation-brief.md
+        Write the complete titled article to relative `draft.md` in the current task working directory. The write/file tool path must be exactly `draft.md` or `./draft.md`.
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --genre standard
+        CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        → Read draft.md
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("clean-eval写稿路径不是相对draft.md", rules)
 
     def test_clean_eval_trace_flags_direct_normal_checker_even_after_clean_wrapper(self) -> None:
         log = """
@@ -7094,8 +7147,9 @@ class AnlinToolingTests(unittest.TestCase):
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
         runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        budget = (ROOT / "references" / "feature-budget.md").read_text(encoding="utf-8")
         checker = (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8")
-        combined = "\n".join([skill, clean, runtime, checker])
+        combined = "\n".join([skill, clean, runtime, budget, checker])
         self.assertIn("not a silent camera", skill)
         self.assertIn("rider or cashier who only looks once and leaves is still decoration", clean)
         self.assertIn("soft witness-only handoff", clean)
@@ -7104,6 +7158,22 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("soft_witness_no_consequence", checker)
         self.assertIn("Reset the outside-contact source", checker)
         self.assertIn("payment, reply, bag/object state", combined)
+        self.assertIn("consequence verb before drafting", combined)
+        self.assertIn("not a camera angle", combined)
+        self.assertIn("look, glance, sweep, notice", combined)
+
+    def test_pure_ambient_ending_is_source_guidance_not_only_checker(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        budget = (ROOT / "references" / "feature-budget.md").read_text(encoding="utf-8")
+        checker = (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8")
+        combined = "\n".join([skill, clean, runtime, budget, checker])
+        self.assertIn("pure_ambient_ending", checker)
+        self.assertIn("pure ambient line", skill)
+        self.assertIn("Do not end by fading out on light, wind, appliance noise, screen glow", clean)
+        self.assertIn("No learned ending button or ambient fade-out", budget)
+        self.assertIn("End on an earned unfinished action", budget)
 
     def test_skill_load_order_keeps_background_as_post_scene_fact_gate(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

@@ -286,7 +286,8 @@ def actual_nonrelative_draft_write_index(text: str) -> int:
     folded_text = re.sub(r"(?<=\S)\n\s*(?=\S)", "", text)
     loose_text = re.sub(r"\s+", " ", text)
     patterns = [
-        r"(?im)^\s*(?:←|\?)?\s*Write\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
+        r"(?im)^\s*←\s*Write\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
+        r"(?im)^\s*\?\s*Write\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
         r"(?im)^\s*TITLE\s+Write\s+(?!\.?/?draft\.md\b)(?!\.?\\draft\.md\b)[^\n]*draft\.md\b",
         r"(?im)^\s*TOOL\s+(?:write|filesystem_write_file)\b(?:\n[^\n]*){0,3}^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*[A-Za-z]:/[^\n]*draft\.md",
         r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*[A-Za-z]:/[^\n]*draft\.md[^\n]*(?:content|write)",
@@ -298,15 +299,15 @@ def actual_nonrelative_draft_write_index(text: str) -> int:
         r"(?im)^\s*(?:\$|>|>>)?\s*(?:@['\"]\s*\|\s*)?(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?[^'\"]*/(?:skills|skill-dir|anlin-writing)/[^\n]*draft\.md\b",
         r"(?im)^\s*['\"]@?\s*\|\s*(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?[^'\"]*/(?:skills|skill-dir|anlin-writing)/[^\n]*draft\.md\b",
     ]
-    loose_patterns = [
-        r"(?i)(?:←|\?|TITLE)\s*Write\s+(?!\.?[/\\]?draft\.md\b).{0,260}draft\.md\b",
-    ]
     indices: list[int] = []
     for haystack in (text, folded_text):
         for pattern in patterns:
             match = re.search(pattern, haystack)
             if match:
                 indices.append(match.start())
+    loose_patterns = [
+        r"(?i)(?:←|\?|TITLE)\s*Write\s+(?!\.?[/\\]?draft\.md\b).{0,260}draft\.md\b",
+    ]
     for pattern in loose_patterns:
         match = re.search(pattern, loose_text)
         if match:
