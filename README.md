@@ -16,7 +16,7 @@ Status: not yet proven. This skill is still under active development. It is not 
 
 Current active-protocol recognition rate is `N/A`: no draft has yet reached a valid `8 impostor + 2 placebo` blind package under the active readiness rules. Checker pass rates, style-profile status, and legacy smaller diagnostic rounds are not substitutes for that rate.
 
-The latest documented boundary is preserved in `references/development-log.md`. In short: the compact `--repair-brief` interface fixed the specific terminal-only finalized-repair artifact failure, but the newest targeted retest still did not become blind-round-ready. Bounded generation stopped at preflight before checker call 1/2; a finalized repair attempt also remained invalid when the agent tried to rediscover the skill reference and left `draft.md` unchanged. The runtime now includes an inline finalized fallback in `SKILL.md`, but this still needs a fresh targeted retest before any blind-round expansion.
+The latest documented boundary is preserved in `references/development-log.md`. In short: the compact `--repair-brief` and inline finalized fallback fixed the specific terminal-only / unchanged-artifact repair failure, but the newest targeted retests still did not become blind-round-ready. Rechecking the latest social-decline draft under the current gates narrows the remaining hard failures: bounded generation still stops before checker call 1/2 with rhythm/punctuation problems, and finalized repair still needs source-level breathing-cluster repair rather than another metric-by-metric pass. Do not expand to blind rounds until a fresh bounded/finalized case is pass-ready under the active protocol.
 
 ## Quick Start
 

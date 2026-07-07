@@ -10141,6 +10141,67 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertFalse(any(message.startswith("private_grime_without_public_consequence=") for message in messages), messages)
             self.assertFalse(any(message.startswith("rough_self_damage=missing") for message in messages), messages)
 
+    def test_checker_accepts_public_waterline_sock_exposure_as_rough_and_engine(self) -> None:
+        body = "\n".join(
+            [
+                "# 没拧紧",
+                "",
+                "热水器又跳了一下，",
+                "我把花洒举到耳朵边，听里面那点水晃来晃去。",
+                "手机亮着，有个老同学发来一句，下个月我结婚，你能来就来。",
+                "我穿着湿拖鞋去开门，裤脚贴在脚踝上。",
+                "隔壁阿姨拎着垃圾站在外面，往我脚下一指，说你这水都到门外了，她要从这边过。",
+                "我低头看见一条水线从浴室拖到玄关，弯到她鞋边。",
+                "抹布一时找不到，只好把盆里那只湿袜子捞出来，按在门槛上来回蹭。",
+                "我说马上好，声音比她手里的垃圾袋还瘪。",
+                "关门以后拿手机，手背蹭到鞋底的灰，屏幕上留了一道黑印。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 28),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("粗粝自毁信号不足" in item["rule"] for item in findings), findings)
+            self.assertFalse(any("段落发动机信号偏弱" in item["rule"] for item in findings), findings)
+
+            clean_draft = Path(temp) / "clean-draft.md"
+            clean_draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(clean_draft)
+            self.assertFalse(any(message.startswith("rough_self_damage=missing") for message in messages), messages)
+
+    def test_checker_does_not_count_private_waterline_sock_cleanup_as_public_engine(self) -> None:
+        body = "\n".join(
+            [
+                "# 没拧紧",
+                "",
+                "热水器又跳了一下，",
+                "我低头看见一条水线从浴室拖到玄关。",
+                "抹布一时找不到，只好把盆里那只湿袜子捞出来，按在门槛上来回蹭。",
+                "手机亮着，有个老同学发来一句，下个月我结婚，你能来就来。",
+                *(["其实水龙头咳了一下，洗的时候水顺着管道往下走，因为接口又开始渗水。"] * 35),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertTrue(any("段落发动机信号偏弱" in item["rule"] for item in findings), findings)
+
     def test_checker_counts_rider_paper_exchange_as_paragraph_engine(self) -> None:
         body = "\n".join(
             [
@@ -10662,12 +10723,19 @@ class AnlinToolingTests(unittest.TestCase):
 
     def test_social_decline_source_guidance_requires_reply_aftermath_engine(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
+        source_engine = (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8")
+        finalized = (ROOT / "references" / "finalized-repair-minimum.md").read_text(encoding="utf-8")
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
         runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
         checker = (ROOT / "scripts" / "check_anlin_violations.py").read_text(encoding="utf-8")
         for text in (skill, clean, runtime):
             self.assertIn("post-refusal consequence", text)
             self.assertIn("reply aftermath", text)
+        self.assertIn("The refusal aftermath also has to shape the page rhythm before saving", first_draft)
+        self.assertIn("the refusal chain itself creates the uneven rows", source_engine)
+        self.assertIn("Public wet/dirty exposure can be a real hinge only when it changes social position or the next action", source_engine)
+        self.assertIn("If a social-decline repair has already gained a valid low-status/public hinge", finalized)
         self.assertIn("Before saving, ask whether the article would still move if all room texture except one object were deleted", skill)
         self.assertIn("privately delete all room texture except one object", clean)
         self.assertIn("社交拒绝纹理替代后果不足", checker)

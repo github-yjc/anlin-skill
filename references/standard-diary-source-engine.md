@@ -136,6 +136,10 @@ If deleting every room/object detail except one makes the article stop moving, t
 
 Use the water-drip test for this family: if the draft can be summarized as `side object keeps failing -> invitation arrives -> ticket/gift calculation -> side object keeps failing`, the refusal is not load-bearing. The post-refusal response, deleted reply, payment/route hesitation, old debt, or body/social interruption must force at least one later action that would disappear if the invitation were removed. Otherwise the side object has replaced the social engine.
 
+Use the same test for rhythm. A good social-decline draft does not fix rhythm after the fact; the refusal chain itself creates the uneven rows. The moment of not-going should have at least one unfinished physical or social action visible on the page: a reply still being edited, a transfer or route check not yet resolved, a hallway/body/object interruption that changes the answer, or the other person's plain response shrinking the next move. Build those as local clusters, not as global punctuation policy. If the source starts producing either a comma carpet or a period fence, the problem is usually that the cluster has no active hand, reply, payment, door, or body movement left.
+
+Public wet/dirty exposure can be a real hinge only when it changes social position or the next action. A neighbor or hallway person pointing at water, a wet sock used because there is no rag, a hand mark left on the phone while answering, or a slip that changes the reply can work. The same water, sock, stain, or room dampness is not a required ingredient and should be cut if it only decorates the refusal.
+
 ## Title And Tail
 
 Choose the title after the body. Do not title from the diagnostic prompt prop when the same prop also opens and closes the article: `备注`, `香菜`, `礼物`, `玫瑰`, `优惠券`, `朋友圈`, holiday labels, or calendar labels are high risk in those cases.

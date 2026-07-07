@@ -46,6 +46,8 @@ If the hard gate is clean but the repair brief says `formal_gate: not_pass`, cho
 
 When multiple families appear, do not make one patch per family. Use the brief's primary source rewrite as the top action. In social-decline drafts, prefer rebuilding the refusal aftermath and rhythm together: remove one room/object proof packet, make the post-refusal response or payment/route/body problem change a later action, and rewrite the visible body as breathing clusters. That source move can address punctuation, line rhythm, connectors, texture, and structure at once.
 
+If a social-decline repair has already gained a valid low-status/public hinge, do not add more roughness just because an older run reported weak engine. Recheck the current hard gate first, then repair the remaining source failure. If the current failure is comma-drag or period-grid, rebuild only the clusters where the refusal aftermath is still active: edited reply, unfinished transfer, route hesitation, door/body interruption, ordinary response, or a dirty/wet hand changing the phone action. Do not turn this into all-comma breath or all-period captions.
+
 ## Stop Rule
 
 Validate after writing the revised `draft.md`. If the same opposite failures bounce again, such as period grid -> comma drag, too few short drops -> tiny-row grid, or texture thinning -> underbuilt source, stop and record unresolved finalized repair. The next fix belongs in the skill architecture or first-draft source guidance, not in another metric-shaped rewrite.
