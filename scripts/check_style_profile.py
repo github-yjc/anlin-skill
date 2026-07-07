@@ -698,6 +698,8 @@ def format_repair_brief(report: dict[str, Any]) -> str:
         [
             "repair_directive: write a complete revised draft.md before any further metric analysis. Do not print a proposed full article to the terminal; persist it to draft.md, then rerun the formal gates.",
             "repair_loop_budget: exactly one complete source rewrite, then one hard-gate plus repair-brief rerun. If it still does not pass, stop and record unresolved repair-path drift instead of making another metric patch.",
+            "single_write_budget: after this brief, exactly one Write/Edit draft.md is allowed in this finalized attempt. A second write/edit or a third gate run is invalid controller evidence, even if the article improves.",
+            "after_rerun_stop: after the rerun, stop on pass or not-pass. Do not calculate thresholds, do not argue that checker metrics conflict, and do not write another version in the same finalized attempt.",
             "exit_note: with --strict --repair-brief, a nonzero exit usually means this profile gate is not passed, not that the tool is broken. Revise draft.md from the source actions and rerun the gates.",
             "path_contract: use the checker commands already given by the loaded skill. Do not Glob, list, grep, or read checker scripts, tests, hidden thresholds, or old logs to find a better target.",
             "do_not: do not use individual metrics as a TODO list, do not calculate thresholds, do not tune punctuation or connector counts, and do not keep thinking until every profile line is mentally solved.",

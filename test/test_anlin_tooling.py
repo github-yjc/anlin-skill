@@ -5181,6 +5181,65 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(payload["finalized"]["trace_findings"][0]["rule"], "finalized修复指标循环")
             self.assertIn("unresolved repair-path drift", payload["finalized"]["trace_findings"][0]["suggestion"])
 
+    def test_dev_checkpoint_summary_marks_finalized_second_write_and_threshold_reasoning_invalid(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            finalized_dir = case_dir / "finalized"
+            finalized_dir.mkdir(parents=True)
+            bounded = case_dir / "draft.md"
+            finalized = finalized_dir / "draft.md"
+            bounded.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 90)]), encoding="utf-8")
+            finalized.write_text(
+                "\n".join(["# 热水", "", *(["热水器响了一下，我没管，手机亮了又灭。"] * 12)]),
+                encoding="utf-8",
+            )
+            trace = finalized_dir / "opencode-output.txt"
+            trace.write_text(
+                "\n".join(
+                    [
+                        "$ python scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre standard",
+                        "$ python scripts/check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre standard",
+                        "← Write draft.md",
+                        "$ python scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre standard",
+                        "[error] global strict: 逗号密度过高",
+                        "$ python scripts/check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre standard",
+                        "现在要逐行计算逗号和句号的频率，因为工具给出了具体的阈值限制，逗号每千字不超过35个。",
+                        "← Write draft.md",
+                        "$ python scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre standard",
+                        "[error] global strict: 行末逗号比例",
+                        "$ python scripts/check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre standard",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(bounded),
+                    "--finalized-draft",
+                    str(finalized),
+                    "--finalized-trace-log",
+                    str(trace),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["finalized"]["gate"]["status"], "invalid")
+            rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
+            self.assertIn("finalized修复指标推理", rules)
+            self.assertIn("finalized修复指标循环", rules)
+            self.assertGreaterEqual(payload["finalized"]["gate"]["trace_errors"], 2)
+
     def test_dev_checkpoint_summary_allows_public_checker_metric_output_in_finalized_trace(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             case_dir = Path(temp) / "case"
@@ -9328,6 +9387,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("repair_directive: write a complete revised draft.md before any further metric analysis", result.stdout)
             self.assertIn("Do not print a proposed full article", result.stdout)
             self.assertIn("repair_loop_budget: exactly one complete source rewrite", result.stdout)
+            self.assertIn("single_write_budget: after this brief, exactly one Write/Edit draft.md is allowed", result.stdout)
+            self.assertIn("after_rerun_stop: after the rerun, stop on pass or not-pass", result.stdout)
             self.assertIn("exit_note: with --strict --repair-brief", result.stdout)
             self.assertIn("not that the tool is broken", result.stdout)
             self.assertIn("path_contract: use the checker commands already given by the loaded skill", result.stdout)
@@ -9396,9 +9457,14 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Do not rediscover this skill by globbing", finalized_minimum)
         self.assertIn("Do not use TODO tools, plans, or long diagnostic narration", finalized_minimum)
         self.assertIn("one complete source rewrite after the not-pass brief", finalized_minimum)
+        self.assertIn("A second `Write draft.md` or `Edit draft.md` in the same finalized attempt is invalid", finalized_minimum)
+        self.assertIn("After the rerun, stop on pass or not-pass", finalized_minimum)
         self.assertIn("choose one primary source rewrite from the brief", runtime)
+        self.assertIn("A second `Write draft.md` or `Edit draft.md` in the same finalized attempt is invalid controller evidence", runtime)
         self.assertIn("When multiple families appear, do not make one patch per family", finalized_minimum)
         self.assertIn("one complete source rewrite, persist `finalized/draft.md`, and rerun the gates once", validation)
+        self.assertIn("a third formal gate sequence, or explicit threshold arithmetic", validation)
+        self.assertIn("visible threshold arithmetic in the same finalized attempt", layer)
         self.assertIn("If the revised article is only printed in a log/chat but `draft.md` is unchanged", finalized_minimum)
         self.assertIn("prints a repaired article to chat or a log but leaves that file unchanged", validation)
         self.assertIn("finalized/draft.md", combined)

@@ -13,6 +13,7 @@ Use this file only when a controller or user explicitly starts a finalized repai
 - Do not rediscover this skill by globbing, listing parent skill directories, or searching sibling skills. Use the already-triggered skill path as `<skill-dir>`. If that path is unavailable, stop as unresolved rather than inspecting checker source, tests, hidden thresholds, or old logs.
 - Do not use TODO tools, plans, or long diagnostic narration as the repair artifact. The next useful action after a not-pass brief is reading the current `draft.md`, rewriting the whole article from one source action, and writing it back to `draft.md`.
 - In formal finalized checkpoints, this file is not an open-ended ordinary-user repair loop. The repair agent gets one complete source rewrite after the not-pass brief, then one hard-gate plus repair-brief rerun. If the result still does not pass, leave the best persisted `draft.md` and stop as unresolved controller evidence.
+- A second `Write draft.md` or `Edit draft.md` in the same finalized attempt is invalid controller evidence. After the rerun, stop on pass or not-pass. Do not calculate per-thousand thresholds, argue that checker metrics conflict, or write another version.
 
 ## Gate Order
 
@@ -32,7 +33,7 @@ python <skill-dir>/scripts/check_style_profile.py draft.md --draft-gate --strict
 
 After the artifact is frozen, the controller may run `check_style_profile.py` again without `--repair-brief` for the full report. The repair agent should not use that full report as its writing interface.
 
-If the repair brief returns nonzero, shows `formal_gate: not_pass`, or shows `checkpoint_pass: false`, treat that as normal repair input. Do not open the full profile report, do not calculate thresholds, and do not continue discussing findings. Read `draft.md`, apply one primary source rewrite, write the complete article back to `draft.md`, then rerun the two gates once. After that rerun, do not make a second metric-shaped edit in the same finalized attempt.
+If the repair brief returns nonzero, shows `formal_gate: not_pass`, or shows `checkpoint_pass: false`, treat that as normal repair input. Do not open the full profile report, do not calculate thresholds, and do not continue discussing findings. Read `draft.md`, apply one primary source rewrite, write the complete article back to `draft.md`, then rerun the two gates once. After that rerun, do not make a second metric-shaped edit in the same finalized attempt, do not write another `draft.md`, and do not rerun the gates again.
 
 ## Repair Choice
 

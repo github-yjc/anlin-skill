@@ -47,12 +47,27 @@ FINALIZED_THRESHOLD_PROBE_RE = re.compile(
     r".{0,120}(?:early_comma_ratio|short_breath_lines|comma_per_1k))",
     re.IGNORECASE,
 )
+FINALIZED_METRIC_REASONING_RE = re.compile(
+    r"(?:逐行计算.{0,80}(?:逗号|句号|频率)|"
+    r"(?:工具|checker|检查器).{0,80}(?:具体的)?阈值限制|"
+    r"(?:每千字|per\s+1k).{0,80}(?:不超过|上限|limit)|"
+    r"(?:指标|metrics?).{0,80}(?:根本张力|互相矛盾|pull in different directions)|"
+    r"(?:thresholds?).{0,80}(?:inconsistent|mutually exclusive|pull in different directions)|"
+    r"fundamental tension.{0,80}(?:checker|metrics?|指标))",
+    re.IGNORECASE,
+)
 FINALIZED_HARD_GATE_RE = re.compile(
     r"check_anlin_violations\.py[^\n]*--strict[^\n]*--draft-gate",
     re.IGNORECASE,
 )
+FINALIZED_REPAIR_BRIEF_GATE_RE = re.compile(
+    r"check_style_profile\.py[^\n]*--draft-gate[^\n]*--strict[^\n]*--repair-brief",
+    re.IGNORECASE,
+)
 FINALIZED_DRAFT_MUTATION_RE = re.compile(
-    r"(?:Write|Edit)\s+draft\.md|(?:Write|Edit)\s+[A-Za-z]:[^\n]*[\\/]finalized[\\/]draft\.md",
+    r"(?:Write|Edit)\s+draft\.md|"
+    r"(?:Write|Edit)\s+[A-Za-z]:[^\n]*[\\/]finalized[\\/]draft\.md|"
+    r"(?:Set-Content|Out-File)[^\n]*(?:draft\.md|finalized[\\/]draft\.md)",
     re.IGNORECASE,
 )
 FINALIZED_LOOP_LABELS = [
@@ -314,9 +329,12 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
         source_match = FINALIZED_FORBIDDEN_SOURCE_RE.search(normalized)
         rediscovery_match = FINALIZED_REDISCOVERY_RE.search(normalized)
         threshold_match = FINALIZED_THRESHOLD_PROBE_RE.search(normalized)
-        if not source_match and not rediscovery_match and not threshold_match:
+        metric_reasoning_match = FINALIZED_METRIC_REASONING_RE.search(normalized)
+        if not source_match and not rediscovery_match and not threshold_match and not metric_reasoning_match:
             continue
-        if threshold_match:
+        if metric_reasoning_match:
+            rule = "finalized修复指标推理"
+        elif threshold_match:
             rule = "finalized修复反查checker阈值"
         elif rediscovery_match:
             rule = "finalized修复重新搜索checker路径"
@@ -328,22 +346,34 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
                 "rule": rule,
                 "excerpt": line.strip()[:500],
                 "suggestion": (
-                    "Finalized repair can use checker outputs and public references, but it must not read/grep checker "
+                    "Finalized repair can use public gate outputs, but it must not turn them into threshold arithmetic, "
+                    "metric-consistency arguments, or source-code/test inspection. Treat this finalized pass as "
+                    "contaminated and rerun from the copied draft with output-only repair."
+                    if rule == "finalized修复指标推理"
+                    else "Finalized repair can use checker outputs and public references, but it must not read/grep checker "
                     "source, tests, or hidden threshold constants. Treat this finalized pass as contaminated and rerun "
                     "from the copied draft with output-only repair."
                 ),
             }
         )
     hard_gate_runs = len(FINALIZED_HARD_GATE_RE.findall(text))
+    repair_brief_runs = len(FINALIZED_REPAIR_BRIEF_GATE_RE.findall(text))
     draft_mutations = len(FINALIZED_DRAFT_MUTATION_RE.findall(text))
     repeated_labels = [label for label in FINALIZED_LOOP_LABELS if text.count(label) >= 2]
-    if hard_gate_runs >= 4 and draft_mutations >= 3 and len(repeated_labels) >= 2:
+    loop_over_budget = (
+        draft_mutations > 1
+        or hard_gate_runs > 2
+        or repair_brief_runs > 2
+        or (hard_gate_runs >= 3 and repeated_labels)
+    )
+    if loop_over_budget and (hard_gate_runs >= 2 or repair_brief_runs >= 2):
         findings.append(
             {
                 "severity": "error",
                 "rule": "finalized修复指标循环",
                 "excerpt": (
-                    f"hard_gate_runs={hard_gate_runs}; draft_mutations={draft_mutations}; "
+                    f"hard_gate_runs={hard_gate_runs}; repair_brief_runs={repair_brief_runs}; "
+                    f"draft_mutations={draft_mutations}; "
                     f"repeated_labels={', '.join(repeated_labels[:4])}"
                 ),
                 "suggestion": (
