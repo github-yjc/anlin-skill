@@ -5238,6 +5238,58 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("hard_gate_runs=2", finding["excerpt"])
             self.assertIn("repair_brief_runs=2", finding["excerpt"])
 
+    def test_dev_checkpoint_summary_marks_finalized_todo_planning_invalid(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            finalized_dir = case_dir / "finalized"
+            finalized_dir.mkdir(parents=True)
+            bounded = case_dir / "draft.md"
+            finalized = finalized_dir / "draft.md"
+            bounded.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 90)]), encoding="utf-8")
+            finalized.write_text(
+                "\n".join(["# 日寄", "", *(["其实我觉得杯子脏了，于是洗手差点吐出来，丢人。"] * 50)]),
+                encoding="utf-8",
+            )
+            trace = finalized_dir / "opencode-output.txt"
+            trace.write_text(
+                "\n".join(
+                    [
+                        "timestamp message=evaluated permission=todowrite pattern=*",
+                        "# Todos",
+                        "[ ] 运行 formal hard gate",
+                        "$ python <skill-dir>/scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre standard",
+                        "$ python <skill-dir>/scripts/check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre standard",
+                        "← Write draft.md",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(bounded),
+                    "--finalized-draft",
+                    str(finalized),
+                    "--finalized-trace-log",
+                    str(trace),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["finalized"]["gate"]["status"], "invalid")
+            rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
+            self.assertIn("finalized修复TODO计划", rules)
+
     def test_dev_checkpoint_summary_marks_finalized_second_write_and_threshold_reasoning_invalid(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             case_dir = Path(temp) / "case"
@@ -9518,6 +9570,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("single_write_budget: after this brief, exactly one Write/Edit draft.md is allowed", result.stdout)
             self.assertIn("atomic_write_rule: treat the one draft.md write as final", result.stdout)
             self.assertIn("post_write_stop: after writing draft.md, stop", result.stdout)
+            self.assertIn("planning_stop: do not use TODO tools, checklist panels", result.stdout)
             self.assertIn("standard_shape_guard: do not shrink a standard-diary repair below about 900", result.stdout)
             self.assertIn("standard_length_floor_guard: if the planned standard repair is under 900", result.stdout)
             self.assertIn("standard_line_shape_guard: the persisted standard draft must visibly stay line-broken", result.stdout)
@@ -9599,7 +9652,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Do not rediscover this skill by globbing", finalized_minimum)
         self.assertIn("reasoning aloud about how to find the skill directory", finalized_minimum)
         self.assertIn("skip local gates, read the current `draft.md`, write one complete revised artifact", finalized_minimum)
-        self.assertIn("Do not use TODO tools, plans, or long diagnostic narration", finalized_minimum)
+        self.assertIn("Do not use TODO tools, checklist panels, plans, or long diagnostic narration", finalized_minimum)
         self.assertIn("one complete source rewrite after the not-pass brief, writes the artifact, and stops", finalized_minimum)
         self.assertIn("A second `Write draft.md` or `Edit draft.md` in the same finalized attempt is invalid", finalized_minimum)
         self.assertIn("After writing `draft.md`, stop on artifact persisted", finalized_minimum)

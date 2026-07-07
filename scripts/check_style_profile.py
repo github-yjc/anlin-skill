@@ -704,6 +704,7 @@ def format_repair_brief(report: dict[str, Any]) -> str:
             "single_write_budget: after this brief, exactly one Write/Edit draft.md is allowed in this finalized attempt. A second write/edit or a third gate run is invalid controller evidence, even if the article improves.",
             "atomic_write_rule: treat the one draft.md write as final for this attempt. If you notice a typo, compressed prose block, or missed hard-gate issue after writing, do not patch it with Edit; stop and let the controller rerun gates.",
             "post_write_stop: after writing draft.md, stop. Do not run another gate sequence, calculate thresholds, argue that checker metrics conflict, or write another version in the same finalized attempt.",
+            "planning_stop: do not use TODO tools, checklist panels, or long diagnostic narration inside finalized repair; the next action after the brief is the single complete draft.md rewrite.",
             *(
                 [
                     "standard_shape_guard: do not shrink a standard-diary repair below about 900 body Chinese characters or turn it into 70+ similar short rows; keep several rough long action/speech/thought rows inside 4-6 breathing clusters.",
@@ -723,7 +724,7 @@ def format_repair_brief(report: dict[str, Any]) -> str:
             ),
             "exit_note: with --strict --repair-brief, a nonzero exit usually means this profile gate is not passed, not that the tool is broken. Revise draft.md from the source actions, persist it, and stop for controller validation.",
             "path_contract: use the checker commands already given by the loaded skill. Do not Glob, list, grep, or read checker scripts, tests, hidden thresholds, or old logs to find a better target.",
-            "do_not: do not use individual metrics as a TODO list, do not calculate thresholds, do not tune punctuation or connector counts, and do not keep thinking until every profile line is mentally solved.",
+            "do_not: do not use individual metrics as a TODO list, do not create TODO panels, do not calculate thresholds, do not tune punctuation or connector counts, and do not keep thinking until every profile line is mentally solved.",
             f"primary_source_rewrite: {primary_source_rewrite(families)}",
             "source_actions:",
         ]

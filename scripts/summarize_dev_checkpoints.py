@@ -56,6 +56,10 @@ FINALIZED_METRIC_REASONING_RE = re.compile(
     r"fundamental tension.{0,80}(?:checker|metrics?|指标))",
     re.IGNORECASE,
 )
+FINALIZED_TODO_TOOL_RE = re.compile(
+    r"(?:permission=todowrite|^\s*#\s*Todos\s*$)",
+    re.IGNORECASE | re.MULTILINE,
+)
 FINALIZED_HARD_GATE_RE = re.compile(
     r"check_anlin_violations\.py[^\n]*--strict[^\n]*--draft-gate",
     re.IGNORECASE,
@@ -375,6 +379,20 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
                     else "Finalized repair can use checker outputs and public references, but it must not read/grep checker "
                     "source, tests, or hidden threshold constants. Treat this finalized pass as contaminated and rerun "
                     "from the copied draft with output-only repair."
+                ),
+            }
+        )
+    todo_match = FINALIZED_TODO_TOOL_RE.search(command_text)
+    if todo_match:
+        findings.append(
+            {
+                "severity": "error",
+                "rule": "finalized修复TODO计划",
+                "excerpt": todo_match.group(0).strip()[:500],
+                "suggestion": (
+                    "Finalized repair is a short artifact protocol, not a planning loop. Do not use TODO tools, "
+                    "checklists, or long diagnostic narration; run the allowed pre-write brief, write one complete "
+                    "draft.md, and stop for controller validation."
                 ),
             }
         )
