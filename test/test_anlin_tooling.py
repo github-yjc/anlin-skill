@@ -6463,6 +6463,110 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: 社交拒绝私密转账假后果" for item in findings), findings)
 
+    def test_checker_draft_gate_rejects_overextended_social_decline_aftermath(self) -> None:
+        body_lines = (
+            [
+                "充电线从桌子下面伸上来，插头有点松。",
+                "狗哥发微信说下个月结婚，问我来不来。",
+                "我看了高铁票和随礼，最后回他说最近忙项目，去不了。",
+                "他回了个表情。",
+                "第二天早上班群里发了合照，我点开放大看了半天。",
+                "中午到站以后同事问我谁结婚，我说大学同学。",
+                "下午狗哥又发了个红包，问兄弟能不能来当伴郎。",
+                "我回座位打了几个字，说伴郎可能当不了，到时候喝喜酒。",
+                "他回不强求，我把手机扣在桌上。",
+            ]
+            + ["回来时椅子轮子卡住，我弯腰拽了一下，裤脚沾到灰，又把手机翻过来。"] * 40
+        )
+        body = "\n".join(["# 充电线", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 社交拒绝后果过度生长" for item in findings), findings)
+
+    def test_checker_draft_gate_allows_small_next_day_residue_in_social_decline(self) -> None:
+        body_lines = (
+            [
+                "洗碗的时候漏网上卡着几片菜叶，我伸手抠了一下。",
+                "狗哥发微信说下个月结婚，问我来不来。",
+                "我看了高铁和随礼，最后回他说最近走不开，恭喜啊。",
+                "他隔了半天回了个好。",
+                "第二天早上醒来，看见那条好还在最下面，没再点开。",
+                "我把垃圾袋拎到门口，袋口没系紧，汤水顺着手腕流下来。",
+            ]
+            + ["回来时椅子轮子卡住，我弯腰拽了一下，裤脚沾到灰。"] * 30
+        )
+        body = "\n".join(["# 袋口", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("社交拒绝后果过度生长" in item["rule"] for item in findings), findings)
+
+    def test_checker_draft_gate_rejects_third_person_narrator_slip(self) -> None:
+        body_lines = (
+            [
+                "我把杯子拿去洗，水龙头先咳了一下，喷到裤子上。",
+                "我站在那儿没动，手背上全是水。",
+                "我把手机扣在桌上。",
+                "他把手机塞到枕头底下，灭了屏幕。",
+            ]
+            + ["我把杯子拿去洗水龙头先咳了一下喷到裤子上。"] * 38
+        )
+        body = "\n".join(["# 枕头", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 叙述人称滑移" for item in findings), findings)
+
+    def test_checker_draft_gate_allows_third_person_bedroom_context_when_attributed(self) -> None:
+        body_lines = (
+            [
+                "狗哥发微信说他最近搬家。",
+                "他说他把手机塞到枕头底下，闹钟还是响。",
+                "我回了个哦，手背上还有水。",
+            ]
+            + ["我把杯子拿去洗水龙头先咳了一下喷到裤子上。"] * 38
+        )
+        body = "\n".join(["# 枕头", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("叙述人称滑移" in item["rule"] for item in findings), findings)
+
     def test_checker_draft_gate_rejects_non_diary_diagnostic_wedding_title(self) -> None:
         body_lines = (
             [
@@ -7509,6 +7613,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("If deleting every room/object detail except one makes the article stop moving", engine)
         self.assertIn("the refusal, not the sleeve or bowl, must produce the next action", engine)
         self.assertIn("Build a refusal chain, not a refusal mention", engine)
+        self.assertIn("Refusal chain upper bound", combined)
+        self.assertIn("chain means one consequence transfer, not plot continuation", combined)
+        self.assertIn("one or two visible actions", combined)
         self.assertIn("make a visible refusal chain", clean)
         self.assertIn("If `社交拒绝纹理替代后果不足` appears", runtime)
         self.assertIn("The chain must survive if every side object except one is removed", runtime)

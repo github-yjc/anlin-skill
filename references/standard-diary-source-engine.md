@@ -124,6 +124,8 @@ Build a refusal chain, not a refusal mention. The chain starts before sending, b
 - the money/route decision leaves a visible unfinished act, not a completed ledger
 - the article exits the chat through a practical consequence caused by the refusal, not through a return to the opening bowl/sleeve/water object
 
+Refusal chain upper bound: chain means one consequence transfer, not plot continuation. Keep the aftermath on the same evening or one very small next-day residue. One refusal consequence may cause one or two visible actions, then the article should exit through an unfinished reply, payment/route hesitation, body/door problem, or low object. Do not grow it into several days of follow-up messages, class-group photos, commute scenes, coworker reactions, office biography, wedding logistics,伴郎/喜酒 turns, or gift-reversal etiquette. If the draft becomes too long, cut chronology first; do not repair by adding more texture or changing punctuation.
+
 Before saving, mentally delete every room/object detail except one handle. If the remaining social chain is only `message -> ticket/suili calculation -> I said no -> he said OK`, it is still a screen summary. Rebuild until the post-refusal response, wrong reply, old debt, payment/route hesitation, or body/social interruption changes a later action by itself.
 
 If deleting every room/object detail except one makes the article stop moving, the refusal did not become an engine. Rebuild from the reply aftermath before saving `draft.md`.

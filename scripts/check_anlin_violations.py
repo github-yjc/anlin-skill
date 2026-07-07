@@ -496,6 +496,70 @@ SOCIAL_DECLINE_TERMS = [
     "走不开",
     "抱拳",
 ]
+SOCIAL_DECLINE_REFUSAL_TERMS = [
+    "去不了",
+    "走不开",
+    "最近忙",
+    "忙项目",
+    "赶项目",
+    "恭喜",
+    "不来了",
+    "来不了",
+    "算了吧",
+]
+SOCIAL_DECLINE_TIME_EXPANSION_TERMS = [
+    "第二天",
+    "第二天早上",
+    "第二天出门",
+    "中午",
+    "下午",
+    "晚上去",
+    "回家上楼",
+    "下楼",
+    "出门",
+    "到站",
+    "地铁",
+    "班群",
+    "合照",
+    "朋友圈",
+]
+SOCIAL_DECLINE_SCRIPTED_EXTENSION_TERMS = [
+    "伴郎",
+    "喜酒",
+    "不强求",
+    "人不到心意到",
+    "心意到",
+    "酒店外景",
+    "西装试装",
+]
+SOCIAL_DECLINE_OFFICE_COMMUTE_DRIFT_TERMS = [
+    "同事",
+    "工位",
+    "座位",
+    "领导",
+    "组长",
+    "下班",
+    "地铁",
+    "到站",
+]
+THIRD_PERSON_NARRATOR_SLIP_PATTERNS = [
+    re.compile(r"^他(?:把手机|翻了个身|躺在床|坐在床|拉(?:了)?被子|关(?:了)?屏幕|打开手机|塞(?:到|进)枕头)"),
+    re.compile(r"^他[^。！？\n]{0,16}(?:枕头|床上|被子|天花板|窗帘|充电线|手机屏幕)"),
+]
+THIRD_PERSON_CONTEXT_MARKERS = [
+    "狗哥",
+    "同学",
+    "朋友",
+    "老板",
+    "店员",
+    "骑手",
+    "邻居",
+    "他说",
+    "他问",
+    "他回",
+    "他发",
+    "他没再回",
+]
 ROOM_COLD_FILLER_TERMS = [
     "暖气",
     "冷",
@@ -1339,6 +1403,8 @@ DRAFT_GATE_RULE_PREFIXES = (
     "社交拒绝纹理替代后果不足",
     "社交拒绝编剧化回礼",
     "社交拒绝私密转账假后果",
+    "社交拒绝后果过度生长",
+    "叙述人称滑移",
     "标准日寄提示物标题闭环",
     "标准日寄句号网格",
     "逗号密度过高",
@@ -3694,6 +3760,97 @@ def check_social_decline_private_transfer_loop(findings: list[Finding], lines: l
     )
 
 
+def check_social_decline_overextended_aftermath(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
+        return
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if len(visible_lines) < 35:
+        return
+    body = "\n".join(visible_lines)
+    if chinese_len(body) < 850:
+        return
+    social_hits = sum(body.count(term) for term in SOCIAL_DECLINE_TERMS)
+    has_invitation_context = any(term in body for term in ("狗哥", "结婚", "婚礼", "随礼", "份子钱", "高铁", "来不来", "去不了", "走不开"))
+    if social_hits < 4 or not has_invitation_context:
+        return
+
+    refusal_index = None
+    for index, line in enumerate(visible_lines):
+        if any(term in line for term in SOCIAL_DECLINE_REFUSAL_TERMS):
+            refusal_index = index
+            break
+    if refusal_index is None:
+        return
+
+    post_refusal_lines = visible_lines[refusal_index + 1 :]
+    if len(post_refusal_lines) < 12:
+        return
+    time_lines = [
+        line
+        for line in post_refusal_lines
+        if any(term in line for term in SOCIAL_DECLINE_TIME_EXPANSION_TERMS)
+    ]
+    scripted_lines = [
+        line
+        for line in post_refusal_lines
+        if any(term in line for term in SOCIAL_DECLINE_SCRIPTED_EXTENSION_TERMS)
+    ]
+    office_commute_lines = [
+        line
+        for line in post_refusal_lines
+        if any(term in line for term in SOCIAL_DECLINE_OFFICE_COMMUTE_DRIFT_TERMS)
+    ]
+    post_refusal_social_lines = [
+        line
+        for line in post_refusal_lines
+        if any(term in line for term in ("狗哥", "同学", "班群", "合照", "伴郎", "喜酒", "西装", "酒店"))
+    ]
+
+    overgrown_time = len(time_lines) >= 3 and len(post_refusal_social_lines) >= 3
+    scripted_extension = len(scripted_lines) >= 1 and len(time_lines) >= 1
+    office_from_excuse = "忙项目" in body and len(office_commute_lines) >= 2
+    if not (overgrown_time or scripted_extension or office_from_excuse):
+        return
+
+    excerpt_source = (scripted_lines or office_commute_lines or time_lines)[0]
+    findings.append(
+        Finding(
+            "warning",
+            "社交拒绝后果过度生长",
+            visible_lines.index(excerpt_source) + 1,
+            clean_excerpt(excerpt_source),
+            "生成稿高风险：拒绝婚礼/聚会后的后果链被扩成多天连续剧情、伴郎/喜酒反转、通勤同事或办公室人生。社交拒绝的后果应在同晚或一个很小的余波里转移一两次行动；删掉跨日剧情和新身份，让一个普通回复、钱/路线犹豫、错话、旧债或身体/门口麻烦留下未完成的动作。",
+        )
+    )
+
+
+def check_third_person_narrator_slip(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
+        return
+    body = "\n".join(content_lines)
+    if body.count("我") < 5:
+        return
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    for index, line in enumerate(visible_lines):
+        if not any(pattern.search(line) for pattern in THIRD_PERSON_NARRATOR_SLIP_PATTERNS):
+            continue
+        window = "".join(visible_lines[max(0, index - 2) : min(len(visible_lines), index + 3)])
+        if any(marker in window for marker in THIRD_PERSON_CONTEXT_MARKERS):
+            continue
+        findings.append(
+            Finding(
+                "warning",
+                "叙述人称滑移",
+                index + 1,
+                clean_excerpt(line),
+                "生成稿高风险：第一人称日寄突然变成第三人称卧室/手机叙述，会像模型把草稿改成短篇小说。改回第一人称动作，或删掉这一段故事化收束。",
+            )
+        )
+        return
+
+
 def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str], text: str) -> None:
     title, content_lines = split_title_and_content_lines(lines)
     if not looks_like_standard_diary_gate_target(title, content_lines, text):
@@ -4757,6 +4914,8 @@ def collect_findings(text: str) -> list[Finding]:
     check_social_decline_room_texture_overfill(findings, lines, text)
     check_social_decline_scripted_return_gift(findings, lines, text)
     check_social_decline_private_transfer_loop(findings, lines, text)
+    check_social_decline_overextended_aftermath(findings, lines, text)
+    check_third_person_narrator_slip(findings, lines, text)
     check_prose_block_compression(findings, lines, text)
     check_short_line_poem_surface(findings, lines, text)
     check_line_length_uniformity(findings, lines, text)
