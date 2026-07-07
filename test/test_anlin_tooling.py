@@ -1313,6 +1313,28 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("do not keep a rider, cashier, neighbor, or stranger as a silent camera", preflight.stdout)
             self.assertIn("Make the handoff change payment, reply, bag/object state", preflight.stdout)
 
+    def test_clean_run_preflight_explains_private_grime_is_not_public_roughness(self) -> None:
+        body_lines = [
+            "暖气的管子摸上去只有一点温，",
+            "其实我坐在沙发边上看手机，发现充电线不够长。",
+            "不过后来还是点了麻辣烫，因为别的也想不出来。",
+            "塑料袋勒着手指，袋底有点湿，油印子渗出来。",
+            "骑手已经转身走了，楼道灯晃了一下就没了。",
+            "我进屋才发现手指上沾了汤汁，在裤子上蹭了一下。",
+            "擦手的时候看见镜子里的人，头发塌着，领口也有油渍。",
+            "靠在沙发上打了个嗝，全是香菜味。",
+        ] * 8
+        body = "\n".join(["# 充电线", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            messages = preflight_messages(draft)
+            self.assertTrue(
+                any(message.startswith("private_grime_without_public_consequence=") for message in messages),
+                messages,
+            )
+            self.assertTrue(any("rough_self_damage=missing" in message for message in messages), messages)
+
     def test_clean_run_preflight_allows_witness_that_changes_action(self) -> None:
         body = "\n".join(
             [
@@ -7189,6 +7211,21 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("No gaze-first contact repair", budget)
         self.assertIn("bag, payment, door", budget)
 
+    def test_private_grime_is_source_guidance_not_only_checker(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        budget = (ROOT / "references" / "feature-budget.md").read_text(encoding="utf-8")
+        checker = (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8")
+        combined = "\n".join([skill, clean, runtime, budget, checker])
+        self.assertIn("Private grime is not an event", skill)
+        self.assertIn("Private grime is not an event", clean)
+        self.assertIn("No private-grime substitute", budget)
+        self.assertIn("private_grime_without_public_consequence", checker)
+        self.assertIn("Oil stains, sleeve dirt, sticky fingers, burps, mirror face", runtime)
+        self.assertIn("change payment, reply, door, bag, body movement, or social position", combined)
+        self.assertIn("do not add another stain, mirror check, burp, hair, smell, or sleeve detail", checker)
+
     def test_pure_ambient_ending_is_source_guidance_not_only_checker(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
@@ -7229,6 +7266,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("exact character counting belongs to the checker", brief)
         self.assertIn("exact line counting belongs to the checker", brief)
         self.assertIn("not 100+ tiny rows", brief)
+        self.assertIn("Standard diary source contract", brief)
+        self.assertIn("use the standard source contract below before considering any short-sincere", brief)
+        self.assertIn("breathing clusters, not as one sentence per row", brief)
         self.assertIn("Do not manually enumerate every line", brief)
         self.assertIn("negative list, not subject material", brief)
         self.assertIn("Game is allowed, not required", brief)

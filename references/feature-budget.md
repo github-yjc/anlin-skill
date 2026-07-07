@@ -53,6 +53,7 @@ These apply to all normal generation:
 43. No social-feed inventory opening: do not open a generated standard diary by listing posts, gifts, transfers, screenshots, or holiday objects from a feed. `满屏都是花和转账截图` is still prompt inventory even though it is one sentence. Keep one cropped screen surface only after a body/room/payment/door/sink/side action exists, and make it change the next move.
 44. No witness-only roughness: another person seeing oil, sleeves, bare feet, hair, room mess, or a stain is not a low-status event unless the look changes payment, reply, bag/object state, door speed, dirty hand/clothing exposure, or the next action. Choose a consequence verb before drafting, not a camera angle; look, glance, sweep, notice, silence, light, and sound are not consequence verbs by themselves.
 45. No gaze-first contact repair: for riders, cashiers, neighbors, shopkeepers, and hallway strangers, do not start from `看了我一眼`, `往下看`, `瞥了一眼`, `扫了一下`, or `没说什么` and then add texture. Start from bag, payment, door, reply, hand, or body consequence.
+46. No private-grime substitute: oil stains, sticky fingers, mirror face, burps, hair, smell, sleeve dirt, or clothing inspection are private texture until they change payment, reply, door, bag, body movement, or social position. Do not answer missing roughness by adding another stain or self-inspection line.
 
 ## Strong Defaults
 

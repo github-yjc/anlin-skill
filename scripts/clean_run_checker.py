@@ -28,6 +28,23 @@ SOFTEN_LINE_ENDINGS = ROOT / "scripts" / "soften_line_endings.py"
 MERGE_SHORT_LINES = ROOT / "scripts" / "merge_short_lines.py"
 REBALANCE_LINE_RHYTHM = ROOT / "scripts" / "rebalance_line_rhythm.py"
 SNAPSHOT_DIR_NAME = ".anlin-clean-run-snapshots"
+PRIVATE_GRIME_TEXTURE_TERMS = [
+    "油渍",
+    "油印",
+    "汤汁",
+    "红油",
+    "领口",
+    "袖口",
+    "裤子上也",
+    "裤腿",
+    "衣服上沾",
+    "胡茬",
+    "头发塌",
+    "鼻翼",
+    "眼睛有点肿",
+    "镜子里",
+    "打了个嗝",
+]
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_anlin_violations import (  # noqa: E402
     AMBIENT_ENDING_PATTERNS,
@@ -638,6 +655,13 @@ def preflight_messages(draft: Path) -> list[str]:
         messages.append(
             "paragraph_engine=weak (source reset: rebuild 2-3 load-bearing action clusters that change reply/body/route/payment/room/social position; do not inspect checker source/tests)"
         )
+    private_grime_terms = [term for term in PRIVATE_GRIME_TEXTURE_TERMS if term in body]
+    if private_grime_terms and not rough_terms and not rough_patterns:
+        messages.append(
+            "private_grime_without_public_consequence="
+            + json.dumps(private_grime_terms[:6], ensure_ascii=False)
+            + " (private stain, mirror, burp, hair, or clothing inspection is texture until it changes payment/reply/door/bag/body/social position)"
+        )
     if not rough_terms and not rough_patterns:
         messages.append("rough_self_damage=missing (add one organic ugly body/social/self-own consequence in your own words; do not inspect checker source/tests)")
     messages.extend(surface_preflight_messages(article_lines, "\n".join(article_lines)))
@@ -824,7 +848,11 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             )
     if "rough_self_damage=missing" in joined_messages:
         repair_hints.append(
-            "for rough_self_damage, add one losing-face body/social consequence; pain or heat alone is too polite"
+            "for rough_self_damage, add one losing-face body/social consequence; pain or heat alone is too polite, and so are mirror face, private oil stains, burps, hair, or clothes"
+        )
+    if "private_grime_without_public_consequence=" in joined_messages:
+        repair_hints.append(
+            "for private_grime_without_public_consequence, do not add another stain, mirror check, burp, hair, smell, or sleeve detail. Make the existing grime change a public hinge: another person waits/asks/points/holds/returns, payment stalls, the door closes wrong, the bag leaks in the handoff, the narrator drops/wipes/hides/fails to answer, or cut the grime packet"
         )
     if "bare_line_grid=" in joined_messages:
         repair_hints.append(

@@ -91,6 +91,17 @@ For a standard diary blind-evaluation draft:
 - not 8-15 smooth prose blocks
 - not 100+ tiny rows
 
+If the prompt routes to standard diary, use the standard source contract below before considering any short-sincere or mother-memory rules. Those later sections are for different genres and should not pull a standard diary toward polished tenderness, proof-chain memory, or small literary closure.
+
+Standard diary source contract:
+
+- choose 2-3 load-bearing consequence kernels before writing; each kernel should be `something happens, so the narrator must do a next action`, not `the narrator notices something`
+- build the page as breathing clusters, not as one sentence per row: one line may trail with `，`, one rougher action/speech/thought line carries movement, and one short drop lands a failed decision, body lowering, or practical retreat
+- at least one cluster should leave the prompt's obvious phone/order/object surface and return with a consequence that changes hand, door, payment, reply, route, room, or social position
+- make one low-status event public enough to matter. Private grime is not an event: oil stains, burps, mirror face, hair, smell, dirty sleeve, sticky hand, or clothing inspection only count when they touch a public hinge and change payment, reply, door, bag, body movement, or social position
+- in takeout or doorway scenes, the rider/cashier/neighbor must wait, ask, point, hold, return, stall payment, expose a leak, or force the narrator's hand/door/body/reply to change before leaving. If the person simply leaves and the narrator later inspects oil, hair, face, or smell alone, cut that packet or rebuild the contact
+- do not save a candidate whose rhythm is mostly 5-12-character rows or mostly sealed `。` rows. Merge some rows into real movement lines before writing, but do not rebound into 8-15 prose paragraphs
+
 Title freedom is not length freedom. A standard diary with a side-object, phrase, question, or sentence title still needs the complete standard-diary corridor; only a deliberately sincere, micro-hope, or surreal short form should use a shorter matched evaluation.
 
 Do not write a prose version first and then promise to restructure it. In clean-eval mode, the first persisted `draft.md` is already part of the measurement. If the draft in your head is 8-15 paragraphs, stop before writing and rebuild it as breathing clusters.
