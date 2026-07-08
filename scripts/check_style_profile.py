@@ -701,7 +701,7 @@ def format_repair_brief(report: dict[str, Any]) -> str:
         [
             "repair_directive: write one complete revised draft.md now, then stop. Do not print the article to terminal only, do not summarize fixes after writing, and do not run post-write gates.",
             "hard_gate_priority: if the preceding hard gate showed blocking findings, the one source rewrite must clear those first; use this profile brief to shape the same move, not to ignore hard-gate roughness or fact failures.",
-            "attempt_contract: exactly one pre-write brief, one complete Write/Edit draft.md, and stop. A second write/edit, post-write gate loop, post-write python -c/Measure-Object/wc counter, Test-Path/Glob/List/source/test/threshold/log search, threshold argument, TODO/checklist panel, or terminal-only final version is invalid controller evidence. If a chat reply is required after writing, output only artifact_written.",
+            "attempt_contract: use this controller-prepared brief, write one complete draft.md, and stop. A second write/edit, any repair-agent checker command, post-write gate loop, post-write python -c/Measure-Object/wc counter, Test-Path/Glob/List/source/test/threshold/log search, threshold argument, TODO/checklist panel, or terminal-only final version is invalid controller evidence. If a chat reply is required after writing, output only artifact_written.",
             *(
                 [
                     "standard_shape_first: save a titled, line-broken standard diary, usually 45-70 body lines and 900+ body Chinese characters, built as 6-8 visible clusters with several moving rows that visibly exceed 24 Chinese chars, short failure drops, and mixed comma/hard-stop landings.",
@@ -722,7 +722,7 @@ def format_repair_brief(report: dict[str, Any]) -> str:
         lines.append("  - remaining families: handle only if they still appear after the source rewrite; do not solve them one by one before writing.")
     lines.extend(
         [
-            "validation_boundary: after writing draft.md, the repair agent stops. The controller reruns strict hard gate and full/brief profile reports; if the same or opposite failures bounce, record unresolved repair-path drift instead of sending the same agent into another metric-shaped edit.",
+            "validation_boundary: after writing draft.md, the repair agent stops. The controller reruns strict hard gate and the full style-profile report; if the same or opposite failures bounce, record unresolved repair-path drift instead of sending the same agent into another metric-shaped edit.",
             "controller_note: rerun without --repair-brief for full corpus-prior evidence, calibration, or reporting. The brief is the generator-facing repair interface.",
         ]
     )

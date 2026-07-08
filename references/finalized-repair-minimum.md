@@ -5,38 +5,34 @@ Use this file only when a controller or user explicitly starts a finalized repai
 ## Contract
 
 - Work only on the copied `finalized/draft.md`.
-- Freeze the selected genre before editing and pass it to every gate.
+- Freeze the selected genre before editing. The controller passes that genre to gates; the repair agent only uses the genre named in `repair-brief.txt` when present.
 - A repaired article exists only after the complete article is written back to `draft.md`.
 - A nonzero `--strict --repair-brief` exit usually means not passed, not a broken tool.
 - Do not print a proposed final article to the terminal and keep thinking.
 - Do not tune ratios one by one. Use the brief to choose one source-level rewrite.
-- Do not rediscover this skill by globbing, `Test-Path`, listing parent skill directories, searching sibling skills, or reasoning aloud about how to find the skill directory. Use `<skill-dir>` only when the runtime/controller has already provided it directly. If `<skill-dir>` is not already known, skip local gates, read the current `draft.md`, write one complete revised artifact from this minimum path, and let the controller validate; an unverified artifact is better evidence than no artifact or a path-search trace.
+- Do not rediscover this skill by globbing, `Test-Path`, listing parent skill directories, searching sibling skills, or reasoning aloud about how to find the skill directory. The repair attempt is artifact-only: read `draft.md`, read `repair-brief.txt` when it exists, use this minimum path, write one complete revised artifact, and let the controller validate. An unverified artifact is better evidence than no artifact or a path-search trace.
 - Do not use TODO tools, checklist panels, plans, or long diagnostic narration as the repair artifact. The next useful action after a not-pass brief is reading the current `draft.md`, rewriting the whole article from one source action, and writing it back to `draft.md`.
 - In formal finalized checkpoints, this file is not an open-ended ordinary-user repair loop. The repair agent gets one complete source rewrite after the not-pass brief, writes the artifact, and stops. Post-write validation belongs to the controller, not to the repair agent.
-- A second `Write draft.md` or `Edit draft.md` in the same finalized attempt is invalid controller evidence. After writing `draft.md`, stop on artifact persisted. If a chat response is required, output only `artifact_written`. Do not run another gate sequence, calculate per-thousand thresholds, argue that checker metrics conflict, or write another version.
-- Do not run `python -c`, `Measure-Object`, `wc`, `Get-Content` length probes, regex counters, line-length distributions, or connector counters after writing. A visible body-shape check happens before the write; after the write, local counting is controller work and invalidates the repair attempt as metric-chasing evidence.
+- A second `Write draft.md` or `Edit draft.md` in the same finalized attempt is invalid controller evidence. After writing `draft.md`, stop on artifact persisted. If a chat response is required, output only `artifact_written`. Do not run any checker or controller-helper command, do not calculate per-thousand thresholds, do not argue that checker metrics conflict, and do not write another version.
+- Do not run `check_anlin_violations.py`, `check_style_profile.py`, `clean_run_checker.py`, `prepare_finalized_repair_brief.py`, `python -c`, `Measure-Object`, `wc`, `Get-Content` length probes, regex counters, line-length distributions, connector counters, path probes, source/test reads, threshold searches, or old-log searches during the repair attempt. A visible body-shape check happens before the write; exact validation is controller work and invalidates the repair attempt as metric-chasing evidence.
 - The single write is atomic. If you notice a typo, a compressed prose block, a missed hard-gate issue, or a line-shape problem after writing, do not patch it with `Edit draft.md`; stop and let the controller rerun gates and record unresolved repair evidence.
 - Because the single write is atomic, do a visible body-shape check before saving. Do not write a standard diary that is mostly one short sentence per row, has no moving long action/speech/thought rows, has 45-70 short caption rows with zero true long rows, has 75-80+ body lines, has almost every line trailing with `，` and almost no landed `。`, or has only 8-25 dense prose rows. A true long row is not a 10-18-character caption; it should visibly carry a hand, reply, payment, body, speech, or thought movement beyond about 24 Chinese characters. Merge and rebuild the action clusters before the write; after the write it is too late to patch without invalidating the finalized attempt.
 
-## Gate Order
+## Repair Brief Input
 
-From inside the `finalized/` directory, run the gates exactly through Python only when `<skill-dir>` is already known without discovery. Do not start with a plain strict checker and call that a pass. Do not spend the repair attempt finding `<skill-dir>`; if the path is unavailable, skip this gate order and do the artifact-first fallback above.
+The controller may create `repair-brief.txt` before the repair attempt with `scripts/prepare_finalized_repair_brief.py`. That file is the public repair interface. It can include hard-gate blockers and a compact `check_style_profile.py --repair-brief` block, but it should not include the full metric table. The repair agent consumes the file; it does not generate the file.
 
-Run the hard gate first:
+From inside the `finalized/` directory, the repair-agent file set is deliberately small:
 
-```powershell
-python <skill-dir>/scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre <selected-genre>
-```
+- `draft.md`
+- `repair-brief.txt` when present
+- this `finalized-repair-minimum.md` when already available through the triggered skill
 
-Then run the generator-facing style gate:
+If `repair-brief.txt` is absent, do not search for checker scripts or ask how to run gates. Read `draft.md`, use this minimum path, write one complete revised `draft.md`, and stop. The controller records local validation as unresolved and reruns formal gates after the artifact is frozen.
 
-```powershell
-python <skill-dir>/scripts/check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre <selected-genre>
-```
+After the artifact is frozen, the controller runs the strict hard gate, full style-profile report, overlap checks, trace audit, and controller summary. The repair agent should not use those full reports as its writing interface.
 
-After the artifact is frozen, the controller may run `check_style_profile.py` again without `--repair-brief` for the full report. The repair agent should not use that full report as its writing interface.
-
-If the repair brief returns nonzero, shows `formal_gate: not_pass`, or shows `checkpoint_pass: false`, treat that as normal repair input. Do not open the full profile report, do not calculate thresholds, and do not continue discussing findings. Read `draft.md`, apply one primary source rewrite, write the complete article back to `draft.md`, then stop. The controller reruns gates after the artifact is frozen; the repair agent must not run a post-write gate loop or make a second metric-shaped edit.
+If the repair brief says `formal_gate: not_pass`, shows `checkpoint_pass: false`, or lists hard-gate blockers, treat that as normal repair input. Do not open the full profile report, do not calculate thresholds, and do not continue discussing findings. Read `draft.md`, apply one primary source rewrite, write the complete article back to `draft.md`, then stop. The controller reruns gates after the artifact is frozen; the repair agent must not run any gate loop or make a second metric-shaped edit.
 
 ## Repair Choice
 

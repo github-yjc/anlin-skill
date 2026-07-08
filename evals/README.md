@@ -112,7 +112,7 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 每个正式开发用例必须保存两个结果，且都放在外部评测工作区，不写入 skill 目录：
 
 - `bounded clean-eval checkpoint`：全新 agent 只拿 `realistic_prompt` + anlin-writing skill，经过 bounded preflight 和最多两次实际 `clean_run_checker.py` 调用后冻结，保存限制内得到的 `draft.md`、检查状态、stage snapshots 和控制器报告。它衡量自然引导能力加有限检查器修复能力，不衡量最终开放修复成果。stage snapshots 中的 `first_submission` 用来验收自然首稿，`checker_call_1_submission` / `checker_call_2_submission` 用来验收两次 checker 边界上的稿件变化，`bounded_final` 是该关口冻结结果。
-- `finalized repair checkpoint`：把 bounded 草稿复制到单独的 `finalized/` 用例目录，再从这份复制稿和公开检查结果继续，允许普通用户模式下多轮修复、重写和复检，保存最终稿和检查报告。它衡量 checker / repair references 能否收敛。修复后的文章必须实际写回 `finalized/draft.md`；如果 agent 只在日志或聊天里打印终稿而文件未变，按 artifact failure 记为 invalid。最终稿不能只凭普通检查器通过；必须运行 strict/draft-gate 硬门禁和 style-profile 审计，profile 为 `revise` 时仍算 finalized 失败。
+- `finalized repair checkpoint`：把 bounded 草稿复制到单独的 `finalized/` 用例目录。controller 可先生成 `finalized/repair-brief.txt`，修复 agent 只读取 `draft.md` 和该 brief，做一次完整 source rewrite，写回 `finalized/draft.md` 后停止；本阶段不允许修复 agent 运行本地 checker、controller helper、计数器、路径探测、源码/测试/阈值搜索或旧日志搜索。它衡量公开短修复接口能否让一份 copied bounded draft 收敛。修复后的文章必须实际写回 `finalized/draft.md`；如果 agent 只在日志或聊天里打印终稿而文件未变，按 artifact failure 记为 invalid。最终稿不能只凭普通检查器通过；controller 必须在 artifact 冻结后运行 strict/draft-gate 硬门禁和 style-profile full report，profile 为 `review` 或 `revise` 时仍算 finalized 未通过。
 
 这两个 checkpoint 回答不同问题，不能合并成一个“通过率”：bounded 内部先看 `first_submission` 判断自然引导，再看两次 checker 边界判断有限修复；finalized 是最终修复验收。开发时应先看 bounded 是否在两次实际 checker 调用限制内接近合格，再看 finalized 在普通多轮修复后是否真的清掉 strict/profile 风险。只有 finalized `pass` 才能说最终稿进入盲评候选；只有 bounded `pass` 才能说自然引导本身已足够强。
 
@@ -171,7 +171,8 @@ python <skill-dir>/scripts/summarize_dev_checkpoints.py <case-dir> `
 4. agent 生成一篇含标题的完整文章 → 保存到外部评测工作区，例如 `<eval-workspace>/iteration-<n>/eval-<id>/draft.md`
 5. 运行 `check_anlin_violations.py`
 6. 运行隔离 Style Critic 评分
-7. 汇总到外部评测工作区，例如 `<eval-workspace>/iteration-<n>/benchmark.json`
+7. 对 finalized checkpoint，由 controller 准备 `finalized/repair-brief.txt`，让修复 agent 只写回 `finalized/draft.md`，再由 controller 跑 full validation
+8. 汇总到外部评测工作区，例如 `<eval-workspace>/iteration-<n>/benchmark.json`
 
 ## 与盲测的关系
 

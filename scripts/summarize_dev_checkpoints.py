@@ -65,6 +65,11 @@ FINALIZED_POST_WRITE_METRIC_PROBE_RE = re.compile(
     r"Select-String[^\n]*(?:body|line|char|字数|行数)|(?:字数|行数|字符).{0,30}(?:计算|count))",
     re.IGNORECASE,
 )
+FINALIZED_AGENT_CHECKER_COMMAND_RE = re.compile(
+    r"^\s*\$\s+(?:(?:python|py)\b[^\n]*|(?:\.?/|\.?\\|[A-Za-z]:/|[A-Za-z]:\\|scripts/|scripts\\)[^\s]*)"
+    r"(?:check_anlin_violations|check_style_profile|clean_run_checker|prepare_finalized_repair_brief)\.py\b",
+    re.IGNORECASE,
+)
 FINALIZED_HARD_GATE_RE = re.compile(
     r"check_anlin_violations\.py[^\n]*--strict[^\n]*--draft-gate",
     re.IGNORECASE,
@@ -355,15 +360,28 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
     text = re.sub(r"\x1b\[[0-9;]*m", "", raw_text)
     collapsed_lines = collapse_wrapped_trace_lines(text)
     command_text = "\n".join(collapsed_lines)
+    checker_command_recorded = False
     for line in collapsed_lines:
         normalized = line.replace("\\", "/")
+        checker_command_match = FINALIZED_AGENT_CHECKER_COMMAND_RE.search(normalized)
         source_match = FINALIZED_FORBIDDEN_SOURCE_RE.search(normalized)
         rediscovery_match = FINALIZED_REDISCOVERY_RE.search(normalized)
         threshold_match = FINALIZED_THRESHOLD_PROBE_RE.search(normalized)
         metric_reasoning_match = FINALIZED_METRIC_REASONING_RE.search(normalized)
-        if not source_match and not rediscovery_match and not threshold_match and not metric_reasoning_match:
+        if (
+            not checker_command_match
+            and not source_match
+            and not rediscovery_match
+            and not threshold_match
+            and not metric_reasoning_match
+        ):
             continue
-        if metric_reasoning_match:
+        if checker_command_match:
+            if checker_command_recorded:
+                continue
+            checker_command_recorded = True
+            rule = "finalized修复运行本地检查器"
+        elif metric_reasoning_match:
             rule = "finalized修复指标推理"
         elif threshold_match:
             rule = "finalized修复反查checker阈值"
@@ -377,6 +395,12 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
                 "rule": rule,
                 "excerpt": line.strip()[:500],
                 "suggestion": (
+                    "Under artifact-only finalized repair, the repair-agent log must not contain local checker or "
+                    "controller-helper commands. The controller prepares repair-brief.txt before the attempt and "
+                    "reruns gates after the artifact is frozen. Treat this attempt as contaminated and rerun with "
+                    "only draft.md plus repair-brief.txt exposed to the repair agent."
+                    if rule == "finalized修复运行本地检查器"
+                    else
                     "Finalized repair can use public gate outputs, but it must not turn them into threshold arithmetic, "
                     "metric-consistency arguments, or source-code/test inspection. Treat this finalized pass as "
                     "contaminated and rerun from the copied draft with output-only repair."
@@ -449,10 +473,10 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
                     f"repeated_labels={', '.join(repeated_labels[:4])}"
                 ),
                 "suggestion": (
-                    "Finalized repair should use at most one pre-write hard/profile brief, one source rewrite, "
-                    "and then stop for controller validation. Repeated hard-gate bounces between rhythm, "
-                    "punctuation, or social-consequence labels are unresolved repair-path drift, not permission "
-                    "to keep tuning metrics."
+                    "Finalized repair should use the controller-prepared repair-brief.txt, make one source rewrite, "
+                    "and then stop for controller validation. Repair-agent checker commands, repeated hard-gate "
+                    "bounces between rhythm, punctuation, or social-consequence labels are unresolved repair-path "
+                    "drift, not permission to keep tuning metrics."
                 ),
             }
         )

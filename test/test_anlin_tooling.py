@@ -23,6 +23,7 @@ BUILD_PROFILE = ROOT / "scripts" / "build_style_profile.py"
 CHECK_PROFILE = ROOT / "scripts" / "check_style_profile.py"
 CALIBRATE_PROFILE = ROOT / "scripts" / "calibrate_style_profile.py"
 CLEAN_RUN_CHECKER = ROOT / "scripts" / "clean_run_checker.py"
+PREPARE_FINALIZED_REPAIR_BRIEF = ROOT / "scripts" / "prepare_finalized_repair_brief.py"
 CHECK_TRACE = ROOT / "scripts" / "check_clean_eval_trace.py"
 SUMMARY_CHECKPOINTS = ROOT / "scripts" / "summarize_dev_checkpoints.py"
 MERGE_SHORT_LINES = ROOT / "scripts" / "merge_short_lines.py"
@@ -5177,10 +5178,13 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             payload = json.loads(result.stdout)
             self.assertEqual(payload["finalized"]["gate"]["status"], "invalid")
-            self.assertEqual(payload["finalized"]["gate"]["trace_errors"], 1)
-            self.assertEqual(payload["finalized"]["trace_findings"][0]["rule"], "finalized修复指标循环")
-            self.assertIn("at most one pre-write hard/profile brief", payload["finalized"]["trace_findings"][0]["suggestion"])
-            self.assertIn("unresolved repair-path drift", payload["finalized"]["trace_findings"][0]["suggestion"])
+            self.assertEqual(payload["finalized"]["gate"]["trace_errors"], 2)
+            rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
+            self.assertIn("finalized修复运行本地检查器", rules)
+            self.assertIn("finalized修复指标循环", rules)
+            loop_finding = next(item for item in payload["finalized"]["trace_findings"] if item["rule"] == "finalized修复指标循环")
+            self.assertIn("controller-prepared repair-brief.txt", loop_finding["suggestion"])
+            self.assertIn("unresolved repair-path", loop_finding["suggestion"])
 
     def test_dev_checkpoint_summary_marks_post_write_gate_loop_invalid_without_second_write(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -5232,11 +5236,13 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             payload = json.loads(result.stdout)
             self.assertEqual(payload["finalized"]["gate"]["status"], "invalid")
-            self.assertEqual(payload["finalized"]["gate"]["trace_errors"], 1)
-            finding = payload["finalized"]["trace_findings"][0]
-            self.assertEqual(finding["rule"], "finalized修复指标循环")
-            self.assertIn("hard_gate_runs=2", finding["excerpt"])
-            self.assertIn("repair_brief_runs=2", finding["excerpt"])
+            self.assertEqual(payload["finalized"]["gate"]["trace_errors"], 2)
+            rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
+            self.assertIn("finalized修复运行本地检查器", rules)
+            self.assertIn("finalized修复指标循环", rules)
+            loop_finding = next(item for item in payload["finalized"]["trace_findings"] if item["rule"] == "finalized修复指标循环")
+            self.assertIn("hard_gate_runs=2", loop_finding["excerpt"])
+            self.assertIn("repair_brief_runs=2", loop_finding["excerpt"])
 
     def test_dev_checkpoint_summary_marks_post_write_metric_probe_invalid(self) -> None:
         commands = [
@@ -5293,13 +5299,14 @@ class AnlinToolingTests(unittest.TestCase):
                     payload = json.loads(result.stdout)
                     self.assertEqual(payload["finalized"]["gate"]["status"], "invalid")
                     rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
+                    self.assertIn("finalized修复运行本地检查器", rules)
                     self.assertIn("finalized修复写后自测计数", rules)
                     finding = next(
                         item for item in payload["finalized"]["trace_findings"] if item["rule"] == "finalized修复写后自测计数"
                     )
                     self.assertIn("controller performs validation after the artifact is frozen", finding["suggestion"])
 
-    def test_dev_checkpoint_summary_counts_only_real_gate_commands_for_finalized_loop(self) -> None:
+    def test_dev_checkpoint_summary_marks_any_finalized_checker_command_invalid(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             case_dir = Path(temp) / "case"
             finalized_dir = case_dir / "finalized"
@@ -5318,8 +5325,8 @@ class AnlinToolingTests(unittest.TestCase):
                         "$ python <skill-dir>/scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre standard",
                         "[error] global strict: 标准日寄句号网格",
                         "$ python <skill-dir>/scripts/check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre standard",
-                        "repair_directive: run check_anlin_violations.py draft.md --strict --draft-gate --genre standard only before writing",
-                        "controller_note: check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre standard is the generator-facing interface",
+                        "repair_directive: write one complete revised draft.md now, then stop",
+                        "controller_note: full profile reports belong outside the repair-agent trace",
                         "findings:",
                         "  - warning:red | line_rhythm | line_mean_chars | observed=11.0",
                         "← Write draft.md",
@@ -5350,6 +5357,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             payload = json.loads(result.stdout)
             rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
+            self.assertIn("finalized修复运行本地检查器", rules)
             self.assertNotIn("finalized修复指标循环", rules)
 
     def test_dev_checkpoint_summary_marks_finalized_todo_planning_invalid(self) -> None:
@@ -5402,6 +5410,7 @@ class AnlinToolingTests(unittest.TestCase):
             payload = json.loads(result.stdout)
             self.assertEqual(payload["finalized"]["gate"]["status"], "invalid")
             rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
+            self.assertIn("finalized修复运行本地检查器", rules)
             self.assertIn("finalized修复TODO计划", rules)
 
     def test_dev_checkpoint_summary_marks_finalized_second_write_and_threshold_reasoning_invalid(self) -> None:
@@ -5460,11 +5469,12 @@ class AnlinToolingTests(unittest.TestCase):
             payload = json.loads(result.stdout)
             self.assertEqual(payload["finalized"]["gate"]["status"], "invalid")
             rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
+            self.assertIn("finalized修复运行本地检查器", rules)
             self.assertIn("finalized修复指标推理", rules)
             self.assertIn("finalized修复指标循环", rules)
-            self.assertGreaterEqual(payload["finalized"]["gate"]["trace_errors"], 2)
+            self.assertGreaterEqual(payload["finalized"]["gate"]["trace_errors"], 3)
 
-    def test_dev_checkpoint_summary_allows_public_checker_metric_output_in_finalized_trace(self) -> None:
+    def test_dev_checkpoint_summary_marks_public_checker_metric_output_in_repair_trace_invalid(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             case_dir = Path(temp) / "case"
             finalized_dir = case_dir / "finalized"
@@ -5508,8 +5518,9 @@ class AnlinToolingTests(unittest.TestCase):
                 check=False,
             )
             payload = json.loads(result.stdout)
-            self.assertEqual(payload["finalized"]["gate"]["trace_errors"], 0)
-            self.assertFalse(payload["finalized"]["trace_findings"])
+            self.assertEqual(payload["finalized"]["gate"]["trace_errors"], 1)
+            self.assertEqual(payload["finalized"]["trace_findings"][0]["rule"], "finalized修复运行本地检查器")
+            self.assertIn("controller prepares repair-brief.txt", payload["finalized"]["trace_findings"][0]["suggestion"])
 
     def test_clean_run_checker_merges_uniform_medium_grid_before_second_call(self) -> None:
         fragments = [
@@ -7957,7 +7968,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Skill discovery stop rule", skill)
         self.assertIn("do not glob, search, list parent skill directories, reason aloud about finding the skill directory", skill)
         self.assertIn("In ordinary repair, ask for the skill directory only if the user wants deterministic validation", skill)
-        self.assertIn("In formal finalized repair, do not ask or search during the attempt", skill)
+        self.assertIn("In formal finalized repair, do not ask, search, or run local gates during the attempt", skill)
         self.assertIn("Extra pre-draft files contaminate the source-guidance measurement", clean)
         self.assertIn("Before writing `draft.md`, do a private source preflight", clean)
         self.assertIn("If a candidate title and body already exist in your head, write `draft.md` immediately", clean)
@@ -8498,7 +8509,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Normal `check_anlin_violations.py draft.md` success is not sufficient", validation)
         self.assertIn("`check_anlin_violations.py draft.md --strict` is not the formal gate", skill)
         self.assertIn("Do not start with plain `--strict` and treat a clean result as a pass", runtime)
-        self.assertIn("the formal hard-gate command is `check_anlin_violations.py draft.md --strict --draft-gate --genre <selected-genre>`", runtime)
+        self.assertIn("controller reruns `check_anlin_violations.py draft.md --strict --draft-gate --genre <selected-genre>`", runtime)
         self.assertIn("A `revise` status means finalized repair failed", validation)
         self.assertIn("Style-profile `yellow` with zero errors is acceptable for the finalized checkpoint", validation)
         self.assertIn("style-profile `yellow` 可作为 finalized checkpoint 的通过条件之一", eval_readme)
@@ -8520,8 +8531,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("breathing clusters of 2-5 visible lines", runtime)
         self.assertIn("references/finalized-repair-minimum.md", skill)
         self.assertIn("Do not search parent or sibling skill directories to find that reference", skill)
-        self.assertIn("Inline fallback if the reference path is not directly available", skill)
-        self.assertIn("still write the revised artifact and mark local validation unresolved", skill)
+        self.assertIn("Artifact-only fallback", skill)
+        self.assertIn("If `repair-brief.txt` is unavailable, still write the revised artifact from the finalized minimum", skill)
+        self.assertIn("mark local validation unresolved", skill)
         self.assertIn("do not exit with an unchanged draft", skill)
         self.assertIn("generator-facing minimum path", finalized_minimum)
         self.assertIn("write a complete `draft.md`", finalized_minimum)
@@ -8552,14 +8564,17 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("finalized repair checkpoint", layer_map)
         self.assertIn("normal checker success alone is not a finalized pass", layer_map)
         self.assertIn("finalized is only `review`, it is still unresolved", layer_map)
-        self.assertIn("must not read or grep checker source", layer_map)
-        self.assertIn("do not read or grep checker source, tests, or hidden threshold constants", skill)
-        self.assertIn("Do not read or grep checker source, test files, or hidden threshold constants", validation)
-        self.assertIn("A finalized pass after source/threshold inspection is contaminated", skill)
+        self.assertIn("The repair agent must not run `check_anlin_violations.py`", layer_map)
+        self.assertIn("read or grep checker source, tests, hidden threshold constants", layer_map)
+        self.assertIn("source/test/threshold searches during the finalized attempt", skill)
+        self.assertIn("Do not use the full style-profile report, checker source, tests, hidden thresholds", skill)
+        self.assertIn("must not run local gates, controller helpers, counters, path probes, source/test reads, threshold searches, or old-log searches", validation)
+        self.assertIn("A finalized pass after repair-agent source/threshold/path inspection is contaminated", skill)
         self.assertIn("Generated articles do not belong in the skill directory", runtime)
         self.assertIn("Natural connector coverage should be solved before the checker", clean)
         self.assertIn("`connectors`: change what happens next so a turn is needed", finalized_minimum)
-        self.assertIn("If draft-gate reports `高频词覆盖不足`", runtime)
+        self.assertIn("If connector spread is thin, change what happens next instead of swapping synonyms", runtime)
+        self.assertIn("If the brief reports `高频词覆盖不足`", runtime)
         self.assertIn("For 朋友圈, short-video, annual-summary, old-chat", runtime)
         self.assertIn("A feed is not a scene slate", runtime)
         self.assertIn("sealed story shape", runtime)
@@ -9909,7 +9924,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("repair_directive: write one complete revised draft.md now, then stop", result.stdout)
             self.assertIn("Do not print the article to terminal only", result.stdout)
             self.assertIn("hard_gate_priority: if the preceding hard gate showed blocking findings", result.stdout)
-            self.assertIn("attempt_contract: exactly one pre-write brief", result.stdout)
+            self.assertIn("attempt_contract: use this controller-prepared brief", result.stdout)
             self.assertIn("post-write python -c/Measure-Object/wc counter", result.stdout)
             self.assertIn("Test-Path/Glob/List/source/test/threshold/log search", result.stdout)
             self.assertIn("artifact_written", result.stdout)
@@ -9964,6 +9979,64 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("q05-q95", full_result.stdout)
             self.assertIn("robust_z=", full_result.stdout)
 
+    def test_prepare_finalized_repair_brief_writes_compact_artifact_only_brief(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            finalized_dir = Path(temp) / "finalized"
+            finalized_dir.mkdir()
+            draft = finalized_dir / "draft.md"
+            draft.write_text(
+                "\n".join(
+                    [
+                        "# 水龙头",
+                        "",
+                        "不是包装袋漏，是电动车前面那个篮子。",
+                        *(["水龙头开小了还是溅出来。"] * 8),
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(PREPARE_FINALIZED_REPAIR_BRIEF),
+                    str(draft),
+                    "--genre",
+                    "standard",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            brief_path = finalized_dir / "repair-brief.txt"
+            self.assertEqual(Path(payload["output"]), brief_path)
+            self.assertTrue(payload["repair_required"])
+            self.assertEqual(payload["selected_genre"], "standard")
+            self.assertTrue(brief_path.is_file())
+
+            brief = brief_path.read_text(encoding="utf-8")
+            self.assertIn("Anlin finalized repair brief", brief)
+            self.assertIn("producer: controller", brief)
+            self.assertIn("selected_genre: standard", brief)
+            self.assertIn("hard_gate_status: not_pass", brief)
+            self.assertIn("AI二元解释句式", brief)
+            self.assertIn("style_repair_brief:", brief)
+            self.assertIn("Anlin style-profile repair brief", brief)
+            self.assertIn("tool_boundary: do not run check_anlin_violations.py", brief)
+            self.assertIn("write one complete revised draft.md", brief)
+            self.assertIn("controller_boundary: after the single write", brief)
+            self.assertNotIn("findings:", brief)
+            self.assertNotIn("observed=", brief)
+            self.assertNotIn("q10-q90", brief)
+            self.assertNotIn("q05-q95", brief)
+            self.assertNotIn("count80", brief)
+            self.assertNotIn("robust_z", brief)
+
     def test_finalized_repair_docs_route_profile_brief_and_full_report_separately(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
@@ -9977,32 +10050,34 @@ class AnlinToolingTests(unittest.TestCase):
             "check_anlin_violations.py draft.md --strict --draft-gate --genre <selected-genre>",
             runtime,
         )
-        self.assertIn(
-            "check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre <selected-genre>",
-            runtime,
-        )
+        self.assertIn("prepare_finalized_repair_brief.py", validation)
+        self.assertIn("repair-brief.txt", runtime)
+        self.assertIn("full `check_style_profile.py draft.md --draft-gate --strict --genre <selected-genre>` report", runtime)
         for text in (skill, runtime, finalized_minimum, validation, layer):
-            self.assertIn("--repair-brief", text)
             self.assertIn("draft.md", text)
+        for text in (skill, finalized_minimum, validation, readme):
+            self.assertIn("--repair-brief", text)
         for text in (skill, runtime, finalized_minimum, layer):
             self.assertIn("terminal", text.lower())
         self.assertIn("The repair brief is the generator-facing interface", validation)
+        self.assertIn("the repair agent reads `draft.md` plus `repair-brief.txt`", validation)
         self.assertIn("After the finalized artifact is frozen", validation)
         self.assertIn("without `--repair-brief` for the full report", validation)
-        self.assertIn("controller reruns hard gate and the full style-profile report after the artifact is frozen", layer)
+        self.assertIn("full profile metrics remain controller evidence after the artifact is frozen", layer)
         self.assertIn("Terminal/log-only prose is an artifact failure", skill)
         self.assertIn("terminal-only prose is an artifact failure", runtime)
         self.assertIn("Do not print a proposed final article to the terminal and keep thinking", finalized_minimum)
         self.assertIn("Do not rediscover this skill by globbing", finalized_minimum)
         self.assertIn("reasoning aloud about how to find the skill directory", finalized_minimum)
-        self.assertIn("skip local gates, read the current `draft.md`, write one complete revised artifact", finalized_minimum)
+        self.assertIn("If `repair-brief.txt` is absent, do not search for checker scripts", finalized_minimum)
         self.assertIn("Do not use TODO tools, checklist panels, plans, or long diagnostic narration", finalized_minimum)
         self.assertIn("one complete source rewrite after the not-pass brief, writes the artifact, and stops", finalized_minimum)
         self.assertIn("A second `Write draft.md` or `Edit draft.md` in the same finalized attempt is invalid", finalized_minimum)
         self.assertIn("After writing `draft.md`, stop on artifact persisted", finalized_minimum)
         self.assertIn("The single write is atomic", finalized_minimum)
         self.assertIn("do not patch it with `Edit draft.md`", finalized_minimum)
-        self.assertIn("Do not run `python -c`, `Measure-Object`, `wc`, `Get-Content` length probes", finalized_minimum)
+        self.assertIn("Do not run `check_anlin_violations.py`, `check_style_profile.py`, `clean_run_checker.py`", finalized_minimum)
+        self.assertIn("`python -c`, `Measure-Object`, `wc`, `Get-Content` length probes", finalized_minimum)
         self.assertIn("Because the single write is atomic, do a visible body-shape check before saving", finalized_minimum)
         self.assertIn("75-80+ body lines", finalized_minimum)
         self.assertIn("45-70 short caption rows with zero true long rows", finalized_minimum)
@@ -10032,12 +10107,13 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("The finalized rewrite is atomic", runtime)
         self.assertIn("80+ one-sentence rows", runtime)
         self.assertIn("reject a comma carpet", runtime)
-        self.assertIn("If `<skill-dir>` is unavailable, skip local gates", runtime)
-        self.assertIn("do not run `Test-Path` probes for checker scripts", runtime)
+        self.assertIn("If `repair-brief.txt` is absent, do not search for scripts or ask how to run gates", runtime)
+        self.assertIn("`Test-Path`, glob/list/path probes", runtime)
         self.assertIn("A neighbor/cashier/rider cameo is not a public hinge", runtime)
-        self.assertIn("Post-write metric probes are invalid", validation)
+        self.assertIn("the repair agent writes the artifact; only the controller validates it", validation)
         self.assertIn("post-write python -c/Measure-Object/wc counters", layer)
-        self.assertIn("post-write `python -c`, `Measure-Object`, `wc`, or local line/character counters", readme)
+        self.assertIn("post-write `python -c`, `Measure-Object`, `wc`", readme)
+        self.assertIn("local line/character counters", readme)
         self.assertIn("line-broken does not mean equal short sentence rows", skill)
         self.assertIn("16-25-row dense prose article", skill)
         self.assertIn("45-70-line caption grid", skill)
@@ -10068,8 +10144,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("A dozen long prose paragraphs", skill)
         self.assertIn("A second `Write draft.md` or `Edit draft.md` in the same finalized attempt is invalid controller evidence", runtime)
         self.assertIn("When multiple families appear, do not make one patch per family", finalized_minimum)
-        self.assertIn("make one complete source rewrite, persist `finalized/draft.md`, and stop", validation)
-        self.assertIn("a post-write repair-agent gate loop, or explicit threshold arithmetic", validation)
+        self.assertIn("makes one complete source rewrite, persists `finalized/draft.md`, and stops", validation)
+        self.assertIn("a post-write repair-agent gate loop, post-write `python -c`", validation)
+        self.assertIn("or explicit threshold arithmetic in the same finalized attempt", validation)
         self.assertIn("post-write repair-agent gate loop", layer)
         self.assertIn("If the revised article is only printed in a log/chat but `draft.md` is unchanged", finalized_minimum)
         self.assertIn("prints a repaired article to chat or a log but leaves that file unchanged", validation)
