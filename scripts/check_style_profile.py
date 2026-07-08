@@ -706,7 +706,7 @@ def format_repair_brief(report: dict[str, Any]) -> str:
                 [
                     "standard_shape_first: save a titled, line-broken standard diary, usually 45-70 body lines and 900+ body Chinese characters, built as 6-8 visible clusters with several moving rows that visibly exceed 24 Chinese chars, short failure drops, and mixed comma/hard-stop landings.",
                     "standard_do_not_save: do not save 8-25 dense prose rows, 70+ equal short rows, a 45-70-line caption grid with 0 real long rows, a comma carpet, a below-900 shrink, or a draft with only one or two moving long rows.",
-                    "standard_social_decline_source: for invitation/refusal repairs, delete message-order plot glue, group-chat crowd summaries, tidy etiquette settlement, and private wet-room proof; use one local consequence that changes hand, reply, payment, route, door, object, body, or social position.",
+                    "standard_social_decline_source: for invitation/refusal repairs, delete message-order plot glue, group-chat crowd summaries, tidy etiquette settlement, and private wet-room proof; use one refusal-coupled consequence that changes hand, reply, payment, route, door, object, body, or social position. An unrelated delivery, room chore, or burn after the reply is not enough.",
                 ]
                 if genre == "standard"
                 else []

@@ -6821,6 +6821,40 @@ class AnlinToolingTests(unittest.TestCase):
                 messages,
             )
 
+    def test_checker_draft_gate_rejects_decoupled_delivery_as_social_decline_consequence(self) -> None:
+        body_lines = (
+            [
+                "水槽下面又漏了一点水，我把盆挪过去，手背先湿了。",
+                "狗哥发微信说下个月结婚，问我来不来。",
+                "我看了高铁和随礼，最后回他说最近忙项目，去不了，恭喜啊。",
+                "他回了个好的。",
+                "外卖到了，我去门口拿。",
+                "包装袋有点漏，汤顺着手背流下来。",
+                "我把袋子放在桌上，烫得吹了两口气。",
+            ]
+            + ["厨房水龙头还在响，袖口贴着手腕，我把手机扣在桌上。"] * 31
+        )
+        body = "\n".join(["# 汤袋", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 社交拒绝无关后果替代" for item in findings), findings)
+
+            messages = preflight_messages(draft)
+            self.assertTrue(
+                any(message.startswith("social_decline_decoupled_consequence=") for message in messages),
+                messages,
+            )
+
     def test_checker_allows_plain_reply_when_it_changes_visible_social_action(self) -> None:
         body_lines = (
             [
@@ -6846,6 +6880,7 @@ class AnlinToolingTests(unittest.TestCase):
             )
             findings = json.loads(result.stdout)
             self.assertFalse(any("社交拒绝普通回复假后果" in item["rule"] for item in findings), findings)
+            self.assertFalse(any("社交拒绝无关后果替代" in item["rule"] for item in findings), findings)
 
     def test_checker_draft_gate_rejects_scripted_return_gift_in_social_decline(self) -> None:
         body_lines = (
@@ -8287,6 +8322,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("人不到钱到", combined)
         self.assertIn("moral etiquette", combined)
         self.assertIn("one local consequence", combined)
+        self.assertIn("would still work without the invitation", combined)
+        self.assertIn("off-axis residue", combined)
 
     def test_clean_eval_rhythm_repair_order_is_unambiguous_in_runtime_docs(self) -> None:
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
@@ -9820,6 +9857,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("standard_do_not_save: do not save 8-25 dense prose rows", result.stdout)
             self.assertIn("45-70-line caption grid with 0 real long rows", result.stdout)
             self.assertIn("standard_social_decline_source: for invitation/refusal repairs", result.stdout)
+            self.assertIn("refusal-coupled consequence", result.stdout)
+            self.assertIn("unrelated delivery, room chore, or burn after the reply is not enough", result.stdout)
             self.assertIn("exit_note: with --strict --repair-brief", result.stdout)
             self.assertIn("not tool failure", result.stdout)
             self.assertIn("primary_source_rewrite:", result.stdout)

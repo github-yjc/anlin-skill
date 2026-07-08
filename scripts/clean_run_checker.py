@@ -72,6 +72,7 @@ from check_anlin_violations import (  # noqa: E402
     short_genre_present_action_anchor_risk,
     short_genre_prompt_prop_too_early_risk,
     short_genre_repair_stuffing_groups,
+    social_decline_decoupled_consequence_risk,
     social_decline_group_fake_consequence_risk,
     social_decline_plain_reply_private_loop_risk,
     social_decline_tidy_etiquette_closure_risk,
@@ -627,6 +628,12 @@ def preflight_messages(draft: Path) -> list[str]:
             "social_decline_tidy_etiquette_closure="
             + json.dumps(tidy_etiquette_closure_risk, ensure_ascii=False)
         )
+    decoupled_consequence_risk = social_decline_decoupled_consequence_risk(text.splitlines(), text)
+    if decoupled_consequence_risk:
+        messages.append(
+            "social_decline_decoupled_consequence="
+            + json.dumps(decoupled_consequence_risk, ensure_ascii=False)
+        )
     if body_chars < 900:
         messages.append(f"body_chinese_chars={body_chars} < 900")
     elif body_chars < 950 and source_shape_weak:
@@ -896,6 +903,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         repair_hints.append(
             "for social_decline_tidy_etiquette_closure, do not close the refusal with narrator red-packet apology, `人不到钱到`, `人不到没事`, `下次一起吃饭`, or `心意到了`. Remove the polite moral settlement and leave through unfinished reply, route/payment hesitation, old debt, body/door trouble, or a lower practical residue"
         )
+    if "social_decline_decoupled_consequence=" in joined_messages:
+        repair_hints.append(
+            "for social_decline_decoupled_consequence, do not use unrelated delivery, food burn, room chores, errands, or generic ugly texture as the refusal aftermath. Rebuild one consequence that depends on not going: the reply/payment/route stalls, someone waits while the answer is unfinished, a dirty/wet hand changes the reply, or an old debt/body/door problem changes the next action"
+        )
     if "bare_line_grid=" in joined_messages:
         repair_hints.append(
             "for bare_line_grid, keep sentence punctuation and merge naked caption rows into action/reply/thought lines; do not create lineation by stripping punctuation"
@@ -968,6 +979,12 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
                 "Reset the refusal-aftermath source: do not keep `he said OK -> private screen/water mark -> room object`. "
                 "Delete one room/screen packet and rebuild the next cluster so the ordinary response changes hand, reply, "
                 "payment, route, door, body, or social position before the article exits the chat."
+            )
+        elif "social_decline_decoupled_consequence=" in joined_messages:
+            revision_frame = (
+                "Reset the refusal-coupled consequence: remove the delivery/burn/chore/errand scene if it would still "
+                "work without the invitation, then rebuild the next cluster so not going changes reply, payment, route, "
+                "door, dirty hand, old debt, body, or social position before the article exits the chat."
             )
         elif underbuilt_source:
             revision_frame = (

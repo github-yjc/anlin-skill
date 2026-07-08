@@ -599,6 +599,40 @@ SOCIAL_DECLINE_TIDY_ETIQUETTE_CLOSURE_TERMS = [
     "别转了",
     "到时候请你",
 ]
+SOCIAL_DECLINE_DECOUPLED_CONSEQUENCE_TERMS = [
+    "外卖",
+    "骑手",
+    "包装袋",
+    "袋子",
+    "汤",
+    "红油",
+    "洒",
+    "漏",
+    "烫",
+    "泡面",
+    "水槽",
+    "水龙头",
+    "热水器",
+    "洗碗",
+    "洗手",
+    "厨房",
+    "拖地",
+    "垃圾袋",
+    "快递",
+    "取快递",
+    "便利店",
+    "超市",
+    "下楼买",
+    "下楼取",
+]
+SOCIAL_DECLINE_COUPLED_CONSEQUENCE_PATTERNS = [
+    re.compile(r"(?:等我|等着|催|问我|指|没走|站着)[^。！？\n]{0,28}(?:扫码|付款|回|回复|手机|屏幕|手|门口)"),
+    re.compile(r"(?:扫码|付款|二维码|余额|支付)[^。！？\n]{0,35}(?:狗哥|婚礼|随礼|回复|回|手机|手|等|门口)"),
+    re.compile(r"(?:路线|定位|车票|退票|打车|地址)[^。！？\n]{0,35}(?:婚礼|狗哥|随礼|去不了|走不开|回复|回|卡|没)"),
+    re.compile(r"(?:手|袖口|水|油|脏|湿)[^。！？\n]{0,28}(?:回复|回|发|发送|打字|按|屏幕)"),
+    re.compile(r"(?:回复|回|发送|打字|手机|屏幕)[^。！？\n]{0,28}(?:手|袖口|水|油|脏|湿)"),
+    re.compile(r"(?:他|她|对方|外卖员|骑手|店员|老板|邻居)[^。！？\n]{0,24}(?:问|催|等|指|站着|没走)"),
+]
 SOCIAL_DECLINE_REFUSAL_TERMS = [
     "去不了",
     "走不开",
@@ -1547,6 +1581,7 @@ DRAFT_GATE_RULE_PREFIXES = (
     "社交拒绝编剧化回礼",
     "社交拒绝礼貌闭合",
     "社交拒绝私密转账假后果",
+    "社交拒绝无关后果替代",
     "社交拒绝后果过度生长",
     "叙述人称滑移",
     "标准日寄提示物标题闭环",
@@ -4055,6 +4090,99 @@ def check_social_decline_tidy_etiquette_closure(findings: list[Finding], lines: 
     )
 
 
+def social_decline_decoupled_consequence_risk(lines: list[str], text: str) -> dict[str, Any] | None:
+    title, content_lines = split_title_and_content_lines(lines)
+    if not looks_like_standard_diary_gate_target(title, content_lines, text):
+        return None
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if len(visible_lines) < 30:
+        return None
+    body = "\n".join(visible_lines)
+    if chinese_len(body) < STANDARD_DIARY_ATTEMPT_MIN_CHARS:
+        return None
+    social_hits = sum(body.count(term) for term in SOCIAL_DECLINE_TERMS)
+    has_invitation_context = any(
+        term in body
+        for term in ("狗哥", "结婚", "婚礼", "随礼", "份子钱", "高铁", "来不来", "去不了", "走不开", "忙项目")
+    )
+    if social_hits < 4 or not has_invitation_context:
+        return None
+
+    refusal_index = None
+    for index, line in enumerate(visible_lines):
+        if any(term in line for term in SOCIAL_DECLINE_REFUSAL_TERMS):
+            refusal_index = index
+            break
+    if refusal_index is None:
+        return None
+
+    response_index = refusal_index
+    for index in range(refusal_index + 1, min(len(visible_lines), refusal_index + 9)):
+        line = visible_lines[index]
+        if line.startswith("我"):
+            continue
+        if SOCIAL_DECLINE_PLAIN_RESPONSE_RE.search(line):
+            response_index = index
+            break
+
+    post_lines = visible_lines[response_index + 1 : response_index + 17]
+    if not post_lines:
+        return None
+    post_text = "\n".join(post_lines)
+    fake_lines = [
+        line
+        for line in post_lines
+        if any(term in line for term in SOCIAL_DECLINE_DECOUPLED_CONSEQUENCE_TERMS)
+    ]
+    fake_hits = [term for term in SOCIAL_DECLINE_DECOUPLED_CONSEQUENCE_TERMS if term in post_text]
+    if len(fake_lines) < 2 and len(fake_hits) < 3:
+        return None
+
+    coupled_lines = [
+        line
+        for line in post_lines
+        if any(pattern.search(line) for pattern in SOCIAL_DECLINE_COUPLED_CONSEQUENCE_PATTERNS)
+    ]
+    if not coupled_lines:
+        paired_lines = zip(post_lines, post_lines[1:])
+        for previous, current in paired_lines:
+            pair = previous + current
+            if any(pattern.search(pair) for pattern in SOCIAL_DECLINE_COUPLED_CONSEQUENCE_PATTERNS):
+                coupled_lines.append(previous + " / " + current)
+                break
+    if coupled_lines:
+        return None
+
+    private_after_reply_lines = [
+        line
+        for line in post_lines
+        if any(term in line for term in SOCIAL_DECLINE_REPLY_PRIVATE_LOOP_TERMS)
+    ]
+    first_fake = fake_lines[0]
+    return {
+        "line": visible_lines.index(first_fake) + 1,
+        "excerpt": clean_excerpt(first_fake),
+        "fake_terms": fake_hits[:8],
+        "fake_line_count": len(fake_lines),
+        "private_line_count": len(private_after_reply_lines),
+    }
+
+
+def check_social_decline_decoupled_consequence(findings: list[Finding], lines: list[str], text: str) -> None:
+    risk = social_decline_decoupled_consequence_risk(lines, text)
+    if not risk:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "社交拒绝无关后果替代",
+            int(risk["line"]),
+            str(risk["excerpt"]),
+            "生成稿高风险：拒绝婚礼/邀请之后，用外卖、烫手、房间活、取快递或下楼 errands 伪装成后果，但这些动作删掉邀请仍能成立。不要把具体生活纹理当作社交后果；重建一个 refusal-coupled consequence，让回复、付款、路线、门口等待、脏手/湿手或旧关系直接改变下一步动作。",
+        )
+    )
+
+
 def check_social_decline_private_transfer_loop(findings: list[Finding], lines: list[str], text: str) -> None:
     title, content_lines = split_title_and_content_lines(lines)
     if not looks_like_standard_diary_gate_target(title, content_lines, text):
@@ -5289,6 +5417,7 @@ def collect_findings(text: str) -> list[Finding]:
     check_social_decline_scripted_return_gift(findings, lines, text)
     check_social_decline_group_fake_consequence(findings, lines, text)
     check_social_decline_tidy_etiquette_closure(findings, lines, text)
+    check_social_decline_decoupled_consequence(findings, lines, text)
     check_social_decline_private_transfer_loop(findings, lines, text)
     check_social_decline_overextended_aftermath(findings, lines, text)
     check_third_person_narrator_slip(findings, lines, text)
