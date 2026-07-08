@@ -10425,6 +10425,54 @@ class AnlinToolingTests(unittest.TestCase):
                 brief.index("strict: 字幕式明喻解释"),
             )
 
+    def test_prepare_finalized_repair_brief_prioritizes_social_decline_engine_over_period_grid(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            finalized_dir = Path(temp) / "finalized"
+            finalized_dir.mkdir()
+            draft = finalized_dir / "draft.md"
+            draft.write_text(
+                "\n".join(
+                    [
+                        "# 水龙头没关严",
+                        "",
+                        "晚上十一点多，厨房地上湿了一片。",
+                        "狗哥问婚礼来不来，高铁票看了没有。",
+                        "我说去不了，随礼红包先转，恭喜恭喜。",
+                        "狗哥回得快，发了个抱拳。",
+                        *(["我坐在厨房地上看手机，水龙头还滴着。"] * 56),
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(PREPARE_FINALIZED_REPAIR_BRIEF),
+                    str(draft),
+                    "--genre",
+                    "standard",
+                    "--profile",
+                    "references/style-profile.json",
+                    "--json",
+                ],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            brief = (finalized_dir / "repair-brief.txt").read_text(encoding="utf-8")
+            self.assertIn("hard_gate_primary_action: rebuild_refusal_aftermath_engine", brief)
+            self.assertIn("social refusal must become the source engine", brief)
+            self.assertIn("Do not fix this by adding group-chat crowd", brief)
+            self.assertLess(
+                brief.index("strict: 社交拒绝纹理替代后果不足"),
+                brief.index("strict: 标准日寄句号网格"),
+            )
+
     def test_finalized_repair_docs_route_profile_brief_and_full_report_separately(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")

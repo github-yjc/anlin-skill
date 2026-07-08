@@ -72,6 +72,13 @@ POLISHED_CAPTION_RULES = {
     "字幕式明喻解释",
 }
 
+SOCIAL_DECLINE_RULES = {
+    "社交拒绝纹理替代后果不足",
+    "社交拒绝普通回复假后果",
+    "社交拒绝群聊假后果",
+    "社交拒绝礼貌闭合",
+}
+
 
 def hard_rule_name(item: dict[str, Any]) -> str:
     rule = str(item.get("rule", "unknown")).strip()
@@ -84,13 +91,15 @@ def hard_blocker_priority(item: dict[str, Any]) -> tuple[int, str]:
     rule_name = hard_rule_name(item)
     if rule_name in OVERFULL_SHAPE_RULES:
         return (0, rule_name)
-    if rule_name in PERIOD_GRID_RULES:
+    if rule_name in SOCIAL_DECLINE_RULES:
         return (1, rule_name)
-    if rule_name in POLISHED_CAPTION_RULES:
+    if rule_name in PERIOD_GRID_RULES:
         return (2, rule_name)
-    if "AI" in rule_name or "解释句式" in rule_name or "治疗式" in rule_name:
+    if rule_name in POLISHED_CAPTION_RULES:
         return (3, rule_name)
-    return (4, rule_name)
+    if "AI" in rule_name or "解释句式" in rule_name or "治疗式" in rule_name:
+        return (4, rule_name)
+    return (5, rule_name)
 
 
 def compact_hard_blockers(findings: list[dict[str, Any]], limit: int = 5) -> list[str]:
@@ -129,6 +138,16 @@ def hard_gate_primary_action(findings: list[dict[str, Any]]) -> str:
             "overfull/fragmented hard gate is present. Do not solve it by making every row a closed sentence: keep several "
             "unfinished action/reply/body lines ending with a comma, and delete polished simile captions instead of "
             "turning them into shorter explanatory sentences."
+        )
+    if error_rules & SOCIAL_DECLINE_RULES:
+        return (
+            "rebuild_refusal_aftermath_engine: the social refusal must become the source engine, not a topic beside "
+            "room/screen/water texture. Remove one private room/object proof packet, keep at most one cropped message "
+            "surface, and make the post-refusal reply, payment, route, old debt, dirty/wet hand, door/body interruption, "
+            "or one plain person asking change the next visible action. The same rebuild should create uneven breathing "
+            "clusters: one unfinished reply/payment/body line may trail with a comma, one rough longer row carries the "
+            "awkward movement, and one short drop lands the lower answer. Do not fix this by adding group-chat crowd "
+            "pressure, tidy etiquette closure, more ticket/suili ledger, or more water-room texture."
         )
     if error_rules & PERIOD_GRID_RULES:
         return (
