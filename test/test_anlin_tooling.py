@@ -5266,6 +5266,76 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
             self.assertNotIn("finalized修复指标循环", rules)
             self.assertNotIn("finalized修复运行本地检查器", rules)
+            self.assertNotIn("finalized修复未写回artifact", rules)
+
+    def test_dev_checkpoint_summary_marks_finalized_analysis_without_write_invalid(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            finalized_dir = case_dir / "finalized"
+            finalized_dir.mkdir(parents=True)
+            bounded = case_dir / "draft.md"
+            finalized = finalized_dir / "draft.md"
+            bounded.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 90)]), encoding="utf-8")
+            finalized.write_text(
+                "\n".join(["# 日寄", "", *(["其实我觉得杯子脏了，于是洗手差点吐出来，丢人。"] * 50)]),
+                encoding="utf-8",
+            )
+            trace = finalized_dir / "opencode-output.jsonl"
+            events = [
+                {
+                    "type": "tool_use",
+                    "part": {
+                        "type": "tool",
+                        "tool": "read",
+                        "state": {"status": "completed", "input": {"filePath": str(finalized)}},
+                    },
+                },
+                {
+                    "type": "tool_use",
+                    "part": {
+                        "type": "tool",
+                        "tool": "read",
+                        "state": {"status": "completed", "input": {"filePath": str(finalized_dir / "repair-brief.txt")}},
+                    },
+                },
+                {
+                    "type": "text",
+                    "part": {
+                        "type": "text",
+                        "text": "Let me analyze the repair brief carefully. 我先分析一下修复方案，然后再决定怎么写。",
+                    },
+                },
+            ]
+            trace.write_text("\n".join(json.dumps(event, ensure_ascii=False) for event in events), encoding="utf-8")
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(bounded),
+                    "--finalized-draft",
+                    str(finalized),
+                    "--finalized-trace-log",
+                    str(trace),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["finalized"]["gate"]["status"], "invalid")
+            self.assertEqual(payload["finalized"]["gate"]["trace_errors"], 1)
+            finding = payload["finalized"]["trace_findings"][0]
+            self.assertEqual(finding["rule"], "finalized修复未写回artifact")
+            self.assertIn("draft_mutations=0", finding["excerpt"])
+            self.assertIn("requires one immediate complete draft.md write", finding["suggestion"])
 
     def test_dev_checkpoint_summary_marks_post_write_gate_loop_invalid_without_second_write(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -10141,7 +10211,9 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("style_repair_brief:", brief)
             self.assertIn("Anlin style-profile repair brief", brief)
             self.assertIn("tool_boundary: do not run check_anlin_violations.py", brief)
+            self.assertIn("first_action_contract: read draft.md and this brief", brief)
             self.assertIn("write one complete revised draft.md", brief)
+            self.assertIn("analysis-only output is an invalid artifact failure", brief)
             self.assertIn("controller_boundary: after the single write", brief)
             self.assertNotIn("findings:", brief)
             self.assertNotIn("observed=", brief)
@@ -10313,6 +10385,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Terminal/log-only prose is an artifact failure", skill)
         self.assertIn("terminal-only prose is an artifact failure", runtime)
         self.assertIn("Do not print a proposed final article to the terminal and keep thinking", finalized_minimum)
+        self.assertIn("analyzing the brief without writing `draft.md`; that is an artifact failure", finalized_minimum)
         self.assertIn("Do not rediscover this skill by globbing", finalized_minimum)
         self.assertIn("reasoning aloud about how to find the skill directory", finalized_minimum)
         self.assertIn("If `repair-brief.txt` is absent, do not search for checker scripts", finalized_minimum)

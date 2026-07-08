@@ -7,6 +7,7 @@ Use this file only when a controller or user explicitly starts a finalized repai
 - Work only on the copied `finalized/draft.md`.
 - Freeze the selected genre before editing. The controller passes that genre to gates; the repair agent only uses the genre named in `repair-brief.txt` when present.
 - A repaired article exists only after the complete article is written back to `draft.md`.
+- The first useful action after reading `draft.md` and `repair-brief.txt` is the complete artifact write. Do not spend the attempt explaining, planning, or analyzing the brief without writing `draft.md`; that is an artifact failure even if the prose in the terminal looks better.
 - A nonzero `--strict --repair-brief` exit usually means not passed, not a broken tool.
 - Do not print a proposed final article to the terminal and keep thinking.
 - Do not tune ratios one by one. Use the brief to choose one source-level rewrite.

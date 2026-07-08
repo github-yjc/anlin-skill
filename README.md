@@ -166,6 +166,8 @@ Use `--repair-brief` only to create a compact generator-facing repair interface.
 
 For finalized repair, keep the phrase literal in controller notes: prepare the short `repair-brief.txt` before the repair attempt, expose only the brief and `draft.md` to the repair agent, then run the full profile report after the artifact is frozen. Terminal-only revised prose is not a repaired artifact.
 
+The finalized repair trace audit also treats analysis-only attempts as artifact failures: if the repair agent reads `draft.md` or `repair-brief.txt` but never writes the revised `draft.md`, that run is invalid evidence even if the log contains a better proposed article. The repair brief now states that the first useful action after reading the artifact and brief is the complete `draft.md` write; full validation remains controller work after the artifact is frozen.
+
 ## Core Principles
 
 - Background facts are contradiction boundaries, not article ingredients.

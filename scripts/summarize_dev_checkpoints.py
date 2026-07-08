@@ -80,7 +80,18 @@ FINALIZED_REPAIR_BRIEF_GATE_RE = re.compile(
 )
 FINALIZED_DRAFT_MUTATION_RE = re.compile(
     r"^\s*(?:←\s*)?(?:Write|Edit)\s+(?:draft\.md|[A-Za-z]:[^\n]*[\\/]finalized[\\/]draft\.md)\b|"
-    r"^\s*\$\s+[^\n]*(?:Set-Content|Out-File)[^\n]*(?:draft\.md|finalized[\\/]draft\.md)",
+    r"^\s*\$\s+[^\n]*(?:Set-Content|Out-File)[^\n]*(?:draft\.md|finalized[\\/]draft\.md)|"
+    r"^\s*INPUT\s+.*<patch modifies draft\.md>",
+    re.IGNORECASE,
+)
+FINALIZED_REPAIR_CONTEXT_READ_RE = re.compile(
+    r"(?:Read|Get-Content|open|read_file|INPUT).{0,220}(?:draft\.md|repair-brief\.txt)",
+    re.IGNORECASE,
+)
+FINALIZED_ANALYSIS_ONLY_RE = re.compile(
+    r"(?:Let me analyze|I need to analyze|analyze the repair brief|"
+    r"我(?:来|先|需要)?(?:分析|审视|理解)|先(?:分析|看一下|理解)|"
+    r"修复方案|计划如下|需要做的是|I'll plan|I will plan)",
     re.IGNORECASE,
 )
 FINALIZED_LOOP_LABELS = [
@@ -496,6 +507,24 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
     draft_mutations = sum(
         1 for line in collapsed_lines if FINALIZED_DRAFT_MUTATION_RE.search(line.replace("\\", "/"))
     )
+    repair_context_reads = sum(1 for line in collapsed_lines if FINALIZED_REPAIR_CONTEXT_READ_RE.search(line.replace("\\", "/")))
+    analysis_only_signals = sum(1 for line in collapsed_lines if FINALIZED_ANALYSIS_ONLY_RE.search(line))
+    if draft_mutations == 0 and (repair_context_reads or analysis_only_signals):
+        findings.append(
+            {
+                "severity": "error",
+                "rule": "finalized修复未写回artifact",
+                "excerpt": (
+                    f"draft_mutations=0; repair_context_reads={repair_context_reads}; "
+                    f"analysis_only_signals={analysis_only_signals}"
+                ),
+                "suggestion": (
+                    "Finalized repair is invalid when the agent reads draft.md or repair-brief.txt, reasons about the "
+                    "repair, but never writes draft.md. Treat this as artifact failure, not prose-quality evidence; "
+                    "rerun with an even shorter repair prompt that requires one immediate complete draft.md write."
+                ),
+            }
+        )
     first_mutation_index = next(
         (
             index
