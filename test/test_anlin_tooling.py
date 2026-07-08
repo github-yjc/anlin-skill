@@ -5238,6 +5238,67 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("hard_gate_runs=2", finding["excerpt"])
             self.assertIn("repair_brief_runs=2", finding["excerpt"])
 
+    def test_dev_checkpoint_summary_marks_post_write_metric_probe_invalid(self) -> None:
+        commands = [
+            "$ python -c \"from pathlib import Path; print(len(Path('draft.md').read_text(encoding='utf-8')))\"",
+            "$ Get-Content draft.md | Measure-Object -Line -Character",
+            "$ wc -l draft.md",
+        ]
+        for command in commands:
+            with self.subTest(command=command):
+                with tempfile.TemporaryDirectory() as temp:
+                    case_dir = Path(temp) / "case"
+                    finalized_dir = case_dir / "finalized"
+                    finalized_dir.mkdir(parents=True)
+                    bounded = case_dir / "draft.md"
+                    finalized = finalized_dir / "draft.md"
+                    bounded.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 90)]), encoding="utf-8")
+                    finalized.write_text(
+                        "\n".join(["# 日寄", "", *(["其实我觉得杯子脏了，于是洗手差点吐出来，丢人。"] * 50)]),
+                        encoding="utf-8",
+                    )
+                    trace = finalized_dir / "opencode-output.txt"
+                    trace.write_text(
+                        "\n".join(
+                            [
+                                "$ python <skill-dir>/scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre standard",
+                                "$ python <skill-dir>/scripts/check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre standard",
+                                "← Write draft.md",
+                                command,
+                            ]
+                        ),
+                        encoding="utf-8",
+                    )
+                    result = subprocess.run(
+                        [
+                            sys.executable,
+                            str(SUMMARY_CHECKPOINTS),
+                            str(case_dir),
+                            "--bounded-draft",
+                            str(bounded),
+                            "--finalized-draft",
+                            str(finalized),
+                            "--finalized-trace-log",
+                            str(trace),
+                            "--profile",
+                            str(STYLE_PROFILE),
+                            "--json",
+                        ],
+                        capture_output=True,
+                        text=True,
+                        encoding="utf-8",
+                        check=False,
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    payload = json.loads(result.stdout)
+                    self.assertEqual(payload["finalized"]["gate"]["status"], "invalid")
+                    rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
+                    self.assertIn("finalized修复写后自测计数", rules)
+                    finding = next(
+                        item for item in payload["finalized"]["trace_findings"] if item["rule"] == "finalized修复写后自测计数"
+                    )
+                    self.assertIn("controller performs validation after the artifact is frozen", finding["suggestion"])
+
     def test_dev_checkpoint_summary_counts_only_real_gate_commands_for_finalized_loop(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             case_dir = Path(temp) / "case"
@@ -9849,6 +9910,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("Do not print the article to terminal only", result.stdout)
             self.assertIn("hard_gate_priority: if the preceding hard gate showed blocking findings", result.stdout)
             self.assertIn("attempt_contract: exactly one pre-write brief", result.stdout)
+            self.assertIn("post-write python -c/Measure-Object/wc counter", result.stdout)
             self.assertIn("Test-Path/Glob/List/source/test/threshold/log search", result.stdout)
             self.assertIn("artifact_written", result.stdout)
             self.assertIn("standard_shape_first: save a titled, line-broken standard diary", result.stdout)
@@ -9940,6 +10002,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("After writing `draft.md`, stop on artifact persisted", finalized_minimum)
         self.assertIn("The single write is atomic", finalized_minimum)
         self.assertIn("do not patch it with `Edit draft.md`", finalized_minimum)
+        self.assertIn("Do not run `python -c`, `Measure-Object`, `wc`, `Get-Content` length probes", finalized_minimum)
         self.assertIn("Because the single write is atomic, do a visible body-shape check before saving", finalized_minimum)
         self.assertIn("75-80+ body lines", finalized_minimum)
         self.assertIn("45-70 short caption rows with zero true long rows", finalized_minimum)
@@ -9972,6 +10035,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("If `<skill-dir>` is unavailable, skip local gates", runtime)
         self.assertIn("do not run `Test-Path` probes for checker scripts", runtime)
         self.assertIn("A neighbor/cashier/rider cameo is not a public hinge", runtime)
+        self.assertIn("Post-write metric probes are invalid", validation)
+        self.assertIn("post-write python -c/Measure-Object/wc counters", layer)
+        self.assertIn("post-write `python -c`, `Measure-Object`, `wc`, or local line/character counters", readme)
         self.assertIn("line-broken does not mean equal short sentence rows", skill)
         self.assertIn("16-25-row dense prose article", skill)
         self.assertIn("45-70-line caption grid", skill)

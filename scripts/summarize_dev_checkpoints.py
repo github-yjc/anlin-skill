@@ -60,6 +60,11 @@ FINALIZED_TODO_TOOL_RE = re.compile(
     r"(?:permission=todowrite|^\s*#\s*Todos\s*$)",
     re.IGNORECASE | re.MULTILINE,
 )
+FINALIZED_POST_WRITE_METRIC_PROBE_RE = re.compile(
+    r"^\s*\$\s+.*(?:python\s+-c|Measure-Object|wc\b|Get-Content[^\n]*(?:Length|length)|"
+    r"Select-String[^\n]*(?:body|line|char|字数|行数)|(?:字数|行数|字符).{0,30}(?:计算|count))",
+    re.IGNORECASE,
+)
 FINALIZED_HARD_GATE_RE = re.compile(
     r"check_anlin_violations\.py[^\n]*--strict[^\n]*--draft-gate",
     re.IGNORECASE,
@@ -402,6 +407,30 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
     draft_mutations = sum(
         1 for line in collapsed_lines if FINALIZED_DRAFT_MUTATION_RE.search(line.replace("\\", "/"))
     )
+    first_mutation_index = next(
+        (
+            index
+            for index, line in enumerate(collapsed_lines)
+            if FINALIZED_DRAFT_MUTATION_RE.search(line.replace("\\", "/"))
+        ),
+        None,
+    )
+    if first_mutation_index is not None:
+        for line in collapsed_lines[first_mutation_index + 1 :]:
+            if FINALIZED_POST_WRITE_METRIC_PROBE_RE.search(line):
+                findings.append(
+                    {
+                        "severity": "error",
+                        "rule": "finalized修复写后自测计数",
+                        "excerpt": line.strip()[:500],
+                        "suggestion": (
+                            "After the single finalized draft write, the repair agent must stop. Post-write "
+                            "python -c, Measure-Object, wc, or ad hoc character/line counters are metric-chasing "
+                            "artifact drift; the controller performs validation after the artifact is frozen."
+                        ),
+                    }
+                )
+                break
     repeated_labels = [label for label in FINALIZED_LOOP_LABELS if command_text.count(label) >= 2]
     loop_over_budget = (
         draft_mutations > 1
