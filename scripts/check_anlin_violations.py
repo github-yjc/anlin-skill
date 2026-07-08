@@ -2201,6 +2201,9 @@ def unsupported_family_identity_present(term: str, line: str) -> bool:
         nearby_prefix = prefix[-28:]
         nearby_suffix = suffix[:40]
 
+        if term == "太太" and match.start() > 0 and line[match.start() - 1] in {"老", "老太"}:
+            continue
+
         if any(cue in nearby_prefix for cue in THIRD_PERSON_SPEECH_CUES):
             continue
 

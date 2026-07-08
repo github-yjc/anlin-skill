@@ -5186,6 +5186,87 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("controller-prepared repair-brief.txt", loop_finding["suggestion"])
             self.assertIn("unresolved repair-path", loop_finding["suggestion"])
 
+    def test_dev_checkpoint_summary_reads_utf16_jsonl_finalized_trace_and_counts_single_patch_write(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            finalized_dir = case_dir / "finalized"
+            finalized_dir.mkdir(parents=True)
+            bounded = case_dir / "draft.md"
+            finalized = finalized_dir / "draft.md"
+            bounded.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 90)]), encoding="utf-8")
+            finalized.write_text(
+                "\n".join(["# 日寄", "", *(["其实我觉得杯子脏了，于是洗手差点吐出来，丢人。"] * 50)]),
+                encoding="utf-8",
+            )
+            trace = finalized_dir / "opencode-output-utf16.jsonl"
+            events = [
+                {
+                    "type": "tool_use",
+                    "part": {
+                        "type": "tool",
+                        "tool": "read",
+                        "state": {"status": "completed", "input": {"filePath": str(finalized)}},
+                    },
+                },
+                {
+                    "type": "tool_use",
+                    "part": {
+                        "type": "tool",
+                        "tool": "read",
+                        "state": {"status": "completed", "input": {"filePath": str(finalized_dir / "repair-brief.txt")}},
+                    },
+                },
+                {
+                    "type": "tool_use",
+                    "part": {
+                        "type": "tool",
+                        "tool": "apply_patch",
+                        "state": {
+                            "status": "completed",
+                            "input": {
+                                "patchText": (
+                                    "*** Begin Patch\n"
+                                    f"*** Delete File: {finalized}\n"
+                                    f"*** Add File: {finalized}\n"
+                                    "+# 日寄\n"
+                                    "+\n"
+                                    "+我把杯子放回去。\n"
+                                    "*** End Patch\n"
+                                )
+                            },
+                            "output": "Success. Updated the following files:\nD finalized/draft.md\nA finalized/draft.md",
+                        },
+                    },
+                },
+                {"type": "text", "part": {"type": "text", "text": "artifact_written"}},
+            ]
+            trace.write_text("\n".join(json.dumps(event, ensure_ascii=False) for event in events), encoding="utf-16")
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(bounded),
+                    "--finalized-draft",
+                    str(finalized),
+                    "--finalized-trace-log",
+                    str(trace),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            payload = json.loads(result.stdout)
+            rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
+            self.assertNotIn("finalized修复指标循环", rules)
+            self.assertNotIn("finalized修复运行本地检查器", rules)
+
     def test_dev_checkpoint_summary_marks_post_write_gate_loop_invalid_without_second_write(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             case_dir = Path(temp) / "case"
@@ -6557,6 +6638,30 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertTrue(any(rule == "strict: 无依据家庭身份: 老婆" for rule in rules))
             self.assertTrue(any(rule == "strict: 无依据家庭身份: 孩子他妈" for rule in rules))
+
+    def test_checker_draft_gate_does_not_treat_old_lady_as_spouse_identity(self) -> None:
+        body = "\n".join(
+            [
+                "# 水龙头",
+                "",
+                "楼下老太太隔着门说，你家是不是又漏水了。",
+                "我手上还沾着肥皂，扶着门框说马上弄。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertFalse(any(rule == "strict: 无依据家庭身份: 太太" for rule in rules), findings)
 
     def test_checker_draft_gate_allows_third_person_quoted_child_identity(self) -> None:
         body = "\n".join(
@@ -9925,26 +10030,33 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("Do not print the article to terminal only", result.stdout)
             self.assertIn("hard_gate_priority: if the preceding hard gate showed blocking findings", result.stdout)
             self.assertIn("attempt_contract: use this controller-prepared brief", result.stdout)
+            self.assertIn("choose one primary source rewrite", result.stdout)
+            self.assertIn("Do not repair one family at a time", result.stdout)
             self.assertIn("post-write python -c/Measure-Object/wc counter", result.stdout)
             self.assertIn("Test-Path/Glob/List/source/test/threshold/log search", result.stdout)
             self.assertIn("artifact_written", result.stdout)
             self.assertIn("standard_shape_first: save a titled, line-broken standard diary", result.stdout)
-            self.assertIn("usually 45-70 body lines", result.stdout)
-            self.assertIn("visibly exceed 24 Chinese chars", result.stdout)
+            self.assertIn("middle corridor", result.stdout)
+            self.assertIn("standard_overfill_guard", result.stdout)
+            self.assertIn("1250 body Chinese characters", result.stdout)
+            self.assertIn("2000+ character standard repair", result.stdout)
             self.assertIn("standard_do_not_save: do not save 8-25 dense prose rows", result.stdout)
             self.assertIn("45-70-line caption grid with 0 real long rows", result.stdout)
+            self.assertIn("140+ row overfilled proof ledger", result.stdout)
             self.assertIn("standard_social_decline_source: for invitation/refusal repairs", result.stdout)
             self.assertIn("refusal-coupled consequence", result.stdout)
-            self.assertIn("unrelated delivery, room chore, or burn after the reply is not enough", result.stdout)
+            self.assertIn("Do not add message-order plot glue", result.stdout)
             self.assertIn("exit_note: with --strict --repair-brief", result.stdout)
             self.assertIn("not tool failure", result.stdout)
             self.assertIn("primary_source_rewrite:", result.stdout)
             self.assertIn("rewrite the page shape first: build 6-8 visible breathing clusters", result.stdout)
             self.assertIn("Do not save 8-25 dense prose rows", result.stdout)
             self.assertIn("10-18-character captions", result.stdout)
+            self.assertIn("source_action_note: the list below is diagnostic context only", result.stdout)
             self.assertIn("root_families:", result.stdout)
             self.assertIn("punctuation:", result.stdout)
             self.assertIn("line_rhythm:", result.stdout)
+            self.assertIn("remaining families: ignore during this write", result.stdout)
             self.assertNotIn("standard_shape_guard:", result.stdout)
             self.assertNotIn("single_write_budget:", result.stdout)
             self.assertNotIn("path_contract:", result.stdout)

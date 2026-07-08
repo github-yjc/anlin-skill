@@ -346,6 +346,71 @@ def collapse_wrapped_trace_lines(text: str) -> list[str]:
     return collapsed
 
 
+def read_trace_text_flexible(path: Path) -> str:
+    data = path.read_bytes()
+    for encoding in ("utf-8-sig", "utf-16", "utf-16-le", "gb18030"):
+        try:
+            return data.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    return data.decode("utf-8", errors="replace")
+
+
+def extract_finalized_event_trace(text: str) -> str:
+    lines = [line for line in text.splitlines() if line.strip()]
+    events: list[dict[str, Any]] = []
+    for line in lines:
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(event, dict) and "type" in event:
+            events.append(event)
+    if not events:
+        return text
+
+    chunks: list[str] = []
+    for event in events:
+        part = event.get("part")
+        if not isinstance(part, dict):
+            continue
+        event_type = event.get("type") or part.get("type")
+        if event_type == "text":
+            visible_text = part.get("text")
+            if isinstance(visible_text, str) and visible_text.strip():
+                chunks.append(f"TEXT {visible_text}")
+            continue
+        if event_type != "tool_use":
+            continue
+        tool = part.get("tool") or ""
+        state = part.get("state")
+        if not isinstance(state, dict):
+            state = {}
+        tool_input = state.get("input")
+        title = state.get("title") or part.get("title") or ""
+        chunks.append(f"TOOL {tool}")
+        if title:
+            chunks.append(f"TITLE {title}")
+        if isinstance(tool_input, dict):
+            compact_input = dict(tool_input)
+            if isinstance(compact_input.get("patchText"), str):
+                patch_text = compact_input["patchText"]
+                compact_input["patchText"] = (
+                    "<patch modifies draft.md>"
+                    if "draft.md" in patch_text
+                    else "<patch omitted>"
+                )
+            chunks.append(f"INPUT {json.dumps(compact_input, ensure_ascii=False)}")
+        elif tool_input is not None:
+            chunks.append(f"INPUT {json.dumps(tool_input, ensure_ascii=False)}")
+
+        output = state.get("output")
+        include_output = tool in {"bash", "shell", "terminal", "cmd", "powershell"}
+        if include_output and isinstance(output, str) and output.strip():
+            chunks.append(f"OUTPUT {output}")
+    return "\n".join(chunks) if chunks else text
+
+
 def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any]], CommandReport | None]:
     """Check finalized repair logs for source-code/threshold contamination.
 
@@ -356,8 +421,8 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
     if trace_log is None or not trace_log.is_file():
         return [], None
     findings: list[dict[str, Any]] = []
-    raw_text = trace_log.read_text(encoding="utf-8", errors="replace").replace("\x00", "")
-    text = re.sub(r"\x1b\[[0-9;]*m", "", raw_text)
+    raw_text = read_trace_text_flexible(trace_log).replace("\x00", "")
+    text = re.sub(r"\x1b\[[0-9;]*m", "", extract_finalized_event_trace(raw_text))
     collapsed_lines = collapse_wrapped_trace_lines(text)
     command_text = "\n".join(collapsed_lines)
     checker_command_recorded = False

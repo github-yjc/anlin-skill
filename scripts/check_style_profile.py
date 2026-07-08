@@ -73,6 +73,12 @@ REPAIR_FAMILY_ORDER = [
 
 def primary_source_rewrite(families: list[str]) -> str:
     family_set = set(families)
+    if "ai_slop" in family_set:
+        return (
+            "rewrite from the local physical fact, not from an explanation. Delete binary reframes, therapeutic "
+            "phrases, and meaning-summary sentences first; keep only the hand, reply, payment, door/body, app surface, "
+            "or plain speech that makes the next action smaller. Then shape the whole article once and stop."
+        )
     if {"punctuation", "line_rhythm"} & family_set:
         return (
             "rewrite the page shape first: build 6-8 visible breathing clusters from source movement, "
@@ -701,25 +707,27 @@ def format_repair_brief(report: dict[str, Any]) -> str:
         [
             "repair_directive: write one complete revised draft.md now, then stop. Do not print the article to terminal only, do not summarize fixes after writing, and do not run post-write gates.",
             "hard_gate_priority: if the preceding hard gate showed blocking findings, the one source rewrite must clear those first; use this profile brief to shape the same move, not to ignore hard-gate roughness or fact failures.",
-            "attempt_contract: use this controller-prepared brief, write one complete draft.md, and stop. A second write/edit, any repair-agent checker command, post-write gate loop, post-write python -c/Measure-Object/wc counter, Test-Path/Glob/List/source/test/threshold/log search, threshold argument, TODO/checklist panel, or terminal-only final version is invalid controller evidence. If a chat reply is required after writing, output only artifact_written.",
+            "attempt_contract: use this controller-prepared brief, choose one primary source rewrite, write one complete draft.md, and stop. Do not repair one family at a time. A second write/edit, any repair-agent checker command, post-write gate loop, post-write python -c/Measure-Object/wc counter, Test-Path/Glob/List/source/test/threshold/log search, threshold argument, TODO/checklist panel, or terminal-only final version is invalid controller evidence. If a chat reply is required after writing, output only artifact_written.",
             *(
                 [
-                    "standard_shape_first: save a titled, line-broken standard diary, usually 45-70 body lines and 900+ body Chinese characters, built as 6-8 visible clusters with several moving rows that visibly exceed 24 Chinese chars, short failure drops, and mixed comma/hard-stop landings.",
-                    "standard_do_not_save: do not save 8-25 dense prose rows, 70+ equal short rows, a 45-70-line caption grid with 0 real long rows, a comma carpet, a below-900 shrink, or a draft with only one or two moving long rows.",
-                    "standard_social_decline_source: for invitation/refusal repairs, delete message-order plot glue, group-chat crowd summaries, tidy etiquette settlement, and private wet-room proof; use one refusal-coupled consequence that changes hand, reply, payment, route, door, object, body, or social position. An unrelated delivery, room chore, or burn after the reply is not enough.",
+                    "standard_shape_first: save a titled, line-broken standard diary with roughly 6-8 breathing clusters and a middle corridor. Keep several moving rows that carry hand, reply, payment, body, speech, or thought beyond caption length, plus short failure drops where action actually lands.",
+                    "standard_overfill_guard: do not expand beyond the original source mass to satisfy every warning. If the rewrite is trending past about 1250 body Chinese characters, delete repeated proof packets before saving; 140+ rows or a 2000+ character standard repair is usually metric-shaped overfill, not a safer article.",
+                    "standard_do_not_save: do not save 8-25 dense prose rows, 70+ equal short rows, a 45-70-line caption grid with 0 real long rows, a comma carpet, a below-900 shrink, a 140+ row overfilled proof ledger, or a draft with only one or two moving long rows.",
+                    "standard_social_decline_source: for invitation/refusal repairs, use one refusal-coupled consequence that changes hand, reply, payment, route, door, object, body, or social position. Do not add message-order plot glue, group-chat crowd summaries, tidy etiquette settlement, or private wet-room proof as separate fixes.",
                 ]
                 if genre == "standard"
                 else []
             ),
             "exit_note: with --strict --repair-brief, nonzero usually means not passed, not tool failure; revise draft.md from source actions and stop for controller validation.",
             f"primary_source_rewrite: {primary_source_rewrite(families)}",
+            "source_action_note: the list below is diagnostic context only. Pick the primary rewrite above; do not make one patch per family.",
             "source_actions:",
         ]
     )
-    for family in families[:5]:
+    for family in families[:3]:
         lines.append(f"  - {family}: {REPAIR_BRIEF_ACTIONS.get(family, REPAIR_BRIEF_ACTIONS['other'])}")
-    if len(families) > 5:
-        lines.append("  - remaining families: handle only if they still appear after the source rewrite; do not solve them one by one before writing.")
+    if len(families) > 3:
+        lines.append("  - remaining families: ignore during this write unless they are also solved by the same source rewrite; do not chase them one by one.")
     lines.extend(
         [
             "validation_boundary: after writing draft.md, the repair agent stops. The controller reruns strict hard gate and the full style-profile report; if the same or opposite failures bounce, record unresolved repair-path drift instead of sending the same agent into another metric-shaped edit.",
