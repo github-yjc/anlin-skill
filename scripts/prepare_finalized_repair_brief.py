@@ -63,6 +63,15 @@ OVERFULL_SHAPE_RULES = {
     "断裂过碎",
 }
 
+PERIOD_GRID_RULES = {
+    "标准日寄句号网格",
+    "行末逗号比例",
+}
+
+POLISHED_CAPTION_RULES = {
+    "字幕式明喻解释",
+}
+
 
 def hard_rule_name(item: dict[str, Any]) -> str:
     rule = str(item.get("rule", "unknown")).strip()
@@ -75,9 +84,13 @@ def hard_blocker_priority(item: dict[str, Any]) -> tuple[int, str]:
     rule_name = hard_rule_name(item)
     if rule_name in OVERFULL_SHAPE_RULES:
         return (0, rule_name)
-    if "AI" in rule_name or "解释句式" in rule_name or "治疗式" in rule_name:
+    if rule_name in PERIOD_GRID_RULES:
         return (1, rule_name)
-    return (2, rule_name)
+    if rule_name in POLISHED_CAPTION_RULES:
+        return (2, rule_name)
+    if "AI" in rule_name or "解释句式" in rule_name or "治疗式" in rule_name:
+        return (3, rule_name)
+    return (4, rule_name)
 
 
 def compact_hard_blockers(findings: list[dict[str, Any]], limit: int = 5) -> list[str]:
@@ -113,7 +126,20 @@ def hard_gate_primary_action(findings: list[dict[str, Any]]) -> str:
             "duplicate body/object/screen evidence, and low-consequence memory ledgers; then merge adjacent caption rows "
             "into fewer rough action/speech/thought lines. Aim the single rewrite toward a compact complete standard diary "
             "near 45-70 visible body lines and roughly 950-1250 body Chinese characters. Do not add new scenes while this "
-            "overfull/fragmented hard gate is present."
+            "overfull/fragmented hard gate is present. Do not solve it by making every row a closed sentence: keep several "
+            "unfinished action/reply/body lines ending with a comma, and delete polished simile captions instead of "
+            "turning them into shorter explanatory sentences."
+        )
+    if error_rules & PERIOD_GRID_RULES:
+        return (
+            "break_period_grid: rebuild several rows as unfinished action, reply, payment, door/body, or app-surface "
+            "movement. Keep some lines open with commas and some short hard stops; do not convert every line into a neat "
+            "complete sentence."
+        )
+    if error_rules & POLISHED_CAPTION_RULES:
+        return (
+            "delete_polished_caption: remove caption-like similes and feeling subtitles. Keep the object, payment, body, "
+            "reply, or social consequence; do not replace the simile with another explanation."
         )
     if any(rule in error_rules for rule in ("AI二元解释句式", "AI治疗式人类化")):
         return (

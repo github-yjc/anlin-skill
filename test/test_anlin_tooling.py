@@ -10232,9 +10232,55 @@ class AnlinToolingTests(unittest.TestCase):
             brief = (finalized_dir / "repair-brief.txt").read_text(encoding="utf-8")
             self.assertIn("hard_gate_primary_action: delete_and_merge_overfull_standard", brief)
             self.assertIn("Do not add new scenes while this overfull/fragmented hard gate is present", brief)
+            self.assertIn("Do not solve it by making every row a closed sentence", brief)
+            self.assertIn("delete polished simile captions", brief)
             self.assertLess(
                 brief.index("strict: 标准日寄完整文章过满"),
                 brief.index("strict: AI二元解释句式"),
+            )
+
+    def test_prepare_finalized_repair_brief_prioritizes_period_grid_after_overfull_repair(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            finalized_dir = Path(temp) / "finalized"
+            finalized_dir.mkdir()
+            draft = finalized_dir / "draft.md"
+            draft.write_text(
+                "\n".join(
+                    [
+                        "# 水龙头没关严",
+                        "",
+                        *(["我坐在厨房地上看手机，水龙头还滴着。"] * 55),
+                        "手上的水滴到屏幕上，那个字被按成长条，像哭出来的一笔。",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(PREPARE_FINALIZED_REPAIR_BRIEF),
+                    str(draft),
+                    "--genre",
+                    "standard",
+                    "--profile",
+                    "references/style-profile.json",
+                    "--json",
+                ],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            brief = (finalized_dir / "repair-brief.txt").read_text(encoding="utf-8")
+            self.assertIn("hard_gate_primary_action: break_period_grid", brief)
+            self.assertIn("do not convert every line into a neat complete sentence", brief)
+            self.assertLess(
+                brief.index("strict: 标准日寄句号网格"),
+                brief.index("strict: 字幕式明喻解释"),
             )
 
     def test_finalized_repair_docs_route_profile_brief_and_full_report_separately(self) -> None:
