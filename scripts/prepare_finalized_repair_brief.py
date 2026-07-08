@@ -147,9 +147,12 @@ def hard_gate_primary_action(findings: list[dict[str, Any]]) -> str:
             "or one plain person asking change the next visible action. The same rebuild should create uneven breathing "
             "clusters: one unfinished reply/payment/body line may trail with a comma, one rough longer row carries the "
             "awkward movement, and one short drop lands the lower answer. Do not solve this by shortening the article "
-            "into a summary; keep a complete standard-diary corridor with visible breathing clusters and usually 900+ "
-            "body Chinese characters by replacing the deleted packet with consequence movement. Do not fix this by "
-            "adding group-chat crowd pressure, tidy etiquette closure, more ticket/suili ledger, or more water-room texture."
+            "into a summary; keep a complete standard-diary corridor with visible breathing clusters and roughly 950-1150 "
+            "body Chinese characters by replacing the deleted packet with a refusal-coupled consequence cluster. Do not save "
+            "a 650-899 shrink, and do not save a 900-949 underbuilt boundary draft when engine, roughness, or connector "
+            "spread is still weak. The replacement cluster must create rough self-damage or paragraph-engine movement, "
+            "not more private wet/body texture. Do not fix this by adding group-chat crowd pressure, tidy etiquette closure, "
+            "more ticket/suili ledger, or more water-room texture."
         )
     if error_rules & PERIOD_GRID_RULES:
         return (
@@ -241,9 +244,9 @@ def format_brief(
         "producer: controller",
         f"selected_genre: {genre}",
         "artifact_path: draft.md",
-        "first_action_contract: read draft.md and this brief, then write the complete revised draft.md before any long analysis; analysis-only output is an invalid artifact failure.",
+        "first_action_contract: read draft.md and this brief, make the source decision privately, then the first write to draft.md must be the final complete revised article, not a placeholder copy or unchanged draft; after that write, stop.",
         "read_contract: repair agent reads only draft.md and repair-brief.txt unless the user supplied other visible case facts.",
-        "write_contract: one artifact write is the repair: write one complete revised draft.md, then stop; terminal-only prose or planning does not count.",
+        "write_contract: exactly one artifact mutation is the repair: write one complete revised draft.md, then stop; copying the current draft back unchanged and then rewriting is invalid, and terminal-only prose or planning does not count.",
         "tool_boundary: do not run check_anlin_violations.py, check_style_profile.py, clean_run_checker.py, prepare_finalized_repair_brief.py, python -c, Measure-Object, wc, local counters, Test-Path, Glob/List, source/test/threshold/log searches, or path probes during the repair attempt.",
         "genre_boundary: do not invent unsupported genre labels; use selected_genre exactly as written here.",
         f"hard_gate_status: {hard_status(hard_findings)}",
