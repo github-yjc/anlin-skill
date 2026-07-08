@@ -46,9 +46,9 @@ REPAIR_BRIEF_ACTIONS = {
     "length": "change length only through lived action, a failed exchange, body cost, money, route, or social consequence; do not pad.",
     "structure": "change scene movement: cut designed prompt echoes, opening-tail loops, or decorative off-axis material before adding anything.",
     "title": "retitle from the earned side action or weak handle; do not use a diagnostic prompt label.",
-    "line_rhythm": "rewrite visible body movement into breathing clusters with rough long action/speech/thought rows and a few short failure drops.",
+    "line_rhythm": "shape first: rebuild the visible body as 6-8 line-broken clusters, not a handful of prose paragraphs or equal sentence rows.",
     "ngram_texture": "delete one repeated local packet or line-start template; replace its function with a different action or social consequence.",
-    "punctuation": "use local cluster surgery: rebuild only a few unfinished action/reply/payment/door/body spots; do not globally merge or split rows.",
+    "punctuation": "let punctuation follow unfinished action/reply/payment/door/body movement; do not globally merge rows or split every sentence.",
     "connectors": "create a turn that naturally needs connection: failed reply, payment handoff, body interruption, route/object change; do not paste connector words.",
     "texture": "remove body/object proof that does not change the next action; replace it with reply, payment, route, room, or social position movement.",
     "cognitive_mechanism": "repair the order of thinking inside scenes; do not insert labels or explain what the scene means.",
@@ -75,10 +75,10 @@ def primary_source_rewrite(families: list[str]) -> str:
     family_set = set(families)
     if {"punctuation", "line_rhythm"} & family_set:
         return (
-            "rewrite the visible body as 4-6 breathing clusters from the same scene facts: "
-            "one unfinished action/reply/body/payment line can trail, one rough line can keep moving, "
-            "and one short drop can land failure. Do not globally merge rows, split every sentence, "
-            "or tune punctuation counts."
+            "rewrite the page shape first: build 6-8 visible breathing clusters from source movement, "
+            "with multiple actual body lines in each cluster. Keep rough long action/speech/thought rows, "
+            "earned short drops, and mixed comma/hard-stop landings. Do not save 8-25 dense prose rows, "
+            "do not split every sentence into equal captions, and do not tune punctuation counts."
         )
     if {"connectors", "structure"} & family_set:
         return (
@@ -698,33 +698,19 @@ def format_repair_brief(report: dict[str, Any]) -> str:
 
     lines.extend(
         [
-            "repair_directive: write a complete revised draft.md before any further metric analysis. Do not print a proposed full article to the terminal; persist it to draft.md, then stop. Controller validation reruns the formal gates.",
+            "repair_directive: write one complete revised draft.md now, then stop. Do not print the article to terminal only, do not summarize fixes after writing, and do not run post-write gates.",
             "hard_gate_priority: if the preceding hard gate showed blocking findings, the one source rewrite must clear those first; use this profile brief to shape the same move, not to ignore hard-gate roughness or fact failures.",
-            "repair_loop_budget: exactly one complete source rewrite after this brief. Do not run a post-write gate loop inside the repair agent; the controller records pass or unresolved drift.",
-            "single_write_budget: after this brief, exactly one Write/Edit draft.md is allowed in this finalized attempt. A second write/edit or a third gate run is invalid controller evidence, even if the article improves.",
-            "atomic_write_rule: treat the one draft.md write as final for this attempt. If you notice a typo, compressed prose block, or missed hard-gate issue after writing, do not patch it with Edit; stop and let the controller rerun gates.",
-            "post_write_stop: after writing draft.md, stop. Do not run another gate sequence, calculate thresholds, argue that checker metrics conflict, or write another version in the same finalized attempt.",
-            "planning_stop: do not use TODO tools, checklist panels, or long diagnostic narration inside finalized repair; the next action after the brief is the single complete draft.md rewrite.",
+            "attempt_contract: exactly one pre-write brief, one complete Write/Edit draft.md, and stop. A second write/edit, post-write gate loop, threshold argument, TODO/checklist panel, source/test/threshold/log search, or terminal-only final version is invalid controller evidence.",
             *(
                 [
-                    "standard_shape_guard: do not shrink a standard-diary repair below about 900 body Chinese characters or turn it into 70+ similar short rows; keep several rough long action/speech/thought rows inside 4-6 breathing clusters.",
-                    "standard_length_floor_guard: if the planned standard repair is under 900 body Chinese characters or visibly much shorter than the copied draft, it is not ready to write. Add one active consequence cluster that changes action/social position instead of padding symptoms or captions.",
-                    "standard_line_shape_guard: the persisted standard draft must visibly stay line-broken, usually around 45-70 body lines; do not compress it into 8-15 long prose paragraphs or a few very long rows.",
-                    "standard_cluster_variance_guard: line-broken is not a target count. Do not cut the draft into equal 10-20 character sentence rows; each repaired cluster needs at least one moving longer action/speech/thought row and a few earned short failure drops.",
-                    "standard_prewrite_shape_check: before the single atomic write, inspect the visible body. If it is mostly one short sentence per row, has no moving long rows, or would exceed about 75-80 body lines, merge and rebuild the action clusters before saving; do not leave this for the checker after the write.",
-                    "standard_punctuation_balance_guard: line-final comma is not a target. Before writing, make sure the first clusters mix ongoing comma lines, hard-stop landings, and short failure drops; if nearly every line trails with `，` or the whole draft has almost no `。`, restore landed actions before saving.",
-                    "standard_long_row_guard: several rough long rows must be visible before the atomic write. If only one or two rows carry 24+ Chinese characters, merge nearby short rows into real speech/action/thought movement instead of hoping the checker will infer it.",
-                    "standard_rough_exposure_guard: at least one repaired cluster should expose a low body/social/practical consequence that changes the next action; private wet sleeves, room noise, balances, or screen checks do not count unless another person, payment, door, reply, route, or body failure is still active.",
-                    "standard_public_hinge_guard: a neighbor/cashier/rider appearing is not enough. The other person must wait, ask, react to, block, expose, or change the wet/dirty/payment/reply/body fact in the same action chain; an informational cameo, hallway light, or neighbor light beside private texture still fails.",
-                    "standard_private_wet_guard: wet sleeves, wet pants, wet slippers, leaking water, basins, or hot-water noise inside the room are still private texture unless they force an outside/social/payment/route/reply change while the pressure is active.",
-                    "standard_message_order_guard: in invitation/refusal repairs, ordinal message labels such as second message, `第二条只...`, `下面还有...`, or `后面跟着...` are plot glue. Replace them with one cropped screen surface that changes hand, reply, payment, route, or body action.",
+                    "standard_shape_first: save a titled, line-broken standard diary, usually 45-70 body lines and 900+ body Chinese characters, built as 6-8 visible clusters with rough long rows, short failure drops, and mixed comma/hard-stop landings.",
+                    "standard_do_not_save: do not save 8-25 dense prose rows, 70+ equal short rows, a comma carpet, a below-900 shrink, or a draft with only one or two moving long rows.",
+                    "standard_social_decline_source: for invitation/refusal repairs, delete message-order plot glue, group-chat crowd summaries, tidy etiquette settlement, and private wet-room proof; use one local consequence that changes hand, reply, payment, route, door, object, body, or social position.",
                 ]
                 if genre == "standard"
                 else []
             ),
-            "exit_note: with --strict --repair-brief, a nonzero exit usually means this profile gate is not passed, not that the tool is broken. Revise draft.md from the source actions, persist it, and stop for controller validation.",
-            "path_contract: use the checker commands already given by the loaded skill. Do not Glob, list, grep, or read checker scripts, tests, hidden thresholds, or old logs to find a better target.",
-            "do_not: do not use individual metrics as a TODO list, do not create TODO panels, do not calculate thresholds, do not tune punctuation or connector counts, and do not keep thinking until every profile line is mentally solved.",
+            "exit_note: with --strict --repair-brief, nonzero usually means not passed, not tool failure; revise draft.md from source actions and stop for controller validation.",
             f"primary_source_rewrite: {primary_source_rewrite(families)}",
             "source_actions:",
         ]

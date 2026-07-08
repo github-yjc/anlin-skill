@@ -863,7 +863,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         )
     if "early_comma_ratio=" in joined_messages:
         repair_hints.append(
-            "for early_comma_ratio, treat the first page as closed sentence-row prose. Rebuild the first 18-25 body lines into 4-6 breathing clusters: one line runs on with `，`, one rough action/speech/thought line gets longer because something changes, and one short line lands the failed decision or body/social consequence"
+            "for early_comma_ratio, treat the first page as closed sentence-row prose. Rebuild the first 18-25 body lines into several local breathing clusters: one line runs on with `，`, one rough action/speech/thought line gets longer because something changes, and one short line lands the failed decision or body/social consequence"
         )
         if "rough_self_damage=missing" in joined_messages or underbuilt_source or near_miss_short:
             repair_hints.append(

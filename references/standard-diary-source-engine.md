@@ -8,7 +8,7 @@ Do not print a plan, line count, title options, scene list, or trial article. Do
 
 If you catch yourself estimating rows, counting characters, or explaining what the article needs, stop. Write the complete titled candidate to `draft.md` and let the wrapper measure it.
 
-Do not use a prose-block escape hatch. A first draft made of 8-15 smooth paragraphs, followed by a promise to split it later, is already a failed source start. The saved file must visibly be the article: clusters of short and long body lines where action, reply, object, body, or payment movement decides the break. If the candidate in your head needs a rhythm script before it looks like broken diary prose, rebuild the source movement before writing.
+Do not use a prose-block escape hatch. A first draft made of 8-15 smooth paragraphs, or 16-25 dense rows that are paragraphs in disguise, followed by a promise to split it later, is already a failed source start. The saved file must visibly be the article: clusters of short and long body lines where action, reply, object, body, or payment movement decides the break. If the candidate in your head needs a rhythm script before it looks like broken diary prose, rebuild the source movement before writing.
 
 ## Build The Middle First
 
@@ -48,7 +48,7 @@ This is not a five-item content quota. It is a source order. If the article open
 
 ## Standard Diary Mass
 
-Each kernel needs enough visible movement to carry weight: action, interruption, after-effect. A standard diary first draft usually needs several breathing clusters, not one sentence per row and not prose paragraphs.
+Each kernel needs enough visible movement to carry weight: action, interruption, after-effect. A standard diary first draft usually needs several breathing clusters, not one sentence per row and not prose paragraphs. A 15-25-row article can still be prose-block compression when every row carries multiple complete actions; do not save it as a standard diary just because it has line breaks.
 
 Write clusters like this in the article, without labels:
 

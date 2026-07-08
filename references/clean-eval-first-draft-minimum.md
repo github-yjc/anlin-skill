@@ -48,7 +48,7 @@ For a standard diary / `日寄` clean-eval draft, the first saved article should
 
 Do not hand-count. Look at the page shape. If it is visibly a prose block, a tiny-row grid, or a neat sentence grid, rebuild the source movement before saving.
 
-The first saved file is not allowed to be a prose draft waiting for later lineation. If you can describe your candidate as 8-15 paragraphs that a script will split, it is not a clean-eval first draft yet. Rebuild it into roughly 6-8 visible breathing clusters before writing: each cluster should have an unfinished action/reply/body/payment/object movement, one rougher line that keeps moving, and a landing or short failure drop when the action actually closes. Do not depend on `rebalance_line_rhythm.py`, `split_long_lines.py`, or later punctuation repair to create the first article shape.
+The first saved file is not allowed to be a prose draft waiting for later lineation. If you can describe your candidate as 8-15 paragraphs, or as 16-25 dense rows where each row is really a paragraph, it is not a clean-eval first draft yet. Rebuild it into roughly 6-8 visible breathing clusters before writing: each cluster should have multiple actual body lines, an unfinished action/reply/body/payment/object movement, one rougher line that keeps moving, and a landing or short failure drop when the action actually closes. Do not depend on `rebalance_line_rhythm.py`, `split_long_lines.py`, or later punctuation repair to create the first article shape.
 
 ## Cluster Grammar
 
