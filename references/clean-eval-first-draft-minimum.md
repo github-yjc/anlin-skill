@@ -39,7 +39,7 @@ For a standard diary / `日寄` clean-eval draft, the first saved article should
 
 - about 950-1150 body Chinese characters as a visual corridor
 - about 45-70 body lines
-- several rough longer action/speech/thought lines
+- several rough longer action/speech/thought lines; a real long row is visibly more than a 10-18-character caption and usually runs beyond about 24 Chinese characters because action, speech, or thought is still moving
 - a few short drops that land failure, bad reply, body lowering, social cost, or practical retreat
 - some line-final commas where an action or thought truly continues
 - no 8-15 paragraph prose block
@@ -48,7 +48,7 @@ For a standard diary / `日寄` clean-eval draft, the first saved article should
 
 Do not hand-count. Look at the page shape. If it is visibly a prose block, a tiny-row grid, or a neat sentence grid, rebuild the source movement before saving.
 
-The first saved file is not allowed to be a prose draft waiting for later lineation. If you can describe your candidate as 8-15 paragraphs, or as 16-25 dense rows where each row is really a paragraph, it is not a clean-eval first draft yet. Rebuild it into roughly 6-8 visible breathing clusters before writing: each cluster should have multiple actual body lines, an unfinished action/reply/body/payment/object movement, one rougher line that keeps moving, and a landing or short failure drop when the action actually closes. Do not depend on `rebalance_line_rhythm.py`, `split_long_lines.py`, or later punctuation repair to create the first article shape.
+The first saved file is not allowed to be a prose draft waiting for later lineation. If you can describe your candidate as 8-15 paragraphs, as 16-25 dense rows where each row is really a paragraph, or as 45-70 neat 10-18-character caption rows with zero real long movement, it is not a clean-eval first draft yet. Rebuild it into roughly 6-8 visible breathing clusters before writing: each cluster should have multiple actual body lines, an unfinished action/reply/body/payment/object movement, one rougher line that keeps moving, and a landing or short failure drop when the action actually closes. Do not depend on `rebalance_line_rhythm.py`, `split_long_lines.py`, or later punctuation repair to create the first article shape.
 
 ## Cluster Grammar
 
@@ -84,7 +84,7 @@ If the refusal excuse is `忙项目`, `最近有项目`, or similar, keep it as 
 
 The refusal aftermath also has to shape the page rhythm before saving. Do not first write a smooth refusal story and hope punctuation repair will make it diary-like. Build two or three local breathing clusters where the social pressure is still physically unfinished: a reply is being deleted, a transfer or route check is hanging open, somebody at the door is waiting or pointing, a wet/dirty hand changes how the phone is held, or the other person's plain response makes the next action smaller. One cluster may use a line-final comma because the action continues; another may land with a hard stop; one short drop may carry the bad answer or body/social lowering. If the only movement is `message -> calculation -> refusal -> room object keeps failing`, rebuild before writing `draft.md`.
 
-Before saving a standard diary draft, look at the visible body shape rather than imagining the checker will fix it. If it is mostly one short sentence per row, has no moving long action/speech/thought rows, or has 75-80+ body lines, it is not a line-broken diary yet. Merge and rebuild the action clusters before the first `draft.md` write.
+Before saving a standard diary draft, look at the visible body shape rather than imagining the checker will fix it. If it is mostly one short sentence per row, has no moving long action/speech/thought rows, has 45-70 short caption rows with no line visibly carrying a longer action/speech/thought movement, or has 75-80+ body lines, it is not a line-broken diary yet. Merge and rebuild the action clusters before the first `draft.md` write.
 
 ## Title And Ending
 

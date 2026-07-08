@@ -76,9 +76,10 @@ def primary_source_rewrite(families: list[str]) -> str:
     if {"punctuation", "line_rhythm"} & family_set:
         return (
             "rewrite the page shape first: build 6-8 visible breathing clusters from source movement, "
-            "with multiple actual body lines in each cluster. Keep rough long action/speech/thought rows, "
-            "earned short drops, and mixed comma/hard-stop landings. Do not save 8-25 dense prose rows, "
-            "do not split every sentence into equal captions, and do not tune punctuation counts."
+            "with multiple actual body lines in each cluster. Keep rough long action/speech/thought rows "
+            "that visibly run beyond caption length, earned short drops, and mixed comma/hard-stop landings. "
+            "Do not save 8-25 dense prose rows, do not split every sentence into equal 10-18-character captions, "
+            "and do not tune punctuation counts."
         )
     if {"connectors", "structure"} & family_set:
         return (
@@ -700,11 +701,11 @@ def format_repair_brief(report: dict[str, Any]) -> str:
         [
             "repair_directive: write one complete revised draft.md now, then stop. Do not print the article to terminal only, do not summarize fixes after writing, and do not run post-write gates.",
             "hard_gate_priority: if the preceding hard gate showed blocking findings, the one source rewrite must clear those first; use this profile brief to shape the same move, not to ignore hard-gate roughness or fact failures.",
-            "attempt_contract: exactly one pre-write brief, one complete Write/Edit draft.md, and stop. A second write/edit, post-write gate loop, threshold argument, TODO/checklist panel, source/test/threshold/log search, or terminal-only final version is invalid controller evidence.",
+            "attempt_contract: exactly one pre-write brief, one complete Write/Edit draft.md, and stop. A second write/edit, post-write gate loop, Test-Path/Glob/List/source/test/threshold/log search, threshold argument, TODO/checklist panel, or terminal-only final version is invalid controller evidence. If a chat reply is required after writing, output only artifact_written.",
             *(
                 [
-                    "standard_shape_first: save a titled, line-broken standard diary, usually 45-70 body lines and 900+ body Chinese characters, built as 6-8 visible clusters with rough long rows, short failure drops, and mixed comma/hard-stop landings.",
-                    "standard_do_not_save: do not save 8-25 dense prose rows, 70+ equal short rows, a comma carpet, a below-900 shrink, or a draft with only one or two moving long rows.",
+                    "standard_shape_first: save a titled, line-broken standard diary, usually 45-70 body lines and 900+ body Chinese characters, built as 6-8 visible clusters with several moving rows that visibly exceed 24 Chinese chars, short failure drops, and mixed comma/hard-stop landings.",
+                    "standard_do_not_save: do not save 8-25 dense prose rows, 70+ equal short rows, a 45-70-line caption grid with 0 real long rows, a comma carpet, a below-900 shrink, or a draft with only one or two moving long rows.",
                     "standard_social_decline_source: for invitation/refusal repairs, delete message-order plot glue, group-chat crowd summaries, tidy etiquette settlement, and private wet-room proof; use one local consequence that changes hand, reply, payment, route, door, object, body, or social position.",
                 ]
                 if genre == "standard"

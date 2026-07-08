@@ -36,7 +36,7 @@ FINALIZED_FORBIDDEN_SOURCE_RE = re.compile(
     re.IGNORECASE,
 )
 FINALIZED_REDISCOVERY_RE = re.compile(
-    r"(?:^|[\s$>✱])(?:Glob|Get-ChildItem|Select-String|rg|grep|find|dir|ls)\b"
+    r"(?:^|[\s$>✱])(?:Glob|Get-ChildItem|Select-String|Test-Path|rg|grep|find|dir|ls)\b"
     r".{0,260}"
     r"(?:check_anlin_violations|check_style_profile|clean_run_checker|test_anlin_tooling|anlin-writing)",
     re.IGNORECASE,
@@ -396,8 +396,9 @@ def run_finalized_trace_gate(trace_log: Path | None) -> tuple[list[dict[str, Any
                 ),
             }
         )
-    hard_gate_runs = len(FINALIZED_HARD_GATE_RE.findall(command_text))
-    repair_brief_runs = len(FINALIZED_REPAIR_BRIEF_GATE_RE.findall(command_text))
+    real_command_text = "\n".join(line for line in collapsed_lines if re.match(r"^\s*\$\s+", line))
+    hard_gate_runs = len(FINALIZED_HARD_GATE_RE.findall(real_command_text))
+    repair_brief_runs = len(FINALIZED_REPAIR_BRIEF_GATE_RE.findall(real_command_text))
     draft_mutations = sum(
         1 for line in collapsed_lines if FINALIZED_DRAFT_MUTATION_RE.search(line.replace("\\", "/"))
     )

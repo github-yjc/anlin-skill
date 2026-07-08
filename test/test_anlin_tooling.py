@@ -5238,6 +5238,59 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("hard_gate_runs=2", finding["excerpt"])
             self.assertIn("repair_brief_runs=2", finding["excerpt"])
 
+    def test_dev_checkpoint_summary_counts_only_real_gate_commands_for_finalized_loop(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            finalized_dir = case_dir / "finalized"
+            finalized_dir.mkdir(parents=True)
+            bounded = case_dir / "draft.md"
+            finalized = finalized_dir / "draft.md"
+            bounded.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 90)]), encoding="utf-8")
+            finalized.write_text(
+                "\n".join(["# 日寄", "", *(["其实我觉得杯子脏了，于是洗手差点吐出来，丢人。"] * 50)]),
+                encoding="utf-8",
+            )
+            trace = finalized_dir / "opencode-output.txt"
+            trace.write_text(
+                "\n".join(
+                    [
+                        "$ python <skill-dir>/scripts/check_anlin_violations.py draft.md --strict --draft-gate --genre standard",
+                        "[error] global strict: 标准日寄句号网格",
+                        "$ python <skill-dir>/scripts/check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre standard",
+                        "repair_directive: run check_anlin_violations.py draft.md --strict --draft-gate --genre standard only before writing",
+                        "controller_note: check_style_profile.py draft.md --draft-gate --strict --repair-brief --genre standard is the generator-facing interface",
+                        "findings:",
+                        "  - warning:red | line_rhythm | line_mean_chars | observed=11.0",
+                        "← Write draft.md",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(bounded),
+                    "--finalized-draft",
+                    str(finalized),
+                    "--finalized-trace-log",
+                    str(trace),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            payload = json.loads(result.stdout)
+            rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
+            self.assertNotIn("finalized修复指标循环", rules)
+
     def test_dev_checkpoint_summary_marks_finalized_todo_planning_invalid(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             case_dir = Path(temp) / "case"
@@ -9759,16 +9812,20 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("Do not print the article to terminal only", result.stdout)
             self.assertIn("hard_gate_priority: if the preceding hard gate showed blocking findings", result.stdout)
             self.assertIn("attempt_contract: exactly one pre-write brief", result.stdout)
-            self.assertIn("source/test/threshold/log search", result.stdout)
+            self.assertIn("Test-Path/Glob/List/source/test/threshold/log search", result.stdout)
+            self.assertIn("artifact_written", result.stdout)
             self.assertIn("standard_shape_first: save a titled, line-broken standard diary", result.stdout)
             self.assertIn("usually 45-70 body lines", result.stdout)
+            self.assertIn("visibly exceed 24 Chinese chars", result.stdout)
             self.assertIn("standard_do_not_save: do not save 8-25 dense prose rows", result.stdout)
+            self.assertIn("45-70-line caption grid with 0 real long rows", result.stdout)
             self.assertIn("standard_social_decline_source: for invitation/refusal repairs", result.stdout)
             self.assertIn("exit_note: with --strict --repair-brief", result.stdout)
             self.assertIn("not tool failure", result.stdout)
             self.assertIn("primary_source_rewrite:", result.stdout)
             self.assertIn("rewrite the page shape first: build 6-8 visible breathing clusters", result.stdout)
             self.assertIn("Do not save 8-25 dense prose rows", result.stdout)
+            self.assertIn("10-18-character captions", result.stdout)
             self.assertIn("root_families:", result.stdout)
             self.assertIn("punctuation:", result.stdout)
             self.assertIn("line_rhythm:", result.stdout)
@@ -9846,6 +9903,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("do not patch it with `Edit draft.md`", finalized_minimum)
         self.assertIn("Because the single write is atomic, do a visible body-shape check before saving", finalized_minimum)
         self.assertIn("75-80+ body lines", finalized_minimum)
+        self.assertIn("45-70 short caption rows with zero true long rows", finalized_minimum)
+        self.assertIn("beyond about 24 Chinese characters", finalized_minimum)
         self.assertIn("almost every line trailing with `，` and almost no landed `。`", finalized_minimum)
         self.assertIn("8-25 dense prose rows", finalized_minimum)
         self.assertIn("6-8 visible breathing clusters", finalized_minimum)
@@ -9858,6 +9917,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Door threshold imagery alone does not count", finalized_minimum)
         self.assertIn("A 45-70-line corridor is not a target count", finalized_minimum)
         self.assertIn("If the planned rewrite has zero obvious long rows, if only one or two rows", finalized_minimum)
+        self.assertIn("53 short rows and 580 body characters", finalized_minimum)
         self.assertIn("8-15 long paragraphs", finalized_minimum)
         self.assertIn("15-line \"better story\"", finalized_minimum)
         self.assertIn("Do not repair social-decline message surfaces by enumerating message order", finalized_minimum)
@@ -9871,9 +9931,11 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("80+ one-sentence rows", runtime)
         self.assertIn("reject a comma carpet", runtime)
         self.assertIn("If `<skill-dir>` is unavailable, skip local gates", runtime)
+        self.assertIn("do not run `Test-Path` probes for checker scripts", runtime)
         self.assertIn("A neighbor/cashier/rider cameo is not a public hinge", runtime)
         self.assertIn("line-broken does not mean equal short sentence rows", skill)
         self.assertIn("16-25-row dense prose article", skill)
+        self.assertIn("45-70-line caption grid", skill)
         self.assertIn("nearly every line trailing with `，` and almost no landed `。`", skill)
         self.assertIn("asking a neutral information question is also still cameo", skill)
 
@@ -9907,6 +9969,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("If the revised article is only printed in a log/chat but `draft.md` is unchanged", finalized_minimum)
         self.assertIn("prints a repaired article to chat or a log but leaves that file unchanged", validation)
         self.assertIn("finalized/draft.md", combined)
+        self.assertIn("10-18-character captions", combined)
+        self.assertIn("24 Chinese characters", combined)
+        self.assertIn("45-70-line caption grid", combined)
         self.assertIn("nonzero, treat that as a normal not-pass signal, not a broken tool", runtime)
         self.assertIn("full profile report after the artifact is frozen", readme)
 
