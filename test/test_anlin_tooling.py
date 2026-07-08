@@ -10136,6 +10136,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("producer: controller", brief)
             self.assertIn("selected_genre: standard", brief)
             self.assertIn("hard_gate_status: not_pass", brief)
+            self.assertIn("hard_gate_primary_action:", brief)
             self.assertIn("AI二元解释句式", brief)
             self.assertIn("style_repair_brief:", brief)
             self.assertIn("Anlin style-profile repair brief", brief)
@@ -10191,6 +10192,50 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("Anlin style-profile repair brief", brief)
             self.assertIn("primary_source_rewrite:", brief)
             self.assertNotIn("repair_mode: controller_tool_error", brief)
+
+    def test_prepare_finalized_repair_brief_prioritizes_overfull_delete_merge_action(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            finalized_dir = Path(temp) / "finalized"
+            finalized_dir.mkdir()
+            draft = finalized_dir / "draft.md"
+            draft.write_text(
+                "\n".join(
+                    [
+                        "# 水龙头没关严",
+                        "",
+                        *(["手机又响了一下，我把扳手从柜子里拖出来，袖口蹭到黑灰，"] * 95),
+                        "不是项目赶，是支付页把话替我说完了。",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(PREPARE_FINALIZED_REPAIR_BRIEF),
+                    str(draft),
+                    "--genre",
+                    "standard",
+                    "--profile",
+                    "references/style-profile.json",
+                    "--json",
+                ],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            brief = (finalized_dir / "repair-brief.txt").read_text(encoding="utf-8")
+            self.assertIn("hard_gate_primary_action: delete_and_merge_overfull_standard", brief)
+            self.assertIn("Do not add new scenes while this overfull/fragmented hard gate is present", brief)
+            self.assertLess(
+                brief.index("strict: 标准日寄完整文章过满"),
+                brief.index("strict: AI二元解释句式"),
+            )
 
     def test_finalized_repair_docs_route_profile_brief_and_full_report_separately(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

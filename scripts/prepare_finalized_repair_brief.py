@@ -57,6 +57,29 @@ def hard_status(findings: list[dict[str, Any]]) -> str:
     return "not_pass" if any(item.get("severity") == "error" for item in findings) else "pass"
 
 
+OVERFULL_SHAPE_RULES = {
+    "标准日寄完整文章过满",
+    "标准日寄行数缓冲异常",
+    "断裂过碎",
+}
+
+
+def hard_rule_name(item: dict[str, Any]) -> str:
+    rule = str(item.get("rule", "unknown")).strip()
+    if rule.startswith("strict: "):
+        return rule.removeprefix("strict: ").strip()
+    return rule
+
+
+def hard_blocker_priority(item: dict[str, Any]) -> tuple[int, str]:
+    rule_name = hard_rule_name(item)
+    if rule_name in OVERFULL_SHAPE_RULES:
+        return (0, rule_name)
+    if "AI" in rule_name or "解释句式" in rule_name or "治疗式" in rule_name:
+        return (1, rule_name)
+    return (2, rule_name)
+
+
 def compact_hard_blockers(findings: list[dict[str, Any]], limit: int = 5) -> list[str]:
     blockers = [
         item
@@ -67,6 +90,7 @@ def compact_hard_blockers(findings: list[dict[str, Any]], limit: int = 5) -> lis
         for item in findings
         if item.get("severity") == "warning"
     ]
+    blockers = sorted(blockers, key=hard_blocker_priority)
     lines: list[str] = []
     for item in blockers[:limit]:
         rule = str(item.get("rule", "unknown")).strip()
@@ -79,6 +103,26 @@ def compact_hard_blockers(findings: list[dict[str, Any]], limit: int = 5) -> lis
             parts.append(suggestion[:180])
         lines.append(" | ".join(parts))
     return lines
+
+
+def hard_gate_primary_action(findings: list[dict[str, Any]]) -> str:
+    error_rules = {hard_rule_name(item) for item in findings if item.get("severity") == "error"}
+    if error_rules & OVERFULL_SHAPE_RULES:
+        return (
+            "delete_and_merge_overfull_standard: first remove repeated proof packets, decorative explanations, "
+            "duplicate body/object/screen evidence, and low-consequence memory ledgers; then merge adjacent caption rows "
+            "into fewer rough action/speech/thought lines. Aim the single rewrite toward a compact complete standard diary "
+            "near 45-70 visible body lines and roughly 950-1250 body Chinese characters. Do not add new scenes while this "
+            "overfull/fragmented hard gate is present."
+        )
+    if any(rule in error_rules for rule in ("AI二元解释句式", "AI治疗式人类化")):
+        return (
+            "delete_ai_scaffold_first: remove binary reframes, therapeutic phrases, and meaning-summary sentences; "
+            "replace them with the existing physical fact, body consequence, app surface, money action, or plain speech."
+        )
+    if error_rules:
+        return "clear_hard_gate_first: make one source-level rewrite that clears the listed hard blockers before considering profile drift."
+    return "no_hard_gate_primary_action: use the compact style brief only if profile repair is still required."
 
 
 def build_profile_command(
@@ -155,6 +199,7 @@ def format_brief(
         "tool_boundary: do not run check_anlin_violations.py, check_style_profile.py, clean_run_checker.py, prepare_finalized_repair_brief.py, python -c, Measure-Object, wc, local counters, Test-Path, Glob/List, source/test/threshold/log searches, or path probes during the repair attempt.",
         "genre_boundary: do not invent unsupported genre labels; use selected_genre exactly as written here.",
         f"hard_gate_status: {hard_status(hard_findings)}",
+        f"hard_gate_primary_action: {hard_gate_primary_action(hard_findings)}",
         "hard_gate_blockers:",
     ]
     if hard_blockers:
