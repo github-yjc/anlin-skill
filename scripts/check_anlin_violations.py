@@ -571,6 +571,34 @@ SOCIAL_DECLINE_REPLY_VISIBLE_ACTION_TERMS = [
     "门夹",
     "门撞",
 ]
+SOCIAL_DECLINE_GROUP_FAKE_CONSEQUENCE_TERMS = [
+    "群里有人问",
+    "群里有人说",
+    "群里有人发",
+    "群里回",
+    "有人@我",
+    "@我",
+    "你怎么说",
+    "你不是",
+    "你们项目",
+    "项目不是",
+    "正在输入",
+    "没有下文",
+]
+SOCIAL_DECLINE_TIDY_ETIQUETTE_CLOSURE_TERMS = [
+    "人不到钱到",
+    "人不到没事",
+    "下次一起吃饭",
+    "下次一起喝",
+    "下次补上",
+    "心意到了",
+    "心意到就行",
+    "沾点喜气",
+    "抱歉人不到",
+    "不用随礼",
+    "别转了",
+    "到时候请你",
+]
 SOCIAL_DECLINE_REFUSAL_TERMS = [
     "去不了",
     "走不开",
@@ -1515,7 +1543,9 @@ DRAFT_GATE_RULE_PREFIXES = (
     "社交拒绝室内冷感过密",
     "社交拒绝纹理替代后果不足",
     "社交拒绝普通回复假后果",
+    "社交拒绝群聊假后果",
     "社交拒绝编剧化回礼",
+    "社交拒绝礼貌闭合",
     "社交拒绝私密转账假后果",
     "社交拒绝后果过度生长",
     "叙述人称滑移",
@@ -3781,7 +3811,7 @@ def social_decline_plain_reply_private_loop_risk(lines: list[str], text: str) ->
     if not looks_like_standard_diary_gate_target(title, content_lines, text):
         return None
     visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
-    if len(visible_lines) < 35:
+    if len(visible_lines) < 3:
         return None
     body = "\n".join(visible_lines)
     if chinese_len(body) < STANDARD_DIARY_ATTEMPT_MIN_CHARS:
@@ -3874,7 +3904,7 @@ def check_social_decline_scripted_return_gift(findings: list[Finding], lines: li
     if social_hits < 4 or not has_invitation_context:
         return
     scripted_patterns = [
-        r"(?:狗哥|他|对方)[^。！？\n]{0,24}发(?:了|来)?(?:个|一个)?红包",
+        r"^(?:狗哥|他|对方)[^。！？\n]{0,24}发(?:了|来)?(?:个|一个)?红包",
         r"红包[^。！？\n]{0,24}(?:六块六|6\.6|一块两毛五|沾点喜气|心意到了|项目忙就算了)",
         r"(?:附言|备注)[^。！？\n]{0,30}(?:心意到了|项目忙就算了|沾点喜气)",
     ]
@@ -3890,6 +3920,139 @@ def check_social_decline_scripted_return_gift(findings: list[Finding], lines: li
                 )
             )
             return
+
+
+def social_decline_group_fake_consequence_risk(lines: list[str], text: str) -> dict[str, Any] | None:
+    title, content_lines = split_title_and_content_lines(lines)
+    if detect_style(text) != "standard":
+        return None
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if len(visible_lines) < 3:
+        return None
+    body = "\n".join(visible_lines)
+    if chinese_len(body) < STANDARD_DIARY_ATTEMPT_MIN_CHARS:
+        return None
+    social_hits = sum(body.count(term) for term in SOCIAL_DECLINE_TERMS)
+    has_invitation_context = any(
+        term in body
+        for term in ("狗哥", "结婚", "婚礼", "随礼", "份子钱", "高铁", "来不来", "去不了", "走不开", "忙项目")
+    )
+    if social_hits < 4 or not has_invitation_context:
+        return None
+
+    refusal_index = None
+    for index, line in enumerate(visible_lines):
+        if any(term in line for term in SOCIAL_DECLINE_REFUSAL_TERMS):
+            refusal_index = index
+            break
+    if refusal_index is None:
+        return None
+
+    post_refusal_lines = visible_lines[refusal_index + 1 : refusal_index + 18]
+    if not post_refusal_lines:
+        return None
+    post_refusal_text = "\n".join(post_refusal_lines)
+    group_term_hits = [term for term in SOCIAL_DECLINE_GROUP_FAKE_CONSEQUENCE_TERMS if term in post_refusal_text]
+    group_lines = [
+        line
+        for line in post_refusal_lines
+        if any(term in line for term in SOCIAL_DECLINE_GROUP_FAKE_CONSEQUENCE_TERMS)
+        or ("群里" in line and any(marker in line for marker in ("有人", "@", "问", "说", "回", "发")))
+    ]
+    group_crowd_pattern_hits = re.findall(r"(?:群里|群聊|班群)[^。！？\n]{0,80}(?:有人|@|问|说|回|发)", post_refusal_text)
+    if len(group_lines) < 2 and len(group_term_hits) < 2 and len(group_crowd_pattern_hits) < 1:
+        return None
+    private_or_closed_lines = [
+        line
+        for line in post_refusal_lines
+        if any(term in line for term in SOCIAL_DECLINE_REPLY_PRIVATE_LOOP_TERMS)
+        or any(term in line for term in ("屏幕", "手机", "外套", "水龙头", "热水器", "沙发", "桌上", "没有下文"))
+    ]
+    active_low_consequence_lines = [
+        line
+        for line in post_refusal_lines
+        if any(term in line for term in ("门口", "外卖", "扫码", "付款", "下楼", "让路", "摔", "洒", "漏", "递", "接", "问了一句", "等我"))
+    ]
+    if active_low_consequence_lines and len(active_low_consequence_lines) >= len(group_lines):
+        return None
+    first_group = group_lines[0]
+    return {
+        "line": visible_lines.index(first_group) + 1,
+        "excerpt": clean_excerpt(first_group),
+        "group_line_count": len(group_lines),
+        "group_term_hits": group_term_hits[:8],
+        "private_or_closed_line_count": len(private_or_closed_lines),
+        "active_low_consequence_line_count": len(active_low_consequence_lines),
+    }
+
+
+def check_social_decline_group_fake_consequence(findings: list[Finding], lines: list[str], text: str) -> None:
+    risk = social_decline_group_fake_consequence_risk(lines, text)
+    if not risk:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "社交拒绝群聊假后果",
+            int(risk["line"]),
+            str(risk["excerpt"]),
+            "生成稿高风险：拒绝后用“群里有人问/有人@我/正在输入”等群聊接力来制造公共后果，仍像模型把社交压力摘要成剧情。删掉群体盘问，换成一个局部可见动作：回复变小、付款/路线卡住、门口有人等、身体/脏手改写手机动作，或一个人一句话直接改变下一步。",
+        )
+    )
+
+
+def social_decline_tidy_etiquette_closure_risk(lines: list[str], text: str) -> dict[str, Any] | None:
+    title, content_lines = split_title_and_content_lines(lines)
+    if detect_style(text) != "standard":
+        return None
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if len(visible_lines) < 3:
+        return None
+    body = "\n".join(visible_lines)
+    if chinese_len(body) < 520:
+        return None
+    social_hits = sum(body.count(term) for term in SOCIAL_DECLINE_TERMS)
+    has_invitation_context = any(
+        term in body
+        for term in ("狗哥", "结婚", "婚礼", "随礼", "份子钱", "高铁", "来不来", "去不了", "走不开", "忙项目")
+    )
+    if social_hits < 4 or not has_invitation_context:
+        return None
+    tidy_lines = [
+        line
+        for line in visible_lines
+        if any(term in line for term in SOCIAL_DECLINE_TIDY_ETIQUETTE_CLOSURE_TERMS)
+        or re.search(r"发(?:了)?(?:一个|个)?红包[^。！？\n]{0,20}(?:抱歉|人不到|心意|下次)", line)
+    ]
+    if not tidy_lines:
+        return None
+    tail_text = "\n".join(visible_lines[-10:])
+    tidy_tail = any(line in visible_lines[-12:] for line in tidy_lines)
+    closes_with_polite_reply = any(term in tail_text for term in ("下次一起吃饭", "人不到没事", "心意到了", "抱歉人不到", "人不到钱到"))
+    if not (tidy_tail or closes_with_polite_reply):
+        return None
+    first_tidy = tidy_lines[0]
+    return {
+        "line": visible_lines.index(first_tidy) + 1,
+        "excerpt": clean_excerpt(first_tidy),
+        "tidy_terms": [term for term in SOCIAL_DECLINE_TIDY_ETIQUETTE_CLOSURE_TERMS if term in body][:6],
+        "tidy_tail": tidy_tail,
+    }
+
+
+def check_social_decline_tidy_etiquette_closure(findings: list[Finding], lines: list[str], text: str) -> None:
+    risk = social_decline_tidy_etiquette_closure_risk(lines, text)
+    if not risk:
+        return
+    findings.append(
+        Finding(
+            "warning",
+            "社交拒绝礼貌闭合",
+            int(risk["line"]),
+            str(risk["excerpt"]),
+            "生成稿高风险：拒绝婚礼后用“人不到钱到/人不到没事/下次一起吃饭/心意到了”把关系处理成礼貌闭合，太像修复代理在补道德结尾。不要用红包和客气话收束；让未完成的回复、付款/路线犹豫、门口/身体小麻烦、旧债或低处动作留下松散尾巴。",
+        )
+    )
 
 
 def check_social_decline_private_transfer_loop(findings: list[Finding], lines: list[str], text: str) -> None:
@@ -5124,6 +5287,8 @@ def collect_findings(text: str) -> list[Finding]:
     check_social_decline_room_texture_overfill(findings, lines, text)
     check_social_decline_plain_reply_private_loop(findings, lines, text)
     check_social_decline_scripted_return_gift(findings, lines, text)
+    check_social_decline_group_fake_consequence(findings, lines, text)
+    check_social_decline_tidy_etiquette_closure(findings, lines, text)
     check_social_decline_private_transfer_loop(findings, lines, text)
     check_social_decline_overextended_aftermath(findings, lines, text)
     check_third_person_narrator_slip(findings, lines, text)

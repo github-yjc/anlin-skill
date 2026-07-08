@@ -6820,6 +6820,134 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: 社交拒绝编剧化回礼" for item in findings), findings)
 
+    def test_checker_draft_gate_rejects_social_decline_group_crowd_fake_consequence(self) -> None:
+        body_lines = (
+            [
+                "热水器响了一下，我把水龙头拧开，袖口先湿了。",
+                "狗哥发微信说下个月结婚，问我来不来。",
+                "我看了高铁和随礼，最后回他说最近忙项目，去不了。",
+                "他回了个好的。",
+                "第二天群里有人问，狗哥婚礼你们去几个。",
+                "过了会儿有人@我，你怎么说项目忙，你们项目不是上星期就结了吗。",
+                "我回了个哈哈，手机顶上有个人正在输入，闪了半天又没有下文。",
+            ]
+            + ["我把手机扣在桌上，水龙头还在响，袖口贴着手腕。"] * 30
+        )
+        body = "\n".join(["# 热水", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 社交拒绝群聊假后果" for item in findings), findings)
+
+            messages = preflight_messages(draft)
+            self.assertTrue(
+                any(message.startswith("social_decline_group_fake_consequence=") for message in messages),
+                messages,
+            )
+
+    def test_checker_draft_gate_rejects_social_decline_theater_inside_prose_blocks(self) -> None:
+        body = "\n".join(
+            [
+                "# 热水",
+                "",
+                "房东换热水器以后，我去问押金剩下那点钱，他发了一条语音说过两天退。电梯里碰到他的时候，两个人都看着楼层数字跳，谁也没提。",
+                "晚上洗手的时候袖口被水打湿，手机在茶几上震了一下，狗哥问下个月结婚来不来。我把水关了，手上的水没擦，先去看高铁票，再看随礼，算来算去都不太对。",
+                "我打出最近忙项目可能去不了，又删了一半，最后只发最近忙项目可能去不了。过了几分钟他回了一条好的，没有表情没有省略号。",
+                "手机扣下去以后，水龙头还在滴，一下一下敲在盆沿上。我去厨房拿纸，纸盒空了，只剩一个压扁的纸芯，手上的水蹭到裤子上，又把屏幕按亮了一次。",
+                "外套搭在沙发扶手上，两天没洗，口袋里还有一张超市小票。我把它抽出来看了一眼，上面速冻水饺十九块八，字被水汽泡得有点散，又塞了回去。",
+                "第二天群里有人问，狗哥婚礼你们去几个，我看了一眼没回。过了会儿有人@我，你怎么说项目忙，你们项目不是上星期就结了吗，我盯着那个@看了几秒，打了哈哈你也知道我们那项目结是结了尾款没结，项目嘛总有事，发完把手机放下了。然后屏幕顶上有个人正在输入，闪了半天又消了。",
+                "晚上我把银行打开，给他发了一个红包，四百块，附了一句抱歉人不到钱到。发完截图看了一眼，余额五百六，够交房租。",
+                "过了一会儿他回了一个抱拳，说人不到没事，下次一起吃饭。我打了一个好字，发完之后觉得那个好字比昨天的可能去不了要轻得多。",
+                "热水器这回声音小了点，水龙头还是滴，袖口贴在手腕上，我坐了一会儿，把手机扣在桌上。",
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = {item["rule"] for item in findings}
+            self.assertIn("strict: 社交拒绝群聊假后果", rules)
+            self.assertIn("strict: 社交拒绝礼貌闭合", rules)
+
+    def test_checker_draft_gate_rejects_narrator_red_packet_etiquette_closure(self) -> None:
+        body_lines = (
+            [
+                "热水器响了一下，我把水龙头拧开，袖口先湿了。",
+                "狗哥发微信说下个月结婚，问我来不来。",
+                "我看了高铁和随礼，最后回他说最近忙项目，去不了。",
+                "他回了个好的。",
+                *(["我坐下来，右手还有点潮，热水器在墙里响。"] * 32),
+                "我把银行打开，给他发了一个红包，四百块。",
+                "附了一句抱歉人不到钱到。",
+                "过了一会儿他回了一个抱拳，说人不到没事，下次一起吃饭。",
+                "我打了一个好字，发完把手机扣在桌上。",
+            ]
+        )
+        body = "\n".join(["# 热水", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 社交拒绝礼貌闭合" for item in findings), findings)
+
+            messages = preflight_messages(draft)
+            self.assertTrue(
+                any(message.startswith("social_decline_tidy_etiquette_closure=") for message in messages),
+                messages,
+            )
+
+    def test_checker_allows_social_decline_local_consequence_without_crowd_or_etiquette(self) -> None:
+        body_lines = (
+            [
+                "热水器响了一下，我把水龙头拧开，袖口先湿了。",
+                "狗哥发微信说下个月结婚，问我来不来。",
+                "我看了高铁和随礼，最后回他说最近忙项目，去不了。",
+                "他回了句那我先不把你算进桌了。",
+                "门口外卖员还举着袋子等我扫码，我手上全是水，手机按了两次都没扫上。",
+                "他问我是不是门口信号不好，我回了一句可能是手不行。",
+            ]
+            + ["我把袋子接过来，水顺着手腕往袖口里走，屏幕还停在付款页。"] * 30
+        )
+        body = "\n".join(["# 热水", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            forbidden = {"strict: 社交拒绝群聊假后果", "strict: 社交拒绝礼貌闭合"}
+            self.assertFalse(any(item["rule"] in forbidden for item in findings), findings)
+
     def test_checker_draft_gate_rejects_private_transfer_loop_in_social_decline(self) -> None:
         body_lines = (
             [
@@ -8102,6 +8230,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("make a visible refusal chain", clean)
         self.assertIn("If `社交拒绝纹理替代后果不足` appears", runtime)
         self.assertIn("The chain must survive if every side object except one is removed", runtime)
+        self.assertIn("群里有人问", combined)
+        self.assertIn("人不到钱到", combined)
+        self.assertIn("moral etiquette", combined)
+        self.assertIn("one local consequence", combined)
 
     def test_clean_eval_rhythm_repair_order_is_unambiguous_in_runtime_docs(self) -> None:
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
@@ -11262,6 +11394,13 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("plain OK reply plus a private screen mark is still a screen loop", runtime)
         self.assertIn("社交拒绝纹理替代后果不足", checker)
         self.assertIn("社交拒绝普通回复假后果", checker)
+        self.assertIn("社交拒绝群聊假后果", checker)
+        self.assertIn("社交拒绝礼貌闭合", checker)
+        for text in (first_draft, source_engine, finalized, clean, runtime):
+            self.assertIn("群里有人问", text)
+            self.assertIn("人不到钱到", text)
+        self.assertIn("social_decline_group_fake_consequence", (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8"))
+        self.assertIn("social_decline_tidy_etiquette_closure", (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8"))
 
     @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_run_blind_test_supports_multiple_placebo_rounds(self) -> None:

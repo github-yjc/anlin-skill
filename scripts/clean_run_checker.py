@@ -72,7 +72,9 @@ from check_anlin_violations import (  # noqa: E402
     short_genre_present_action_anchor_risk,
     short_genre_prompt_prop_too_early_risk,
     short_genre_repair_stuffing_groups,
+    social_decline_group_fake_consequence_risk,
     social_decline_plain_reply_private_loop_risk,
+    social_decline_tidy_etiquette_closure_risk,
     standard_prompt_prop_title_loop_risk,
     set_forced_genre,
     split_title_and_content_lines,
@@ -613,6 +615,18 @@ def preflight_messages(draft: Path) -> list[str]:
             "social_decline_plain_reply_private_loop="
             + json.dumps(plain_reply_loop_risk, ensure_ascii=False)
         )
+    group_fake_consequence_risk = social_decline_group_fake_consequence_risk(text.splitlines(), text)
+    if group_fake_consequence_risk:
+        messages.append(
+            "social_decline_group_fake_consequence="
+            + json.dumps(group_fake_consequence_risk, ensure_ascii=False)
+        )
+    tidy_etiquette_closure_risk = social_decline_tidy_etiquette_closure_risk(text.splitlines(), text)
+    if tidy_etiquette_closure_risk:
+        messages.append(
+            "social_decline_tidy_etiquette_closure="
+            + json.dumps(tidy_etiquette_closure_risk, ensure_ascii=False)
+        )
     if body_chars < 900:
         messages.append(f"body_chinese_chars={body_chars} < 900")
     elif body_chars < 950 and source_shape_weak:
@@ -873,6 +887,14 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     if "social_decline_plain_reply_private_loop=" in joined_messages:
         repair_hints.append(
             "for social_decline_plain_reply_private_loop, an OK/plain response plus a private screen mark is still a screen loop. Rebuild the refusal aftermath so the reply changes a visible next action: a worse small reply, door waiting, payment/route stall, someone asking/pointing/waiting, or a body/door/object problem altered while pressure is live"
+        )
+    if "social_decline_group_fake_consequence=" in joined_messages:
+        repair_hints.append(
+            "for social_decline_group_fake_consequence, do not repair a refusal with `群里有人问`, `有人@我`, `你怎么说`, or `正在输入` as a public crowd scene. Cut the group-chat summary and make one local consequence change the next action: a smaller reply, a payment/route stall, one person waiting/asking, or a wet/dirty hand/body/door problem while the refusal pressure is still live"
+        )
+    if "social_decline_tidy_etiquette_closure=" in joined_messages:
+        repair_hints.append(
+            "for social_decline_tidy_etiquette_closure, do not close the refusal with narrator red-packet apology, `人不到钱到`, `人不到没事`, `下次一起吃饭`, or `心意到了`. Remove the polite moral settlement and leave through unfinished reply, route/payment hesitation, old debt, body/door trouble, or a lower practical residue"
         )
     if "bare_line_grid=" in joined_messages:
         repair_hints.append(

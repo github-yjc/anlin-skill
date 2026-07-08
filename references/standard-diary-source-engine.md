@@ -137,6 +137,10 @@ Keep `忙项目` as an excuse surface unless the user supplied real work facts. 
 
 Refusal chain upper bound: chain means one consequence transfer, not plot continuation. Keep the aftermath on the same evening or one very small next-day residue. One refusal consequence may cause one or two visible actions, then the article should exit through an unfinished reply, payment/route hesitation, body/door problem, or low object. Do not grow it into several days of follow-up messages, class-group photos, commute scenes, coworker reactions, office biography, wedding logistics,伴郎/喜酒 turns, or gift-reversal etiquette. If the draft becomes too long, cut chronology first; do not repair by adding more texture or changing punctuation.
 
+Public consequence is not crowd commentary. Do not repair a private refusal loop by adding `第二天群里有人问`, `有人@我`, `你怎么说项目忙`, `正在输入`, or a chain of people noticing the lie. That is a screen summary with more actors. Use one local consequence: one person waits or asks while the phone is in hand, one payment/route action stalls, one dirty/wet hand changes the reply, or one plain response changes a smaller next move.
+
+Do not settle the refusal with etiquette. Narrator-sent red packets, `抱歉人不到钱到`, `人不到没事`, `下次一起吃饭`, `心意到了`, or similar polite balance-sheet endings make the article feel like a designed moral exchange. If money appears, it should remain a practical hesitation or unfinished act; if a reply appears, let it shrink, misfire, or leave residue instead of clearing the relationship.
+
 Before saving, mentally delete every room/object detail except one handle. If the remaining social chain is only `message -> ticket/suili calculation -> I said no -> he said OK`, it is still a screen summary. Rebuild until the post-refusal response, wrong reply, old debt, payment/route hesitation, or body/social interruption changes a later action by itself.
 
 If deleting every room/object detail except one makes the article stop moving, the refusal did not become an engine. Rebuild from the reply aftermath before saving `draft.md`.
