@@ -10149,6 +10149,49 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotIn("count80", brief)
             self.assertNotIn("robust_z", brief)
 
+    def test_prepare_finalized_repair_brief_resolves_relative_profile_before_external_cwd(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            finalized_dir = Path(temp) / "external-finalized"
+            finalized_dir.mkdir()
+            draft = finalized_dir / "draft.md"
+            draft.write_text(
+                "\n".join(
+                    [
+                        "# 水龙头",
+                        "",
+                        "不是包装袋漏，是电动车前面那个篮子。",
+                        *(["水龙头开小了还是溅出来。"] * 8),
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(PREPARE_FINALIZED_REPAIR_BRIEF),
+                    str(draft),
+                    "--genre",
+                    "standard",
+                    "--profile",
+                    "references/style-profile.json",
+                    "--json",
+                ],
+                cwd=str(ROOT),
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertNotEqual(payload["profile_returncode"], 2, payload)
+            brief = (finalized_dir / "repair-brief.txt").read_text(encoding="utf-8")
+            self.assertIn("Anlin style-profile repair brief", brief)
+            self.assertIn("primary_source_rewrite:", brief)
+            self.assertNotIn("repair_mode: controller_tool_error", brief)
+
     def test_finalized_repair_docs_route_profile_brief_and_full_report_separately(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")

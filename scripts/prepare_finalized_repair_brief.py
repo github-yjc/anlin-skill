@@ -187,14 +187,16 @@ def main() -> int:
     if not draft.is_file():
         parser.error(f"draft not found: {draft}")
     output = args.output.resolve() if args.output else draft.parent / "repair-brief.txt"
+    profile = args.profile.resolve() if args.profile is not None else None
+    corpus_dir = args.corpus_dir.resolve() if args.corpus_dir is not None else None
 
     hard_result = run_command(
-        build_hard_command(draft.name, genre=args.genre, corpus_dir=args.corpus_dir),
+        build_hard_command(draft.name, genre=args.genre, corpus_dir=corpus_dir),
         cwd=draft.parent,
     )
     hard_findings = parse_hard_findings(hard_result.stdout)
     profile_result = run_command(
-        build_profile_command(draft.name, genre=args.genre, profile=args.profile, corpus_dir=args.corpus_dir),
+        build_profile_command(draft.name, genre=args.genre, profile=profile, corpus_dir=corpus_dir),
         cwd=draft.parent,
     )
     brief = format_brief(
