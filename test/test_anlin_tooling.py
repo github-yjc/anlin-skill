@@ -5374,7 +5374,7 @@ class AnlinToolingTests(unittest.TestCase):
                         "tool": "write",
                         "state": {
                             "status": "completed",
-                            "input": {"filePath": str(finalized), "content": "# 日寄\n\n我把杯子放回去。\n"},
+                            "input": {"content": "# 日寄\n\n我把杯子放回去。\n", "filePath": str(finalized)},
                             "output": "Wrote file successfully.",
                         },
                     },
@@ -10467,6 +10467,8 @@ class AnlinToolingTests(unittest.TestCase):
             brief = (finalized_dir / "repair-brief.txt").read_text(encoding="utf-8")
             self.assertIn("hard_gate_primary_action: rebuild_refusal_aftermath_engine", brief)
             self.assertIn("social refusal must become the source engine", brief)
+            self.assertIn("Do not solve this by shortening the article", brief)
+            self.assertIn("usually 900+ body Chinese characters", brief)
             self.assertIn("Do not fix this by adding group-chat crowd", brief)
             self.assertLess(
                 brief.index("strict: 社交拒绝纹理替代后果不足"),

@@ -413,6 +413,15 @@ def extract_finalized_event_trace(text: str) -> str:
                     else "<patch omitted>"
                 )
             chunks.append(f"INPUT {json.dumps(compact_input, ensure_ascii=False)}")
+            file_path = tool_input.get("filePath")
+            content = tool_input.get("content")
+            if (
+                str(tool).lower() in {"write", "edit"}
+                and isinstance(file_path, str)
+                and isinstance(content, str)
+                and file_path.replace("\\", "/").endswith("draft.md")
+            ):
+                chunks.append(f"Write {file_path}")
         elif tool_input is not None:
             chunks.append(f"INPUT {json.dumps(tool_input, ensure_ascii=False)}")
 

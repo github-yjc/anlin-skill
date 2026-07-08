@@ -146,8 +146,10 @@ def hard_gate_primary_action(findings: list[dict[str, Any]]) -> str:
             "surface, and make the post-refusal reply, payment, route, old debt, dirty/wet hand, door/body interruption, "
             "or one plain person asking change the next visible action. The same rebuild should create uneven breathing "
             "clusters: one unfinished reply/payment/body line may trail with a comma, one rough longer row carries the "
-            "awkward movement, and one short drop lands the lower answer. Do not fix this by adding group-chat crowd "
-            "pressure, tidy etiquette closure, more ticket/suili ledger, or more water-room texture."
+            "awkward movement, and one short drop lands the lower answer. Do not solve this by shortening the article "
+            "into a summary; keep a complete standard-diary corridor with visible breathing clusters and usually 900+ "
+            "body Chinese characters by replacing the deleted packet with consequence movement. Do not fix this by "
+            "adding group-chat crowd pressure, tidy etiquette closure, more ticket/suili ledger, or more water-room texture."
         )
     if error_rules & PERIOD_GRID_RULES:
         return (
