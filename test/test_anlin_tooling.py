@@ -5337,6 +5337,76 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("draft_mutations=0", finding["excerpt"])
             self.assertIn("requires one immediate complete draft.md write", finding["suggestion"])
 
+    def test_dev_checkpoint_summary_counts_jsonl_write_tool_as_finalized_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case_dir = Path(temp) / "case"
+            finalized_dir = case_dir / "finalized"
+            finalized_dir.mkdir(parents=True)
+            bounded = case_dir / "draft.md"
+            finalized = finalized_dir / "draft.md"
+            bounded.write_text("\n".join(["# 日寄", "", *(["杯子脏了。"] * 90)]), encoding="utf-8")
+            finalized.write_text(
+                "\n".join(["# 日寄", "", *(["其实我觉得杯子脏了，于是洗手差点吐出来，丢人。"] * 50)]),
+                encoding="utf-8",
+            )
+            trace = finalized_dir / "opencode-output.jsonl"
+            events = [
+                {
+                    "type": "tool_use",
+                    "part": {
+                        "type": "tool",
+                        "tool": "read",
+                        "state": {"status": "completed", "input": {"filePath": str(finalized)}},
+                    },
+                },
+                {
+                    "type": "tool_use",
+                    "part": {
+                        "type": "tool",
+                        "tool": "read",
+                        "state": {"status": "completed", "input": {"filePath": str(finalized_dir / "repair-brief.txt")}},
+                    },
+                },
+                {
+                    "type": "tool_use",
+                    "part": {
+                        "type": "tool",
+                        "tool": "write",
+                        "state": {
+                            "status": "completed",
+                            "input": {"filePath": str(finalized), "content": "# 日寄\n\n我把杯子放回去。\n"},
+                            "output": "Wrote file successfully.",
+                        },
+                    },
+                },
+                {"type": "text", "part": {"type": "text", "text": "artifact_written"}},
+            ]
+            trace.write_text("\n".join(json.dumps(event, ensure_ascii=False) for event in events), encoding="utf-8")
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SUMMARY_CHECKPOINTS),
+                    str(case_dir),
+                    "--bounded-draft",
+                    str(bounded),
+                    "--finalized-draft",
+                    str(finalized),
+                    "--finalized-trace-log",
+                    str(trace),
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            payload = json.loads(result.stdout)
+            rules = [item["rule"] for item in payload["finalized"]["trace_findings"]]
+            self.assertNotIn("finalized修复未写回artifact", rules)
+
     def test_dev_checkpoint_summary_marks_post_write_gate_loop_invalid_without_second_write(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             case_dir = Path(temp) / "case"

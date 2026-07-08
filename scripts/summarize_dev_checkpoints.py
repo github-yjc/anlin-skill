@@ -81,7 +81,8 @@ FINALIZED_REPAIR_BRIEF_GATE_RE = re.compile(
 FINALIZED_DRAFT_MUTATION_RE = re.compile(
     r"^\s*(?:←\s*)?(?:Write|Edit)\s+(?:draft\.md|[A-Za-z]:[^\n]*[\\/]finalized[\\/]draft\.md)\b|"
     r"^\s*\$\s+[^\n]*(?:Set-Content|Out-File)[^\n]*(?:draft\.md|finalized[\\/]draft\.md)|"
-    r"^\s*INPUT\s+.*<patch modifies draft\.md>",
+    r"^\s*INPUT\s+.*<patch modifies draft\.md>|"
+    r"^\s*INPUT\s+.*\"filePath\":\s*\"[^\"]*draft\.md\".*\"content\":",
     re.IGNORECASE,
 )
 FINALIZED_REPAIR_CONTEXT_READ_RE = re.compile(
