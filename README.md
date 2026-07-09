@@ -30,6 +30,8 @@ Follow-up after that preservation routing showed partial improvement but not a p
 
 Follow-up after the first micro-cluster pass confirmed the artifact path stayed clean and the new repair avoided the previous new-premise failures, but the repaired article still failed: it normalized the incoming draft's comma-ended continuation rows into sealed `。` rows, triggering `行末逗号比例` and leaving style-profile `review`. Current fix: hard-pass/profile-review repair now explicitly preserves working comma-ended continuation rows from the incoming draft when the following row completes the same action or thought. This remains repair-interface evidence, not active blind-round recognition evidence.
 
+Follow-up after comma-continuation preservation showed that the targeted instruction moved the right variable: early line-final comma ratio rose from 0.00 to 0.30 and the artifact remained a one-write clean trace. The draft still failed finalized validation because 80% of body lines still ended as sealed period rows. Current fix: hard-pass/profile-review repair now adds `line_ending_lock`, telling the repair agent to keep row-ending punctuation and line breaks for untouched rows instead of preserving a few commas while normalizing the rest of the page. This is still repair-interface work, not blind-round evidence.
+
 ## Quick Start
 
 1. Install this directory wherever the target OpenCode-compatible agent discovers local skills.
