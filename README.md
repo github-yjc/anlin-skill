@@ -32,6 +32,8 @@ Follow-up after the first micro-cluster pass confirmed the artifact path stayed 
 
 Follow-up after comma-continuation preservation showed that the targeted instruction moved the right variable: early line-final comma ratio rose from 0.00 to 0.30 and the artifact remained a one-write clean trace. The draft still failed finalized validation because 80% of body lines still ended as sealed period rows. Current fix: hard-pass/profile-review repair now adds `line_ending_lock`, telling the repair agent to keep row-ending punctuation and line breaks for untouched rows instead of preserving a few commas while normalizing the rest of the page. This is still repair-interface work, not blind-round evidence.
 
+Follow-up after `line_ending_lock` showed another local improvement but still not a pass: the repair preserved more incoming line endings and no longer failed the period-grid hard gate, but it trimmed the hard-gate-passing draft to 890 body Chinese characters and failed the standard-diary buffer gate. Current fix: the same hard-pass/profile-review path now adds `mass_floor_lock`, which forbids removing a functional consequence sentence unless it is replaced inside the same local cluster and forbids saving a hard-gate-passing standard repair below 900 body Chinese characters. This remains targeted repair-interface work, not blind-round evidence.
+
 ## Quick Start
 
 1. Install this directory wherever the target OpenCode-compatible agent discovers local skills.
