@@ -8253,6 +8253,11 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("background facts are contradiction boundaries", layer_map.lower())
         self.assertIn("Do not solve a generation failure only by adding a new checker rule", layer_map)
         self.assertIn("Mode Router", skill)
+        self.assertIn("Artifact-Backed Entry Contract", skill)
+        self.assertIn("do not compose the article directly in the final chat response", skill)
+        self.assertIn("The first prose artifact must be a real `draft.md`", skill)
+        self.assertIn("A terminal-only article is a failed run", skill)
+        self.assertIn('"Output prose only" means output only the final article after the artifact-backed draft/check path', skill)
         self.assertIn("Controller validation mode", skill)
         self.assertIn("generator and controller separated", layer_map.lower())
         self.assertIn("Deep references in Layer 3 are repair libraries", layer_map)
@@ -8285,6 +8290,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("references/clean-generation-brief.md", skill)
         self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", skill)
         self.assertIn("stop repairing, read `draft.md` once, and output that exact article", skill)
+        self.assertIn("Do not skip the temporary artifact just because the final reply should contain prose only", skill)
+        self.assertIn("output prose only after the article has existed as `draft.md`", skill)
         self.assertIn("Before the first complete `draft.md`, do not read this file as an extra source checklist", clean)
         self.assertIn("references/standard-diary-source-engine.md", skill)
         self.assertIn("standard-diary-source-engine.md", skill)
@@ -8553,6 +8560,8 @@ class AnlinToolingTests(unittest.TestCase):
         owner_anchors = {
             "SKILL.md": [
                 "Do not claim real authorship, provenance, or indistinguishability",
+                "Artifact-Backed Entry Contract",
+                "first prose artifact",
                 "Do not write generated articles into the skill directory",
                 "A present marker overrides \"write an article\"",
                 "Ask at most one intake round",
@@ -8642,7 +8651,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn("clean-generation-brief.md` owns the first-draft source loop", runtime)
         self.assertIn("Clean-eval marker priority over ordinary article wording", matrix)
         self.assertIn("Misloaded runtime/anti-slop references return to minimum route", matrix)
-        self.assertIn("Total constraints tracked: 48", matrix)
+        self.assertIn("Total constraints tracked: 49", matrix)
         self.assertIn("Ordinary runtime article generation", readme)
         self.assertIn("Formal clean-eval first draft", readme)
         self.assertIn("references/runtime-brief.md", readme)

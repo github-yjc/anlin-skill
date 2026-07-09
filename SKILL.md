@@ -11,6 +11,12 @@ Generated prose must not mention process labels such as `仿写`, `AI`, `生成`
 
 This skill is self-contained at runtime. Do not depend on private external anti-slop, author-style, or personal writing skills. Anti-AI guidance lives in this skill's own references and checkers.
 
+## Artifact-Backed Entry Contract
+
+When this skill triggers for article generation, do not compose the article directly in the final chat response. The first prose artifact must be a real `draft.md` in the current task or evaluation workspace. A terminal-only article is a failed run because the controller cannot inspect route, first saved shape, checker state, or repair history.
+
+Before writing any article sentence, make the routing action visible: in a possible formal/eval workspace, check `.anlin-clean-eval-mode` and the current directory first; outside clean-eval, choose an ordinary task workspace for `draft.md`. "Output prose only" means output only the final article after the artifact-backed draft/check path, not bypassing `draft.md`.
+
 ## Mode Router
 
 Choose the smallest mode that matches the current task:
@@ -26,7 +32,7 @@ Clean-eval and finalized repair are separate checkpoints. A finalized pass does 
 
 Do not write generated articles into the skill directory.
 
-- If the user only wants prose in chat, use temporary `draft.md` in the current task working directory, validate or repair there, then output only the article.
+- If the user only wants prose in chat, use temporary `draft.md` in the current task working directory, validate or repair there, then output only the article. Do not skip the temporary artifact just because the final reply should contain prose only.
 - If the user asks to save a file and gives no output directory, ask once for the output directory. If there is no answer, save in the current task working directory, not inside `<skill-dir>`.
 - In tests and blind review, use an external evaluation workspace such as `<eval-workspace>/iteration-<n>/eval-<id>/draft.md`; `evals/` defines prompts and protocols, not output storage.
 - In clean-eval and finalized repair, write/read the article using relative `draft.md` or `.\draft.md` in the current case directory. Do not write `<skill-dir>/.../draft.md`, do not reuse a prior run path, and do not invent an absolute artifact path unless ordinary user mode explicitly requested that path.
@@ -92,7 +98,7 @@ Do not use corpus ratio targets as a pre-draft recipe. Style-profile and predict
 
 ## Output Rules
 
-- If the user asks for prose, output prose only unless they requested validation notes. The first visible line must be the title.
+- If the user asks for prose, output prose only after the article has existed as `draft.md` unless execution failure prevents file writing. The first visible line must be the title.
 - Never prepend `Here is`, `完成`, `以下是`, `最终文章`, protocol notes, checker summaries, markdown fences, or process commentary.
 - Do not narrate reference loading, file checks, or internal decisions in the article or final prose output.
 - If the user asks for validation, report commands, conditions, sample size, and results.
