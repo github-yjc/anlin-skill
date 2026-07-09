@@ -8526,8 +8526,19 @@ class AnlinToolingTests(unittest.TestCase):
             "SKILL.md": [
                 "Do not claim real authorship, provenance, or indistinguishability",
                 "Do not write generated articles into the skill directory",
+                "A present marker overrides \"write an article\"",
                 "Ask at most one intake round",
                 "Short-genre profile fallback is not strong evidence",
+            ],
+            "references/runtime-brief.md": [
+                "Clean-eval misroute guard",
+                "stop using this file before drafting",
+                "clean-eval-first-draft-minimum.md` owns the first-draft source loop",
+            ],
+            "references/anti-ai-slop.md": [
+                "Clean-eval misroute guard",
+                "stop using this file before drafting",
+                "Do not keep reading this file as a negative checklist",
             ],
             "references/clean-eval-first-draft-minimum.md": [
                 "Every cluster must contain an unfinished action question",
@@ -8577,6 +8588,37 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("route-coverage, or architecture-convergence files", readme)
         self.assertNotIn("architecture-convergence-plan.md", clean_eval)
         self.assertNotIn("architecture-convergence-plan.md", finalized)
+
+    def test_clean_eval_marker_priority_and_reference_misroute_guards(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        anti_ai = (ROOT / "references" / "anti-ai-slop.md").read_text(encoding="utf-8")
+        matrix = (ROOT / "references" / "route-coverage-matrix.md").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("Clean-eval mode has priority over ordinary article wording", skill)
+        self.assertIn("before deciding ordinary mode", skill)
+        self.assertIn("A present marker overrides \"write an article\"", skill)
+        self.assertIn("use only after clean-eval mode has been ruled out", skill)
+        self.assertIn("normal checker because it contaminates the bounded source-guidance measurement", skill)
+
+        for text in (runtime, anti_ai):
+            self.assertIn("Clean-eval misroute guard", text)
+            self.assertIn("if `.anlin-clean-eval-mode` exists", text)
+            self.assertIn("have not yet checked that marker", text)
+            self.assertIn("stop using this file before drafting", text)
+            self.assertIn("load `references/clean-eval-first-draft-minimum.md`", text)
+            self.assertIn("references/standard-diary-source-engine.md", text)
+
+        self.assertIn("clean-eval-first-draft-minimum.md` owns the first-draft source loop", runtime)
+        self.assertNotIn("clean-generation-brief.md` owns the first-draft source loop", runtime)
+        self.assertIn("Clean-eval marker priority over ordinary article wording", matrix)
+        self.assertIn("Misloaded runtime/anti-slop references return to minimum route", matrix)
+        self.assertIn("Total constraints tracked: 48", matrix)
+        self.assertIn("Ordinary runtime article generation", readme)
+        self.assertIn("Formal clean-eval first draft", readme)
+        self.assertIn("references/runtime-brief.md", readme)
+        self.assertIn("references/clean-eval-first-draft-minimum.md", readme)
 
     def test_readme_uses_portable_skill_and_corpus_paths(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")

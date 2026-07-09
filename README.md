@@ -22,6 +22,8 @@ Latest source-guidance fix: social-decline drafts now treat a plain OK/`好的` 
 
 Latest finalized-repair routing fix: after a social-decline draft writes back successfully but still fails because the wedding/refusal line sits beside room, screen, water, or route texture, the compact repair brief now routes the primary action to `rebuild_refusal_aftermath_engine` before period-grid repair. Targeted retests confirmed that this can clear the earlier social-refusal and period-grid blockers, but they also exposed two false escapes: one repair shrank into a 568-character short summary, and the next wrote the old draft first, reasoned again, then wrote a second revised artifact that was still underbuilt at 875 body Chinese characters. The brief now says the deleted private texture packet must be replaced with a refusal-coupled consequence cluster, should stay in a roughly 950-1150 body-character standard-diary corridor, must not save 650-899 shrinkage or weak 900-949 boundary drafts, and must create rough self-damage or paragraph-engine movement rather than more private wet/body texture. The repair interface also states that the first write to `draft.md` must be the final complete revision: copying the current draft back unchanged and then rewriting is invalid controller evidence. This is not blind-round evidence; it narrows the next retest question to whether the short brief can preserve article mass and one-write discipline while making the refusal aftermath change the next visible action.
 
+Latest clean-eval routing fix: a targeted source-generation retest showed that a generator can still misread an evaluation request as ordinary article generation even when `.anlin-clean-eval-mode` exists, then load `runtime-brief.md` / `anti-ai-slop.md`, call the normal checker, and inspect checker logic. That run is invalid route-contamination evidence, not article-quality evidence. The runtime router now makes the marker outrank ordinary article wording, and `runtime-brief.md` / `anti-ai-slop.md` start with a misroute guard that sends a formal/eval workspace back to `clean-eval-first-draft-minimum.md` before the first `draft.md`.
+
 ## Quick Start
 
 1. Install this directory wherever the target OpenCode-compatible agent discovers local skills.
@@ -51,7 +53,8 @@ Use the smallest document set that matches the task:
 | Audience / task | Read |
 |---|---|
 | GitHub user or installer | this `README.md` |
-| Runtime article generation | `SKILL.md`, then `references/clean-eval-first-draft-minimum.md`; add `references/standard-diary-source-engine.md` for standard diary; use `references/clean-generation-brief.md` after wrapper findings |
+| Ordinary runtime article generation | `SKILL.md`, then `references/runtime-brief.md`; use `references/feature-budget.md` and `references/anti-ai-slop.md` only as needed |
+| Formal clean-eval first draft | `SKILL.md`, then `references/clean-eval-first-draft-minimum.md`; add `references/standard-diary-source-engine.md` for standard diary; use `references/clean-generation-brief.md` only after wrapper findings |
 | Ordinary repair after a draft exists | `references/runtime-brief.md`, `references/feature-budget.md`, `references/anti-ai-slop.md`, then targeted fact/voice/title references as needed |
 | Fact and background checks | `references/anlin-background.md`, `references/background-fact-classes.json`, `references/era-state.md` |
 | Controller validation and blind testing | `references/validation-protocol.md`, `references/stylometric-ratio-protocol.md`, `references/blind-judge-angles.md`, `evals/README.md` |

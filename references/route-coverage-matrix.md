@@ -24,8 +24,10 @@ This matrix intentionally uses stable owner files and short evidence anchors, no
 | 3 | No process labels in prose | `SKILL.md` | `Generated prose must not mention process labels` |
 | 4 | Artifact location outside skill dir | `SKILL.md`, clean-generation brief, `README.md` | `Do not write generated articles into the skill directory`; `relative draft.md` |
 | 5 | Clean-eval marker and first tool action | `SKILL.md`, clean-generation brief, validation protocol | `.anlin-clean-eval-mode`; `First tool action must check the marker` |
+| 5a | Clean-eval marker priority over ordinary article wording | `SKILL.md`, `references/runtime-brief.md`, `references/anti-ai-slop.md` | `A present marker overrides "write an article"`; `Clean-eval misroute guard`; `clean-eval-first-draft-minimum.md` owns the first-draft source loop |
 | 6 | Bounded clean-eval uses wrapper only | `SKILL.md`, clean-generation brief, validation protocol | `clean_run_checker.py`; `Do not call the normal checker in the bounded case directory` |
 | 7 | First-draft no-load rule | `SKILL.md`, `references/clean-eval-first-draft-minimum.md`, `references/clean-generation-brief.md` | `Before the first complete draft.md, do not open long repair` |
+| 7a | Misloaded runtime/anti-slop references return to minimum route | `references/runtime-brief.md`, `references/anti-ai-slop.md`, tests | `stop using this file before drafting`; load `references/clean-eval-first-draft-minimum.md`; `Do not keep reading this file as a negative checklist` |
 | 8 | Social-decline refusal aftermath | `references/clean-eval-first-draft-minimum.md`, `references/standard-diary-source-engine.md` | `one kernel must be the refusal aftermath itself`; `refusal-coupled` |
 | 9 | Punctuation pendulum source fix | `references/clean-eval-first-draft-minimum.md`, `references/standard-diary-source-engine.md` | `what is still happening after this line?`; `Connected movement does not mean comma-drag` |
 | 10 | Background as contradiction boundary, not quota | `SKILL.md`, Layer 2 fact docs, README | `Background is a contradiction boundary, not a content quota` |
@@ -68,7 +70,7 @@ This matrix intentionally uses stable owner files and short evidence anchors, no
 
 ## Current Assessment
 
-- Total constraints tracked: 46
+- Total constraints tracked: 48
 - Missing owner rows: 0
 - Current test expectation: route/information-loss tests should verify the correct owner file or stage, not only that a phrase appears somewhere in all references combined.
 - Current target status: not proven. This matrix is architecture evidence only; it is not recognition-rate evidence and must not be used to claim the `<=10%` blind-review target.

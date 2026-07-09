@@ -1,6 +1,8 @@
 # Runtime Brief
 
-Use this file for ordinary non-formal drafting, explicit analysis, or repair after the first clean-eval checker pass. For clean-eval generation, do not open this file before the first complete `draft.md`; `clean-generation-brief.md` owns the first-draft source loop. The larger reference files are for calibration and critique.
+Clean-eval misroute guard: if `.anlin-clean-eval-mode` exists, or if you are in a formal/eval workspace and have not yet checked that marker, stop using this file before drafting. First run the marker and location check, then load `references/clean-eval-first-draft-minimum.md`; for standard diary also load `references/standard-diary-source-engine.md`. Do not keep reading this file as a supplement before the first complete `draft.md`.
+
+Use this file for ordinary non-formal drafting, explicit analysis, or repair after the first clean-eval checker pass. For clean-eval generation, do not open this file before the first complete `draft.md`; `clean-eval-first-draft-minimum.md` owns the first-draft source loop, and `clean-generation-brief.md` is used only after the wrapper reports a finding. The larger reference files are for calibration and critique.
 
 Do not load `references/development-log.md`, `references/validation-protocol.md`, `references/blind-judge-angles.md`, or `evals/README.md` as drafting material. They are controller/developer evidence, not prose ingredients.
 

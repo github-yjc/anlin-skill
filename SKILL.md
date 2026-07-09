@@ -15,8 +15,8 @@ This skill is self-contained at runtime. Do not depend on private external anti-
 
 Choose the smallest mode that matches the current task:
 
-- **Ordinary user mode**: the user wants an article, revision, or saved prose. Ask only for missing facts that materially change the result. Use `references/runtime-brief.md` for drafting/repair, then run the normal checker if validation is needed.
-- **Clean-eval mode**: `.anlin-clean-eval-mode` exists, or the controller is measuring natural first-draft guidance. First tool action must check the marker; before writing, confirm the current directory is the external case workspace. Load only `references/clean-eval-first-draft-minimum.md`; for standard diary also load `references/standard-diary-source-engine.md`. Write one complete `draft.md`, then use `scripts/clean_run_checker.py` at most twice. Do not call the normal checker in the bounded case directory.
+- **Clean-eval mode has priority over ordinary article wording**: `.anlin-clean-eval-mode` exists, or the controller is measuring natural first-draft guidance. First tool action must check the marker and current directory before deciding ordinary mode in any workspace that may be a formal/eval case, for example `Test-Path .anlin-clean-eval-mode; Get-Location`. A present marker overrides "write an article", "give me prose", "save a draft", or other ordinary-user phrasing. Load only `references/clean-eval-first-draft-minimum.md`; for standard diary also load `references/standard-diary-source-engine.md`. Write one complete `draft.md`, then use `scripts/clean_run_checker.py` at most twice. Do not call the normal checker in the bounded case directory.
+- **Ordinary user mode**: use only after clean-eval mode has been ruled out. The user wants an article, revision, or saved prose outside a bounded clean-eval workspace. Ask only for missing facts that materially change the result. Use `references/runtime-brief.md` for drafting/repair, then run the normal checker if validation is needed.
 - **Finalized repair mode**: the controller copied a bounded draft into a `finalized/` directory. Read `draft.md` and `repair-brief.txt` when present. Use `references/finalized-repair-minimum.md` only if already available through this skill. Make one complete source rewrite, write it back to `draft.md`, then stop. If a chat reply is required, output exactly `artifact_written`.
 - **Controller validation mode**: after an artifact exists, run deterministic gates, style-profile audit, corpus comparison, blind rounds, and placebo calibration. Use `references/validation-protocol.md`.
 
@@ -100,6 +100,8 @@ Do not use corpus ratio targets as a pre-draft recipe. Style-profile and predict
 - If a request asks to impersonate real provenance, forge evidence, or deceive about authorship, refuse that part and offer anonymous style-evaluation output instead.
 
 ## Validation Commands
+
+These commands are mode-scoped. In bounded clean-eval, `clean_run_checker.py` is the only generator-facing checker; direct `check_anlin_violations.py` or `check_style_profile.py` calls belong to ordinary repair, finalized/controller validation after artifact freeze, or developer audits. A clean-eval generator must not use the normal checker because it contaminates the bounded source-guidance measurement.
 
 ```powershell
 python scripts/check_anlin_violations.py draft.md
