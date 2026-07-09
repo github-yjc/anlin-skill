@@ -28,6 +28,8 @@ Latest targeted retest 137 used a rotated model on the same classmate-wedding so
 
 Follow-up after that preservation routing showed partial improvement but not a pass: the finalized artifact no longer invented the group-chat/comment-chain premise and returned to style-profile `review`, but it still failed strict hard gate with a polished simile/caption, thin high-frequency connector coverage, zero early line-final comma continuation, and a one-period-per-row standard-diary grid. Current fix: the hard-gate-pass/profile-review path now uses `micro_cluster_surgery`. It tells repair agents to preserve the existing scene slate and comma continuations, change only a few local action/reply/payment/body clusters, avoid new similes or caption metaphors, and avoid closing every row with `。`. This is a targeted finalized-repair interface fix, not recognition-rate evidence.
 
+Follow-up after the first micro-cluster pass confirmed the artifact path stayed clean and the new repair avoided the previous new-premise failures, but the repaired article still failed: it normalized the incoming draft's comma-ended continuation rows into sealed `。` rows, triggering `行末逗号比例` and leaving style-profile `review`. Current fix: hard-pass/profile-review repair now explicitly preserves working comma-ended continuation rows from the incoming draft when the following row completes the same action or thought. This remains repair-interface evidence, not active blind-round recognition evidence.
+
 ## Quick Start
 
 1. Install this directory wherever the target OpenCode-compatible agent discovers local skills.

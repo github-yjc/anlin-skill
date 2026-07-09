@@ -85,9 +85,10 @@ def primary_source_rewrite(families: list[str]) -> str:
             "refusal facts, body mass, connector turns, and hard-gate-passing consequence. Choose a few existing "
             "action/reply/payment/body rows and reshape their cluster boundaries; micro-edit only inside existing "
             "clusters so some lines continue through real movement, some land with hard stops, and a few short drops "
-            "remain earned; do not add a new simile, analogy, or caption to explain pressure. Do not invent a new "
-            "group-chat, comment-chain, stranger, route, backstory, or binary `不是X，是Y` reframe, and do not rewrite "
-            "the article from a new premise just to change punctuation."
+            "remain earned; preserve working comma-ended continuation rows from the incoming draft, and do not merge "
+            "a comma-ended row with its following line into a sealed sentence. do not add a new simile, analogy, or "
+            "caption to explain pressure. Do not invent a new group-chat, comment-chain, stranger, route, backstory, "
+            "or binary `不是X，是Y` reframe, and do not rewrite the article from a new premise just to change punctuation."
         )
     if {"connectors", "structure"} & family_set:
         return (
@@ -709,14 +710,14 @@ def format_repair_brief(report: dict[str, Any]) -> str:
         [
             "repair_directive: write one complete revised draft.md now, then stop. Do not print the article to terminal only, do not summarize fixes after writing, and do not run post-write gates.",
             "hard_gate_priority: if the preceding hard gate showed blocking findings, the one source rewrite must clear those first; use this profile brief to shape the same move, not to ignore hard-gate roughness or fact failures.",
-            "hard_gate_pass_preservation: if the preceding hard gate already passed and this is only a style-profile review, do not clean the draft into a new hard-gate failure. Use micro_cluster_surgery: preserve complete standard-diary mass, natural connector spread, rough/public consequence, and mixed comma/hard-stop line endings while doing local source surgery; do not add a new simile, analogy, or caption, and do not make line-final comma ratio zero by closing every row with `。`. A repair that introduces `高频词覆盖不足`, `标准日寄句号网格`, a below-900 shrink, or a one-period-per-row surface is worse than the original review.",
+            "hard_gate_pass_preservation: if the preceding hard gate already passed and this is only a style-profile review, do not clean the draft into a new hard-gate failure. Use micro_cluster_surgery: preserve complete standard-diary mass, natural connector spread, rough/public consequence, mixed comma/hard-stop line endings, and preserve working comma-ended continuation rows from the incoming draft while doing local source surgery; do not add a new simile, analogy, or caption, and do not make line-final comma ratio zero by closing every row with `。`. A repair that introduces `高频词覆盖不足`, `标准日寄句号网格`, a below-900 shrink, or a one-period-per-row surface is worse than the original review.",
             "attempt_contract: use this controller-prepared brief, choose one primary source rewrite, write one complete draft.md, and stop. Do not repair one family at a time. A second write/edit, any repair-agent checker command, post-write gate loop, post-write python -c/Measure-Object/wc counter, Test-Path/Glob/List/source/test/threshold/log search, threshold argument, TODO/checklist panel, or terminal-only final version is invalid controller evidence. If a chat reply is required after writing, output only artifact_written.",
             *(
                 [
                     "standard_shape_first: save a titled, line-broken standard diary with roughly 6-8 breathing clusters and a middle corridor. Keep several moving rows that carry hand, reply, payment, body, speech, or thought beyond caption length, plus short failure drops where action actually lands.",
                     "standard_overfill_guard: do not expand beyond the original source mass to satisfy every warning. If the rewrite is trending past about 1250 body Chinese characters, delete repeated proof packets before saving; 140+ rows or a 2000+ character standard repair is usually metric-shaped overfill, not a safer article.",
                     "standard_do_not_save: do not save 8-25 dense prose rows, 70+ equal short rows, a 45-70-line caption grid with 0 real long rows, a comma carpet, a below-900 shrink, a 140+ row overfilled proof ledger, or a draft with only one or two moving long rows.",
-                    "standard_preserve_existing: when the incoming standard draft already passed hard gate, preserve its title source, person list, invitation channel, connector spread, rough/public consequence, approximate mass, and existing comma continuations. Do micro_cluster_surgery rather than a new premise: Do not add group-chat/comment-chain surfaces, new social witnesses, new route facts, polished simile/caption explanations, or binary `不是X，是Y` lines to solve profile review.",
+                    "standard_preserve_existing: when the incoming standard draft already passed hard gate, preserve its title source, person list, invitation channel, connector spread, rough/public consequence, approximate mass, and existing comma continuations. Preserve working comma-ended continuation rows from the incoming draft when the next row completes the same action or thought. Do micro_cluster_surgery rather than a new premise: Do not add group-chat/comment-chain surfaces, new social witnesses, new route facts, polished simile/caption explanations, or binary `不是X，是Y` lines to solve profile review.",
                     "standard_social_decline_source: for invitation/refusal repairs, use one refusal-coupled consequence that changes hand, reply, payment, route, door, object, body, or social position. Do not add message-order plot glue, group-chat crowd summaries, tidy etiquette settlement, or private wet-room proof as separate fixes.",
                 ]
                 if genre == "standard"
