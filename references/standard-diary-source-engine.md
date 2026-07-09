@@ -123,6 +123,7 @@ Use this source order:
 2. Let the invitation enter as one cropped message surface.
 3. Make the refusal alter a visible next move within the next cluster: the reply gets worse, money/route becomes impossible, a payment or transfer stalls, a person waits, a body/object problem interrupts the answer, or the old debt changes the hand.
 4. Then move away from the room/object texture. Keep one room-side handle at most; the refusal, not the sleeve or bowl, must produce the next action.
+5. Before the tail, identify the post-refusal non-screen action. If you cannot name it without saying phone, screen, question mark, mute, sleeve, water, stain, bubble, or room object, the refusal has not become the engine.
 
 Build a refusal chain, not a refusal mention. The chain starts before sending, but it only counts if something after sending changes the narrator's next action:
 
@@ -132,6 +133,8 @@ Build a refusal chain, not a refusal mention. The chain starts before sending, b
 - the article exits the chat through a practical consequence caused by the refusal, not through a return to the opening bowl/sleeve/water object
 
 The roughness must be active, not ornamental. A line like `好的` followed by more wet sleeve, hot-water noise, balance checking, or room objects is still too private. A plain OK reply plus a private screen mark is still a screen loop if the mark does not change the next action. Let the plain response or refusal lie push the narrator into one lower move while it is happening: the hand leaves a dirty mark on the phone before replying, somebody at the door waits while the answer is unfinished, a route/payment action fails in public, the narrator sends a smaller wrong reply, or a body/door problem makes the next action uglier. This consequence must be refusal-coupled. A delivery, food burn, room chore, or outside errand that would still make sense without the wedding/refusal is only off-axis residue, even if it is concrete and ugly. This single consequence should also shape the rhythm: one line continues because the hand/reply/payment has not finished, one rougher line keeps moving, and one short drop lands the bad answer or body/social lowering.
+
+Do not let the same private material family become the social-decline spine. `袖口`, `水`, `油渍`, `杯子`, `手机`, `保护膜`, `气泡`, `水槽`, or a similar object can be one handle, but after the refusal message appears it must either change the answer while pressure is live or leave the stage. If the title, opening, middle, and ending all return to that handle, the article is using private texture to imitate consequence. Retitle or rebuild from a reply/payment/door/person/body/route/old-debt action.
 
 Do not turn the message surface into a numbered chat log. Lines such as `X发了第二条`, `第二条只...`, `又发来一条`, `下面还有一条`, `下面还有一个...`, or `后面跟着一个定位` often read like the model is using message order to move the plot. Prefer one cropped surface that changes action: a voice bar that cannot be opened with a wet hand, an address preview that changes route/payment hesitation, an unread mark that makes the reply worse, or one plain response that shrinks the next action.
 
@@ -154,6 +157,8 @@ Use the water-drip test for this family: if the draft can be summarized as `side
 Use the same test for rhythm. A good social-decline draft does not fix rhythm after the fact; the refusal chain itself creates the uneven rows. The moment of not-going should have at least one unfinished physical or social action visible on the page: a reply still being edited, a transfer or route check not yet resolved, a hallway/body/object interruption that changes the answer, or the other person's plain response shrinking the next move. Build those as local clusters, not as global punctuation policy. If the source starts producing either a comma carpet or a period fence, the problem is usually that the cluster has no active hand, reply, payment, door, or body movement left.
 
 Public wet/dirty exposure can be a real hinge only when it changes social position or the next action. A neighbor or hallway person pointing at water, a wet sock used because there is no rag, a hand mark left on the phone while answering, or a slip that changes the reply can work. The same water, sock, stain, or room dampness is not a required ingredient and should be cut if it only decorates the refusal.
+
+Do not use a phone-ending as a substitute for that action. `问号`, `没回`, `免打扰`, `屏幕朝下`, `气泡`, unread marks, or a returned chat window are tail surfaces only when a prior refusal-coupled action has already lowered the narrator. If the tail would still work after deleting the refusal, replace it with the unfinished payment/route/door/body/person consequence that the refusal caused.
 
 ## Title And Tail
 

@@ -44,7 +44,7 @@ Better:
 酸梅汤顺着电动车前面的篮子滴了一路。
 ```
 
-If a binary contrast appears in a generated formal draft, rewrite it even if one or two originals contain natural cases. Original-corpus calibration is not permission for generated drafts to use the model's favorite structure.
+If a binary contrast appears in a generated formal draft, rewrite it even if one or two originals contain natural cases. Original-corpus calibration is not permission for generated drafts to keep a high-risk generated structure.
 
 ### 2. Explainer Voice
 
@@ -280,4 +280,4 @@ Pick one visible pressure surface and one consequence. If the article includes a
 
 Before finalizing each scene, identify the single most polished sentence. If that sentence explains the scene, remove it. If the scene collapses after removing it, the scene did not have enough life.
 
-Also identify the single most "helpful" sentence. If it clarifies the theme, repairs the reader's confusion, or tells the reader how to feel, remove it. A human draft can leave a rough edge; a model draft often over-serves.
+Also identify the single most "helpful" sentence. If it clarifies the theme, repairs the reader's confusion, or tells the reader how to feel, remove it. A rough draft can leave an edge; generated prose often over-serves.
