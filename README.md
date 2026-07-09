@@ -56,9 +56,9 @@ Use the smallest document set that matches the task:
 | Fact and background checks | `references/anlin-background.md`, `references/background-fact-classes.json`, `references/era-state.md` |
 | Controller validation and blind testing | `references/validation-protocol.md`, `references/stylometric-ratio-protocol.md`, `references/blind-judge-angles.md`, `evals/README.md` |
 | Detailed development history and failed-run evidence | `references/development-log.md` |
-| Architecture audit | `references/runtime-layer-map.md` |
+| Architecture audit and route ownership | `references/runtime-layer-map.md`, `references/route-coverage-matrix.md`, `references/architecture-convergence-plan.md` |
 
-Clean-eval first drafts should not load controller or development-log files before the first complete `draft.md`; those files exist for validation, diagnosis, and maintenance.
+Clean-eval first drafts should not load controller, development-log, route-coverage, or architecture-convergence files before the first complete `draft.md`; those files exist for validation, diagnosis, and maintenance.
 
 For source-load conflict audits, `references/clean-eval-first-draft-minimum.md` owns the first formal draft. `references/clean-generation-brief.md`, `runtime-brief.md`, `generation-modes.md`, and `anti-ai-slop.md` remain available after the first draft or for ordinary repair, but they should not be preloaded as a checklist in clean-eval first-draft generation.
 
@@ -74,6 +74,8 @@ anlin-writing/
 │   ├── clean-generation-brief.md     # expanded clean-eval repair contract
 │   ├── standard-diary-source-engine.md # compact standard-diary middle engine
 │   ├── runtime-layer-map.md          # architecture map for audits
+│   ├── route-coverage-matrix.md      # owner anchors for route/information-loss audits
+│   ├── architecture-convergence-plan.md # developer convergence plan, not runtime guidance
 │   ├── runtime-brief.md              # compact generation theory
 │   ├── generation-modes.md           # scene modes and prompt-displacement lenses
 │   ├── feature-budget.md             # feature budget, not shopping list

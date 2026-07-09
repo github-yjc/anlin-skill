@@ -61,6 +61,8 @@ Write breathing clusters, not sentence rows. A cluster can be 2-5 visible lines:
 
 Punctuation follows movement. Do not fix rhythm by deleting punctuation, adding connector words, making one giant comma chain, or turning every beat into `没管。/删了。/没回。/算了。`.
 
+Every cluster must contain an unfinished action question. A visible `，` should answer "what is still happening after this line?" — a hand still dripping, a reply still unsent, a payment still hanging, a door still open, a body still exposed. If a cluster can be read as a finished statement with no continuing pressure, rebuild that cluster before saving `draft.md`.
+
 ## Prompt Displacement
 
 For feed, holiday, wrong-food, invitation, old-chat, annual-summary, illness, delivery, route, shopping, or family-pressure prompts:
@@ -83,6 +85,8 @@ Do not overcorrect the refusal into a public crowd scene or tidy etiquette endin
 If the refusal excuse is `忙项目`, `最近有项目`, or similar, keep it as a lie/excuse surface inside the reply. Do not make it true by inventing current work logistics such as a leader, office group, project deadline, leave request, half-day leave, `请不下来`, 调休, 排班, attendance, salary deduction, shift, or day-off penalty. The lie should damage the reply, hand, payment, route, body, or status; it should not create a new job biography.
 
 The refusal aftermath also has to shape the page rhythm before saving. Do not first write a smooth refusal story and hope punctuation repair will make it diary-like. Build two or three local breathing clusters where the social pressure is still physically unfinished: a reply is being deleted, a transfer or route check is hanging open, somebody at the door is waiting or pointing, a wet/dirty hand changes how the phone is held, or the other person's plain response makes the next action smaller. One cluster may use a line-final comma because the action continues; another may land with a hard stop; one short drop may carry the bad answer or body/social lowering. If the only movement is `message -> calculation -> refusal -> room object keeps failing`, rebuild before writing `draft.md`.
+
+The refusal consequence must be refusal-coupled. A delivery, food burn, room chore, or outside errand that would still make sense without the wedding/invitation is off-axis residue, not a refusal engine. Test this: if deleting the invitation leaves the scene sequence intact, the consequence is not refusal-coupled. Rebuild until the post-refusal action depends on the refusal having happened.
 
 Before saving a standard diary draft, look at the visible body shape rather than imagining the checker will fix it. If it is mostly one short sentence per row, has no moving long action/speech/thought rows, has 45-70 short caption rows with no line visibly carrying a longer action/speech/thought movement, or has 75-80+ body lines, it is not a line-broken diary yet. Merge and rebuild the action clusters before the first `draft.md` write.
 

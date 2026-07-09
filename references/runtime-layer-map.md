@@ -13,6 +13,7 @@ The core architecture is layered so generation agents do not turn every review c
 - Layer 3 references are repair/calibration libraries. In clean-eval, do not load them before the first complete draft unless the protocol explicitly allows it.
 - Layer 4 references and scripts are controller/developer validation. They can fail a draft, record evidence, or diagnose repeated failures, but they should not be handed to a fresh generator as hidden style advice.
 - `references/development-log.md` preserves chronological evidence and failed-run diagnoses. It is not runtime guidance. Do not delete log content; when reorganizing docs, move or summarize only after the full factual record is preserved in git.
+- `references/route-coverage-matrix.md` and `references/architecture-convergence-plan.md` are developer audit documents. They should be read only when checking route ownership, information loss, or repeated-failure strategy; they are not runtime drafting or repair instructions.
 
 ## Layer 0: Entry Contract
 
@@ -104,6 +105,8 @@ Files:
 - `references/blind-judge-angles.md`
 - `references/judge-prompt-templates.md`
 - `references/development-log.md`
+- `references/route-coverage-matrix.md`
+- `references/architecture-convergence-plan.md`
 - `evals/evals.json`
 - `evals/README.md`
 - `scripts/` validation and repair helpers, especially `summarize_dev_checkpoints.py` for bounded/finalized development attribution

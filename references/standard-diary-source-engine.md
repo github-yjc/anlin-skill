@@ -66,6 +66,8 @@ Connected movement does not mean comma-drag. In the first saved draft, a cluster
 
 Natural connector words should be born inside those turns. If no line needs `其实`, `不过`, `发现`, `结果`, `于是`, `因为`, or `所以`, the scenes are probably just listed facts. Add a cause or correction inside an existing action rather than sprinkling connector words onto finished sentences.
 
+Connector words must come from real scene turns: a failed attempt forces `不过`/`结果`, a wrong reply triggers `其实`/`于是`, a body interruption creates `因为`/`突然`. Do not sprinkle connectors onto a static sequence. If the draft has `其实` five times but no actual change in action direction, those are glue words, not connectors. Delete them and change what happens next instead.
+
 ## Cluster Grammar, Not Metrics
 
 If a cluster can be summarized as `A happened. B happened. C happened.`, it will likely become a period-row grid. Before saving, make the cluster answer a smaller movement question: `what is still happening after this line?` One row may end with `，` because the hand, reply, payment, door, or body has not finished moving. One row may use `不过/结果/于是/因为/所以` only because the next action truly changes. One short row lands the failed answer or body/social drop. Do this in syntax, not by changing punctuation on finished captions.
