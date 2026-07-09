@@ -707,6 +707,7 @@ def format_repair_brief(report: dict[str, Any]) -> str:
         [
             "repair_directive: write one complete revised draft.md now, then stop. Do not print the article to terminal only, do not summarize fixes after writing, and do not run post-write gates.",
             "hard_gate_priority: if the preceding hard gate showed blocking findings, the one source rewrite must clear those first; use this profile brief to shape the same move, not to ignore hard-gate roughness or fact failures.",
+            "hard_gate_pass_preservation: if the preceding hard gate already passed and this is only a style-profile review, do not clean the draft into a new hard-gate failure. Preserve complete standard-diary mass, natural connector spread, rough/public consequence, and mixed comma/hard-stop line endings while doing local source surgery. A repair that introduces `高频词覆盖不足`, `标准日寄句号网格`, a below-900 shrink, or a one-period-per-row surface is worse than the original review.",
             "attempt_contract: use this controller-prepared brief, choose one primary source rewrite, write one complete draft.md, and stop. Do not repair one family at a time. A second write/edit, any repair-agent checker command, post-write gate loop, post-write python -c/Measure-Object/wc counter, Test-Path/Glob/List/source/test/threshold/log search, threshold argument, TODO/checklist panel, or terminal-only final version is invalid controller evidence. If a chat reply is required after writing, output only artifact_written.",
             *(
                 [

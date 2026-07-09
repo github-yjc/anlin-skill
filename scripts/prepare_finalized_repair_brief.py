@@ -228,6 +228,7 @@ def format_brief(
     profile_result: CommandResult,
 ) -> str:
     hard_blockers = compact_hard_blockers(hard_findings)
+    hard_gate_passed = hard_status(hard_findings) == "pass"
     profile_brief = profile_result.stdout.strip()
     if not profile_brief:
         profile_brief = (
@@ -250,6 +251,13 @@ def format_brief(
         "tool_boundary: do not run check_anlin_violations.py, check_style_profile.py, clean_run_checker.py, prepare_finalized_repair_brief.py, python -c, Measure-Object, wc, local counters, Test-Path, Glob/List, source/test/threshold/log searches, or path probes during the repair attempt.",
         "genre_boundary: do not invent unsupported genre labels; use selected_genre exactly as written here.",
         f"hard_gate_status: {hard_status(hard_findings)}",
+        *(
+            [
+                "hard_gate_pass_preservation: current artifact already passed the strict hard gate. Treat profile repair as local source surgery, not cleanup. Preserve connector spread, complete body mass, rough/public consequence, and mixed line endings; do not rewrite a review artifact into `高频词覆盖不足`, `标准日寄句号网格`, below-900 shrinkage, or a one-period-per-row surface.",
+            ]
+            if hard_gate_passed and profile_result.returncode != 0
+            else []
+        ),
         f"hard_gate_primary_action: {hard_gate_primary_action(hard_findings)}",
         "hard_gate_blockers:",
     ]

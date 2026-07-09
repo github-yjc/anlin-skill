@@ -9161,7 +9161,11 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Generated articles do not belong in the skill directory", runtime)
         self.assertIn("Natural connector coverage should be solved before the checker", clean)
         self.assertIn("`connectors`: change what happens next so a turn is needed", finalized_minimum)
+        self.assertIn("If the hard gate already passed and the brief only reports style-profile `review`", finalized_minimum)
+        self.assertIn("A hard-gate pass with unresolved style drift is better evidence", finalized_minimum)
         self.assertIn("If connector spread is thin, change what happens next instead of swapping synonyms", runtime)
+        self.assertIn("The reverse priority also matters", runtime)
+        self.assertIn("do not clean the article into a new hard-gate failure", runtime)
         self.assertIn("If the brief reports `高频词覆盖不足`", runtime)
         self.assertIn("For 朋友圈, short-video, annual-summary, old-chat", runtime)
         self.assertIn("A feed is not a scene slate", runtime)
@@ -10507,6 +10511,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("repair_directive: write one complete revised draft.md now, then stop", result.stdout)
             self.assertIn("Do not print the article to terminal only", result.stdout)
             self.assertIn("hard_gate_priority: if the preceding hard gate showed blocking findings", result.stdout)
+            self.assertIn("hard_gate_pass_preservation: if the preceding hard gate already passed", result.stdout)
+            self.assertIn("A repair that introduces `高频词覆盖不足`, `标准日寄句号网格`", result.stdout)
             self.assertIn("attempt_contract: use this controller-prepared brief", result.stdout)
             self.assertIn("choose one primary source rewrite", result.stdout)
             self.assertIn("Do not repair one family at a time", result.stdout)
@@ -10632,6 +10638,40 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotIn("q05-q95", brief)
             self.assertNotIn("count80", brief)
             self.assertNotIn("robust_z", brief)
+
+    def test_prepare_finalized_repair_brief_preserves_hard_gate_pass_on_profile_review(self) -> None:
+        from prepare_finalized_repair_brief import CommandResult, format_brief
+
+        profile_brief = "\n".join(
+            [
+                "Anlin style-profile repair brief",
+                "status: review",
+                "checkpoint_pass: false",
+                "formal_gate: not_pass",
+                "repair_mode: punctuation_source_reset",
+                "next_repair_action: Punctuation is a source-shape problem here.",
+            ]
+        )
+        brief = format_brief(
+            draft=Path("draft.md"),
+            genre="standard",
+            hard_findings=[],
+            profile_result=CommandResult(
+                command=[],
+                returncode=1,
+                stdout=profile_brief,
+                stderr="",
+            ),
+        )
+
+        self.assertIn("hard_gate_status: pass", brief)
+        self.assertIn("hard_gate_pass_preservation: current artifact already passed the strict hard gate", brief)
+        self.assertIn("Preserve connector spread, complete body mass", brief)
+        self.assertIn("do not rewrite a review artifact into `高频词覆盖不足`, `标准日寄句号网格`", brief)
+        self.assertLess(
+            brief.index("hard_gate_pass_preservation: current artifact already passed"),
+            brief.index("style_repair_brief:"),
+        )
 
     def test_prepare_finalized_repair_brief_resolves_relative_profile_before_external_cwd(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
