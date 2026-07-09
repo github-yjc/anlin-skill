@@ -253,8 +253,8 @@ def format_brief(
         f"hard_gate_status: {hard_status(hard_findings)}",
         *(
             [
-                "hard_gate_pass_preservation: current artifact already passed the strict hard gate. Treat profile repair as local source surgery, not cleanup. Preserve connector spread, complete body mass, rough/public consequence, and mixed line endings; do not rewrite a review artifact into `高频词覆盖不足`, `标准日寄句号网格`, below-900 shrinkage, or a one-period-per-row surface.",
-                "hard_gate_pass_primary_action: preserve_and_nudge_review: keep the existing title source, people, invitation channel, message facts, refusal aftermath, connector turns, and approximate article mass. Rewrite the complete artifact only after making local cluster surgery inside the existing scene; do not introduce a new group chat, comment chain, stranger witness, new route/backstory packet, or binary `不是X，是Y` reframe.",
+                "hard_gate_pass_preservation: current artifact already passed the strict hard gate. Treat profile repair as micro_cluster_surgery, not cleanup. Preserve connector spread, complete body mass, rough/public consequence, existing comma continuations, and mixed line endings; do not rewrite a review artifact into `高频词覆盖不足`, `标准日寄句号网格`, below-900 shrinkage, line-final comma ratio zero, or a one-period-per-row surface; do not add a new simile, analogy, or caption to explain pressure.",
+                "hard_gate_pass_primary_action: preserve_and_nudge_review: keep the existing title source, people, invitation channel, message facts, refusal aftermath, connector turns, and approximate article mass. Rewrite the complete artifact only after micro-editing local clusters inside the existing scene; do not introduce a new group chat, comment chain, stranger witness, new route/backstory packet, polished simile/caption explanation, or binary `不是X，是Y` reframe; do not make line-final comma ratio zero by sealing every row with `。`.",
             ]
             if hard_gate_passed and profile_result.returncode != 0
             else []
