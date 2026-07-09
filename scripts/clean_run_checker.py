@@ -724,10 +724,10 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     surface_only = all(message.startswith(surface_only_prefixes) for message in messages)
     compressed_shape = any("< 45" in message or "prose_block_shape=compressed" in message for message in messages)
     overfragmented_shape = any(
-        "> 90" in message
-        or "short_line_grid=" in message
-        or "long_lines=" in message
-        or "medium_short_line_grid=" in message
+        (message.startswith("body_lines=") and "> 90" in message)
+        or message.startswith("short_line_grid=")
+        or message.startswith("long_lines=")
+        or message.startswith("medium_short_line_grid=")
         for message in messages
     )
     underbuilt_short_genre = any(
@@ -766,18 +766,54 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             "early_comma_ratio=",
         )
     )
-    if compressed_shape:
+    source_content_prefixes = (
+        "connectors=",
+        "paragraph_engine=weak",
+        "rough_self_damage=missing",
+        "private_grime_without_public_consequence=",
+        "social_decline_plain_reply_private_loop=",
+        "social_decline_group_fake_consequence=",
+        "social_decline_tidy_etiquette_closure=",
+        "social_decline_decoupled_consequence=",
+        "standard_prompt_prop_title_loop=",
+        "high_signal_opening=present",
+        "feed_inventory_opening=present",
+        "soft_witness_no_consequence=present",
+        "prompt_performing_dialogue=present",
+        "quoted_dialogue=present",
+        "binary_reframe=present",
+    )
+    source_content_blocked = underbuilt_source or near_miss_short or any(
+        message.startswith(source_content_prefixes) for message in messages
+    )
+    rebalance_needed = compressed_shape or overfragmented_shape
+    mixed_rebalance_source = rebalance_needed and source_content_blocked
+    if mixed_rebalance_source:
+        repair_hints.append(
+            "NEXT_ACTION=repair source/content first; rewrite `draft.md` as one complete line-broken article from "
+            "friction, consequence, rough body/social cost, and prompt displacement; after the last content write, run "
+            "`python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place` as the final shape step before "
+            "the wrapper; if you edit draft.md after that script, rerun the script before checking"
+        )
+    elif compressed_shape:
         repair_hints.append(
             "NEXT_ACTION=run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place` before any new prose rewrite; "
             "then inspect the actual visible line count and rewrite only inside that line-broken shape; "
             "if you write or edit draft.md after this rhythm reset, rerun rebalance_line_rhythm.py before the wrapper"
         )
     if underbuilt_source:
-        repair_hints.append(
-            "for an underbuilt source shape, do a source-loop rewrite after the visible shape is reset: "
-            "start from friction, rebuild 2-3 load-bearing action clusters, include one off-axis consequence and one rough "
-            "body/social turn, then write near 55-68 actual body lines and 950-1150 Chinese characters; do not patch with isolated line additions"
-        )
+        if mixed_rebalance_source:
+            repair_hints.append(
+                "for an underbuilt source shape, do the source-loop rewrite before rhythm tooling: start from friction, "
+                "rebuild 2-3 load-bearing action clusters, include one off-axis consequence and one rough body/social "
+                "turn, write the replacement as visible breathing rows, then run the rhythm script once at the end"
+            )
+        else:
+            repair_hints.append(
+                "for an underbuilt source shape, do a source-loop rewrite after the visible shape is reset: "
+                "start from friction, rebuild 2-3 load-bearing action clusters, include one off-axis consequence and one rough "
+                "body/social turn, then write near 55-68 actual body lines and 950-1150 Chinese characters; do not patch with isolated line additions"
+            )
     if "paragraph_engine=weak" in joined_messages and not underbuilt_source:
         repair_hints.append(
             "for paragraph_engine=weak, do not add one decorative scene. Replace the quiet chain with 2-3 load-bearing action clusters; "
@@ -787,7 +823,7 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
         repair_hints.append(
             "for a near-miss short draft, add one full off-axis life cluster of 6-10 visible lines that changes action and creates new connector turns; do not add a single explanatory paragraph or one decorative symptom"
         )
-    if overfragmented_shape:
+    if overfragmented_shape and not mixed_rebalance_source:
         repair_hints.append(
             "NEXT_ACTION=run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place` before hand rewriting; "
             "then inspect the visible rows and preserve or rebuild at least six rough longer action/speech/thought lines; "
@@ -961,7 +997,14 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
             "then run this wrapper again."
         )
     else:
-        if compressed_shape:
+        if mixed_rebalance_source:
+            revision_frame = (
+                "Repair source/content before rhythm tools: do not run the rhythm reset as the first move when the "
+                "same preflight also names connector, engine, roughness, dialogue, opening, or refusal/source blockers. "
+                "Rewrite the article into a complete line-broken source corridor first, then run the named rhythm reset "
+                "once as the final shape step before the next wrapper call."
+            )
+        elif compressed_shape:
             revision_frame = (
                 "Reset the visible shape first, then repair the source: do not mentally estimate 55-68 lines and do "
                 "not rewrite another prose block. Run the rhythm reset named below, inspect the actual draft, then "

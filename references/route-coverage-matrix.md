@@ -68,10 +68,11 @@ This matrix intentionally uses stable owner files and short evidence anchors, no
 | 44 | No local machine paths in runtime docs | README, `SKILL.md`, runtime docs | `<skill-dir>` and `<corpus-dir>`, not user-specific paths |
 | 45 | Rhythm scripts are finite repair, not source | `references/finalized-repair-minimum.md`, `references/standard-diary-source-engine.md`, `references/clean-generation-brief.md` | `Do not depend on rebalance_line_rhythm.py`; scripts cannot create first article shape |
 | 46 | Old small-sample blind protocol is inactive | `references/validation-protocol.md`, README, judge docs, tests | active readiness uses `8 impostor + 2 placebo`; legacy smaller rounds are historical only |
+| 47 | Mixed preflight repair order | `scripts/clean_run_checker.py`, `references/clean-generation-brief.md`, `references/runtime-brief.md`, tests | source/content blockers before `rebalance_line_rhythm.py`; rhythm script is final shape step after last content write |
 
 ## Current Assessment
 
-- Total constraints tracked: 49
+- Total constraints tracked: 50
 - Missing owner rows: 0
 - Current test expectation: route/information-loss tests should verify the correct owner file or stage, not only that a phrase appears somewhere in all references combined.
 - Current target status: not proven. This matrix is architecture evidence only; it is not recognition-rate evidence and must not be used to claim the `<=10%` blind-review target.

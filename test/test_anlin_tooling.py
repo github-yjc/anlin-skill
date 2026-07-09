@@ -2476,9 +2476,10 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("long_lines=0 < 3", preflight.stdout)
             self.assertIn("short_line_grid=", preflight.stdout)
             self.assertIn("rebalance_line_rhythm.py", preflight.stdout)
-            self.assertIn("NEXT_ACTION=run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`", preflight.stdout)
-            self.assertIn("if you write or edit draft.md after this rhythm reset, rerun rebalance_line_rhythm.py before the wrapper", preflight.stdout)
-            self.assertIn("short-grid drift", preflight.stdout)
+            self.assertIn("NEXT_ACTION=repair source/content first", preflight.stdout)
+            self.assertIn("after the last content write, run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`", preflight.stdout)
+            self.assertIn("if you edit draft.md after that script, rerun the script before checking", preflight.stdout)
+            self.assertNotIn("before hand rewriting", preflight.stdout)
             self.assertIn("Do not summarize, quote, or enumerate these diagnostics as a TODO list", preflight.stdout)
             self.assertIn("change scene movement, rhythm, or local surface only", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
@@ -2512,11 +2513,11 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("< 900", preflight.stdout)
             self.assertIn("medium_short_line_grid=present", preflight.stdout)
             self.assertIn("long_lines=0 < 6", preflight.stdout)
-            self.assertIn("NEXT_ACTION=run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`", preflight.stdout)
+            self.assertIn("NEXT_ACTION=repair source/content first", preflight.stdout)
+            self.assertIn("after the last content write, run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`", preflight.stdout)
             self.assertIn("underbuilt source shape", preflight.stdout)
-            self.assertIn("source-loop rewrite after the visible shape is reset", preflight.stdout)
+            self.assertIn("source-loop rewrite before rhythm tooling", preflight.stdout)
             self.assertIn("2-3 load-bearing action clusters", preflight.stdout)
-            self.assertIn("do not patch with isolated line additions", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
@@ -2588,7 +2589,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("body_chinese_chars=", preflight.stdout)
             self.assertIn("< 950 with source_shape_weak", preflight.stdout)
             self.assertIn("underbuilt source shape", preflight.stdout)
-            self.assertIn("source-loop rewrite after the visible shape is reset", preflight.stdout)
+            self.assertIn("source-loop rewrite before rhythm tooling", preflight.stdout)
+            self.assertIn("NEXT_ACTION=repair source/content first", preflight.stdout)
             self.assertIn("2-3 load-bearing action clusters", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
@@ -2706,6 +2708,44 @@ class AnlinToolingTests(unittest.TestCase):
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
+
+    def test_clean_run_checker_preflight_orders_content_repair_before_rebalance_for_mixed_blockers(self) -> None:
+        line = (
+            '狗哥发微信说下个月结婚，我看高铁票和随礼看了半天，觉得那个数字像一张没盖章的罚单，'
+            '他问能不能来，我其实打了"项目走不开"，手指停在发送键上，水杯底下的纸巾慢慢变软，'
+            '桌角还有一圈灰，我坐着没有动，椅子腿也跟着歪了一下。'
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 纸巾", "", *([line] * 10)]), encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLEAN_RUN_CHECKER),
+                    str(draft),
+                    "--strict",
+                    "--draft-gate",
+                    "--genre",
+                    "standard",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+            self.assertIn("prose_block_shape=compressed", result.stdout)
+            self.assertIn("connectors=", result.stdout)
+            self.assertIn("rough_self_damage=missing", result.stdout)
+            self.assertIn("quoted_dialogue=present", result.stdout)
+            self.assertIn("NEXT_ACTION=repair source/content first", result.stdout)
+            self.assertIn(
+                "after the last content write, run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`",
+                result.stdout,
+            )
+            self.assertIn("if you edit draft.md after that script, rerun the script before checking", result.stdout)
+            self.assertNotIn("before any new prose rewrite", result.stdout)
+            self.assertNotIn("before hand rewriting", result.stdout)
 
     def test_clean_run_checker_preflight_blocks_missing_true_short_breaths(self) -> None:
         lines = [
@@ -8651,7 +8691,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn("clean-generation-brief.md` owns the first-draft source loop", runtime)
         self.assertIn("Clean-eval marker priority over ordinary article wording", matrix)
         self.assertIn("Misloaded runtime/anti-slop references return to minimum route", matrix)
-        self.assertIn("Total constraints tracked: 49", matrix)
+        self.assertIn("Mixed preflight repair order", matrix)
+        self.assertIn("source/content blockers before `rebalance_line_rhythm.py`", matrix)
+        self.assertIn("Total constraints tracked: 50", matrix)
         self.assertIn("Ordinary runtime article generation", readme)
         self.assertIn("Formal clean-eval first draft", readme)
         self.assertIn("references/runtime-brief.md", readme)
