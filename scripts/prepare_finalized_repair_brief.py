@@ -254,6 +254,7 @@ def format_brief(
         *(
             [
                 "hard_gate_pass_preservation: current artifact already passed the strict hard gate. Treat profile repair as local source surgery, not cleanup. Preserve connector spread, complete body mass, rough/public consequence, and mixed line endings; do not rewrite a review artifact into `高频词覆盖不足`, `标准日寄句号网格`, below-900 shrinkage, or a one-period-per-row surface.",
+                "hard_gate_pass_primary_action: preserve_and_nudge_review: keep the existing title source, people, invitation channel, message facts, refusal aftermath, connector turns, and approximate article mass. Rewrite the complete artifact only after making local cluster surgery inside the existing scene; do not introduce a new group chat, comment chain, stranger witness, new route/backstory packet, or binary `不是X，是Y` reframe.",
             ]
             if hard_gate_passed and profile_result.returncode != 0
             else []

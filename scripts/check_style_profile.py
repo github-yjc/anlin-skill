@@ -81,11 +81,12 @@ def primary_source_rewrite(families: list[str]) -> str:
         )
     if {"punctuation", "line_rhythm"} & family_set:
         return (
-            "rewrite the page shape first: build 6-8 visible breathing clusters from source movement, "
-            "with multiple actual body lines in each cluster. Keep rough long action/speech/thought rows "
-            "that visibly run beyond caption length, earned short drops, and mixed comma/hard-stop landings. "
-            "Do not save 8-25 dense prose rows, do not split every sentence into equal 10-18-character captions, "
-            "and do not tune punctuation counts."
+            "preserve the scene slate and repair page shape locally: keep the existing title, people, message channel, "
+            "refusal facts, body mass, connector turns, and hard-gate-passing consequence. Choose a few existing "
+            "action/reply/payment/body rows and reshape their cluster boundaries so some lines continue through real "
+            "movement, some land with hard stops, and a few short drops remain earned. Do not invent a new group-chat, "
+            "comment-chain, stranger, route, backstory, or binary `不是X，是Y` reframe, and do not rewrite the article "
+            "from a new premise just to change punctuation."
         )
     if {"connectors", "structure"} & family_set:
         return (
@@ -714,6 +715,7 @@ def format_repair_brief(report: dict[str, Any]) -> str:
                     "standard_shape_first: save a titled, line-broken standard diary with roughly 6-8 breathing clusters and a middle corridor. Keep several moving rows that carry hand, reply, payment, body, speech, or thought beyond caption length, plus short failure drops where action actually lands.",
                     "standard_overfill_guard: do not expand beyond the original source mass to satisfy every warning. If the rewrite is trending past about 1250 body Chinese characters, delete repeated proof packets before saving; 140+ rows or a 2000+ character standard repair is usually metric-shaped overfill, not a safer article.",
                     "standard_do_not_save: do not save 8-25 dense prose rows, 70+ equal short rows, a 45-70-line caption grid with 0 real long rows, a comma carpet, a below-900 shrink, a 140+ row overfilled proof ledger, or a draft with only one or two moving long rows.",
+                    "standard_preserve_existing: when the incoming standard draft already passed hard gate, preserve its title source, person list, invitation channel, connector spread, rough/public consequence, and approximate mass. Do not add group-chat/comment-chain surfaces, new social witnesses, new route facts, or binary `不是X，是Y` lines to solve profile review.",
                     "standard_social_decline_source: for invitation/refusal repairs, use one refusal-coupled consequence that changes hand, reply, payment, route, door, object, body, or social position. Do not add message-order plot glue, group-chat crowd summaries, tidy etiquette settlement, or private wet-room proof as separate fixes.",
                 ]
                 if genre == "standard"
