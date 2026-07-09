@@ -8,7 +8,9 @@ Do not print a plan, line count, title options, scene list, or trial article. Do
 
 If you catch yourself estimating rows, counting characters, or explaining what the article needs, stop. Write the complete titled candidate to `draft.md` and let the wrapper measure it.
 
-Do not use a prose-block escape hatch. A first draft made of 8-15 smooth paragraphs, or 16-25 dense rows that are paragraphs in disguise, followed by a promise to split it later, is already a failed source start. The saved file must visibly be the article: clusters of short and long body lines where action, reply, object, body, or payment movement decides the break. If the candidate in your head needs a rhythm script before it looks like broken diary prose, rebuild the source movement before writing.
+Do not use a prose-block escape hatch. A first draft made of 5-7 long paragraphs, 8-15 smooth paragraphs, or 16-25 dense rows that are paragraphs in disguise, followed by a promise to split it later, is already a failed source start. The saved file must visibly be the article: clusters of short and long body lines where action, reply, object, body, or payment movement decides the break. If the candidate in your head needs a rhythm script before it looks like broken diary prose, rebuild the source movement before writing.
+
+When the write tool opens, do not paste five dense body paragraphs. The body in the file-write content should already have the visible corridor: many uneven lines, short drops that close failures, and rougher lines that continue because the hand, reply, payment, door, or body has not finished. If one line contains the whole tap-water setup, the whole route calculation, or the whole refusal/payment consequence, split it by action before saving. The controller is measuring that first saved shape, not whether a later script can cut it apart.
 
 ## Build The Middle First
 

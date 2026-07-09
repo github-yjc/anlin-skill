@@ -66,7 +66,7 @@ This matrix intentionally uses stable owner files and short evidence anchors, no
 | 43 | No model-specific runtime branches | README, validation protocol, active runtime docs | `model-specific failures should be generalized` |
 | 44 | No local machine paths in runtime docs | README, `SKILL.md`, runtime docs | `<skill-dir>` and `<corpus-dir>`, not user-specific paths |
 | 45 | Rhythm scripts are finite repair, not source | `references/finalized-repair-minimum.md`, `references/standard-diary-source-engine.md`, `references/clean-generation-brief.md` | `Do not depend on rebalance_line_rhythm.py`; scripts cannot create first article shape |
-| 46 | Old 3+1 blind protocol is inactive | `references/validation-protocol.md`, README, judge docs, tests | active readiness uses `8 impostor + 2 placebo`; legacy smaller rounds are historical only |
+| 46 | Old small-sample blind protocol is inactive | `references/validation-protocol.md`, README, judge docs, tests | active readiness uses `8 impostor + 2 placebo`; legacy smaller rounds are historical only |
 
 ## Current Assessment
 

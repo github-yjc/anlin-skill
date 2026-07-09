@@ -7704,6 +7704,30 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings]
             self.assertFalse(any("无依据游戏角色细节: 泉水" in rule for rule in rules))
 
+    def test_checker_does_not_treat_route_lookup_as_bot_lane(self) -> None:
+        body = "\n".join(
+            [
+                "# 路线日寄",
+                "",
+                "我查了下路线，导航说还要转两趟车，",
+                "门口的水还没擦，鞋底踩过去响了一下，",
+                *(["其实我把杯子拿去洗，洗到一半又想起那张没回的表，"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings]
+            self.assertFalse(any("无依据游戏角色细节: 下路" in rule for rule in rules))
+
     def test_checker_flags_unsupported_province_or_city_for_review(self) -> None:
         body = "\n".join(
             [
@@ -8274,6 +8298,10 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Do not run `rebalance_line_rhythm.py`, `split_long_lines.py`, `merge_short_lines.py`, or `soften_line_endings.py` before the first `clean_run_checker.py` call", standard_engine)
         self.assertIn("Do not use a prose-block escape hatch", standard_engine)
         self.assertIn("The first saved file is not allowed to be a prose draft waiting for later lineation", first_draft_min)
+        self.assertIn("5-7 long paragraphs", first_draft_min)
+        self.assertIn("the `content` field itself should already show broken body rows", first_draft_min)
+        self.assertIn("do not paste five dense body paragraphs", standard_engine)
+        self.assertIn("The controller is measuring that first saved shape", standard_engine)
         self.assertIn("phone/feed -> order food -> wrong item -> wash bowl -> bed", standard_engine)
         self.assertIn("Private grime is not an event", standard_engine)
         self.assertIn("A rider or cashier who only looks once, points once, or speaks once and then leaves is still decoration", standard_engine)

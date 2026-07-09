@@ -2189,6 +2189,18 @@ def unsupported_game_term_present(term: str, line: str) -> bool:
         if "矿泉水" in line:
             return False
         return "泉水" in line and any(context in line for context in GAME_CONTEXT_TERMS)
+    if term == "下路":
+        if "下路线" in line:
+            return False
+        if term not in line:
+            return False
+        return bool(
+            re.search(
+                r"下路[^。！？\n]{0,12}(?:送|被抓|对线|一塔|二塔|兵线|射手|辅助|AD|adc|队友|经济|压线|崩|炸)",
+                line,
+            )
+            or any(context in line for context in GAME_CONTEXT_TERMS)
+        )
     if term in {"ad", "AD"}:
         return bool(re.search(rf"(?<![A-Za-z]){re.escape(term)}(?![A-Za-z])", line))
     return term in line
