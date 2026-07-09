@@ -52,7 +52,7 @@ For formal clean-eval generation, the first draft is intentionally under-instruc
 
 Before the first complete `draft.md`, do not open long repair, validation, judge, style-ratio, corpus-card, or checker-source files. In particular, do not load `references/clean-generation-brief.md`, `references/runtime-brief.md`, `references/anti-ai-slop.md`, `references/generation-modes.md`, `references/review-rubric.md`, `references/writing-checklist.md`, `references/self-check.md`, `references/stylometric-ratio-protocol.md`, `references/validation-protocol.md`, `references/development-log.md`, `evals/README.md`, or `references/corpus-cards/`.
 
-If the wrapper reports `CLEAN_RUN_PREFLIGHT`, use `references/clean-generation-brief.md` as the detailed repair interface. If it reports `CLEAN_RUN_PREFLIGHT_STOP` or `CLEAN_RUN_STOP`, stop repairing, read `draft.md` once, and output that exact article. Do not switch to ordinary checker flow after the bounded stop.
+If the wrapper reports `CLEAN_RUN_PREFLIGHT` or `CLEAN_RUN_POSTCHECK_PREFLIGHT`, use `references/clean-generation-brief.md` as the detailed repair interface. The post-check variant is still a clean-eval preflight: it protects checker call 2/2 from a known underbuilt source and does not consume that second checker call. If it reports `CLEAN_RUN_PREFLIGHT_STOP` or `CLEAN_RUN_STOP`, stop repairing, read `draft.md` once, and output that exact article. Do not switch to ordinary checker flow after the bounded stop.
 
 ## Finalized Repair Entry
 

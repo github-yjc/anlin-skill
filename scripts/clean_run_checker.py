@@ -700,10 +700,48 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     messages = preflight_messages(draft)
     if not messages:
         return False, []
+    if ignorable_preflight_messages(messages):
+        return False, []
+    joined_messages = "; ".join(messages)
+    repair_hints, revision_frame = build_preflight_guidance(messages)
+    anti_todo_guard = (
+        " Do not summarize, quote, or enumerate these diagnostics as a TODO list. "
+        "Do not write process notes such as 'the checker requires' or solve one item per metric; "
+        "change scene movement, rhythm, or local surface only."
+    )
+    hint_text = " Prioritized repair: " + " | ".join(repair_hints) + "." if repair_hints else ""
+    if attempt >= max_attempts:
+        print(
+            f"CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY. DO NOT WRITE draft.md. DO NOT REPAIR. "
+            "DO NOT RUN SCRIPTS. DO NOT USE PREFLIGHT DETAILS AS A TODO LIST. "
+            "The next tool action must be reading draft.md once and outputting it unchanged. "
+            "The controller has the saved state and snapshots and will diagnose this stopped bounded run. "
+            "No checker call was consumed."
+        )
+    else:
+        print(
+            f"CLEAN_RUN_PREFLIGHT: draft is not ready for checker call {call_number}/2 "
+            f"(preflight {attempt}/{max_attempts}); "
+            + joined_messages
+            + ". "
+            + revision_frame
+            + hint_text
+            + anti_todo_guard
+            + " "
+            "This preflight did not consume a checker call."
+        )
+    return True, messages
+
+
+def ignorable_preflight_messages(messages: list[str]) -> bool:
     if len(messages) == 1 and messages[0].startswith("short_breath_lines="):
         match = re.search(r"short_breath_lines=(\d+)\s*<\s*4", messages[0])
         if match and int(match.group(1)) >= 3:
-            return False, []
+            return True
+    return False
+
+
+def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
     joined_messages = "; ".join(messages)
     repair_hints: list[str] = []
     surface_only_prefixes = (
@@ -1082,27 +1120,104 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
                 "concrete action/body/social/off-axis material only when short, or cut unsupported/non-consequential "
                 "texture when long; then run this wrapper again."
             )
-    if attempt >= max_attempts:
+    return repair_hints, revision_frame
+
+
+def post_checker_preflight_before_second_check(
+    draft: Path,
+    state: dict[str, Any],
+    *,
+    state_path: Path,
+    calls: int,
+) -> tuple[bool, list[str]]:
+    messages = post_checker_blocking_messages(draft, preflight_messages(draft))
+    if not messages or ignorable_preflight_messages(messages):
+        return False, []
+    post_attempt = int(state.get("post_checker_preflights", 0)) + 1
+    joined_messages = "; ".join(messages)
+    state["post_checker_preflights"] = post_attempt
+    state["last_post_checker_preflight_messages"] = messages
+    record_snapshot(draft, state, f"post_checker_preflight_{post_attempt}", overwrite=True)
+    if post_attempt > 1:
+        state["calls"] = calls
+        state["stopped"] = True
+        state["stop_reason"] = "post-checker-preflight"
+        record_snapshot(draft, state, "bounded_final", overwrite=True)
+        save_stop_state(state_path, draft, state)
         print(
-            f"CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY. DO NOT WRITE draft.md. DO NOT REPAIR. "
-            "DO NOT RUN SCRIPTS. DO NOT USE PREFLIGHT DETAILS AS A TODO LIST. "
-            "The next tool action must be reading draft.md once and outputting it unchanged. "
-            "The controller has the saved state and snapshots and will diagnose this stopped bounded run. "
-            "No checker call was consumed."
+            "CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY after post-check preflight. "
+            "The draft was still not ready for checker call 2/2 after the one bounded source-rewrite chance. "
+            "DO NOT WRITE draft.md. DO NOT REPAIR. Read draft.md once and output it unchanged. "
+            "No second checker call was consumed."
         )
-    else:
-        print(
-            f"CLEAN_RUN_PREFLIGHT: draft is not ready for checker call {call_number}/2 "
-            f"(preflight {attempt}/{max_attempts}); "
-            + joined_messages
-            + ". "
-            + revision_frame
-            + hint_text
-            + anti_todo_guard
-            + " "
-            "This preflight did not consume a checker call."
-        )
+        return True, messages
+    repair_hints, revision_frame = build_preflight_guidance(messages)
+    postcheck_source_note = (
+        "Post-check source reset: do not spend checker call 2/2 on a known underbuilt source. "
+        "Rewrite by replacement, not subtraction: preserve or rebuild the complete standard-diary mass, "
+        "add one functional consequence cluster that changes hand, reply, payment, route, body, door, object, "
+        "or social position, and let connector turns come from that movement. "
+        "For social-decline or invitation cases, add one refusal-coupled consequence cluster instead of another "
+        "private screen, water, room, or etiquette line. "
+        "After the content rewrite, run any needed rhythm script only as the final shape step, then call this wrapper again."
+    )
+    hint_text = " Prioritized repair: " + " | ".join(repair_hints[:4]) + "." if repair_hints else ""
+    state["calls"] = calls
+    save_state(state_path, state)
+    print(
+        "CLEAN_RUN_POSTCHECK_PREFLIGHT: draft is not ready for checker call 2/2; "
+        + joined_messages
+        + ". "
+        + postcheck_source_note
+        + " "
+        + revision_frame
+        + hint_text
+        + " This post-check preflight did not consume checker call 2/2."
+    )
     return True, messages
+
+
+def post_checker_blocking_messages(draft: Path, messages: list[str]) -> list[str]:
+    """Return only preflight messages worth blocking checker call 2/2 for.
+
+    The first preflight deliberately lets some near-miss drafts reach checker call
+    1/2 so the bounded protocol can measure limited repair. After that first
+    checker, do not spend call 2/2 on a draft that has already shrunk below the
+    standard corridor or still lacks hard-gate connector coverage. Pure residual
+    shape issues still go to call 2/2 so old rhythm-normalization behavior stays
+    bounded instead of becoming an extra open repair loop.
+    """
+    text = draft.read_text(encoding="utf-8")
+    style = detect_style(text)
+    _, content_lines = split_title_and_content_lines(text.splitlines())
+    visible_lines = [line for line in content_lines if line.strip() and not line.strip().startswith("<!--")]
+    body = "\n".join(visible_lines)
+    body_chars = chinese_len(body)
+    connectors = [term for term in HIGH_FREQUENCY_TERMS if term in body]
+    blocking: list[str] = []
+    for message in messages:
+        if message.startswith("body_chinese_chars="):
+            blocking.append(message)
+        elif body_chars < 950 and message.startswith("medium_short_line_grid="):
+            blocking.append(message)
+        elif message.startswith(
+            (
+                "connectors=",
+                "paragraph_engine=weak",
+                "rough_self_damage=missing",
+                "private_grime_without_public_consequence=",
+                "social_decline_plain_reply_private_loop=",
+                "social_decline_group_fake_consequence=",
+                "social_decline_tidy_etiquette_closure=",
+                "social_decline_decoupled_consequence=",
+            )
+        ):
+            blocking.append(message)
+    if style == "standard" and body_chars >= 650 and len(connectors) < 5:
+        connector_message = f"connectors={connectors} < 5 before checker_call_2"
+        if not any(message.startswith("connectors=") for message in blocking):
+            blocking.append(connector_message)
+    return blocking
 
 
 def main() -> int:
@@ -1202,10 +1317,19 @@ def main() -> int:
             return 0 if preflight_attempt >= max_preflight_attempts else 3
 
     call_number = calls + 1
-    state["calls"] = call_number
-    state["preflights"] = int(state.get("preflights", 0))
     if args.draft_gate and call_number == 2:
         normalize_before_final_check(draft)
+        blocked, _messages = post_checker_preflight_before_second_check(
+            draft,
+            state,
+            state_path=state_path,
+            calls=calls,
+        )
+        if blocked:
+            return 0 if state.get("stopped") else 3
+
+    state["calls"] = call_number
+    state["preflights"] = int(state.get("preflights", 0))
     record_snapshot(draft, state, f"checker_call_{call_number}_submission", overwrite=True)
     save_state(state_path, state)
 

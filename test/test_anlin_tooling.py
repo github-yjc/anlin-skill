@@ -2747,6 +2747,100 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotIn("before any new prose rewrite", result.stdout)
             self.assertNotIn("before hand rewriting", result.stdout)
 
+    def test_clean_run_checker_postcheck_preflight_blocks_shrunken_second_call(self) -> None:
+        lines = [
+            "晚上十点多，水槽里泡着早上剩的那只碗，洗洁精已经没了泡，",
+            "拿抹布擦了两圈，油污还在，又拧开水冲，水太凉，手指发僵，",
+            "干脆先不洗了，倒掉水，把碗扣在沥水架上，先去换拖鞋。",
+            "拖鞋底断了一只，踩在卫生间地砖上打滑，",
+            "啪一声轻微响，差点跪下去，扶住洗脸台站稳。",
+            "另外那双绿色硬底拖鞋挂在阳台夹子上，白天晒的，",
+            "取下来往地上磕了两下，确实硬，",
+            "还是套进去了，脚后跟立刻有点硌，磨得疼。",
+            "坐在床边拿起手机，微信列表里狗哥的消息攒了几天没点开，",
+            "通知栏上他的头像旁边露出请柬截图的一角，浅金色，点进去，",
+            "十二月二十一号，在通程，他说备了一桌，问我有没有空来。",
+            "退出微信打开12306看了一眼，七号的票还没开售，",
+            "往年差不多二十七块硬座，动车一百一，",
+            "随礼的话大学室友一般六百，狗哥不是一个宿舍的，四百差不多，",
+            "加起来小一千，加上请两天假，还有住宿。",
+            "心算完了放下手机上厕所，上完洗了手，凉水又激了一下，",
+            "回来看着那条消息，打了几个字又删掉，",
+            "发了句：最近项目忙，可能去不了，到时候看情况。",
+            "手是湿的，在睡裤上蹭了两下，又看了一眼，",
+            "消息上墙了。",
+            "对方正在输入，消失，又出现，消失。",
+            "他回了一句：没事，理解的，工作要紧。",
+            "我把屏幕朝下扣在枕头边，坐下来觉得脚后跟疼，",
+            "绿色硬拖鞋磨出一个小水泡，摁了一下，没破，",
+            "但指腹沾了一丁点湿，有一点胀。",
+            "其实想回句什么，比如下次吃饭我请，但没打。",
+            "打开微信转账页，琢磨了一会儿金额，",
+            "觉得随四百像是补过，又像是硬撑，最后还是锁了屏。",
+            "垃圾满了两天没倒，前天拎到楼道尽头发现大桶满了拎回来，",
+            "放在鞋柜旁边，今天又多了外卖盒和饮料瓶。弯腰把袋子拎起来系紧，",
+            "走到门口开门，楼道感应灯没亮，可能是坏了。",
+            "犹豫了两秒，",
+            "提着垃圾往楼道走，硬拖鞋敲在地砖上响声太大。",
+            "走到一半对面邻居的门开了一条缝，有光透出来，但门没开全，",
+            "我没吭声，加快几步走过去，",
+            "扔完往回走的时候灯才亮，发现自己刚才一直屏着呼吸，",
+            "凉拖鞋底沾了楼道里的灰，湿脚印从门口一直延伸到玄关。",
+            "关门，反锁，低头看到脚后跟那个水泡在荧光灯下发亮，",
+            "拿手摸了一下有点滑，赶紧在裤子上蹭掉。",
+            "结果翻了一圈没找到针线盒。",
+            "算了。",
+            "回到卧室打开12306看了一眼，硬座二十七块，确认订单那页停了几秒，没点，退了出来。",
+            "关掉床头灯，硬拖鞋放在床脚，磨破的脚后跟碰到被子有点刺，",
+            "我侧了个身，觉得那杯水放得太远，不想起来拿，",
+            "意识慢慢往下沉，脚后跟的胀一直不消。",
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 碗跟拖鞋", "", *lines]), encoding="utf-8")
+            state_path = draft.parent / ".anlin-clean-run-state.json"
+            state_path.write_text(
+                json.dumps(
+                    {
+                        "draft": str(draft.resolve()),
+                        "calls": 1,
+                        "preflights": 2,
+                        "snapshots": {},
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLEAN_RUN_CHECKER),
+                    str(draft),
+                    "--strict",
+                    "--draft-gate",
+                    "--genre",
+                    "standard",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+            self.assertIn("CLEAN_RUN_POSTCHECK_PREFLIGHT", result.stdout)
+            self.assertIn("do not spend checker call 2/2", result.stdout)
+            self.assertIn("body_chinese_chars=", result.stdout)
+            self.assertIn("connectors=", result.stdout)
+            self.assertIn("add one refusal-coupled consequence cluster", result.stdout)
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 1)
+            self.assertEqual(state.get("post_checker_preflights"), 1)
+            self.assertFalse(state.get("stopped", False))
+            self.assertIn("post_checker_preflight_1", state["snapshots"])
+            self.assertNotIn("checker_call_2_submission", state["snapshots"])
+
     def test_clean_run_checker_preflight_blocks_missing_true_short_breaths(self) -> None:
         lines = [
             "其实我觉得手背一直发烫，突然发现客户还在催我",
@@ -8693,7 +8787,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Misloaded runtime/anti-slop references return to minimum route", matrix)
         self.assertIn("Mixed preflight repair order", matrix)
         self.assertIn("source/content blockers before `rebalance_line_rhythm.py`", matrix)
-        self.assertIn("Total constraints tracked: 50", matrix)
+        self.assertIn("Post-check preflight before checker call 2/2", matrix)
+        self.assertIn("CLEAN_RUN_POSTCHECK_PREFLIGHT", matrix)
+        self.assertIn("Total constraints tracked: 51", matrix)
         self.assertIn("Ordinary runtime article generation", readme)
         self.assertIn("Formal clean-eval first draft", readme)
         self.assertIn("references/runtime-brief.md", readme)
