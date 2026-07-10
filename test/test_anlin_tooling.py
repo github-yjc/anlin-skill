@@ -8767,6 +8767,18 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("after every ten development iterations", development_log)
         self.assertIn("Current active-protocol recognition rate is `N/A`", readme)
 
+    def test_readme_routes_unresolved_profile_review_to_placebo_calibration(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn("compact hard-pass/review experiment is now closed", readme)
+        self.assertIn("style-profile remained `review` with punctuation/ngram drift", readme)
+        self.assertIn("Stop repairing the same artifact", readme)
+        self.assertIn("Matched-original style-profile calibration is not blind-judge evidence", readme)
+        self.assertIn("insufficient to justify changing profile thresholds", readme)
+        self.assertIn("isolated all-original placebo judging", readme)
+        self.assertIn("explicitly calibration-only", readme)
+        self.assertIn("cannot substitute for the formal `8 impostor + 2 placebo` readiness package", readme)
+
     def test_route_coverage_matrix_uses_stable_owner_anchors(self) -> None:
         matrix = (ROOT / "references" / "route-coverage-matrix.md").read_text(encoding="utf-8")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")

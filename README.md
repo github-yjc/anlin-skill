@@ -38,6 +38,8 @@ Follow-up after `mass_floor_lock` confirmed that the shrink guard moved the inte
 
 The paired direction-aware retest changed the failure but did not close it. The repair stopped synonym-cleaning the repeated hand/smell wording and style-profile reached `checkpoint_pass=true`, but it merged/deleted the loose tail, misestimated the remaining mass, and saved only 894 body Chinese characters, causing a new strict hard-gate length failure. This shows that another isolated lock is unlikely to solve the path: the hard-pass/profile-review interface is now carrying preservation, punctuation, n-gram direction, mass, line shape, social consequence, and single-write constraints at once. The next engineering step is a shorter hard-pass/review controller mode with one-for-one local row replacement and no row deletion/merge; if that still leaves only punctuation/ngram review, stop rewriting and use matched-original/placebo calibration before changing thresholds. The project remains not ready for blind rounds.
 
+The compact hard-pass/review experiment is now closed: it preserved artifact scope and strict hard-gate status, but finalized quality still did not converge and style-profile remained `review` with punctuation/ngram drift. Stop repairing the same artifact. Matched-original style-profile calibration is not blind-judge evidence and is insufficient to justify changing profile thresholds. The next targeted step is isolated all-original placebo judging, explicitly calibration-only; it cannot substitute for the formal `8 impostor + 2 placebo` readiness package or create a reportable recognition rate.
+
 ## Quick Start
 
 1. Install this directory wherever the target OpenCode-compatible agent discovers local skills.
