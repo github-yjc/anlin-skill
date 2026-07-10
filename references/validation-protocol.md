@@ -1,114 +1,230 @@
 # Validation Protocol
 
-目标：尽可能严格地发现仿写与 38 篇原文之间的差异，并指导重写。验证只能提高置信度，不能证明完全拟合。
+Validation improves confidence under stated conditions. It never proves authorship or objective indistinguishability.
 
-## 验证模式
+Report only:
 
-### 完整语料模式
+- test conditions
+- corpus availability
+- sample size
+- judge type
+- recognition/pass rate
+- raw accusation rate and stable-accusation rate
+- false-accusation rate
+- invalid rounds
+- limitations
 
-适用条件：可访问 `C:\Users\34025\Desktop\Anlin` 或用户提供等价原文目录。
+Do not report "无法区分", "本人级", "原文级", or "Anlin本人会这么写".
 
-执行：
+## Modes
 
-1. 运行硬规则脚本：`scripts/check_anlin_violations.py draft.md --strict`。必须阅读完整输出；退出码为 0 只表示没有 error/warning，不代表风格像。
-2. 运行全语料比对脚本：`scripts/compare_anlin_corpus.py draft.md C:\Users\34025\Desktop\Anlin`。
-3. 按 `references/subagent-prompts.md` 派遣子代理做四类审查：Style Critic、Era Critic、Distinguisher、Revision Planner。
-4. 汇总问题，重写全文；最多迭代 3 轮，除非用户要求继续。
+### Draft Review
 
-### 片段级降级模式
+Use for ordinary generation quality.
 
-适用条件：无完整原文。
+1. Run:
 
-执行：
+```powershell
+python scripts/check_anlin_violations.py draft.md
+```
 
-1. 运行硬规则脚本：`scripts/check_anlin_violations.py draft.md --strict`。
-2. 运行 Fragment-Level Style Critic（参见 `references/subagent-prompts.md` 的 Fragment-Level Style Critic Prompt）：只读 draft + portable-corpus.md + samples-index.md + vocabulary-rules.md，输出 Markdown 问题清单（blocking / important / minor），不打分。
-3. 运行 Era Critic（目标日期 + era-state.md + 搜索事实），检查时代错置。
-4. 标注结果为“片段级验证”，不得声称通过完整语料比对。
+2. If full corpus is available, run:
 
-片段级模式不运行 Distinguisher（无原文样本可混入）。
+```powershell
+python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
+```
 
-## 子代理角色
+3. Review using `review-rubric.md`.
+4. Fix errors and identity/date mismatches. Warnings require manual inspection, not automatic failure.
 
-### Generator
+### Full Corpus Mode
 
-生成草稿。必须读取 `SKILL.md`、`references/portable-corpus.md`、`samples-index.md`、`voice-model.md`、`structure-patterns.md`、`vocabulary-rules.md`、`era-state.md`。若完整语料目录可用，可额外抽读原文；若不可用，以 portable-corpus 为降级依据。
+Applicable when `C:\Users\34025\Desktop\Anlin` or an equivalent corpus directory is available.
 
-### Style Critic
+Run:
 
-只审查风格，不修文。维度：
+```powershell
+python scripts/check_anlin_violations.py draft.md
+python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
+python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
+```
 
-- 词汇域：高频词是否自然；禁用词是否漏出。
-- 句式节奏：行长、短句、行末标点、硬切是否像。
-- 情感层次：笑/痛/温情/嘴硬是否混频。
-- 结构：场景数、蒙太奇、结尾未解决。
-- 视角：生活体验者，而非评论家/段子手/论文作者。
+`run_blind_test.py` prepares anonymous rounds and prints the judge prompts. If no LLM automation key is configured, the controller manually gives each prompt to an isolated judge and records verdicts.
 
-输出：尽可能多的问题，每条必须包含证据和修复建议。
+### Portable Mode
 
-### Era Critic
+Applicable when the full corpus is unavailable.
 
-只审查日期适切性。检查：
+1. Run the checker.
+2. Read `portable-corpus.md`, `samples-index.md`, and `review-rubric.md`.
+3. Use fragment-level review only.
+4. Do not run full-corpus blind evaluation.
+5. Mark the result as portable review, not corpus validation.
 
-- 目标日期时，平台、梗、AI能力、价格、社会氛围是否可能存在。
-- 是否把新闻写成宏观总结。
-- 是否把后期状态错写到早期，或把早期状态错写到后期。
+## Clean Generation Protocol
 
-输出：时间线问题、置信度、需要搜索或用户补充的信息。
+Formal blind evaluation must measure the skill, not extra help from the controller.
 
-### Distinguisher
+Generator setup:
 
-盲评角色。必须使用 `references/subagent-prompts.md` 的 Distinguisher Prompt。该角色**需要完整原文目录**；无完整语料时跳过此步骤，改用 Fragment-Level Style Critic。
+- Start a fresh agent context for each article.
+- Give the generator only the realistic user prompt, the target date/background contained in that prompt, and normal access to the Anlin skill.
+- Use `evals/evals.json` `realistic_prompt` for formal blind evaluation. The richer `prompt` field is a stress-test prompt and must not be used to claim blind-evaluation performance.
+- Do not provide previous blind-review failures, judge rubrics, source excerpts, corpus filenames, controller mappings, hidden expected elements, or manual advice such as "add montage", "add unrelated details", or "avoid prompt-shape leakage".
+- If the generator reads `outputs/`, blind-round folders, `mapping.json`, judge reports, or controller notes before writing, mark the generation contaminated.
+- Record the exact prompt, skill path, skill commit, model/surface, allowed tools, corpus availability, and whether web/background lookup was allowed.
 
-具体执行流程：
+If a test draft only succeeds because the prompt itself supplied style rules, classify the run as diagnostic, not a clean skill evaluation.
 
-1. 准备匿名片段：运行 `python scripts/prepare_distinguisher.py --draft <draft.md> --corpus-dir <Anlin> --output-dir <round-dir> --num-originals 5`。该脚本会随机抽取 5 篇原文，各取前 2-3 个场景（约 300-500 字），再从草稿中提取等长片段；所有片段以 `fragment-01.txt` 等随机文件名写入输出目录，并生成 `mapping.json` 记录每个文件对应的真实来源（原文文件名或 `GENERATED`）。
-2. 派遣 Distinguisher 子代理：将输出目录路径和 `references/subagent-prompts.md` 中的 Distinguisher Prompt 交给子代理。子代理**只能读取该目录下的 fragment-*.txt 文件**，禁止读取 skill 文件、mapping.json 或原文目录。
-3. 收集子代理的 verdict：要求其输出 `Fragment-XX is the AI-generated one because: ...`。
-4. 核对：将子代理指控的 fragment 与 `mapping.json` 比对，确认是否指向 `GENERATED`。
-5. 重复 3 轮：每轮使用不同的随机种子（prepare_distinguisher.py 的 `--seed`）重新抽取原文，重新匿名排序。
-6. 判据：
-   - 若 ≥2/3 轮子代理正确指出 `GENERATED` 片段 → 草稿**未通过**盲测，必须回炉。
-   - 若 ≤1/3 轮正确指出 → **暂定为通过**，但仍不是“无法区分”的证明。
-7. 若当前环境无法保证匿名隔离（例如子代理能看到 mapping.json 或原文目录），标记本轮结果为 **contaminated**，不得作为批准依据。
+## Blind Test Design
 
-如需一次性准备多轮并可选自动调用 LLM 评判，可使用便利脚本 `python scripts/run_distinguisher.py --draft <draft.md> --corpus-dir <Anlin> --rounds 3`（自动评判需设置环境变量 `DISTINGUISHER_API_KEY`；否则脚本仅准备片段并输出 prompt）。
+Use `scripts/prepare_blind_test.py` or `scripts/run_blind_test.py`.
 
-### Revision Planner
+Terms:
 
-汇总前三个批评者的问题，按严重程度排序，给出重写方案。不得直接粉饰原文；必须指出可修复问题和不可修复风险。
+- `impostor round`: an anonymous round where exactly one sample is the generated article and the rest are original corpus articles. It measures whether judges can find the inserted generated article.
+- `placebo round`: an anonymous all-original round with no generated article. The correct answer is `NONE`; it measures false accusations and calibrates whether judges are over-sensitive to original-text oddness.
+- `stable accusation`: a counted accusation that passes the confidence and evidence-family thresholds. Raw suspicion is recorded separately.
 
-## 评分量规
+Recommended command:
 
-每项 0-5 分：
+```powershell
+python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
+```
 
-| 维度 | 通过阈值 | 说明 |
-|---|---:|---|
-| 词汇域 | ≥4 | 高频词自然，低频/禁用词少，具体动作多 |
-| 句式节奏 | ≥4 | 行长、短句、逗号/句号、硬切接近样本 |
-| 情感混频 | ≥4 | 至少三种情绪层次，真诚不过量 |
-| 蒙太奇结构 | ≥4 | 场景因阶段而异（Phase A 5-8，Phase D 7-12，通常 5-10）；每个有独立落点 |
-| 视角一致性 | ≥4 | 普通生活体验者，不说教、不总结群体 |
-| 日期适切性 | ≥4 | 符合目标日期，不预知，不错置状态 |
-| 灵魂测试 | ≥3 | 像“过了一天顺手记下”，不是“写了一篇日寄” |
+Each round creates a clean directory containing only:
 
-完整通过建议：总分 ≥28/35，且无单项低于 3。若 Distinguisher 多数轮稳定识别草稿为仿作，仍判失败。通过量规只表示当前迭代未发现显著异体，不代表读者无法识别仿作；最终拟合度仍依赖熟悉读者盲评。
+- `sample-01.txt`
+- `sample-02.txt`
+- ...
+- `mapping.json` for the controller only
+- `prompt.txt` for the judge
 
-## 修复优先级
+Judge rules:
 
-1. 身份/时代错置。
-2. 评论链、禁用句式、AI腔、解释腔等硬异体。
-3. 场景无落点或独幕剧。
-4. 情感单频。
-5. 高频词和行末节奏。
-6. 金句过密、真诚过量、结尾升华。
+- The judge may read only `sample-*.txt`.
+- The judge must not read `mapping.json`, the original corpus, or skill files.
+- Titles are retained and normalized for all samples; metadata is removed.
+- Generated drafts must include the title as article text on the first line. The preparation script normalizes `# 标题`, plain first-line titles, and simple emphasis wrappers to the same `# 标题` form so title formatting does not become a leakage cue.
+- Impostor rounds are length-matched by complete article length.
+- The judge may evaluate title fit as one evidence family, but must not use title, filename, ordering, or length as the sole basis for identification.
+- Treat blind review as open-set verification, not forced attribution. A stable accusation requires `IDENTIFIED` not `NONE`, confidence at least 75, and at least three independent evidence families, including one family that is not title, topic, length, filename, or order.
+- If the strongest accusation depends mainly on title neatness, prompt-topic compliance, article length, file order, or one polished ending, record it as raw suspicion but not stable identification.
+- If the round is an impostor round, exactly one sample is generated.
+- If the round is a placebo round, no sample is generated and the correct answer is `NONE`.
+- If the judge is forced to choose when there is no generated sample, that test design is invalid.
+- Use at least two placebo rounds for serious evaluation. They disguise original articles as ordinary test samples and measure whether the judge over-accuses real corpus articles.
+- If placebo false accusations exceed 20%, treat the judge setup as over-sensitive and revise calibration before using the rate as evidence against the generation workflow.
+- If the same evidence families appear in placebo accusations and generated-sample accusations, report that cue as uncalibrated and do not use it alone as a generator failure root cause.
 
-## 决议规则
+## Multi-Angle Judge Set
 
-- 身份/时代错置、硬异体必须重写全文。
-- 若所有三个 critic（Style Critic + Era Critic + Distinguisher 或 Fragment-Level Style Critic）各标记 ≥ 3 个 P1 级问题 → 重写。若发现任何 P0 级问题 → 重写。
-- 高频词覆盖、行末节奏、轻微词汇漂移可局部改写；局部改写后仍需重新跑硬规则脚本。
-- Style Critic 与 Era Critic 冲突时，优先处理 Era Critic 的事实/日期问题。
-- 完整语料模式 + 匿名隔离可用时：Distinguisher 结果作为参考（≥ 2/3 轮未识破 = 通过）；无法建立匿名隔离时标注 contaminated，不作为判定依据。
-- 片段级模式：Distinguisher 不适用，依赖 Style Critic + Era Critic + 脚本判定。
-- 若 3 轮迭代后仍有同类阻塞问题，停止生成并输出风险，而不是继续粉饰。
+For serious evaluation, read `blind-judge-angles.md` and use multiple profiles plus placebo. Minimum serious setup:
+
+- holistic reader: ordinary reader sense of naturalness, over-polish, and closure
+- stylometry/rhythm: line length, punctuation, connector terms, phrase repetition, and vocabulary domain
+- consciousness-structure: associative hooks, montage, time/space shifts, hidden spine
+- humor-bathos: joke source, absurdity base, retreat timing, self-canceling lines
+- emotion-reality: emotional masking, body/money/social texture, ordinary noise
+- dialogue-social: dialogue plausibility, social collision, awkward residue
+- phase-genre: date-zone, genre fit, title/ending, phase leakage
+- ai-impostor-risk: AI smoothness, imitator over-display, surface/deep mismatch
+- placebo-calibrated reader: at least two all-original rounds; must be allowed and encouraged to answer `NONE`
+
+Treat invalid format, timeout, or contaminated access as invalid, not as a pass or failure. Re-run invalid rounds or report them separately.
+
+Common generated-text tells found in evaluation:
+
+- uniformly short lines with little sentence-length variance
+- every scene serving the prompt topic
+- clean opening/ending mirror
+- numbered or sectioned "small essay" structure
+- symbolic object chain where every object means the same thing
+- lack of ordinary social noise, dialogue, or boring non-symbolic detail
+- short sincere/micro-hope/surreal pieces becoming polished prose poems
+
+## Blind Judge Output
+
+Require the detailed format in `blind-judge-angles.md`. The minimal controller-parsed fields are:
+
+```text
+PROFILE: <profile>
+IDENTIFIED: sample-03.txt | NONE
+CONFIDENCE: 0-100
+PRIMARY_EVIDENCE_FAMILIES: family-1, family-2, family-3
+DETAILED_REASONS:
+1. ...
+2. ...
+3. ...
+MOST_ANLIN_LIKE:
+LEAST_ANLIN_LIKE:
+AI_OR_IMITATOR_RISK:
+PLACEBO_CHECK:
+SOURCE_COHESION_CHECK:
+FINAL_REASONING:
+```
+
+Each detailed reason must include a short quote from the sample. The controller compares `IDENTIFIED` with `mapping.json` and separately records raw accusations and stable accusations.
+
+## Decisions
+
+### Draft Decision
+
+- `accept`: no blocking issues; warnings reviewed; genre gates acceptable.
+- `revise`: local fixes needed.
+- `rewrite`: identity/date mismatch, monotone structure, copied source package, or majority of gates fail.
+- `inconclusive`: validation setup is incomplete or contaminated.
+
+### Blind-Evaluation Decision
+
+Do not use pass/fail language without sample counts.
+
+Recommended wording:
+
+```text
+Under 8 impostor rounds and 2 placebo rounds, judges produced raw accusations in 2/8 impostor rounds, stable accusations in 1/8 impostor rounds under confidence >=75 and 3-family threshold, and falsely accused originals in 0/2 placebo rounds. This supports revision status X under these conditions only.
+```
+
+If a judge sees `mapping.json`, original corpus filenames, skill files, or previous analysis, mark the round contaminated and exclude it.
+
+## Revision Priority
+
+1. Authorship/provenance or date deception risk.
+2. Copied source package or high overlap.
+3. Identity/phase/genre mismatch.
+4. Monotone theme or checklist stuffing.
+5. Blind-test leakage: title, length, genre mismatch, short polished surface.
+6. Scene rhythm and ending.
+7. Vocabulary drift and local phrasing.
+
+## Controller Checklist
+
+- [ ] Draft body contains no process labels.
+- [ ] Formal generation used `realistic_prompt` or an equivalently natural prompt, not the diagnostic stress prompt.
+- [ ] Generator did not receive judge rubrics, source excerpts, prior failures, mappings, or manual style hints outside the skill.
+- [ ] Corpus path and date-zone recorded outside prose.
+- [ ] Checker output saved or summarized.
+- [ ] Corpus comparison inspected for overlap, not treated as style proof.
+- [ ] Blind rounds use isolated directories.
+- [ ] Titles retained and normalized for generated and original samples.
+- [ ] Draft is not a length outlier for the selected complete-article protocol.
+- [ ] Judge prompts require detailed quoted evidence and alternative explanations.
+- [ ] Controller records confidence, evidence-family count, raw accusations, stable accusations, and placebo false accusations separately.
+- [ ] At least two placebo rounds included for serious evaluation.
+- [ ] Final claim reports conditions and rates only.
+
+## Date-Boundary Validation
+
+Date-boundary validation checks whether the skill refuses or downgrades requests outside supported evidence, rather than inventing unsupported author state.
+
+- `out-of-range`: target date is before the first known original date (`2022-04-04`) or otherwise outside the documented corpus support. Correct behavior is to refuse that provenance-sensitive date, ask for a supported date, or clearly mark the output as a fictional exercise if the user accepts that downgrade.
+- `projection`: target date is after the latest corpus-supported point but can be grounded by user-provided facts or verified background. Correct behavior is low-confidence projection with no claim of original-level support.
+- `inferred`: no concrete date is supplied. Correct behavior is to record uncertainty in the controller report and avoid specific real-world claims unless verified.
+
+Do not blind-test an out-of-range refusal as a prose article. Score it as a boundary-handling case.
+
+## Method Notes
+
+Authorship-verification research distinguishes closed-set and open-set setups; serious blind review should behave like open-set verification and allow uncertain/non-answer outcomes. Stylometry commonly inspects frequent words, word/character n-grams, punctuation, and other linguistic features, but topic, genre, discourse type, and text length can mislead. AI-detection research also reports false positives and false negatives, so `NONE` and placebo rounds are not optional.
+
+For literary structure, treat "意识流" as an associative method rather than random scene stacking: sensory observations, free association, looping repetition, unusual syntax, time/space montage, and inner psychological truth should leave observable textual traces. Local Anlin corpus evidence still outranks external theory.

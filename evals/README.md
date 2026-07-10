@@ -41,18 +41,22 @@ evals/
 
 ### 步骤 1：生成草稿
 
-将 `evals.json` 中对应用例的 `prompt` 字段发给一个全新上下文（无历史对话）的 agent，让 agent 加载 Anlin skill 后生成文章。将输出保存为 `draft.md`。
+正式盲评使用 `evals.json` 中对应用例的 `realistic_prompt` 字段。`prompt` 字段保留给诊断压力测试，不得用来声明正式盲评通过率，因为它包含额外写作提示。
+
+将 `realistic_prompt` 发给一个全新上下文（无历史对话）的 agent，让 agent 正常触发并加载 Anlin skill 后生成文章。不要给生成 agent 提供盲评失败分析、judge rubric、原文摘录、controller mapping、人工风格提示或旧生成稿。将输出保存为 `draft.md`。
+
+草稿只保存一篇完整文章的标题和正文。标题必须由生成 agent 产出，放在第一行，推荐使用 `# 标题`；不要加粗、不要写成 `标题：...`，也不要把标题作为控制器元数据附加。不要把仿写、生成、验证、语料、片段级验证等方法标签写进正文；这些信息由控制器记录在验证报告里。
 
 ### 步骤 2：运行硬规则脚本
 
 ```powershell
-python C:\Users\34025\.config\opencode\skills\Anlin\scripts\check_anlin_violations.py draft.md --strict
+python C:\Users\34025\.config\opencode\skills\Anlin\scripts\check_anlin_violations.py draft.md
 ```
 
-- 退出码 0：没有检测到 error/warning 级别违规
-- 退出码非 0：存在硬规则违规，查看输出定位问题
+- 退出码 0：没有检测到 error 级违规；warning 仍需人工复核
+- 退出码非 0：存在 error 级硬规则违规，查看输出定位问题
 
-注意：退出码 0 只表示未触发可自动检测的违规，不保证风格匹配。脚本无法检测蒙太奇结构、情感层次、声音质量等主观维度。
+注意：退出码 0 只表示未触发可自动检测的阻断项，不保证风格匹配。脚本无法检测蒙太奇结构、情感层次、声音质量等主观维度。
 
 ### 步骤 3：运行 Style Critic 子代理审查
 
@@ -104,10 +108,10 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 ### 自动化脚本（待建）
 
 未来可用控制器脚本自动完成全流程：
-1. 读取 evals.json
+1. 读取 evals.json 的 `realistic_prompt`
 2. 对每个用例启动一个独立 agent（无上下文污染）
-3. agent 生成草稿 → 保存到 `evals/outputs/eval-{id}-draft.md`
-4. 运行 `check_anlin_violations.py --strict`
+3. agent 生成一篇含标题的完整文章 → 保存到 `evals/outputs/eval-{id}-draft.md`
+4. 运行 `check_anlin_violations.py`
 5. 运行 Style Critic 子代理评分
 6. 汇总到 `evals/outputs/benchmark.json`
 
@@ -115,23 +119,26 @@ FAIL = 脚本退出码非 0 OR 任一门禁分数 < minimum_gate_score
 
 本评测集测量**结构质量**（是否遵循 skill 规则），不等同于**不可区分性**测试。
 
-盲测（Distinguisher）是独立的验证流程，由 `scripts/prepare_distinguisher.py` 和 `scripts/run_distinguisher.py` 支持：
+盲测（Distinguisher）是独立的验证流程，由 `scripts/prepare_blind_test.py` 和 `scripts/run_blind_test.py` 支持。正式盲测只使用含标题的完整文章；标题保留并统一规范化，标题契约、标题与体裁/结构/结尾的关系都属于评审证据，但不能作为唯一识别依据。
 
 - **本评测集**: 检查生成物是否符合 skill 规定的否定空间、词汇域、结构模式、情感层次等可定义标准
-- **盲测**: 将生成物与真实原文匿名混排，交给独立子代理区分哪个是 AI 写的
+- **盲测**: 将生成完整文章与语料完整文章匿名混排，交给隔离评审判断是否能识别生成文章；评审可回答 `NONE`
 
 两者互补：
 - 通过本评测集表示「skill 用对了」
-- 通过盲测表示「读者分不出」
+- 盲测结果只表示在特定条件、样本量、评审类型下的 raw/stable 识别率和误报率
 
 ## 注意事项
 
 - 评测集不修改 skill 文件，只读取
-- 每个用例的 `prompt` 字段是自包含的——全新 agent 只读 prompt + skill 即可生成
+- 每个用例的 `realistic_prompt` 字段是正式盲评入口——全新 agent 只读 realistic prompt + skill 即可生成
+- `prompt` 字段是压力测试入口，适合定位问题，不适合作为“skill 单独能力”的通过率依据
 - 完整语料路径: `C:\Users\34025\Desktop\Anlin`
-- portable 模式用例（12、14）要求 agent 明确标注 `corpus: unavailable`
+- portable 模式用例（12、14）的 `corpus: unavailable` 或片段级验证状态只写入控制器验证报告，不写入正文
 - 用例 15 是「应拒绝」场景，其通过标准与其他用例不同
 
 ## 版本历史
 
+- v2.2: 新增 `realistic_prompt`，区分正式盲评输入与诊断压力测试输入
+- v2.1: 移除正文元数据标注要求，对齐匿名盲评目标
 - v2.0: 初始结构化评测集，15 用例，替换原 `references/evals.md` 中的非结构化描述

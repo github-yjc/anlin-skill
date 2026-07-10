@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Deterministic hard-rule checker for Anlin-style drafts.
+"""Deterministic review-signal checker for Anlin-style drafts.
 
 This script does not judge whether a draft has Anlin's voice. It only reports
 searchable violations and weak signals that should trigger manual revision.
+It is calibrated so original corpus files should not fail with hard errors.
 """
 
 from __future__ import annotations
@@ -141,7 +142,7 @@ def check_not_x_is_y(findings: list[Finding], lines: list[str]) -> None:
     if len(matches) <= 1:
         return
     for line_number, line in matches:
-        findings.append(Finding("error", "不是X是Y overuse", line_number, clean_excerpt(line), "全篇最多保留一次；优先直接陈述Y。"))
+        findings.append(Finding("warning", "不是X是Y overuse", line_number, clean_excerpt(line), "高风险句式；若是解释性二元对比，优先直接陈述Y。若来自自然对话或原文式复杂句，人工保留。"))
 
 
 def check_money_suffix(findings: list[Finding], lines: list[str]) -> None:
@@ -171,9 +172,10 @@ def check_money_suffix(findings: list[Finding], lines: list[str]) -> None:
 
 
 def check_like_something(findings: list[Finding], lines: list[str]) -> None:
+    pattern = re.compile(r"(?<!好)像什么(?!都|也|特别|要紧|没|不)[^，。！？\n]{1,16}")
     for line_number, line in enumerate(lines, start=1):
-        if "像什么" in line:
-            findings.append(Finding("error", "像什么X句式", line_number, clean_excerpt(line), "删除“什么”，改成直接的“像X”或更具体描述。"))
+        if pattern.search(line):
+            findings.append(Finding("warning", "像什么X句式", line_number, clean_excerpt(line), "若是装饰性'像什么X'，删除“什么”或改成更具体描述；不要误改'好像什么都...'类正常句。"))
 
 
 def check_repeated_you(findings: list[Finding], lines: list[str]) -> None:
@@ -186,7 +188,7 @@ def check_dialogue_quotes(findings: list[Finding], lines: list[str]) -> None:
     pattern = re.compile(r"(?:说|问|继续说|又说|他说|她说|我说).{0,8}[“\"『「]")
     for line_number, line in enumerate(lines, start=1):
         if pattern.search(line):
-            findings.append(Finding("warning", "疑似日常对话引号", line_number, clean_excerpt(line), "日常对话不用引号；词组/概念引用可以保留。"))
+            findings.append(Finding("info", "疑似日常对话引号", line_number, clean_excerpt(line), "原文中存在引号；这里只提示人工检查是否为代理生成稿的戏剧化对话。"))
 
 
 def check_high_frequency_coverage(findings: list[Finding], text: str) -> None:
@@ -251,24 +253,34 @@ def check_scene_count(findings: list[Finding], lines: list[str], text: str) -> N
         # Tight 5-7 would fail many Anlin originals (Phase C: 8-12)
         expected_range = "5-10"
         low, high = 5, 10
-    if count < low or count > high:
+    if count < low:
         findings.append(
             Finding(
                 "warning",
-                "场景数量",
+                "段落块数量偏少",
                 0,
-                f"scene_blocks={count} (expected {expected_range} for {style})",
-                "调整蒙太奇密度，删除可删场景或补充必要场景。",
+                f"paragraph_blocks={count} (rough expected {expected_range} for {style})",
+                "粗略段落块偏少；检查是否缺少场景、呼吸句或内部转向。",
+            )
+        )
+    elif count > high:
+        findings.append(
+            Finding(
+                "info",
+                "段落块数量偏多",
+                0,
+                f"paragraph_blocks={count} (rough expected {expected_range} for {style})",
+                "段落块不是可靠场景数；原文常一行一段。只作为人工节奏提示。",
             )
         )
     else:
         findings.append(
             Finding(
                 "info",
-                "场景数量",
+                "段落块数量",
                 0,
-                f"scene_blocks={count} (expected {expected_range} for {style})",
-                "scene count within expected range",
+                f"paragraph_blocks={count} (rough expected {expected_range} for {style})",
+                "rough paragraph block count within expected range",
             )
         )
 
@@ -293,11 +305,11 @@ def check_metadata_comment(findings: list[Finding], text: str) -> None:
     if not match:
         findings.append(
             Finding(
-                "warning",
-                "元数据注释",
+                "info",
+                "控制器元数据",
                 0,
                 "",
-                "缺少或格式错误的 HTML 元数据注释；需要 <!-- Anlin-style | date-zone: ... | verification: ... | corpus: ... -->",
+                "未发现控制器元数据；匿名盲评正文不应强制包含元数据，验证报告可单独记录 date-zone/verification/corpus。",
             )
         )
         return
@@ -316,7 +328,7 @@ def check_metadata_comment(findings: list[Finding], text: str) -> None:
         findings.append(
             Finding(
                 "warning",
-                "元数据注释",
+                "控制器元数据",
                 0,
                 f"date-zone={date_zone}, verification={verification}, corpus={corpus}",
                 "; ".join(issues) + "。",
@@ -375,7 +387,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Check deterministic Anlin-style hard-rule violations.")
     parser.add_argument("file", type=Path, help="Draft markdown/text file to inspect")
     parser.add_argument("--json", action="store_true", help="Output JSON findings")
-    parser.add_argument("--strict", action="store_true", help="Return nonzero for warnings as well as errors")
+    parser.add_argument("--strict", action="store_true", help="Reserved for stricter collection; exit code still fails only on errors")
+    parser.add_argument("--fail-on-warning", action="store_true", help="Return nonzero for warnings as well as errors")
     args = parser.parse_args()
 
     text = args.file.read_text(encoding="utf-8")
@@ -384,7 +397,7 @@ def main() -> int:
         print(json.dumps([asdict(finding) for finding in findings], ensure_ascii=False, indent=2))
     else:
         print(format_text(findings))
-    if args.strict:
+    if args.fail_on_warning:
         return 1 if any(finding.severity in {"error", "warning"} for finding in findings) else 0
     return 1 if any(finding.severity == "error" for finding in findings) else 0
 
