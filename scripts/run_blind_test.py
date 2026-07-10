@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from prepare_blind_test import prepare_blind_test, build_subagent_prompt
+from prepare_blind_test import prepare_blind_test, build_judge_prompt
 
 
 JUDGE_PROFILES = [
@@ -30,6 +30,12 @@ JUDGE_PROFILES = [
     "dialogue-social",
     "phase-genre-title",
     "synthetic-risk",
+    "anti-ai-sentence",
+    "literary-annotation",
+    "background-fact",
+    "background-display",
+    "mid-article-randomness",
+    "stylometric-drift",
 ]
 
 
@@ -54,6 +60,7 @@ def create_round(
     fragment_chars: int,
     min_fragment_chars: int,
     length_tolerance: float,
+    match_genre: str,
     placebo: bool,
     profile: str,
 ) -> RoundInfo:
@@ -70,8 +77,9 @@ def create_round(
         include_draft=not placebo,
         include_skill_context=False,
         include_titles=True,
+        match_genre=match_genre,
     )
-    prompt = build_subagent_prompt(round_dir, len(mapping)).replace(
+    prompt = build_judge_prompt(round_dir, len(mapping)).replace(
         "PROFILE: holistic-reader",
         f"PROFILE: {profile}",
     )
@@ -100,13 +108,14 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description="Prepare multiple Anlin blind-evaluation rounds.")
     parser.add_argument("draft_path", type=Path, help="Draft markdown/text file")
     parser.add_argument("corpus_dir", type=Path, help="Directory containing original Anlin files")
-    parser.add_argument("--rounds", type=int, default=3, help="Number of impostor rounds")
+    parser.add_argument("--rounds", type=int, default=8, help="Number of impostor rounds")
     parser.add_argument("--num-samples", type=int, default=5, help="Original samples per impostor round")
     parser.add_argument("--fragment-chars", type=int, default=0, help="Legacy diagnostic mode; 0 keeps complete articles")
     parser.add_argument("--min-fragment-chars", type=int, default=0, help="Minimum Chinese characters required for generated samples")
     parser.add_argument("--length-tolerance", type=float, default=0.65, help="Allowed relative length difference for complete-article impostor rounds")
+    parser.add_argument("--match-genre", default="none", choices=("none", "auto", "standard", "sincere", "micro-hope", "surreal"), help="Optional genre/length matching anchor for impostor and placebo rounds")
     parser.add_argument("--include-placebo", action="store_true", help="Add one placebo round containing originals only")
-    parser.add_argument("--placebo-rounds", type=int, default=0, help="Number of all-original placebo calibration rounds")
+    parser.add_argument("--placebo-rounds", type=int, default=2, help="Number of all-original placebo calibration rounds")
     parser.add_argument("--profiles", default=",".join(JUDGE_PROFILES), help="Comma-separated judge profiles to rotate across impostor rounds")
     parser.add_argument("--seed", type=int, default=1, help="Base random seed")
     parser.add_argument("--output-root", type=Path, default=None, help="Output root directory")
@@ -146,6 +155,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                 fragment_chars=args.fragment_chars,
                 min_fragment_chars=args.min_fragment_chars,
                 length_tolerance=args.length_tolerance,
+                match_genre=args.match_genre,
                 placebo=False,
                 profile=profiles[(index - 1) % len(profiles)],
             )
@@ -163,6 +173,7 @@ def main(argv: Optional[list[str]] = None) -> int:
                 fragment_chars=args.fragment_chars,
                 min_fragment_chars=args.min_fragment_chars,
                 length_tolerance=args.length_tolerance,
+                match_genre=args.match_genre,
                 placebo=True,
                 profile="placebo-calibrated",
             )
@@ -174,10 +185,11 @@ def main(argv: Optional[list[str]] = None) -> int:
         "fragment_chars": args.fragment_chars,
         "min_fragment_chars": args.min_fragment_chars,
         "length_tolerance": args.length_tolerance,
+        "match_genre": args.match_genre,
         "placebo_rounds": placebo_rounds,
         "profiles": profiles,
         "rounds": [asdict(item) for item in rounds],
-        "controller_rule": "Give each prompt.txt from judge_directory to an isolated pure judge. Do not run judges from the controller round directory, because those directory names may contain impostor/placebo labels and mapping.json. For opencode, run judges with --pure and the neutral judge_directory containing only prompt.txt and sample-*.txt. If the runtime has any local writing/style skills installed, also run with an isolated OPENCODE_CONFIG_DIR or equivalent configuration that contains no skills; --pure alone may not disable skills. Judges may read only prompt.txt and sample-*.txt and may answer NONE. If a judge uses any style skill, author-specific skill, original corpus, mapping, controller notes, web search, prior analysis, or round-kind directory names, mark that round contaminated. Titles are retained and normalized; title fit is evidence but cannot be the sole basis. Count a stable accusation only when IDENTIFIED is not NONE, confidence is >=75, and at least three independent evidence families are named, including one non-title/non-topic family. Report raw and stable rates plus placebo false accusations. Treat placebo rounds as original-text calibration; if the same evidence families accuse originals, lower confidence in those cues before revising the generator.",
+        "controller_rule": "Give each prompt.txt from judge_directory to an isolated pure judge. Do not run judges from the controller round directory, because those directory names may contain impostor/placebo labels and mapping.json. For opencode, run judges with --pure and the neutral judge_directory containing only prompt.txt and sample-*.txt. If the runtime has any local writing/style skills installed, also run with an isolated OPENCODE_CONFIG_DIR or equivalent configuration that contains no skills, and set OPENCODE_DISABLE_EXTERNAL_SKILLS=1 plus OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1 when available; --pure alone may not disable skills. Judges may read only prompt.txt and sample-*.txt and may answer NONE. If a judge uses any style skill, author-specific skill, original corpus, mapping, controller notes, web search, prior analysis, or round-kind directory names, mark that round contaminated. Titles are retained and normalized; title fit is evidence but cannot be the sole basis. Count a stable accusation only when IDENTIFIED is not NONE, confidence is >=75, and at least three independent evidence families are named, including one non-title/non-topic family. Report raw and stable rates plus placebo false accusations. Treat placebo rounds as original-text calibration; if the same evidence families accuse originals, lower confidence in those cues before revising the generator.",
     }
     manifest_path = output_root / "controller-manifest.json"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")

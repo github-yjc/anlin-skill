@@ -40,6 +40,7 @@ Inspect:
 - whether combinations sound semi-constructed by the same idiolect or newly assembled by imitation
 - overuse of famous source mechanisms or signature image packages
 - strange synonym choices that avoid the corpus's plain wording
+- whether function-word habits, small connectors, and punctuation clusters resemble the source rather than a generic humanized draft
 
 Judge cautiously:
 
@@ -323,6 +324,9 @@ Inspect:
 
 - `不是X，是Y`, `不是X，而是Y`, `不是因为X，而是因为Y`
 - `真正的问题是`, `核心是`, `本质上`, `这说明`, `这意味着`
+- `首先/其次/最后/综上` or other ordered essay skeletons inside prose
+- pseudo-colloquial phrases that feel assembled from internet parts rather than worn by a real group
+- parallel explainer templates such as `不是为了...更像是...`, `像是在提醒...`, or `变成了一个...`
 - balanced contrast or summary sentences that could be moved into any essay
 - whether a turn is announced by grammar rather than discovered through scene
 
@@ -330,6 +334,7 @@ Strong generated tell:
 
 - a local physical detail is immediately translated into a neat binary insight.
 - the suspicious sentence could be deleted and the scene would become more human.
+- the text manufactures "human roughness" on a visible schedule: slang, short line, object, sad turn, repeat.
 
 Judge cautiously:
 
@@ -359,17 +364,37 @@ Inspect:
 
 - narrator place: small city, Yunnan weather evidence, old home, school area, delivery routes
 - unsupported named districts/cities/company parks/subway routes
-- game terms: supported 王者荣耀/星耀/ELO/蔡文姬/原神 vs unsupported role filler such as 打野教学
+- game terms: supported narrator evidence is narrow: 王者荣耀, 5000局, 最高星耀五, ELO/elo, 蔡文姬/补血心理; 原神 appears as contrast/friend/platform material, not stable narrator-play evidence. Unsupported filler includes 排位, current 星耀二/三 ranks, MVP/复活点/加血/加盾/奶不到/输出全靠, 打野教学, role/lane/equipment/match-report terms.
 - platform terms by phase: 知乎/微信/小红书/抖音/AI/GPT with era limits
+- school/work/body phase facts: 2022 spring recruitment/delivery/graduation differs from 2023 found-work anxiety, 2024 layoff, 2025 gout/long unemployment, and 2026 AI/GPT texture
 
 Strong generated tell:
 
 - a concrete place or game detail appears only to create realism and has no corpus/user/background support.
 - the draft writes Guangzhou/Shenzhen/Huangpu-like specificity into a small-city/Yunnan phase without evidence.
+- the draft turns a third-person/platform mention into narrator biography, such as narrator playing 原神 or living in a city only mentioned as contrast.
 
 Judge cautiously:
 
 - a place can appear as another person's contrast or one-time travel if supported by text, but the judge should ask what evidence in the article makes it earned.
+
+### 25b. Background Display Stuffing
+
+Inspect:
+
+- whether the sample displays several source tags in one article: 211, 外卖, 王者, 狗哥, 知乎, 云南, 痛风, AI/GPT
+- whether those tags are required by the day's action or only there to prove style knowledge
+- whether supported facts are phase-compatible and consequence-bearing
+- whether a game/platform/family fact disappears without changing the scene
+
+Strong generated tell:
+
+- the article has no factual contradiction but still feels like a background checklist.
+- supported facts are stacked in visible order, creating the impression that the writer read a dossier.
+
+Judge cautiously:
+
+- originals can contain multiple source tags when the day's real pressure produces them. Count this cue only when tags do not change action, social position, body state, or the next scene.
 
 ### 26. Seasonal And Phase Sanity
 
@@ -404,6 +429,7 @@ Inspect:
 - the middle third, not only opening and ending
 - whether the middle has a real off-axis branch with its own turn
 - whether the middle merely adds correct-looking texture around the main topic
+- whether the middle keeps repeating the prompt domain while using objects as decoration
 - whether random details are functionally useless or secretly symbolic
 
 Strong generated tell:
@@ -426,6 +452,25 @@ Judge cautiously:
 
 - do not over-penalize one odd line in an original-like rough text. Use this family with at least two other evidence families.
 
+### 30. Stylometric Measurable Drift
+
+Inspect:
+
+- frequent function words and sentence particles, not only content nouns
+- ratio of commas to hard periods and whether line endings breathe like speech/thought
+- repeated sentence templates across paragraphs
+- distribution of very short, medium, and long lines
+- whether punctuation and connectors look manually "varied" on a schedule
+
+Strong generated tell:
+
+- the sample has source-like topics but a generic model punctuation profile: evenly distributed sentence lengths, few natural comma-led breaks, and clean paragraph symmetry.
+- body line lengths look cut to a grid rather than broken by thought, speech, body, or action.
+
+Judge cautiously:
+
+- stylometric cues are sensitive to topic, length, and genre. Use them as one evidence family, not a standalone detector.
+
 ## Judge Profiles
 
 Use multiple profiles across rounds. Each profile reads the same sample files but prioritizes different evidence.
@@ -440,10 +485,12 @@ Use multiple profiles across rounds. Each profile reads the same sample files bu
 | dialogue-social | dialogue plausibility, social collision, awkward residue |
 | phase-genre-title | date-zone, genre fit, title contract, ending, phase leakage |
 | synthetic-risk | AI smoothness, prompt-shape leakage, imitator over-display, surface/deep mismatch |
-| anti-ai-sentence | binary reframe, explainer voice, single-line AI smell |
+| anti-ai-sentence | binary reframe, explainer voice, pseudo-colloquial terms, ordered essay skeletons, single-line AI smell |
 | literary-annotation | em dash captioning, abstract feeling labels, polished emotional subtitles |
 | background-fact | geography, games, platforms, phase facts, unsupported specificity |
+| background-display | supported facts used as a dossier checklist rather than lived constraints |
 | mid-article-randomness | middle-third drift, useless residue, prompt-execution completeness |
+| stylometric-drift | function words, punctuation, line-length distribution, repeated templates |
 | placebo-calibrated | false-accusation control; actively prefer NONE when evidence is weak |
 
 ## Required Judge Output
@@ -501,6 +548,8 @@ If `IDENTIFIED: NONE`, still fill every section using the strongest non-decisive
 | AI binary reframe | rewrite the local move without `不是X，是Y`; state the physical fact or make a person/body/app reveal the turn |
 | literary annotation voice | remove `——` captioning and abstract emotion nouns; replace with the next action, body consequence, payment, route, food, or another person's plain line |
 | unsupported geography | remove named city/district/company route unless user/corpus/lookup supports it; keep the practical failure |
-| unsupported game filler | replace decorative role terms with corpus-supported 王者/星耀/ELO/蔡文姬/原神 only when they cause a turn |
+| unsupported game filler | replace decorative game terms with corpus-supported rough facts only: 王者荣耀, 5000局, 最高星耀五, ELO, 蔡文姬/补血心理; otherwise delete the game scene |
+| background display stuffing | delete supported facts that do not change action; keep only facts required by prompt, phase, or concrete consequence |
 | surface Anlin tags | remove one iconic feature and deepen one ordinary scene |
+| stylometric drift | change rhythm through thought/action/dialogue, not by sprinkling connectors; compare function words and punctuation only after length/topic controls |
 | placebo false positives high | calibrate judges toward NONE; require three evidence families plus confidence threshold before counting an accusation as stable |

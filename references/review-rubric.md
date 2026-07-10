@@ -23,13 +23,20 @@ Rewrite or refuse the relevant part if any appears:
 - the ending uses `哦`, `算了`, `睡了`, a dark screen, or a lone sound effect as a decorative style marker rather than a forced consequence
 - formal blind-evaluation draft depends on extra style hints outside the skill and realistic user prompt
 - standard diary reads as a smooth realist short story: all scenes follow one emotional arc, every object serves the same wound, no lateral branch, no rough social misfire, and no crooked laugh
+- short sincere or micro-hope draft reads as a clean literary short story: one title object, one care memory, one withheld message, and one final residue all close the same emotional argument
+- short sincere or micro-hope title is the main prompt prop and the body/tail keep returning to it as proof, such as `鸡蛋`/`一袋鸡蛋` carrying mother memory, withheld message, and final residue
+- short sincere or micro-hope repair preserves the same memory-first spine and only adds a late current detail; a sink, neighbor, wet clothing, or room chore does not fix the draft if the title object, memory order, withheld message, and ending still carry the old proof chain
+- short sincere or micro-hope draft is an underbuilt sketch: 250-500 body Chinese characters, no longer clumsy action/memory line, and only a few static emotional/image beats
 - ending is a tasteful withheld image that completes the emotional argument rather than a low consequence or interrupted action
 - standard diary is sealed inside one room/night/app chain and closes by neatly repaying an early object or debt
 - generated formal draft uses AI-reframe prose such as `不是X，是Y`, `不是因为X，而是因为Y`, `真正的问题是`, `本质上`, or other blog-like explanation that announces the insight
 - generated formal draft uses literary annotation prose such as `——那种...`, `终于可以...的放松`, `释然`, `自洽`, `真实感`, or other abstract feeling labels that caption a scene
 - generated formal draft uses A/B, 甲乙, or variable placeholders to explain a concrete daily failure
 - generated formal draft invents unsupported concrete background: named district, city route, company park, local policy, game role, platform fact, or location inconsistent with corpus/user-provided facts
+- generated formal draft displays supported background as a checklist: several facts such as 211/外卖/王者/狗哥/知乎/痛风/AI appear without changing action, phase pressure, body state, social position, or the next scene
 - generated formal draft keeps online discussion as a comment-chain residue such as `底下跟了一串回答`, or writes ordinary chat as standalone quoted script lines
+- generated formal draft can only pass after invoking an external style cleanup or anti-AI-writing skill; the runtime method must be self-contained in this skill
+- generated formal draft turns cautious background inference into precise current facts: city/district, current game rank, match tactic, employer, benefit policy, or platform state
 
 ## Structural Gates
 
@@ -78,6 +85,7 @@ Registers include laugh, sting, tenderness, deflection, absurdity, analysis, bod
 - 2: no explanatory binary reframe, no blog-like thesis translation, no literary captioning, no smooth prompt-answer structure; the turn comes from scene/action/dialogue/body
 - 1: one line has AI-ish symmetry, explanation, or abstract feeling caption but local scene still carries most of the meaning
 - 0: multiple not-X-but-Y frames, insight labels, "this means" sentences, `——那种...` captions, A/B variables, balanced contrasts, or artificial humanizer roughness
+- 0: therapy/humanizer phrases such as `允许自己`, `接住自己`, `被看见`, `和自己和解`, or `慢慢来` repair the emotional arc instead of a concrete action doing it
 
 ### Literary Annotation Surface
 
@@ -90,6 +98,12 @@ Registers include laugh, sting, tenderness, deflection, absurdity, analysis, bod
 - 2: place, game, platform, school/work, family, and phase facts are supported by corpus, user-provided background, or documented lookup
 - 1: some vague or projection details are not fully supported but remain generic enough not to assert false specificity
 - 0: named city/district/company/game role/policy appears without support, or contradicts the corpus phase
+
+### Background Restraint
+
+- 2: background facts act as guardrails; only facts required by prompt, phase, or concrete consequence appear
+- 1: one supported tag feels displayed but the scene still works through action
+- 0: supported tags are stacked as style proof, or third-person/platform facts become narrator biography
 
 ### Dialogue And Screen Surface
 
@@ -151,11 +165,25 @@ Registers include laugh, sting, tenderness, deflection, absurdity, analysis, bod
 - 1: title is plausible but generic, too informative, or slightly overdesigned
 - 0: missing title, wrong genre signal, or title-to-body contract gives away artificial construction
 
+For short sincere or micro-hope pieces, lower the score to 0 when the title is a strong prompt prop and the same prop is used as opening engine, memory proof, and ending closure. A side-action title can be rough or plain; a prompt-prop title must be weakened by the body.
+
 ### Ending Consequence
 
 - 2: final movement follows from an action, interruption, physical consequence, reply, route, payment, object, or unfinished chore
 - 1: ending is tonally plausible but uses a familiar short retreat
 - 0: ending behaves like a learned style button or completes the emotional argument
+
+### Short-Genre Story Closure
+
+- 2: short sincere/micro-hope piece has a title and emotional pressure, but current action, awkward interruption, or useless residue prevents a designed story closure
+- 1: title object or memory returns once with plausible force, but the ending does not fully explain it
+- 0: title object, family/memory proof, withheld message, and final residue all point to one neat love/guilt/hope argument, including repairs that add a practical detail without replacing the old spine
+
+### Short-Genre Completeness
+
+- 2: short sincere/micro-hope piece is short but complete: enough current action, memory, interruption, and factual retreat to feel lived rather than abbreviated
+- 1: the piece is coherent but thin, with too few longer clumsy lines or too little present-day consequence
+- 0: the piece reads like a sketch or compressed prompt answer, especially below roughly 520 body Chinese characters; for formal complete-article clean-eval, 520-649 characters or 55+ mostly tiny rows should also be treated as incomplete unless there are strong longer clumsy lines and a real practical turn
 
 ## Genre Adjustments
 

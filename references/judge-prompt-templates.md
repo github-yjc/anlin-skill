@@ -1,13 +1,13 @@
-# Subagent Prompts
+# Controller Judge Prompt Templates
 
-这些模板用于严格验证。除 Generator 外，审查子代理不应读取 `SKILL.md` 或完整规则文件，避免按规则抓错而不是像普通读者一样判断。
+These templates are for isolated validation. They can be used by a human reviewer, a separate model context, or any controller that can present only the listed inputs. They do not require any special parallel-agent capability. Except for the Generator template, the isolated reviewer should not read `SKILL.md` or the full rule library, because the goal is ordinary-reader judgment rather than rule-table matching.
 
 ## Generator Prompt
 
 ```text
 TASK: Generate one Anlin-style draft for the given user request.
-INPUTS: user request, target date/time, available background facts, and these skill files: SKILL.md, references/portable-corpus.md, references/samples-index.md, references/voice-model.md, references/structure-patterns.md, references/vocabulary-rules.md, references/era-state.md, references/anlin-reference-library.md, references/anlin-characters.md, references/writing-checklist.md.
-MUST DO: Follow the workflow, generate candidate scenes, choose final scenes, write a complete article with a generated title on the first line, then run self-check mentally.
+INPUTS: the realistic user request only, plus normal access to the installed skill selected by the runtime.
+MUST DO: Let the skill decide which files to load. Write a complete article with a generated title on the first line. If the skill requires a bounded local checker pass, follow that protocol.
 MUST NOT DO: Claim the draft is indistinguishable from Anlin, claim real authorship, or put methodology labels in the prose body. Do not output commentary unless asked by the controller.
 OUTPUT: Markdown draft only.
 ```
@@ -132,10 +132,10 @@ DETAILED_REASONS:
 3. [specific reason] | evidence: "..."
 4. [specific reason] | evidence: "..."
 5. [specific reason] | evidence: "..."
-MOST_ANLIN_LIKE:
+MOST_SOURCE_LIKE:
 1. [feature] | deep-or-surface: deep | evidence: "..."
 2. [feature] | deep-or-surface: surface | evidence: "..."
-LEAST_ANLIN_LIKE:
+LEAST_SOURCE_LIKE:
 1. [feature] | possible alternative explanation: topic/genre/phase/fragment/editorial/none | evidence: "..."
 2. [feature] | possible alternative explanation: topic/genre/phase/fragment/editorial/none | evidence: "..."
 AI_OR_IMITATOR_RISK:
@@ -148,7 +148,7 @@ FINAL_REASONING:
 [why this identification is or is not stable]
 ```
 
-Controller rule: run the Distinguisher for at least 8 impostor rounds and, for serious evaluation, at least 2 placebo rounds. After each round, compare `IDENTIFIED` to `mapping.json`. Report raw identification rate, stable-identification rate, placebo false-accusation rate, confidence threshold, evidence-family threshold, and invalid rounds under the exact conditions. Count an accusation as stable only when `IDENTIFIED` is not `NONE`, confidence is 75 or higher, and at least three independent evidence families are named, including one non-title/non-topic family. Do not use "indistinguishable" language; use `revise` if the generated article is stably identified in a majority of valid impostor rounds or if placebo false accusations exceed 20%. If the judge has access to mapping.json, the original corpus, or skill files, mark the round **contaminated** and exclude it.
+Controller rule: use the same formal blind-round package as `references/validation-protocol.md`: `8 impostor + 2 placebo`. After each round, compare `IDENTIFIED` to `mapping.json`. Report raw identification rate, stable-identification rate, placebo false-accusation rate, confidence threshold, evidence-family threshold, and invalid rounds under the exact conditions. Count an accusation as stable only when `IDENTIFIED` is not `NONE`, confidence is 75 or higher, and at least three independent evidence families are named, including one non-title/non-topic family. Do not use "indistinguishable" language; use `revise` if the generated article is stably identified in a majority of valid impostor rounds or if placebo false accusations exceed 20%. If the judge has access to mapping.json, the original corpus, or skill files, mark the round **contaminated** and exclude it.
 
 ## Fragment-Level Style Critic Prompt
 

@@ -2,6 +2,10 @@
 
 这些 prompts 用于测试 skill 是否能处理不同日期、体裁和验证模式。它们不是证明“完全拟合”的测试，只是压力场景。
 
+Status: legacy supplementary notes. The formal 15-case evaluation set lives in `evals/evals.json`, and the current protocol lives in `evals/README.md` plus `references/validation-protocol.md`. Preserve this file because it records early scenario intent and assertions, but do not use it as the sole source for current clean-eval, finalized repair, or blind-round claims. If a line below conflicts with newer protocol, treat the newer protocol as active and preserve the older line only as historical evidence.
+
+When this file conflicts with `evals/evals.json` or `references/validation-protocol.md`, use the newer structured files and record the discrepancy in the development log instead of silently deleting the older note.
+
 ## Eval 1: 2022 春招失败标准日寄
 
 Prompt: `模拟 Anlin 在 2022-04-18 晚上写一篇标准日寄。背景：春招失败，舍友拿到大厂 offer，自己刷招聘软件和王者荣耀。`
@@ -55,7 +59,7 @@ Expected:
 - 无评论链：不得出现“有人说A又有人说B”。
 - 无宏观新闻摘要：不得连续三句讲时代背景而无个人动作。
 - 场景数：因阶段而异（Phase A 5-8，Phase D 7-12，通常 5-10）；真诚文/短真诚文 4-7。
-- 严肃盲评长度：所有测试稿必须是含标题的完整文章；标题由生成 agent 产出，第一行使用纯标题或 Markdown H1，不加粗、不写“标题：”、不夹带方法说明。盲评保留并规范化标题，用完整文章字数匹配原文。短体裁要用短原文匹配，不得和全长标准日寄混评。
+- 严肃盲评长度：所有测试稿必须是含标题的完整文章；标题由生成 agent 产出，第一行使用纯标题或 Markdown H1，不加粗、不写“标题：”、不夹带方法说明。标准日寄生成稿正文通常应在 900-1100 字，至少清过 850 字安全缓冲。盲评保留并规范化标题，用完整文章字数匹配原文。短体裁要用短原文匹配，不得和全长标准日寄混评。
 - 日期适切：目标日期后出现的事件不得写入早期日期。
 - 高频词：其实/觉得/发现/好像/不过/突然/于是/因为/所以 至少自然出现 5 个。
 - 结尾：不总结、不升华、不提出建议。

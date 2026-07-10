@@ -8,7 +8,7 @@ filenames, and written to a clean output directory.  A mapping.json records
 which sample is the draft so the controller can later check the verdict.
 
 Example:
-    python prepare_blind_test.py regenerated-draft.md C:/Users/34025/Desktop/Anlin \
+    python prepare_blind_test.py regenerated-draft.md <corpus-dir> \
         --num-samples 5 --output-dir blind-test
 """
 
@@ -19,6 +19,7 @@ import re
 import statistics
 import sys
 import tempfile
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -27,6 +28,27 @@ from typing import Dict, List, Optional, Tuple
 # ---------------------------------------------------------------------------
 # Metadata stripping
 # ---------------------------------------------------------------------------
+
+GENRE_CHOICES = ("none", "auto", "standard", "sincere", "micro-hope", "surreal")
+
+
+@dataclass(frozen=True)
+class ArticleFeatures:
+    title: str
+    genre: str
+    chars: int
+    body_lines: int
+    line_mean: float
+    line_stdev: float
+    short_form: bool
+
+
+@dataclass(frozen=True)
+class CorpusRecord:
+    path: Path
+    text: str
+    features: ArticleFeatures
+    match: dict
 
 def normalize_title_text(title: str) -> str:
     """Remove formatting noise while preserving the generated title text."""
@@ -77,6 +99,106 @@ def sample_title(text: str) -> str:
     """Read the normalized sample title, if one is present."""
     title, _, had_title = split_title_body(text)
     return title if had_title else ""
+
+
+def infer_article_genre(title: str, body: str) -> str:
+    """Infer a coarse article genre for matching, not for authorship claims."""
+    del body
+    if "母亲节" in title or "谢谢你" in title:
+        return "sincere"
+    if any(term in title for term in ("活着就是", "微小", "还行", "也行")):
+        return "micro-hope"
+    if any(term in title for term in ("存在主义", "迷失", "梦", "无人便利店")):
+        return "surreal"
+    return "standard"
+
+
+def article_features(text: str) -> ArticleFeatures:
+    """Extract matching features from a normalized complete article."""
+    title, body, had_title = split_title_body(text)
+    if not had_title:
+        title = ""
+    body_lines = [line for line in body.splitlines() if line.strip()]
+    lengths = [chinese_len(line) for line in body_lines]
+    body_chars = chinese_len(body)
+    total_chars = chinese_len(text)
+    line_mean = statistics.mean(lengths) if lengths else 0.0
+    line_stdev = statistics.pstdev(lengths) if len(lengths) > 1 else 0.0
+    short_form = body_chars < 900 or len(body_lines) < 40
+    return ArticleFeatures(
+        title=title,
+        genre=infer_article_genre(title, body),
+        chars=total_chars,
+        body_lines=len(body_lines),
+        line_mean=round(line_mean, 2),
+        line_stdev=round(line_stdev, 2),
+        short_form=short_form,
+    )
+
+
+def resolve_target_genre(match_genre: str, draft_features: Optional[ArticleFeatures]) -> str:
+    """Resolve explicit/auto matching mode to a concrete genre or empty string."""
+    if match_genre == "none":
+        return ""
+    if match_genre == "auto":
+        return draft_features.genre if draft_features else ""
+    return match_genre
+
+
+def match_score(
+    candidate: ArticleFeatures,
+    target: Optional[ArticleFeatures],
+    target_genre: str,
+    length_tolerance: float,
+) -> tuple[float, dict]:
+    """Score candidate originals against the generated-draft anchor."""
+    score = 0.0
+    exact_genre = bool(target_genre and candidate.genre == target_genre)
+    if target_genre:
+        if exact_genre:
+            genre_penalty = 0.0
+        elif target and target.short_form and candidate.short_form:
+            genre_penalty = 0.65
+        else:
+            genre_penalty = 2.0
+        score += genre_penalty
+    else:
+        genre_penalty = 0.0
+
+    length_ratio = 0.0
+    line_ratio = 0.0
+    within_tolerance = True
+    if target and target.chars > 0:
+        length_ratio = abs(candidate.chars - target.chars) / target.chars
+        score += length_ratio
+        if length_tolerance > 0 and length_ratio > length_tolerance:
+            within_tolerance = False
+            score += 0.45
+    if target and target.body_lines > 0:
+        line_ratio = abs(candidate.body_lines - target.body_lines) / target.body_lines
+        score += line_ratio * 0.45
+    if target and target.short_form != candidate.short_form:
+        score += 0.35
+
+    match = {
+        "score": round(score, 4),
+        "target_genre": target_genre or "",
+        "candidate_genre": candidate.genre,
+        "exact_genre": exact_genre,
+        "length_delta_ratio": round(length_ratio, 4),
+        "line_delta_ratio": round(line_ratio, 4),
+        "within_length_tolerance": within_tolerance,
+        "genre_penalty": round(genre_penalty, 4),
+    }
+    if target_genre and exact_genre and within_tolerance:
+        match["selection_reason"] = "genre_length_match"
+    elif target_genre and exact_genre:
+        match["selection_reason"] = "genre_match_length_backfill"
+    elif target and target.short_form and candidate.short_form:
+        match["selection_reason"] = "short_form_backfill"
+    else:
+        match["selection_reason"] = "nearest_backfill"
+    return score, match
 
 
 def strip_corpus(text: str, include_title: bool = True) -> str:
@@ -216,12 +338,95 @@ def pick_corpus_files(
     return random.sample(candidates, num_samples)
 
 
+def pick_corpus_records(
+    corpus_dir: Path,
+    num_samples: int,
+    draft_path: Path,
+    fragment_chars: int = 0,
+    min_fragment_chars: int = 0,
+    include_titles: bool = True,
+    target_features: Optional[ArticleFeatures] = None,
+    length_tolerance: float = 0.0,
+    match_genre: str = "none",
+) -> List[CorpusRecord]:
+    """Select corpus records, optionally genre/length matched to the draft.
+
+    Matching is a confound-control step for blind review. It should not be
+    interpreted as authorship proof and it should not force exact genre when
+    the small corpus lacks enough matched originals.
+    """
+    target_genre = resolve_target_genre(match_genre, target_features)
+    candidates = sorted(
+        p for p in corpus_dir.iterdir()
+        if p.is_file() and p.suffix.lower() in ('.md', '.txt')
+    )
+    draft_resolved = draft_path.resolve()
+    candidates = [p for p in candidates if p.resolve() != draft_resolved]
+
+    records: List[CorpusRecord] = []
+    for path in candidates:
+        raw = path.read_text(encoding='utf-8')
+        stripped = strip_corpus(raw, include_title=include_titles)
+        stripped = extract_fragment(stripped, fragment_chars)
+        if min_fragment_chars > 0 and chinese_len(stripped) < min_fragment_chars:
+            continue
+        features = article_features(stripped)
+        _, match = match_score(features, target_features, target_genre, length_tolerance)
+        records.append(CorpusRecord(path=path, text=stripped, features=features, match=match))
+
+    if len(records) < num_samples:
+        raise ValueError(
+            f"Corpus contains {len(records)} eligible file(s), "
+            f"but {num_samples} were requested."
+        )
+
+    if match_genre == "none":
+        if target_features and length_tolerance > 0:
+            lower = max(0, int(target_features.chars * (1 - length_tolerance)))
+            upper = int(target_features.chars * (1 + length_tolerance))
+            length_matched = [record for record in records if lower <= record.features.chars <= upper]
+            if len(length_matched) >= num_samples:
+                records = length_matched
+            elif target_features.chars > 0:
+                raise ValueError(
+                    f"Corpus contains {len(length_matched)} length-matched file(s), "
+                    f"but {num_samples} were requested."
+                )
+        return random.sample(records, num_samples)
+
+    sorted_records = sorted(
+        records,
+        key=lambda record: (
+            float(record.match["score"]),
+            abs(record.features.chars - (target_features.chars if target_features else record.features.chars)),
+            record.path.name,
+        ),
+    )
+    if target_genre:
+        exact_records = [record for record in sorted_records if record.features.genre == target_genre]
+        if len(exact_records) >= num_samples:
+            top_k = min(len(exact_records), max(num_samples, num_samples * 3))
+            return random.sample(exact_records[:top_k], num_samples)
+        if exact_records:
+            backfill_needed = num_samples - len(exact_records)
+            backfill_pool = [record for record in sorted_records if record.features.genre != target_genre]
+            top_k = min(len(backfill_pool), max(backfill_needed, backfill_needed * 3))
+            if len(backfill_pool[:top_k]) < backfill_needed:
+                raise ValueError(
+                    f"Corpus contains {len(records)} eligible file(s), "
+                    f"but {num_samples} were requested."
+                )
+            return exact_records + random.sample(backfill_pool[:top_k], backfill_needed)
+    top_k = min(len(sorted_records), max(num_samples, num_samples * 3))
+    return random.sample(sorted_records[:top_k], num_samples)
+
+
 # ---------------------------------------------------------------------------
 # Prompt builder
 # ---------------------------------------------------------------------------
 
-def build_subagent_prompt(output_dir: Path, num_total: int) -> str:
-    """Build a self-contained subagent prompt for the blind distinguisher."""
+def build_judge_prompt(output_dir: Path, num_total: int) -> str:
+    """Build a self-contained prompt for the isolated blind distinguisher."""
     sample_files = sorted(
         p.name for p in output_dir.iterdir()
         if p.is_file() and p.name.startswith('sample-') and p.suffix == '.txt'
@@ -330,6 +535,7 @@ def prepare_blind_test(
     include_skill_context: bool = False,
     include_titles: bool = True,
     require_title: bool = True,
+    match_genre: str = "none",
 ) -> Dict[str, dict]:
     """Create anonymized samples and return the mapping.
 
@@ -353,10 +559,13 @@ def prepare_blind_test(
             )
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # --- Prepare draft first so corpus selection can be length-matched. ---
-    draft_sample: Optional[Tuple[str, str, bool]] = None
-    target_chars = 0
-    if include_draft:
+    if match_genre not in GENRE_CHOICES:
+        raise ValueError(f"--match-genre must be one of: {', '.join(GENRE_CHOICES)}")
+
+    # --- Prepare draft first so corpus/placebo selection can be matched. ---
+    draft_sample: Optional[Tuple[str, str, bool, ArticleFeatures, dict]] = None
+    target_features: Optional[ArticleFeatures] = None
+    if include_draft or match_genre != "none":
         draft_raw = draft_path.read_text(encoding='utf-8')
         draft_stripped = strip_draft(
             draft_raw,
@@ -365,36 +574,47 @@ def prepare_blind_test(
         )
         draft_stripped = extract_fragment(draft_stripped, fragment_chars)
         draft_chars = chinese_len(draft_stripped)
-        if min_fragment_chars > 0 and draft_chars < min_fragment_chars:
+        if include_draft and min_fragment_chars > 0 and draft_chars < min_fragment_chars:
             raise ValueError(
                 f"Draft sample has {draft_chars} Chinese characters, "
                 f"below --min-fragment-chars={min_fragment_chars}. Expand the draft or "
                 "use a matched short-genre evaluation."
             )
-        target_chars = draft_chars
-        draft_sample = (draft_path.name, draft_stripped, True)
+        target_features = article_features(draft_stripped)
+        if include_draft:
+            target_genre = resolve_target_genre(match_genre, target_features)
+            draft_match = {
+                "score": 0.0,
+                "target_genre": target_genre or "",
+                "candidate_genre": target_features.genre,
+                "exact_genre": bool(target_genre and target_genre == target_features.genre),
+                "length_delta_ratio": 0.0,
+                "line_delta_ratio": 0.0,
+                "within_length_tolerance": True,
+                "genre_penalty": 0.0,
+                "selection_reason": "draft_anchor",
+            }
+            draft_sample = (draft_path.name, draft_stripped, True, target_features, draft_match)
 
     # --- Select corpus files ---
     originals_needed = num_samples if include_draft else num_samples + 1
-    originals = pick_corpus_files(
+    originals = pick_corpus_records(
         corpus_dir,
         originals_needed,
         draft_path,
         fragment_chars=fragment_chars,
         min_fragment_chars=min_fragment_chars,
         include_titles=include_titles,
-        target_chars=target_chars,
-        length_tolerance=length_tolerance if include_draft else 0.0,
+        target_features=target_features,
+        length_tolerance=length_tolerance if target_features else 0.0,
+        match_genre=match_genre,
     )
 
     # --- Strip and collect all samples ---
-    samples: List[Tuple[str, str, bool]] = []  # (source_label, text, is_draft)
+    samples: List[Tuple[str, str, bool, ArticleFeatures, dict]] = []
 
-    for path in originals:
-        raw = path.read_text(encoding='utf-8')
-        stripped = strip_corpus(raw, include_title=include_titles)
-        stripped = extract_fragment(stripped, fragment_chars)
-        samples.append((path.name, stripped, False))
+    for record in originals:
+        samples.append((record.path.name, record.text, False, record.features, record.match))
 
     if draft_sample:
         samples.append(draft_sample)
@@ -405,7 +625,7 @@ def prepare_blind_test(
     pad = max(2, len(str(total)))
     mapping: Dict[str, dict] = {}
 
-    for i, (source, text, is_draft) in enumerate(samples, start=1):
+    for i, (source, text, is_draft, features, match) in enumerate(samples, start=1):
         filename = f'sample-{i:0{pad}d}.txt'
         (output_dir / filename).write_text(text, encoding='utf-8')
         mapping[filename] = {
@@ -414,6 +634,8 @@ def prepare_blind_test(
             'title': sample_title(text),
             'chars': chinese_len(text),
             'line_stats': line_stats(text),
+            'genre': features.genre,
+            'match': match,
         }
 
     # --- Write mapping.json (for the controller only) ---
@@ -481,6 +703,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         help='Allowed relative length difference for complete-article impostor rounds.',
     )
     parser.add_argument(
+        '--match-genre',
+        choices=GENRE_CHOICES,
+        default='none',
+        help=(
+            'Optional blind-review confound control. Use auto to infer the '
+            'draft genre, or pass a genre explicitly. Placebo rounds use the '
+            'draft as a hidden matching anchor without including it.'
+        ),
+    )
+    parser.add_argument(
         '--strip-titles',
         action='store_true',
         help='Diagnostic ablation only. Default keeps titles because titles are part of the article.',
@@ -538,6 +770,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             include_draft=not args.placebo,
             include_skill_context=args.include_skill_context,
             include_titles=not args.strip_titles,
+            match_genre=args.match_genre,
         )
     except (FileNotFoundError, NotADirectoryError, FileExistsError, ValueError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
@@ -548,7 +781,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     draft_file = next((k for k, v in mapping.items() if v['is_draft']), 'NONE')
     print(str(output_dir))
     print()
-    prompt = build_subagent_prompt(output_dir, total)
+    prompt = build_judge_prompt(output_dir, total)
     (output_dir / 'prompt.txt').write_text(prompt, encoding='utf-8')
     print(prompt)
     print()
