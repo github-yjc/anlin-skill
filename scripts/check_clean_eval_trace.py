@@ -334,6 +334,7 @@ def actual_draft_mutation_indices(text: str) -> list[int]:
         FORMATTED_PATCH_DRAFT_PRE_CONTEXT_PATTERN,
         r"(?im)^\s*TOOL\s+filesystem_(?:write|edit)_file\b[^\n]*(?:\n[^\n]*){0,4}draft\.md\b",
         r"(?im)^\s*INPUT\s+[^\n]*(?:path|file)[^\n]*draft\.md[^\n]*(?:content|write|edit|old_string|new_string)",
+        r"(?im)^\s*INPUT\s+[^\n]*(?:content|write|edit|old_string|new_string)[^\n]*(?:path|file)[^\n]*draft\.md",
         r"(?im)^\s*(?:\$|>|>>)?\s*(?:@['\"]\s*\|\s*)?(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?\.?[/\\]?draft\.md['\"]?\b",
         r"(?im)^\s*['\"]@?\s*\|\s*(?:Set-Content|Out-File)\s+(?:-Path|-LiteralPath)?\s*['\"]?\.?[/\\]?draft\.md['\"]?\b",
     ]
@@ -634,6 +635,19 @@ def collect_findings(text: str) -> list[TraceFinding]:
             )
         )
 
+    stop_index = actual_clean_stop_index(normalized)
+    checker_indices = actual_clean_run_checker_indices(normalized)
+    draft_mutations = actual_draft_mutation_indices(normalized)
+    if stop_index < 0 and checker_indices and draft_mutations and draft_mutations[-1] > checker_indices[-1]:
+        findings.append(
+            TraceFinding(
+                "error",
+                "clean-eval改写后未复跑wrapper",
+                clean_excerpt(normalized, draft_mutations[-1]),
+                "After any draft.md rewrite following a clean-run preflight or checker call, run clean_run_checker.py again and reach its next bounded result. A timeout or session end immediately after the rewrite is an incomplete artifact, not a valid bounded checkpoint.",
+            )
+        )
+
     stale_rhythm = stale_rhythm_rewrite_indices(normalized)
     if stale_rhythm is not None:
         mutation_index, _checker_index = stale_rhythm
@@ -646,7 +660,6 @@ def collect_findings(text: str) -> list[TraceFinding]:
             )
         )
 
-    stop_index = actual_clean_stop_index(normalized)
     if stop_index >= 0:
         after_stop = normalized[stop_index:]
         post_stop_patterns = [

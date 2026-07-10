@@ -4745,6 +4745,73 @@ class AnlinToolingTests(unittest.TestCase):
                 any(item["rule"] == "clean-eval可见过程计划" and item["severity"] == "warning" for item in findings)
             )
 
+    def test_clean_eval_trace_flags_rewrite_after_preflight_without_wrapper_recheck(self) -> None:
+        session = {
+            "info": {"directory": "C:\\case", "title": "eval"},
+            "messages": [
+                {
+                    "parts": [
+                        {
+                            "type": "tool",
+                            "tool": "bash",
+                            "state": {
+                                "input": {"command": "Test-Path .anlin-clean-eval-mode; Get-Location"},
+                                "output": "True\nC:\\case\n",
+                            },
+                        },
+                        {
+                            "type": "tool",
+                            "tool": "write",
+                            "state": {
+                                "input": {"filePath": "C:\\case\\draft.md", "content": "日寄\n\n首稿"},
+                                "output": "Wrote file successfully.",
+                            },
+                        },
+                        {
+                            "type": "tool",
+                            "tool": "bash",
+                            "state": {
+                                "input": {
+                                    "command": "python C:\\skill\\scripts\\clean_run_checker.py draft.md --strict --draft-gate"
+                                },
+                                "output": "CLEAN_RUN_PREFLIGHT: draft is not ready for checker call 1/2\n",
+                            },
+                        },
+                        {
+                            "type": "tool",
+                            "tool": "read",
+                            "state": {
+                                "input": {"filePath": "C:\\skill\\references\\clean-generation-brief.md"},
+                                "output": "repair guidance",
+                            },
+                        },
+                        {
+                            "type": "tool",
+                            "tool": "write",
+                            "state": {
+                                "input": {"content": "日寄\n\n修订稿", "filePath": "C:\\case\\draft.md"},
+                                "output": "Wrote file successfully.",
+                            },
+                        },
+                    ]
+                }
+            ],
+        }
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-export.json"
+            path.write_text(json.dumps(session, ensure_ascii=False), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval改写后未复跑wrapper", rules)
+
     def test_clean_eval_trace_does_not_treat_stop_instruction_as_write(self) -> None:
         log = """
         → Read C:/skill/references/clean-generation-brief.md
