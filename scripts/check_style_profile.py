@@ -33,7 +33,7 @@ SUGGESTIONS = {
     "structure": "Repair structure by changing scene movement, not by adding a decorative paragraph.",
     "title": "Weaken diagnostic or clever title behavior; for standard blind evaluation, plain 日寄 is often safer.",
     "line_rhythm": "Change rhythm through action, speech, body interruption, or thought turns; do not create a visible short-line grid.",
-    "ngram_texture": "Inspect repeated local templates and n-gram reuse; delete one repeated body/object packet and replace its function with a different action, object, or social turn.",
+    "ngram_texture": "Inspect n-gram direction against matched originals; preserve natural recurrence when reuse is low, and remove a whole mechanical packet only when repetition is high.",
     "punctuation": "Repair punctuation drift through natural spoken/thought continuation, not punctuation sprinkling.",
     "connectors": "Remove explanatory glue and let scenes jump by object, body, app surface, or another person's line.",
     "texture": "Adjust lived texture through consequence: if body/object texture is high, remove repeated proof-detail before adding social, payment, route, reply, or room movement.",
@@ -47,7 +47,7 @@ REPAIR_BRIEF_ACTIONS = {
     "structure": "change scene movement: cut designed prompt echoes, opening-tail loops, or decorative off-axis material before adding anything.",
     "title": "retitle from the earned side action or weak handle; do not use a diagnostic prompt label.",
     "line_rhythm": "shape first: rebuild the visible body as 6-8 line-broken clusters, not a handful of prose paragraphs or equal sentence rows.",
-    "ngram_texture": "delete one repeated local packet or line-start template; replace its function with a different action or social consequence.",
+    "ngram_texture": "follow the reported n-gram direction; do not synonym-scrub low-reuse prose or preserve a mechanically repeated packet.",
     "punctuation": "let punctuation follow unfinished action/reply/payment/door/body movement; do not globally merge rows or split every sentence.",
     "connectors": "create a turn that naturally needs connection: failed reply, payment handoff, body interruption, route/object change; do not paste connector words.",
     "texture": "remove body/object proof that does not change the next action; replace it with reply, payment, route, room, or social position movement.",
@@ -69,6 +69,36 @@ REPAIR_FAMILY_ORDER = [
     "title",
     "other",
 ]
+
+
+def ngram_drift_mode(metric: str, direction: str | None) -> str | None:
+    if direction is None:
+        return None
+    if metric.startswith("unique_"):
+        return "under_reuse" if direction == "high" else "over_reuse"
+    if metric.startswith(("repeated_", "max_", "line_start_", "consecutive_line_start_")):
+        return "under_reuse" if direction == "low" else "over_reuse"
+    return None
+
+
+def finding_suggestion(family: str, metric: str, direction: str | None) -> str:
+    if family != "ngram_texture":
+        return SUGGESTIONS.get(family, SUGGESTIONS["other"])
+    mode = ngram_drift_mode(metric, direction)
+    if mode == "under_reuse":
+        return (
+            "Natural local repetition is below the matched corpus range. Preserve a plain action or object phrase "
+            "that genuinely recurs; do not synonym-scrub repeated words or invent a decorative refrain."
+        )
+    if mode == "over_reuse":
+        return (
+            "Mechanical local repetition is above the matched corpus range. Delete one repeated packet or line-start "
+            "template as a whole; do not swap individual repeated words for synonyms."
+        )
+    return (
+        "Inspect n-gram direction against matched originals before editing. Preserve ordinary action/object recurrence "
+        "and remove only clearly mechanical repeated packets."
+    )
 
 
 def primary_source_rewrite(families: list[str]) -> str:
@@ -142,6 +172,7 @@ class ProfileFinding:
     expected: str
     rule: str
     suggestion: str
+    direction: str | None = None
     level: str = "yellow"
 
 
@@ -267,12 +298,14 @@ def continuous_findings(document: Any, profile: dict[str, Any], include_info: bo
         severity = ""
         rule = ""
         level = "yellow"
+        direction: str | None = None
         z_value = robust_z(observed, summary)
         min_value = float(summary.get("min", q05))
         max_value = float(summary.get("max", q95))
         if observed < min_value or observed > max_value or abs(z_value) >= 7.0:
             severity = "warning"
             level = "red"
+            direction = "low" if observed < min_value or z_value < 0 else "high"
             if observed < min_value or observed > max_value:
                 rule = "outside corpus observed min-max"
             else:
@@ -280,9 +313,11 @@ def continuous_findings(document: Any, profile: dict[str, Any], include_info: bo
         elif observed < q05 or observed > q95:
             severity = "warning"
             level = "yellow"
+            direction = "low" if observed < q05 else "high"
             rule = "outside corpus q05-q95"
         elif include_info and (observed < q10 or observed > q90):
             severity = "info"
+            direction = "low" if observed < q10 else "high"
             rule = "outside corpus q10-q90"
         if severity:
             level = calibrate_level_for_family(family, level)
@@ -294,7 +329,8 @@ def continuous_findings(document: Any, profile: dict[str, Any], include_info: bo
                     observed=observed,
                     expected=f"q10-q90={q10:.3f}..{q90:.3f}; q05-q95={q05:.3f}..{q95:.3f}; robust_z={z_value:.2f}",
                     rule=rule,
-                    suggestion=SUGGESTIONS.get(family, SUGGESTIONS["other"]),
+                    suggestion=finding_suggestion(family, metric, direction),
+                    direction=direction,
                     level=level,
                 )
             )
@@ -327,7 +363,8 @@ def predictive_findings(
                     observed=float(observed),
                     expected="0 in generated-draft gate",
                     rule="generated draft hard gate",
-                    suggestion=SUGGESTIONS[family],
+                    suggestion=finding_suggestion(family, metric, "high"),
+                    direction="high",
                     level="red",
                 )
             )
@@ -340,17 +377,21 @@ def predictive_findings(
         p10, p90 = beta_binomial_interval(denominator, alpha, beta, 0.10, 0.90)
         severity = ""
         rule = ""
+        direction: str | None = None
         if observed < p01 or observed > p99:
             severity = "warning"
             level = "red"
+            direction = "low" if observed < p01 else "high"
             rule = "outside posterior predictive 98% central interval"
         elif observed < p05 or observed > p95:
             severity = "warning"
             level = "yellow"
+            direction = "low" if observed < p05 else "high"
             rule = "outside posterior predictive 90% central interval"
         elif include_info and (observed < p10 or observed > p90):
             severity = "info"
             level = "yellow"
+            direction = "low" if observed < p10 else "high"
             rule = "outside posterior predictive 80% central interval"
         else:
             level = "green"
@@ -366,7 +407,8 @@ def predictive_findings(
                     observed=float(observed),
                     expected=f"count80={p10}..{p90}; count90={p05}..{p95}; count98={p01}..{p99}; observed_per_1k={per_1k:.3f}",
                     rule=rule,
-                    suggestion=SUGGESTIONS.get(family, SUGGESTIONS["other"]),
+                    suggestion=finding_suggestion(family, metric, direction),
+                    direction=direction,
                     level=level,
                 )
             )
@@ -682,6 +724,50 @@ def ordered_repair_families(summary: dict[str, Any]) -> list[str]:
     )
 
 
+def finding_direction(finding: dict[str, Any]) -> str | None:
+    direction = finding.get("direction")
+    return direction if direction in {"low", "high"} else None
+
+
+def ngram_repair_mode(report: dict[str, Any]) -> str | None:
+    under_reuse = False
+    over_reuse = False
+    for finding in report.get("findings", []):
+        if finding.get("family") != "ngram_texture":
+            continue
+        metric = str(finding.get("metric", ""))
+        mode = ngram_drift_mode(metric, finding_direction(finding))
+        under_reuse |= mode == "under_reuse"
+        over_reuse |= mode == "over_reuse"
+    if under_reuse and not over_reuse:
+        return "under_reuse"
+    if over_reuse and not under_reuse:
+        return "over_reuse"
+    if under_reuse or over_reuse:
+        return "mixed"
+    return None
+
+
+def repair_brief_action(family: str, report: dict[str, Any]) -> str:
+    if family != "ngram_texture":
+        return REPAIR_BRIEF_ACTIONS.get(family, REPAIR_BRIEF_ACTIONS["other"])
+    mode = ngram_repair_mode(report)
+    if mode == "under_reuse":
+        return (
+            "preserve one plain action or object phrase that genuinely recurs inside the existing chain; "
+            "do not synonym-scrub repeated words or make every line uniquely worded, and do not invent a decorative refrain."
+        )
+    if mode == "over_reuse":
+        return (
+            "delete one mechanically repeated local packet or line-start template as a whole; replace its function "
+            "with a different action or social consequence instead of swapping individual repeated words for synonyms."
+        )
+    return (
+        "do not optimize n-gram counts directly. Preserve ordinary action/object repetition, remove only a clearly "
+        "mechanical repeated packet, and do not synonym-scrub the article into uniformly unique wording."
+    )
+
+
 def format_repair_brief(report: dict[str, Any]) -> str:
     summary = report["summary"]
     document = report.get("document") or {}
@@ -732,7 +818,7 @@ def format_repair_brief(report: dict[str, Any]) -> str:
         ]
     )
     for family in families[:3]:
-        lines.append(f"  - {family}: {REPAIR_BRIEF_ACTIONS.get(family, REPAIR_BRIEF_ACTIONS['other'])}")
+        lines.append(f"  - {family}: {repair_brief_action(family, report)}")
     if len(families) > 3:
         lines.append("  - remaining families: ignore during this write unless they are also solved by the same source rewrite; do not chase them one by one.")
     lines.extend(

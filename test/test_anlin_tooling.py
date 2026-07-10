@@ -10596,6 +10596,134 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("q05-q95", full_result.stdout)
             self.assertIn("robust_z=", full_result.stdout)
 
+    def test_style_profile_repair_brief_preserves_natural_repetition_when_ngram_reuse_is_too_low(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(
+                "\n".join(
+                    [
+                        "# 门口",
+                        "",
+                        "甲乙丙丁戊己庚辛壬癸。",
+                        "子丑寅卯辰巳午未申酉。",
+                        "天地玄黄宇宙洪荒日月盈昃。",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            profile = Path(temp) / "profile.json"
+            profile.write_text(
+                json.dumps(
+                    {
+                        "version": "test",
+                        "corpus_file_count": 38,
+                        "expected_corpus_count": 38,
+                        "value_summary": {
+                            "line_mean_chars": {
+                                "min": 0.0,
+                                "q05": 0.0,
+                                "q10": 0.0,
+                                "median": 0.0,
+                                "q90": 0.0,
+                                "q95": 0.0,
+                                "max": 0.0,
+                                "mean": 0.0,
+                                "mad": 0.0,
+                            },
+                            "punct_period_per_1k": {
+                                "min": 0.0,
+                                "q05": 0.0,
+                                "q10": 0.0,
+                                "median": 0.0,
+                                "q90": 0.0,
+                                "q95": 0.0,
+                                "max": 0.0,
+                                "mean": 0.0,
+                                "mad": 0.0,
+                            },
+                        },
+                        "value_families": {
+                            "line_mean_chars": "line_rhythm",
+                            "punct_period_per_1k": "punctuation",
+                        },
+                        "count_summary": {
+                            "repeated_4gram_templates": {
+                                "family": "ngram_texture",
+                                "alpha": 100.0,
+                                "beta": 1.0,
+                            }
+                        },
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+
+            full_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECK_PROFILE),
+                    str(draft),
+                    "--profile",
+                    str(profile),
+                    "--draft-gate",
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(full_result.returncode, 0, full_result.stderr)
+            report = json.loads(full_result.stdout)
+            ngram_finding = next(
+                finding for finding in report["findings"] if finding["family"] == "ngram_texture"
+            )
+            self.assertEqual(ngram_finding["direction"], "low")
+            self.assertIn("Natural local repetition is below", ngram_finding["suggestion"])
+            self.assertIn("do not synonym-scrub repeated words", ngram_finding["suggestion"])
+            self.assertNotIn("delete one repeated body/object packet", ngram_finding["suggestion"])
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CHECK_PROFILE),
+                    str(draft),
+                    "--profile",
+                    str(profile),
+                    "--draft-gate",
+                    "--strict",
+                    "--repair-brief",
+                    "--genre",
+                    "standard",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("root_families: punctuation, line_rhythm, ngram_texture", result.stdout)
+            self.assertIn("preserve one plain action or object phrase that genuinely recurs", result.stdout)
+            self.assertIn("do not synonym-scrub repeated words", result.stdout)
+            self.assertNotIn(
+                "ngram_texture: delete one repeated local packet or line-start template",
+                result.stdout,
+            )
+
+    def test_runtime_ngram_repair_guidance_is_direction_aware(self) -> None:
+        runtime_files = [
+            ROOT / "references" / "runtime-brief.md",
+            ROOT / "references" / "clean-generation-brief.md",
+            ROOT / "references" / "finalized-repair-minimum.md",
+        ]
+        for path in runtime_files:
+            text = path.read_text(encoding="utf-8")
+            self.assertIn("If n-gram reuse is too low or uniqueness is too high", text)
+            self.assertIn("do not synonym-scrub repeated words", text)
+            self.assertIn("If repetition is too high or templates repeat mechanically", text)
+
     def test_prepare_finalized_repair_brief_writes_compact_artifact_only_brief(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             finalized_dir = Path(temp) / "finalized"
