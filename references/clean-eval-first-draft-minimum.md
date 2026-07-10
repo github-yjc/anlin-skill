@@ -25,13 +25,19 @@ Start from friction, not from the prompt noun.
 
 Pick one small daily snag that would exist without the assignment: a door, sleeve, sink, bowl, charger, slipper, key, bag, payment, route, room chore, body interruption, bad reply, or object in the wrong place.
 
-Then choose three consequence kernels in your head:
+Then privately check three overlapping consequence functions:
 
 - side engine: a practical snag changes hand, room, body, reply, route, payment, or next action
 - public hinge: another person, app/payment step, object handoff, door movement, or visible body problem keeps pressure active long enough to force a reply, wait, point, hold, wipe, drop, hide, pay, answer, leave, or change of room/route/body
 - off-axis residue: one unrelated daily branch changes a later action; it is not random decoration
 
+The three functions may overlap; they are not three scene modules, paragraph slots, or proof packets. One moving chain may carry side engine and public hinge at once; an off-axis residue may grow from the position or object that chain leaves behind and change a later action. Do not draft a separate demonstration for each function or assign one blank-line cluster to each label. The test is whether consequence transfers, not whether the article visibly proves three parts.
+
 The user's topic is pressure, not the route map. Let one prompt surface leak only after the first engine has already moved the body, room, hand, route, payment, or reply. A complete article does not mean complete prompt coverage.
+
+Do not compress amounts, reply candidates, or object choices into an `A、B、C` inventory. Put one choice into motion: type it, delete it, pay it, put it back, choose it badly, or leave it unfinished. A second option belongs only when it changes the next action; omit the rest instead of displaying the prompt's materials.
+
+Do not force fresh wording onto every return. When the same real action or object remains active later, let one plain action/object phrase return unchanged instead of synonym-scrubbing it. This is permission for natural recurrence, not a decorative refrain or repetition quota; never plant an echo only to make the surface look less unique.
 
 ## Standard Diary Shape
 
@@ -63,6 +69,8 @@ Write breathing clusters, not sentence rows. A cluster can be 2-5 visible lines:
 
 Punctuation follows movement. Do not fix rhythm by deleting punctuation, adding connector words, making one giant comma chain, or turning every beat into `没管。/删了。/没回。/算了。`.
 
+Do not allocate one period to each line or cluster. A cluster is a span of pressure, not a sentence template: an action may continue across several visible rows and land only when the hand, reply, payment, door, body, or object actually changes state. Do not close a row merely because the line break is already there.
+
 Every cluster must contain an unfinished action question. A visible `，` should answer "what is still happening after this line?" — a hand still dripping, a reply still unsent, a payment still hanging, a door still open, a body still exposed. If a cluster can be read as a finished statement with no continuing pressure, rebuild that cluster before saving `draft.md`.
 
 ## Prompt Displacement
@@ -78,7 +86,7 @@ For feed, holiday, wrong-food, invitation, old-chat, annual-summary, illness, de
 
 If the draft can be summarized as `phone/feed -> order food -> wrong item -> wash bowl -> bed`, or `message -> price ledger -> refusal -> old chat -> room object`, restart the middle before saving.
 
-For invitation, wedding, reunion, or other social-decline prompts, one kernel must be the refusal aftermath itself. A side object may open the article, but the refusal must change a later action through a bad reply, ordinary response, route/payment hesitation, old debt, door/body interruption, or visible social lowering. Keep the chain small: one consequence transfer, one or two later actions, then a loose practical exit. Do not let sink, water, charger, sleeve, food, or another room object carry the whole article while the refusal remains a chat summary; also do not expand it into several days of wedding logistics or workplace biography. Do not move the plot by message order such as `X发了第二条`, `第二条只...`, `又发来一条`, `下面还有一条`, `下面还有一个...`, or `后面跟着...`; use one cropped screen surface that changes hand, reply, payment, route, or body action.
+For invitation, wedding, reunion, or other social-decline prompts, the refusal aftermath must be carried by the moving chain itself. A side object may open the article, but the refusal must change a later action through a bad reply, ordinary response, route/payment hesitation, old debt, door/body interruption, or visible social lowering. Keep the chain small: one consequence transfer, one or two later actions, then a loose practical exit. Do not let sink, water, charger, sleeve, food, or another room object carry the whole article while the refusal remains a chat summary; also do not expand it into several days of wedding logistics or workplace biography. Do not move the plot by message order such as `X发了第二条`, `第二条只...`, `又发来一条`, `下面还有一条`, `下面还有一个...`, or `后面跟着...`; use one cropped screen surface that changes hand, reply, payment, route, or body action.
 
 For this family, an `OK` reply or silence is not enough unless it makes the narrator do something lower or more exposed. A plain OK reply plus a private screen mark is still a screen loop if it does not change what the narrator does next. Before saving, give the refusal one active ugly consequence: a wet/dirty hand leaves a mark while answering, somebody at the door waits or points while the reply/payment is unfinished, a payment/route action stalls, the narrator sends a worse small reply, or the body/door/object problem changes the next move. Do not add a private stain or shame sentence after the fact; the low consequence must still be tied to the social pressure. An unrelated delivery, food burn, room chore, or outside errand after the refusal is not a substitute; if it still works after deleting the invitation, it is off-axis residue, not the refusal engine.
 
@@ -90,7 +98,7 @@ Do not overcorrect the refusal into a public crowd scene or tidy etiquette endin
 
 If the refusal excuse is `忙项目`, `最近有项目`, or similar, keep it as a lie/excuse surface inside the reply. Do not make it true by inventing current work logistics such as a leader, office group, project deadline, leave request, half-day leave, `请不下来`, 调休, 排班, attendance, salary deduction, shift, or day-off penalty. The lie should damage the reply, hand, payment, route, body, or status; it should not create a new job biography.
 
-The refusal aftermath also has to shape the page rhythm before saving. Do not first write a smooth refusal story and hope punctuation repair will make it diary-like. Build two or three local breathing clusters where the social pressure is still physically unfinished: a reply is being deleted, a transfer or route check is hanging open, somebody at the door is waiting or pointing, a wet/dirty hand changes how the phone is held, or the other person's plain response makes the next action smaller. One cluster may use a line-final comma because the action continues; another may land with a hard stop; one short drop may carry the bad answer or body/social lowering. If the only movement is `message -> calculation -> refusal -> room object keeps failing`, rebuild before writing `draft.md`.
+The refusal aftermath also has to shape the page rhythm before saving. Do not first write a smooth refusal story and hope punctuation repair will make it diary-like. Let the social pressure stay physically unfinished across adjacent movement: a reply is being deleted, a transfer or route check is hanging open, somebody at the door is waiting or pointing, a wet/dirty hand changes how the phone is held, or the other person's plain response makes the next action smaller. Do not manufacture separate comma, hard-stop, and short-drop clusters as proof of rhythm; line endings follow the same refusal-coupled action as it turns. If the only movement is `message -> calculation -> refusal -> room object keeps failing`, rebuild before writing `draft.md`.
 
 The refusal consequence must be refusal-coupled. A delivery, food burn, room chore, or outside errand that would still make sense without the wedding/invitation is off-axis residue, not a refusal engine. Test this: if deleting the invitation leaves the scene sequence intact, the consequence is not refusal-coupled. Rebuild until the post-refusal action depends on the refusal having happened.
 

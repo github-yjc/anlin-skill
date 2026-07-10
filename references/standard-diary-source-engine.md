@@ -14,7 +14,7 @@ When the write tool opens, do not paste five dense body paragraphs. The body in 
 
 ## Build The Middle First
 
-Before writing, choose three private consequence kernels in your head. Each kernel must be a plain cause-and-next-action relation:
+Before writing, check three overlapping consequence functions inside one moving middle. Each function is a plain cause-and-next-action relation:
 
 ```text
 something happens, so I must do the next thing
@@ -26,9 +26,15 @@ Use functions, not feature labels:
 2. **Public hinge**: another person, app, payment step, object handoff, door movement, or visible body problem forces a reply, wait, point, hold, return, wipe, drop, hide, pay, answer, leave, or change of room/route/body while that outside pressure is still active.
 3. **Off-axis residue**: a small unrelated daily branch changes the next action. It is not random decoration; deleting it should break a later reply, object state, body state, or room position.
 
+The three functions may overlap; they are not three scene modules, paragraph slots, or proof packets. One door, handoff, payment, reply, or body chain may carry more than one function, and the off-axis residue may grow from the position that chain leaves behind. Do not write three separate demonstrations or assign one blank-line cluster to each label. The engine is consequence transfer, not visible completion of a three-part plan.
+
 The user's topic is pressure, not a route map. Let one prompt surface leak after the first engine has already moved the body or room. A complete article does not mean complete prompt coverage.
 
-One material family cannot own all three kernels. If `oil/stain/sleeve/bowl/phone` or any other noun family appears in the title, handoff, table, sink, pants, and tail, the article is not richer; it has become a stain ledger. Keep the strongest occurrence, then make the next kernel change medium: a reply, payment, door, route, neighbor/cashier/rider sentence, room position, or mistaken explanation. The engine is the consequence transfer, not the repeated material.
+Do not compress amounts, reply candidates, or object choices into an `A、B、C` inventory. Put one option into action and let it be changed, deleted, paid, returned, chosen badly, or left unfinished. A second option belongs only when it alters the next move; unused prompt material can disappear.
+
+One material family cannot become proof for every function. If `oil/stain/sleeve/bowl/phone` or any other noun family appears in the title, handoff, table, sink, pants, and tail, the article is not richer; it has become a stain ledger. Keep the strongest occurrence, then let the movement change medium: a reply, payment, door, route, neighbor/cashier/rider sentence, room position, or mistaken explanation. The engine is the consequence transfer, not the repeated material.
+
+Material restraint does not mean synonym churn. When the same real action or object stays active later, let one plain action/object phrase return unchanged instead of inventing a fresh synonym for every mention. This is permission for natural recurrence, not a decorative refrain or repetition quota; do not plant a repeated line only to satisfy texture.
 
 The public hinge has to leave a mark before it disappears. A later private inspection does not turn a contact into social consequence. If the scene is `rider points at leak -> narrator takes bag -> rider leaves -> narrator studies oil on pants`, the hinge ended too early. Keep the outside pressure inside the next move: the narrator fails to answer, asks for paper, blocks the doorway, wipes a hand on pants while the person waits, a payment/refund stalls, or a neighbor has to step around the stain. One plain sentence or forced hand movement is enough; do not build a dialogue ladder. A neutral question about a heater, delivery, order, balance, or hallway problem is still only a cameo when it does not touch the wet/dirty/payment/reply/body fact and change the next action. Opening the door, seeing corridor light, or noticing a neighbor light under the door is threshold atmosphere, not a public hinge, unless the contact or practical handoff changes what the narrator does.
 
@@ -50,7 +56,7 @@ This is not a five-item content quota. It is a source order. If the article open
 
 ## Standard Diary Mass
 
-Each kernel needs enough visible movement to carry weight: action, interruption, after-effect. A standard diary first draft usually needs several breathing clusters, not one sentence per row and not prose paragraphs. A 15-25-row article can still be prose-block compression when every row carries multiple complete actions; do not save it as a standard diary just because it has line breaks.
+The article needs enough visible movement overall, but do not give each function its own action-interruption-after-effect packet. Let one chain carry more than one job. A standard diary first draft usually needs several breathing clusters, not one sentence per row and not prose paragraphs. A 15-25-row article can still be prose-block compression when every row carries multiple complete actions; do not save it as a standard diary just because it has line breaks.
 
 Write clusters like this in the article, without labels:
 
@@ -73,6 +79,8 @@ Connector words must come from real scene turns: a failed attempt forces `不过
 ## Cluster Grammar, Not Metrics
 
 If a cluster can be summarized as `A happened. B happened. C happened.`, it will likely become a period-row grid. Before saving, make the cluster answer a smaller movement question: `what is still happening after this line?` One row may end with `，` because the hand, reply, payment, door, or body has not finished moving. One row may use `不过/结果/于是/因为/所以` only because the next action truly changes. One short row lands the failed answer or body/social drop. Do this in syntax, not by changing punctuation on finished captions.
+
+Do not allocate one period to each line or cluster. A blank-line cluster is not a sentence quota; the same action may continue across several rows and land only when its practical or social state changes. Do not seal a row just because it already looks like a beat, and do not force every cluster to demonstrate one comma, one hard stop, and one short drop.
 
 Do not let `已经/现在/只是/可能` carry most of the article's movement. Those words can stay when true, but if they are the only connectors, the draft is probably still a static sequence. A stronger turn usually comes from a failed attempt, wrong reply, object leak, person waiting, payment stall, or physical interruption.
 
@@ -117,7 +125,7 @@ If the contact already points out the stain, asks for paper, waits, or makes the
 
 ## Social-Decline Guard
 
-For invitation, wedding, reunion, classmate-success, or similar social-decline prompts, one of the three kernels must be the refusal aftermath itself. Do not let sink, oil, sleeve, cold room, bowl, charger, or screen texture carry the whole article while the refusal stays inside a drafted message.
+For invitation, wedding, reunion, classmate-success, or similar social-decline prompts, the refusal aftermath must be carried by the moving chain itself. Do not let sink, oil, sleeve, cold room, bowl, charger, or screen texture carry the whole article while the refusal stays inside a drafted message.
 
 Use this source order:
 
@@ -134,7 +142,7 @@ Build a refusal chain, not a refusal mention. The chain starts before sending, b
 - the money/route decision leaves a visible unfinished act, not a completed ledger
 - the article exits the chat through a practical consequence caused by the refusal, not through a return to the opening bowl/sleeve/water object
 
-The roughness must be active, not ornamental. A line like `好的` followed by more wet sleeve, hot-water noise, balance checking, or room objects is still too private. A plain OK reply plus a private screen mark is still a screen loop if the mark does not change the next action. Let the plain response or refusal lie push the narrator into one lower move while it is happening: the hand leaves a dirty mark on the phone before replying, somebody at the door waits while the answer is unfinished, a route/payment action fails in public, the narrator sends a smaller wrong reply, or a body/door problem makes the next action uglier. This consequence must be refusal-coupled. A delivery, food burn, room chore, or outside errand that would still make sense without the wedding/refusal is only off-axis residue, even if it is concrete and ugly. This single consequence should also shape the rhythm: one line continues because the hand/reply/payment has not finished, one rougher line keeps moving, and one short drop lands the bad answer or body/social lowering.
+The roughness must be active, not ornamental. A line like `好的` followed by more wet sleeve, hot-water noise, balance checking, or room objects is still too private. A plain OK reply plus a private screen mark is still a screen loop if the mark does not change the next action. Let the plain response or refusal lie push the narrator into one lower move while it is happening: the hand leaves a dirty mark on the phone before replying, somebody at the door waits while the answer is unfinished, a route/payment action fails in public, the narrator sends a smaller wrong reply, or a body/door problem makes the next action uglier. This consequence must be refusal-coupled. A delivery, food burn, room chore, or outside errand that would still make sense without the wedding/refusal is only off-axis residue, even if it is concrete and ugly. Let that same consequence shape rhythm by remaining unfinished across the line breaks; do not turn continuation, rough movement, and a short drop into three separate proof slots.
 
 Do not let the same private material family become the social-decline spine. `袖口`, `水`, `油渍`, `杯子`, `手机`, `保护膜`, `气泡`, `水槽`, or a similar object can be one handle, but after the refusal message appears it must either change the answer while pressure is live or leave the stage. If the title, opening, middle, and ending all return to that handle, the article is using private texture to imitate consequence. Retitle or rebuild from a reply/payment/door/person/body/route/old-debt action.
 

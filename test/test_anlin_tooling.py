@@ -8538,7 +8538,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("phone/feed -> order food -> wrong item -> wash bowl -> bed", standard_engine)
         self.assertIn("Private grime is not an event", standard_engine)
         self.assertIn("A rider or cashier who only looks once, points once, or speaks once and then leaves is still decoration", standard_engine)
-        self.assertIn("One material family cannot own all three kernels", standard_engine)
+        self.assertIn("One material family cannot become proof for every function", standard_engine)
         self.assertIn("it has become a stain ledger", standard_engine)
         self.assertIn("First Two Clusters", standard_engine)
         self.assertIn("Snag first", standard_engine)
@@ -8549,7 +8549,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Start from friction, not from the prompt noun", first_draft_min)
         self.assertIn("The user's topic is pressure, not the route map", first_draft_min)
         self.assertIn("Prompt Displacement", first_draft_min)
-        self.assertIn("one kernel must be the refusal aftermath itself", first_draft_min)
+        self.assertIn("the refusal aftermath must be carried by the moving chain itself", first_draft_min)
         self.assertIn("Use the water-drip test for this family", standard_engine)
         self.assertIn("prompt-object ledgers", clean)
         self.assertIn("Do not repair an engine warning by adding another oil/stain/body line", clean)
@@ -9045,7 +9045,7 @@ class AnlinToolingTests(unittest.TestCase):
 
         self.assertIn("standard-diary-source-engine.md", combined)
         self.assertIn("minimal generation pack", engine)
-        self.assertIn("choose three private consequence kernels", engine)
+        self.assertIn("check three overlapping consequence functions", engine)
         self.assertIn("The user's topic is pressure, not a route map", engine)
         self.assertIn("The first saved article is what the controller is measuring", engine)
         self.assertIn("Do not run line-rhythm scripts before the first wrapper call", readme)
@@ -9062,6 +9062,24 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn("mimo", engine.lower())
         self.assertNotIn("minimax", engine.lower())
         self.assertNotIn("gpt", engine.lower())
+
+    def test_bounded_source_formation_avoids_kernel_packets_and_inventory_texture(self) -> None:
+        first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
+        engine = (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8")
+
+        for text in (first_draft, engine):
+            self.assertIn(
+                "The three functions may overlap; they are not three scene modules, paragraph slots, or proof packets",
+                text,
+            )
+            self.assertIn("Do not allocate one period to each line or cluster", text)
+            self.assertIn("Do not compress amounts, reply candidates, or object choices into an `A、B、C` inventory", text)
+            self.assertIn("let one plain action/object phrase return unchanged", text)
+            self.assertIn("not a decorative refrain or repetition quota", text)
+
+        self.assertNotIn("Then choose three consequence kernels", first_draft)
+        self.assertNotIn("choose three private consequence kernels", engine)
+        self.assertNotIn("Each kernel needs enough visible movement", engine)
 
     def test_punctuation_pendulum_is_source_guidance_not_only_checker(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
