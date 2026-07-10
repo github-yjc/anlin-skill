@@ -8753,6 +8753,16 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotIn("3+1", text)
             self.assertNotIn("--rounds 3", text)
 
+    def test_validation_protocol_verifies_resolved_opencode_isolation(self) -> None:
+        validation = (ROOT / "references" / "validation-protocol.md").read_text(encoding="utf-8")
+
+        self.assertIn("opencode debug paths", validation)
+        self.assertIn("resolved config root", validation)
+        self.assertIn("opencode debug skill", validation)
+        self.assertIn("all non-built-in skills", validation)
+        self.assertIn("`OPENCODE_CONFIG_DIR` alone is not isolation evidence", validation)
+        self.assertIn("`XDG_CONFIG_HOME`", validation)
+
     def test_progress_report_every_ten_iterations_uses_valid_blind_rate_or_na(self) -> None:
         validation = (ROOT / "references" / "validation-protocol.md").read_text(encoding="utf-8")
         development_log = (ROOT / "references" / "development-log.md").read_text(encoding="utf-8")
@@ -13158,6 +13168,60 @@ class AnlinToolingTests(unittest.TestCase):
                 self.assertEqual(len(list(judge_dir.glob("sample-*.txt"))), 3)
                 self.assertNotIn("placebo", judge_dir.name)
                 self.assertNotIn("impostor", judge_dir.name)
+
+    def test_blind_manifest_requires_resolved_opencode_isolation_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            draft = root / "draft.md"
+            corpus = root / "corpus"
+            output_root = root / "blind-rounds"
+            corpus.mkdir()
+            draft.write_text("# 临时草稿\n\n" + "今天下楼又忘了带钥匙，回头时鞋底还粘着水。" * 30, encoding="utf-8")
+            for index in range(3):
+                (corpus / f"original-{index}.md").write_text(
+                    f"# 原文{index}\n\n" + "早上出门时楼道很暗，我摸到口袋里的纸才想起昨天的事。" * 30,
+                    encoding="utf-8",
+                )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(RUN_BLIND),
+                    str(draft),
+                    str(corpus),
+                    "--rounds",
+                    "1",
+                    "--num-samples",
+                    "2",
+                    "--placebo-rounds",
+                    "0",
+                    "--length-tolerance",
+                    "1.0",
+                    "--output-root",
+                    str(output_root),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            manifest = json.loads((output_root / "controller-manifest.json").read_text(encoding="utf-8"))
+            self.assertIn("opencode_isolation_preflight", manifest)
+            preflight = manifest["opencode_isolation_preflight"]
+            self.assertEqual(preflight["commands"], ["opencode debug paths", "opencode debug skill"])
+            self.assertEqual(
+                preflight["resolved_config_root_policy"],
+                "must_match_controller_recorded_isolated_root",
+            )
+            self.assertEqual(preflight["required_non_builtin_skill_count"], 0)
+            self.assertTrue(preflight["fail_closed_on_mismatch"])
+            required_evidence = " ".join(preflight["required_evidence"])
+            self.assertIn("resolved config root", required_evidence)
+            self.assertIn("all non-built-in skills", required_evidence)
+            self.assertIn("OPENCODE_CONFIG_DIR alone is not isolation evidence", manifest["controller_rule"])
+            self.assertIn("XDG_CONFIG_HOME", manifest["controller_rule"])
+            self.assertIn("any non-built-in skill", manifest["controller_rule"].lower())
 
 
 if __name__ == "__main__":

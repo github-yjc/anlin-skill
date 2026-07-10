@@ -239,14 +239,14 @@ Each round creates a clean directory containing only:
 
 `run_blind_test.py` also creates a neutral `judge-view-XX` directory for each round. Run automated judges from `judge-view-XX`, not from `round-XX-impostor` or `round-XX-placebo`, because round directory names leak the controller's answer key. A valid judge directory contains only `prompt.txt` and `sample-*.txt`.
 
-For OpenCode automation, `--pure` disables external plugins but may still leave installed skills available. If any local writing/style skill is installed, run judges with an isolated `OPENCODE_CONFIG_DIR` or equivalent no-skill configuration. Also set `OPENCODE_DISABLE_EXTERNAL_SKILLS=1` and `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1` where supported. A judge stderr line such as `Skill "..."` invalidates that round even when the judge only read `sample-*.txt` afterwards.
+For OpenCode automation, `--pure` disables external plugins but may still leave installed skills available. Before starting a judge, record the expected temporary isolated config root, run `opencode debug paths` with the same environment and neutral working directory, record the resolved config root, and require the two roots to match. Then run `opencode debug skill`; the count of all non-built-in skills must be 0. Fail closed on either mismatch. `OPENCODE_CONFIG_DIR` alone is not isolation evidence: on Windows or any OpenCode build where it leaves the resolved user config unchanged, set `XDG_CONFIG_HOME` to a temporary root and rerun both checks. Keep `OPENCODE_CONFIG_DIR` only when its resolved path is verified. Also set `OPENCODE_DISABLE_EXTERNAL_SKILLS=1` and `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1` where supported. A judge stderr line such as `Skill "..."` invalidates that round even when the judge only read `sample-*.txt` afterwards.
 
 Judge rules:
 
 - The judge may read only `prompt.txt` and `sample-*.txt` in the neutral judge directory.
 - The judge prompt must be source-neutral: use `MOST_SOURCE_LIKE` / `LEAST_SOURCE_LIKE`, not author-name field labels that may trigger a style skill.
 - The judge must not read `mapping.json`, the original corpus, skill files, controller notes, previous verdicts, web results, or a directory path/name that exposes `impostor`, `placebo`, `generated`, or similar controller labels.
-- The judge must not invoke or rely on any style skill, author-specific skill, corpus memory, previous analysis, or source-name prior knowledge. For opencode judge automation, run `opencode run --pure --dir <neutral-judge-view-dir> <prompt>` from a directory containing only `prompt.txt` and `sample-*.txt`, set a temporary no-skill `OPENCODE_CONFIG_DIR` when installed skills would otherwise auto-trigger, and disable external skill scans with `OPENCODE_DISABLE_EXTERNAL_SKILLS=1` / `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1`.
+- The judge must not invoke or rely on any style skill, author-specific skill, corpus memory, previous analysis, or source-name prior knowledge. For opencode judge automation, run `opencode run --pure --dir <neutral-judge-view-dir> <prompt>` from a directory containing only `prompt.txt` and `sample-*.txt`; in the same environment, verify that `opencode debug paths` exactly matches the controller-recorded isolated config root and that `opencode debug skill` reports zero non-built-in skills before judging. Use a temporary `XDG_CONFIG_HOME` when required by the resolved-path check, and disable external skill scans with `OPENCODE_DISABLE_EXTERNAL_SKILLS=1` / `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1`.
 - Titles are retained and normalized for all samples; metadata is removed.
 - Generated drafts must include the title as article text on the first line. The preparation script normalizes `# 标题`, plain first-line titles, and simple emphasis wrappers to the same `# 标题` form so title formatting does not become a leakage cue.
 - Impostor rounds are length-matched by complete article length.
@@ -361,6 +361,7 @@ If a judge sees `mapping.json`, original corpus filenames, skill files, previous
 - [ ] Style-profile report records `profile_scope` and `cognitive_audit`; fallback to global priors is reported when phase/genre sample size is too small.
 - [ ] Style-profile thresholds were calibrated against originals without `--draft-gate`; original warnings were not converted into hard failures.
 - [ ] Blind rounds use isolated neutral judge directories whose paths do not reveal impostor/placebo status.
+- [ ] OpenCode judge preflight recorded `opencode debug paths`, matched the resolved config root to the controller-recorded isolated root, and recorded `opencode debug skill` with zero non-built-in skills.
 - [ ] Titles retained and normalized for generated and original samples.
 - [ ] Draft is not a length outlier for the selected complete-article protocol.
 - [ ] Explicit prompt prohibitions were manually checked; forbidden domains were not reintroduced through adjacent details.
