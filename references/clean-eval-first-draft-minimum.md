@@ -13,6 +13,8 @@ Use this file for the first complete draft in formal clean-eval mode. It is inte
 
 Do not print a plan, title list, line count, metric table, trial article, or code-fenced final version before writing `draft.md`. Do not run counting scripts, rhythm scripts, homemade regex probes, `python -c`, `Measure-Object`, or the normal checker before the first wrapper call.
 
+After the minimal source reads finish, the next tool action must be one complete write to relative `draft.md` or `.\draft.md`. Do not spend another model turn comparing openings, rehearsing possible hinges, restating the prompt, or drafting scratch prose in reasoning. Choose the first workable moving chain and persist it; an imperfect artifact can be checked, but an unwritten better plan is not evidence.
+
 ## No-Load Rule
 
 Before the first complete `draft.md`, do not open `runtime-brief.md`, `clean-generation-brief.md`, validation protocol, judge rubrics, style-profile reports, corpus cards, review checklists, anti-slop references, background fact tables, checker source, tests, or hidden thresholds.

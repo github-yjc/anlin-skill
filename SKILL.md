@@ -50,6 +50,8 @@ For formal clean-eval generation, the first draft is intentionally under-instruc
 5. Write one complete titled article to `draft.md`.
 6. Run `python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate --genre <selected-genre>` when genre is known.
 
+After the minimal source reads finish, the next tool action must be one complete write to relative `draft.md` or `.\draft.md`. Do not spend another model turn comparing openings, rehearsing possible hinges, restating the prompt, or drafting scratch prose in reasoning. Choose the first workable moving chain and persist it; an imperfect artifact can be checked, but an unwritten better plan is not evidence.
+
 Before the first complete `draft.md`, do not open long repair, validation, judge, style-ratio, corpus-card, or checker-source files. In particular, do not load `references/clean-generation-brief.md`, `references/runtime-brief.md`, `references/anti-ai-slop.md`, `references/generation-modes.md`, `references/review-rubric.md`, `references/writing-checklist.md`, `references/self-check.md`, `references/stylometric-ratio-protocol.md`, `references/validation-protocol.md`, `references/development-log.md`, `evals/README.md`, or `references/corpus-cards/`.
 
 If the wrapper reports `CLEAN_RUN_PREFLIGHT` or `CLEAN_RUN_POSTCHECK_PREFLIGHT`, use `references/clean-generation-brief.md` as the detailed repair interface. The post-check variant is still a clean-eval preflight: it protects checker call 2/2 from a known underbuilt source and does not consume that second checker call. If it reports `CLEAN_RUN_PREFLIGHT_STOP` or `CLEAN_RUN_STOP`, stop repairing, read `draft.md` once, and output that exact article. Do not switch to ordinary checker flow after the bounded stop.

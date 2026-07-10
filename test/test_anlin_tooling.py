@@ -9081,6 +9081,20 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn("choose three private consequence kernels", engine)
         self.assertNotIn("Each kernel needs enough visible movement", engine)
 
+    def test_clean_eval_source_reads_handoff_directly_to_artifact_write(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
+        engine = (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8")
+
+        for text in (skill, first_draft, engine):
+            self.assertIn(
+                "After the minimal source reads finish, the next tool action must be one complete write to relative `draft.md`",
+                text,
+            )
+            self.assertIn("Do not spend another model turn comparing openings", text)
+            self.assertIn("Choose the first workable moving chain", text)
+            self.assertIn("an unwritten better plan is not evidence", text)
+
     def test_punctuation_pendulum_is_source_guidance_not_only_checker(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
