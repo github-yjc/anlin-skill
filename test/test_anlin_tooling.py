@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import json
 import hashlib
+import io
 import os
 import re
 import subprocess
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -64,6 +67,95 @@ def short_sincere_prose_block_sample() -> str:
             "明天吧，明天再说。",
         ]
     )
+
+
+def finalized_hard_pass_profile_review_sample() -> str:
+    return """去不了
+
+垃圾袋在门口破了，
+底下那道口子昨天就在渗，今天一拎整个顺着我手往下淌，
+橘子皮、一撮吃剩的面、还有半张湿纸全滑到地上，
+我蹲下去捡，指头缝里立马是那股泛酸的馊味，怎么捏都捏不干净，
+
+刚捡了一半，手机在裤兜里亮起来，我腾不出一只干净手，只能拿手背去蹭屏幕，
+蹭了两下才点亮。
+是狗哥。
+说下个月十六他结婚，让我一定过去，别推，
+
+下面还压着一条四十几秒的语音，我手上全是油，那个键怎么按都划走，
+连着两回，结果干脆没听，
+就盯着那行字看，
+
+十六号，一个星期六。
+我先没回他，先拿油手在裤子上蹭了蹭去查票。
+从这边过去没有直达，于是中间还得换一趟，高铁两百八，来回算下来快六百。
+我又翻日历看那两天排得开排不开。
+随礼这边关系不算最铁，可也是一个宿舍睡了四年的人，六百拿不出手，八百、一千，
+我在心里来回摆。
+
+手指在屏幕上戳，戳出来一个油乎乎的印子，我拿衣角去擦，越擦那块越花，
+字都快看不清了。
+先打了一句说最近在忙个项目，看着太假，删了。
+改成可能赶不过去，又嫌太软。
+来回改了三四遍，最后发出去的还是忙项目、去不了了、兄弟对不住。
+发完就后悔那个对不住，像是先把自己说亏了。
+
+他回得很快，就一个行字，隔了两秒又补了句让我忙完过来玩。
+就这么两句，我反倒卡住了。
+本来想打句恭喜新婚白头到老，打到一半觉得前面都说去不了了，这句显得多余，
+停在输入框里没发。
+
+我坐在地上，脚边这摊还没收拾，低头才发现自己哪忙了，
+就这么蹲着捡了半天垃圾，
+
+转头跟人说在忙项目。
+心里那点东西往下坠了一下。
+大二那年寒假，因为卡里就剩几十块回不去，是他先替我垫的车票，
+说等我方便再给。
+
+后来钱是还了，一顿饭还的，可那顿饭最后好像也是他抢着付的。
+其实这么一想，反倒更别扭。
+我点开转账，输了两百盯了两秒删掉，改成五百，手指停在确认上没敢按下去。
+两百显得寒碜，五百又像是花钱给自己买个心安。
+发过去他准觉得我拿钱堵嘴，不发又像真把那回事忘得干干净净。
+
+反正也拿不定那个数，金额框空在那儿，光标一闪一闪，我到底还是退了出来。
+破袋子从中间又系了一道，勉强兜住底下，拎起来还是往下滴。
+拎到楼道口，对门阿姨正好出来倒水，看了一眼地上那道水迹，又看看我手。
+我说了句这袋子破了，声音含糊得自己都听着别扭，手上味还没洗，
+她想搭把手扶下门，我也没敢伸。
+
+她哦了一声，绕开那道印子下楼去了。
+我站在原地又拿手背蹭了下裤子，那味蹭上去也没散。
+我把袋子拎回门口又放下了，这个点下去倒垃圾，楼道声控灯还得跺半天脚。
+手上这股味一直没去洗。
+狗哥那条已经显示已读，没再冒出新的。
+破袋子歪在鞋跟边上，底下洇出来一小片，我看着那片，没起身。
+"""
+
+
+def finalized_profile_repair_brief(
+    *,
+    repair_mode: str = "punctuation_source_reset",
+    root_families: str = "punctuation, ngram_texture",
+    next_action: str = "Punctuation is a source-shape problem here.",
+    source_actions: tuple[str, ...] = (
+        "punctuation: let punctuation follow unfinished action inside the selected rows.",
+    ),
+) -> str:
+    lines = [
+        "Anlin style-profile repair brief",
+        "status: review",
+        "checkpoint_pass: false",
+        "formal_gate: not_pass",
+        f"repair_mode: {repair_mode}",
+        f"root_families: {root_families}",
+        f"next_repair_action: {next_action}",
+    ]
+    if source_actions:
+        lines.append("source_actions:")
+        lines.extend(f"  - {action}" for action in source_actions)
+    return "\n".join(lines)
 
 
 def short_sincere_period_grid_sample() -> str:
@@ -10788,47 +10880,396 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotIn("count80", brief)
             self.assertNotIn("robust_z", brief)
 
+    def test_prepare_finalized_repair_brief_hard_pass_review_uses_compact_in_place_interface(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            finalized_dir = Path(temp) / "finalized"
+            finalized_dir.mkdir()
+            draft = finalized_dir / "draft.md"
+            draft.write_text(finalized_hard_pass_profile_review_sample(), encoding="utf-8")
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(PREPARE_FINALIZED_REPAIR_BRIEF),
+                    str(draft),
+                    "--genre",
+                    "standard",
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            payload = json.loads(result.stdout)
+            self.assertEqual(payload["hard_gate_status"], "pass")
+            self.assertNotEqual(payload["profile_returncode"], 0)
+
+            brief = (finalized_dir / "repair-brief.txt").read_text(encoding="utf-8")
+            self.assertIn("repair_mode: hard_pass_review_in_place", brief)
+            self.assertIn("read only draft.md and repair-brief.txt", brief)
+            self.assertIn("self-contained", brief)
+            self.assertIn("do not load references/finalized-repair-minimum.md", brief)
+            self.assertIn("eligible_cluster_ranges: lines ", brief)
+            self.assertIn("each range is one existing local cluster of 4-6 consecutive nonblank body rows", brief)
+            self.assertIn("replace each selected row with exactly one row in the same position", brief)
+            self.assertIn("total body row count, row order, and every blank-line boundary unchanged", brief)
+            self.assertIn("preserve every unselected row exactly", brief)
+            self.assertIn("do not delete, merge, split, add, or move rows", brief)
+            self.assertIn("must not be visibly shorter than the original row", brief)
+            self.assertIn("preserve every row in the protected tail range exactly", brief)
+            self.assertIn("protected_tail_range: lines ", brief)
+            self.assertIn("the final existing nonblank body block", brief)
+            self.assertIn("primary_family: punctuation", brief)
+            self.assertEqual(brief.count("primary_family:"), 1)
+            self.assertIn("secondary_families: controller_only", brief)
+            self.assertIn("exactly one complete draft.md write, then stop", brief)
+            self.assertNotIn("style_repair_brief:", brief)
+            self.assertNotIn("Anlin style-profile repair brief", brief)
+            self.assertNotRegex(brief, r"\b(?:900|950|1250)\b|per[- ]?1k|per-thousand|profile threshold")
+
+    def test_prepare_finalized_repair_brief_hard_checker_tool_failure_never_claims_pass(self) -> None:
+        import prepare_finalized_repair_brief as controller
+
+        with tempfile.TemporaryDirectory() as temp:
+            finalized_dir = Path(temp) / "finalized"
+            finalized_dir.mkdir()
+            draft = finalized_dir / "draft.md"
+            draft.write_text(finalized_hard_pass_profile_review_sample(), encoding="utf-8")
+            brief_path = finalized_dir / "repair-brief.txt"
+            argv = [
+                "prepare_finalized_repair_brief.py",
+                str(draft),
+                "--genre",
+                "standard",
+                "--profile",
+                str(STYLE_PROFILE),
+                "--output",
+                str(brief_path),
+                "--json",
+            ]
+            stdout = io.StringIO()
+            with (
+                mock.patch.object(controller, "CHECKER", Path(temp) / "missing-checker.py"),
+                mock.patch.object(sys, "argv", argv),
+                redirect_stdout(stdout),
+            ):
+                returncode = controller.main()
+
+            self.assertEqual(returncode, 0)
+            payload = json.loads(stdout.getvalue())
+            self.assertEqual(payload["hard_gate_returncode"], 2)
+            self.assertEqual(payload["hard_gate_status"], "controller_tool_error")
+            self.assertIn("unavailable, not quality evidence", payload["note"])
+            brief = brief_path.read_text(encoding="utf-8")
+            self.assertIn("hard_gate_status: controller_tool_error", brief)
+            self.assertIn("style_repair_brief:", brief)
+            self.assertNotIn("repair_mode: hard_pass_review_in_place", brief)
+
+    def test_prepare_finalized_repair_brief_rejects_invalid_hard_finding_schema(self) -> None:
+        from prepare_finalized_repair_brief import hard_status, parse_hard_findings
+
+        for payload in ("[{}]", "[1]"):
+            with self.subTest(payload=payload):
+                findings = parse_hard_findings(payload)
+                self.assertEqual(hard_status(findings, returncode=0), "controller_tool_error")
+
+        valid_error = parse_hard_findings('[{"severity": "error"}]')
+        self.assertEqual(hard_status(valid_error, returncode=0), "controller_tool_error")
+
+    def test_finalized_repair_compact_mode_routes_brief_only(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        finalized_minimum = (ROOT / "references" / "finalized-repair-minimum.md").read_text(encoding="utf-8")
+        validation = (ROOT / "references" / "validation-protocol.md").read_text(encoding="utf-8")
+
+        for text in (skill, runtime):
+            self.assertIn("repair_mode: hard_pass_review_in_place", text)
+            self.assertIn("read only `draft.md` and `repair-brief.txt`", text)
+            self.assertIn("do not load `references/finalized-repair-minimum.md`", text)
+            self.assertIn("hard-gate failure, profile `revise`, missing compact mode, or absent brief", text)
+        self.assertIn(
+            "Do not use this file for `repair_mode: hard_pass_review_in_place`",
+            finalized_minimum,
+        )
+        for text in (skill, runtime, finalized_minimum, validation):
+            self.assertIn("schema-valid", text)
+            self.assertIn("unavailable, not quality evidence", text)
+
     def test_prepare_finalized_repair_brief_preserves_hard_gate_pass_on_profile_review(self) -> None:
         from prepare_finalized_repair_brief import CommandResult, format_brief
 
-        profile_brief = "\n".join(
-            [
-                "Anlin style-profile repair brief",
-                "status: review",
-                "checkpoint_pass: false",
-                "formal_gate: not_pass",
-                "repair_mode: punctuation_source_reset",
-                "next_repair_action: Punctuation is a source-shape problem here.",
-            ]
-        )
-        brief = format_brief(
-            draft=Path("draft.md"),
-            genre="standard",
-            hard_findings=[],
-            profile_result=CommandResult(
-                command=[],
-                returncode=1,
-                stdout=profile_brief,
-                stderr="",
-            ),
-        )
+        profile_brief = finalized_profile_repair_brief()
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(finalized_hard_pass_profile_review_sample(), encoding="utf-8")
+            brief = format_brief(
+                draft=draft,
+                genre="standard",
+                hard_findings=[],
+                profile_result=CommandResult(
+                    command=[],
+                    returncode=1,
+                    stdout=profile_brief,
+                    stderr="",
+                ),
+            )
 
         self.assertIn("hard_gate_status: pass", brief)
-        self.assertIn("hard_gate_pass_preservation: current artifact already passed the strict hard gate", brief)
-        self.assertIn("Preserve connector spread, complete body mass", brief)
-        self.assertIn("hard_gate_pass_primary_action: preserve_and_nudge_review", brief)
-        self.assertIn("micro_cluster_surgery", brief)
-        self.assertIn("do not add a new simile, analogy, or caption", brief)
-        self.assertIn("do not make line-final comma ratio zero", brief)
-        self.assertIn("preserve working comma-ended continuation rows from the incoming draft", brief)
-        self.assertIn("line_ending_lock", brief)
-        self.assertIn("mass_floor_lock", brief)
-        self.assertIn("do not introduce a new group chat, comment chain", brief)
-        self.assertIn("do not rewrite a review artifact into `高频词覆盖不足`, `标准日寄句号网格`", brief)
-        self.assertLess(
-            brief.index("hard_gate_pass_preservation: current artifact already passed"),
-            brief.index("style_repair_brief:"),
+        self.assertIn("repair_mode: hard_pass_review_in_place", brief)
+        self.assertIn("primary_family: punctuation", brief)
+        self.assertIn(
+            "primary_action: let punctuation follow unfinished action inside the selected rows.",
+            brief,
         )
+        self.assertIn("secondary_families: controller_only", brief)
+        self.assertIn("preserve every unselected row exactly", brief)
+        self.assertIn("exactly one complete draft.md write, then stop", brief)
+        self.assertNotIn("style_repair_brief:", brief)
+        self.assertNotIn("ngram_texture", brief)
+
+    def test_prepare_finalized_repair_brief_without_eligible_cluster_keeps_full_interface(self) -> None:
+        from prepare_finalized_repair_brief import CommandResult, format_brief
+
+        profile_brief = finalized_profile_repair_brief()
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(
+                "\n".join(
+                    [
+                        "没有四行簇",
+                        "",
+                        "第一行。",
+                        "第二行。",
+                        "第三行。",
+                        "",
+                        "尾巴一。",
+                        "尾巴二。",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            brief = format_brief(
+                draft=draft,
+                genre="standard",
+                hard_findings=[],
+                profile_result=CommandResult(
+                    command=[],
+                    returncode=1,
+                    stdout=profile_brief,
+                    stderr="",
+                ),
+            )
+
+        self.assertIn("style_repair_brief:", brief)
+        self.assertNotIn("repair_mode: hard_pass_review_in_place", brief)
+
+    def test_prepare_finalized_repair_brief_compact_ranges_accept_utf16_draft(self) -> None:
+        from prepare_finalized_repair_brief import CommandResult, format_brief
+
+        profile_brief = finalized_profile_repair_brief()
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(finalized_hard_pass_profile_review_sample(), encoding="utf-16")
+            brief = format_brief(
+                draft=draft,
+                genre="standard",
+                hard_findings=[],
+                profile_result=CommandResult(
+                    command=[],
+                    returncode=1,
+                    stdout=profile_brief,
+                    stderr="",
+                ),
+            )
+
+        self.assertIn("repair_mode: hard_pass_review_in_place", brief)
+        self.assertIn("eligible_cluster_ranges: lines 3-6", brief)
+        self.assertIn("protected_tail_range: lines 56-61", brief)
+
+    def test_prepare_finalized_repair_brief_profile_tool_error_never_uses_compact_mode(self) -> None:
+        from prepare_finalized_repair_brief import CommandResult, format_brief
+
+        profile_brief = finalized_profile_repair_brief()
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(finalized_hard_pass_profile_review_sample(), encoding="utf-8")
+            brief = format_brief(
+                draft=draft,
+                genre="standard",
+                hard_findings=[],
+                profile_result=CommandResult(
+                    command=[],
+                    returncode=2,
+                    stdout=profile_brief,
+                    stderr="profile tool failed after partial output",
+                ),
+            )
+
+        self.assertIn("style_repair_brief:", brief)
+        self.assertIn("status: unavailable", brief)
+        self.assertIn("repair_mode: controller_tool_error", brief)
+        self.assertNotIn("repair_mode: punctuation_source_reset", brief)
+        self.assertNotIn("repair_mode: hard_pass_review_in_place", brief)
+
+    def test_prepare_finalized_repair_brief_rejects_inconsistent_profile_schema(self) -> None:
+        from prepare_finalized_repair_brief import CommandResult, profile_result_valid
+
+        valid_review = finalized_profile_repair_brief()
+        invalid_briefs = (
+            valid_review.replace("status: review", "status: nonsense"),
+            valid_review.replace("repair_mode: punctuation_source_reset", "repair_mode: source_rewrite_required"),
+        )
+        for profile_brief in invalid_briefs:
+            with self.subTest(profile_brief=profile_brief):
+                self.assertFalse(
+                    profile_result_valid(
+                        CommandResult(command=[], returncode=1, stdout=profile_brief, stderr="")
+                    )
+                )
+
+    def test_prepare_finalized_repair_brief_unsupported_review_mode_keeps_full_interface(self) -> None:
+        from prepare_finalized_repair_brief import CommandResult, format_brief
+
+        profile_brief = finalized_profile_repair_brief(
+            repair_mode="rhythm_source_reset",
+            root_families="punctuation, line_rhythm, ngram_texture",
+            next_action="Rebuild the whole page rhythm before local punctuation work.",
+            source_actions=(
+                "punctuation: let punctuation follow unfinished action.",
+                "line_rhythm: rebuild the visible body as 6-8 line-broken clusters.",
+            ),
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(finalized_hard_pass_profile_review_sample(), encoding="utf-8")
+            brief = format_brief(
+                draft=draft,
+                genre="standard",
+                hard_findings=[],
+                profile_result=CommandResult(
+                    command=[],
+                    returncode=1,
+                    stdout=profile_brief,
+                    stderr="",
+                ),
+            )
+
+        self.assertIn("hard_gate_status: pass", brief)
+        self.assertIn("style_repair_brief:", brief)
+        self.assertIn("repair_mode: rhythm_source_reset", brief)
+        self.assertNotIn("repair_mode: hard_pass_review_in_place", brief)
+        self.assertNotIn("in_place_contract:", brief)
+
+    def test_prepare_finalized_repair_brief_incomplete_profile_review_keeps_full_interface(self) -> None:
+        from prepare_finalized_repair_brief import CommandResult, format_brief
+
+        profile_brief = finalized_profile_repair_brief(source_actions=())
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(finalized_hard_pass_profile_review_sample(), encoding="utf-8")
+            brief = format_brief(
+                draft=draft,
+                genre="standard",
+                hard_findings=[],
+                profile_result=CommandResult(
+                    command=[],
+                    returncode=1,
+                    stdout=profile_brief,
+                    stderr="",
+                ),
+            )
+
+        self.assertIn("hard_gate_status: pass", brief)
+        self.assertIn("style_repair_brief:", brief)
+        self.assertIn("repair_mode: punctuation_source_reset", brief)
+        self.assertNotIn("repair_mode: hard_pass_review_in_place", brief)
+
+    def test_prepare_finalized_repair_brief_nonstandard_artifact_name_never_uses_compact_mode(self) -> None:
+        from prepare_finalized_repair_brief import CommandResult, format_brief
+
+        profile_brief = finalized_profile_repair_brief()
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "article.md"
+            draft.write_text(finalized_hard_pass_profile_review_sample(), encoding="utf-8")
+            brief = format_brief(
+                draft=draft,
+                genre="standard",
+                hard_findings=[],
+                profile_result=CommandResult(
+                    command=[],
+                    returncode=1,
+                    stdout=profile_brief,
+                    stderr="",
+                ),
+            )
+
+        self.assertIn("style_repair_brief:", brief)
+        self.assertIn("controller_warning: expected finalized artifact name draft.md, received article.md.", brief)
+        self.assertNotIn("repair_mode: hard_pass_review_in_place", brief)
+
+    def test_prepare_finalized_repair_brief_cli_rejects_nonstandard_artifact_name(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            finalized_dir = Path(temp) / "finalized"
+            finalized_dir.mkdir()
+            draft = finalized_dir / "article.md"
+            draft.write_text(finalized_hard_pass_profile_review_sample(), encoding="utf-8")
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(PREPARE_FINALIZED_REPAIR_BRIEF),
+                    str(draft),
+                    "--genre",
+                    "standard",
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("expected finalized artifact name draft.md", result.stderr)
+            self.assertFalse((finalized_dir / "repair-brief.txt").exists())
+
+    def test_prepare_finalized_repair_brief_cli_rejects_output_overwriting_draft(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            finalized_dir = Path(temp) / "finalized"
+            finalized_dir.mkdir()
+            draft = finalized_dir / "draft.md"
+            draft.write_text(finalized_hard_pass_profile_review_sample(), encoding="utf-8")
+            before_hash = hashlib.sha256(draft.read_bytes()).hexdigest()
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(PREPARE_FINALIZED_REPAIR_BRIEF),
+                    str(draft),
+                    "--genre",
+                    "standard",
+                    "--profile",
+                    str(STYLE_PROFILE),
+                    "--output",
+                    str(draft),
+                    "--json",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("repair brief output must not overwrite draft.md", result.stderr)
+            self.assertEqual(hashlib.sha256(draft.read_bytes()).hexdigest(), before_hash)
 
     def test_prepare_finalized_repair_brief_resolves_relative_profile_before_external_cwd(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

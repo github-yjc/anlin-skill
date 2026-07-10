@@ -23,7 +23,7 @@ Choose the smallest mode that matches the current task:
 
 - **Clean-eval mode has priority over ordinary article wording**: `.anlin-clean-eval-mode` exists, or the controller is measuring natural first-draft guidance. First tool action must check the marker and current directory before deciding ordinary mode in any workspace that may be a formal/eval case, for example `Test-Path .anlin-clean-eval-mode; Get-Location`. A present marker overrides "write an article", "give me prose", "save a draft", or other ordinary-user phrasing. Load only `references/clean-eval-first-draft-minimum.md`; for standard diary also load `references/standard-diary-source-engine.md`. Write one complete `draft.md`, then use `scripts/clean_run_checker.py` at most twice. Do not call the normal checker in the bounded case directory.
 - **Ordinary user mode**: use only after clean-eval mode has been ruled out. The user wants an article, revision, or saved prose outside a bounded clean-eval workspace. Ask only for missing facts that materially change the result. Use `references/runtime-brief.md` for drafting/repair, then run the normal checker if validation is needed.
-- **Finalized repair mode**: the controller copied a bounded draft into a `finalized/` directory. Read `draft.md` and `repair-brief.txt` when present. Use `references/finalized-repair-minimum.md` only if already available through this skill. Make one complete source rewrite, write it back to `draft.md`, then stop. If a chat reply is required, output exactly `artifact_written`.
+- **Finalized repair mode**: the controller copied a bounded draft into a `finalized/` directory. If `repair-brief.txt` says `repair_mode: hard_pass_review_in_place`, read only `draft.md` and `repair-brief.txt`; the brief is self-contained, so do not load `references/finalized-repair-minimum.md`. For hard-gate failure, profile `revise`, missing compact mode, or absent brief, use `references/finalized-repair-minimum.md` plus `repair-brief.txt` when present. Make the one complete write required by that interface, write it back to `draft.md`, then stop. If a chat reply is required, output exactly `artifact_written`.
 - **Controller validation mode**: after an artifact exists, run deterministic gates, style-profile audit, corpus comparison, blind rounds, and placebo calibration. Use `references/validation-protocol.md`.
 
 Clean-eval and finalized repair are separate checkpoints. A finalized pass does not retroactively make the bounded first draft successful. A finalized `review` or `fail` means the final article is still unresolved and is not ready for blind rounds.
@@ -58,7 +58,9 @@ If the wrapper reports `CLEAN_RUN_PREFLIGHT` or `CLEAN_RUN_POSTCHECK_PREFLIGHT`,
 
 Finalized repair is artifact-only. `repair-brief.txt` is the generator-facing interface; full style-profile output remains controller evidence after the artifact is frozen.
 
-During the repair attempt, do not run `check_anlin_violations.py`, `check_style_profile.py`, `clean_run_checker.py`, `prepare_finalized_repair_brief.py`, local counters, `python -c`, `Measure-Object`, `wc`, path probes, source/test reads, threshold searches, old-log searches, or checker/controller helpers. A nonzero `--strict --repair-brief` result inside a prepared brief means the draft needs repair, not that the tool is broken.
+When the brief declares `repair_mode: hard_pass_review_in_place`, it is the complete repair interface: read only `draft.md` and `repair-brief.txt`, and do not load `references/finalized-repair-minimum.md`. For hard-gate failure, profile `revise`, missing compact mode, or absent brief, follow the finalized minimum path instead.
+
+During the repair attempt, do not run `check_anlin_violations.py`, `check_style_profile.py`, `clean_run_checker.py`, `prepare_finalized_repair_brief.py`, local counters, `python -c`, `Measure-Object`, `wc`, path probes, source/test reads, threshold searches, old-log searches, or checker/controller helpers. Only a schema-valid controller result with return code `1` is a normal not-pass signal. `controller_tool_error`, invalid output, or any other unexpected result is unavailable, not quality evidence.
 
 The first write to `draft.md` must be the final complete revised article. Do not write an unchanged placeholder, then a second version. Do not print a final article only to terminal/chat. Do not patch after writing. Controller validation reruns the strict hard gate and full style-profile report afterward.
 
@@ -74,7 +76,7 @@ Use these files by task; do not load everything.
 | Fact or background check after scene selection | `references/anlin-background.md`, `references/background-fact-classes.json`, `references/era-state.md` |
 | Title problem | `references/title-model.md` |
 | Voice, structure, or deep critique after a draft exists | `references/voice-model.md`, `references/structure-patterns.md`, `references/review-rubric.md`, `references/self-check.md` |
-| Finalized repair checkpoint | `references/finalized-repair-minimum.md` plus `repair-brief.txt` |
+| Finalized repair checkpoint | `repair-brief.txt` only for `hard_pass_review_in_place`; otherwise `references/finalized-repair-minimum.md` plus the brief when present |
 | Style-ratio audit | `references/stylometric-ratio-protocol.md`, `scripts/check_style_profile.py` |
 | Full validation and blind review | `references/validation-protocol.md`, `references/blind-judge-angles.md`, `references/judge-prompt-templates.md` |
 | Architecture or repeated-failure diagnosis | `references/runtime-layer-map.md` |

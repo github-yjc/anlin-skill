@@ -1,6 +1,6 @@
 # Finalized Repair Minimum
 
-Use this file only when a controller or user explicitly starts a finalized repair checkpoint from a copied bounded draft in a `finalized/` directory. It is the generator-facing minimum path. Do not load `validation-protocol.md`, `development-log.md`, full style-profile reports, checker source, tests, or hidden thresholds while repairing.
+Use this file only when a controller or user explicitly starts a finalized repair checkpoint from a copied bounded draft in a `finalized/` directory. Do not use this file for `repair_mode: hard_pass_review_in_place`; that compact brief is self-contained and deliberately routes the repair agent to `draft.md` plus `repair-brief.txt` only. For hard-gate failure, profile `revise`, missing compact mode, or absent brief, this file remains the generator-facing minimum path. Do not load `validation-protocol.md`, `development-log.md`, full style-profile reports, checker source, tests, or hidden thresholds while repairing.
 
 ## Contract
 
@@ -8,7 +8,7 @@ Use this file only when a controller or user explicitly starts a finalized repai
 - Freeze the selected genre before editing. The controller passes that genre to gates; the repair agent only uses the genre named in `repair-brief.txt` when present.
 - A repaired article exists only after the complete article is written back to `draft.md`.
 - After reading `draft.md` and `repair-brief.txt`, make the source decision privately. The first write to `draft.md` must be the final complete revision. Do not write the old draft back as a placeholder, do not write an unchanged draft, and do not spend the attempt explaining, planning, or analyzing the brief without writing `draft.md`; those are artifact failures even if the prose in the terminal looks better.
-- A nonzero `--strict --repair-brief` exit usually means not passed, not a broken tool.
+- Only a schema-valid controller result with return code `1` means not passed. `controller_tool_error`, invalid output, or any other unexpected result is unavailable, not quality evidence.
 - Do not print a proposed final article to the terminal and keep thinking.
 - Do not tune ratios one by one. Use the brief to choose one source-level rewrite.
 - Do not rediscover this skill by globbing, `Test-Path`, listing parent skill directories, searching sibling skills, or reasoning aloud about how to find the skill directory. The repair attempt is artifact-only: read `draft.md`, read `repair-brief.txt` when it exists, use this minimum path, write one complete revised artifact, and let the controller validate. An unverified artifact is better evidence than no artifact or a path-search trace.

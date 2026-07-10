@@ -22,6 +22,21 @@ ROOT = Path(__file__).resolve().parents[1]
 CHECKER = ROOT / "scripts" / "check_anlin_violations.py"
 CHECK_PROFILE = ROOT / "scripts" / "check_style_profile.py"
 VALID_GENRES = ("standard", "sincere", "micro-hope", "surreal")
+COMPACT_REVIEW_MODES = {
+    "punctuation_source_reset": "punctuation",
+}
+PROFILE_STATUS_REPAIR_MODES = {
+    "green": {"none"},
+    "yellow": {"targeted_manual_review"},
+    "review": {
+        "source_reset_thinning",
+        "rhythm_source_reset",
+        "punctuation_source_reset",
+        "manual_placebo_review",
+    },
+    "revise": {"source_rewrite_required"},
+    "inconclusive": {"matched_placebo_required"},
+}
 
 
 @dataclass(frozen=True)
@@ -45,16 +60,28 @@ def run_command(command: list[str], cwd: Path) -> CommandResult:
     return CommandResult(command, result.returncode, result.stdout, result.stderr)
 
 
-def parse_hard_findings(stdout: str) -> list[dict[str, Any]]:
+def parse_hard_findings(stdout: str) -> list[dict[str, Any]] | None:
     try:
         data = json.loads(stdout)
     except json.JSONDecodeError:
-        return []
-    return data if isinstance(data, list) else []
+        return None
+    if not isinstance(data, list):
+        return None
+    if any(
+        not isinstance(item, dict) or item.get("severity") not in {"info", "warning", "error"}
+        for item in data
+    ):
+        return None
+    return data
 
 
-def hard_status(findings: list[dict[str, Any]]) -> str:
-    return "not_pass" if any(item.get("severity") == "error" for item in findings) else "pass"
+def hard_status(findings: list[dict[str, Any]] | None, *, returncode: int = 0) -> str:
+    if findings is None:
+        return "controller_tool_error"
+    has_errors = any(item.get("severity") == "error" for item in findings)
+    if has_errors:
+        return "not_pass" if returncode == 1 else "controller_tool_error"
+    return "pass" if returncode == 0 else "controller_tool_error"
 
 
 OVERFULL_SHAPE_RULES = {
@@ -220,17 +247,156 @@ def build_hard_command(
     return command
 
 
+def profile_brief_field(profile_brief: str, name: str) -> str:
+    prefix = f"{name}:"
+    for line in profile_brief.splitlines():
+        if line.startswith(prefix):
+            return line.removeprefix(prefix).strip()
+    return ""
+
+
+def profile_result_valid(profile_result: CommandResult) -> bool:
+    profile_brief = profile_result.stdout.strip()
+    if not profile_brief.startswith("Anlin style-profile repair brief"):
+        return False
+    status = profile_brief_field(profile_brief, "status")
+    repair_mode = profile_brief_field(profile_brief, "repair_mode")
+    checkpoint_pass = profile_brief_field(profile_brief, "checkpoint_pass")
+    formal_gate = profile_brief_field(profile_brief, "formal_gate")
+    if repair_mode not in PROFILE_STATUS_REPAIR_MODES.get(status, set()):
+        return False
+    if status in {"green", "yellow"} and checkpoint_pass == "true" and formal_gate == "pass":
+        return profile_result.returncode == 0
+    if status in {"review", "revise", "inconclusive"} and checkpoint_pass == "false" and formal_gate == "not_pass":
+        return profile_result.returncode == 1
+    return False
+
+
+def profile_primary_family(profile_brief: str) -> str:
+    root_families = profile_brief_field(profile_brief, "root_families")
+    if not root_families or root_families == "(none)":
+        return "profile_review"
+    return root_families.split(",", 1)[0].strip()
+
+
+def compact_review_selection(profile_brief: str) -> tuple[str, str] | None:
+    if profile_brief_field(profile_brief, "status") != "review":
+        return None
+    if profile_brief_field(profile_brief, "checkpoint_pass") != "false":
+        return None
+    if profile_brief_field(profile_brief, "formal_gate") != "not_pass":
+        return None
+    expected_family = COMPACT_REVIEW_MODES.get(profile_brief_field(profile_brief, "repair_mode"))
+    if expected_family is None:
+        return None
+    primary_family = profile_primary_family(profile_brief)
+    if primary_family != expected_family:
+        return None
+    primary_action = profile_primary_action(profile_brief, primary_family)
+    return (primary_family, primary_action) if primary_action else None
+
+
+def profile_primary_action(profile_brief: str, family: str) -> str:
+    action_prefix = f"  - {family}:"
+    for line in profile_brief.splitlines():
+        if line.startswith(action_prefix):
+            return line.removeprefix(action_prefix).strip()
+    return ""
+
+
+def read_text_flexible(path: Path) -> str:
+    for encoding in ("utf-8", "utf-8-sig", "utf-16"):
+        try:
+            return path.read_text(encoding=encoding)
+        except UnicodeError:
+            continue
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
+def compact_edit_ranges(draft: Path) -> tuple[list[tuple[int, int]], tuple[int, int]] | None:
+    try:
+        lines = read_text_flexible(draft).splitlines()
+    except OSError:
+        return None
+    title_index = next((index for index, line in enumerate(lines) if line.strip()), None)
+    if title_index is None:
+        return None
+
+    blocks: list[tuple[int, int]] = []
+    block_start: int | None = None
+    for index in range(title_index + 1, len(lines)):
+        if lines[index].strip():
+            if block_start is None:
+                block_start = index
+        elif block_start is not None:
+            blocks.append((block_start + 1, index))
+            block_start = None
+    if block_start is not None:
+        blocks.append((block_start + 1, len(lines)))
+    if len(blocks) < 2:
+        return None
+
+    protected_tail = blocks[-1]
+    candidates = [
+        block
+        for block in blocks[:-1]
+        if 4 <= block[1] - block[0] + 1 <= 6
+    ]
+    return (candidates, protected_tail) if candidates else None
+
+
+def format_hard_pass_review_brief(
+    *,
+    genre: str,
+    primary_family: str,
+    primary_action: str,
+    candidate_ranges: list[tuple[int, int]],
+    protected_tail: tuple[int, int],
+) -> str:
+    candidate_text = ", ".join(f"lines {start}-{end}" for start, end in candidate_ranges)
+    tail_start, tail_end = protected_tail
+    lines = [
+        "Anlin finalized repair brief",
+        "producer: controller",
+        f"selected_genre: {genre}",
+        "artifact_path: draft.md",
+        "repair_mode: hard_pass_review_in_place",
+        "hard_gate_status: pass",
+        "profile_status: review",
+        f"primary_family: {primary_family}",
+        f"primary_action: {primary_action}",
+        "secondary_families: controller_only",
+        "read_contract: read only draft.md and repair-brief.txt; this brief is self-contained; do not load references/finalized-repair-minimum.md or any other reference, checker, source, test, log, or controller file.",
+        f"eligible_cluster_ranges: {candidate_text}",
+        "scope_contract: choose exactly one eligible cluster range above; each range is one existing local cluster of 4-6 consecutive nonblank body rows, using the line numbers shown when draft.md is read.",
+        "in_place_contract: replace each selected row with exactly one row in the same position; keep total body row count, row order, and every blank-line boundary unchanged.",
+        "untouched_contract: preserve every unselected row exactly, including its wording, punctuation, and line ending.",
+        "mutation_boundary: do not delete, merge, split, add, or move rows.",
+        "replacement_mass_contract: each replacement row must not be visibly shorter than the original row; preserve the local facts and functional consequence.",
+        f"protected_tail_range: lines {tail_start}-{tail_end}",
+        "tail_definition: the protected tail range above is the final existing nonblank body block and is the loose tail residue for this attempt.",
+        "loose_tail_lock: preserve every row in the protected tail range exactly; do not select it for repair or turn it into a stronger ending.",
+        "complete_file_contract: persist the whole article to draft.md with only the selected one-to-one row replacements.",
+        "write_contract: exactly one complete draft.md write, then stop; do not write a placeholder, patch after writing, validate, or print an alternate article to terminal/chat. If a chat reply is required, output only artifact_written.",
+        "controller_boundary: after the single write, the controller reruns strict hard gate and full style-profile reports. The repair agent does not validate the frozen artifact.",
+    ]
+    return "\n".join(lines) + "\n"
+
+
 def format_brief(
     *,
     draft: Path,
     genre: str,
-    hard_findings: list[dict[str, Any]],
+    hard_findings: list[dict[str, Any]] | None,
+    hard_returncode: int = 0,
     profile_result: CommandResult,
 ) -> str:
-    hard_blockers = compact_hard_blockers(hard_findings)
-    hard_gate_passed = hard_status(hard_findings) == "pass"
+    parsed_hard_findings = hard_findings or []
+    hard_gate_state = hard_status(hard_findings, returncode=hard_returncode)
+    hard_blockers = compact_hard_blockers(parsed_hard_findings)
+    hard_gate_passed = hard_gate_state == "pass"
     profile_brief = profile_result.stdout.strip()
-    if not profile_brief:
+    if not profile_result_valid(profile_result):
         profile_brief = (
             "Anlin style-profile repair brief\n"
             "status: unavailable\n"
@@ -238,6 +404,19 @@ def format_brief(
             "formal_gate: not_pass\n"
             "repair_mode: controller_tool_error\n"
             "next_repair_action: the controller could not produce a style repair brief; use the hard-gate blockers and finalized minimum, then write one complete draft.md."
+        )
+
+    compact_selection = compact_review_selection(profile_brief) if profile_result_valid(profile_result) else None
+    compact_ranges = compact_edit_ranges(draft) if compact_selection is not None else None
+    if hard_gate_passed and compact_selection is not None and compact_ranges is not None and draft.name == "draft.md":
+        compact_primary_family, compact_primary_action = compact_selection
+        candidate_ranges, protected_tail = compact_ranges
+        return format_hard_pass_review_brief(
+            genre=genre,
+            primary_family=compact_primary_family,
+            primary_action=compact_primary_action,
+            candidate_ranges=candidate_ranges,
+            protected_tail=protected_tail,
         )
 
     lines = [
@@ -250,7 +429,7 @@ def format_brief(
         "write_contract: exactly one artifact mutation is the repair: write one complete revised draft.md, then stop; copying the current draft back unchanged and then rewriting is invalid, and terminal-only prose or planning does not count.",
         "tool_boundary: do not run check_anlin_violations.py, check_style_profile.py, clean_run_checker.py, prepare_finalized_repair_brief.py, python -c, Measure-Object, wc, local counters, Test-Path, Glob/List, source/test/threshold/log searches, or path probes during the repair attempt.",
         "genre_boundary: do not invent unsupported genre labels; use selected_genre exactly as written here.",
-        f"hard_gate_status: {hard_status(hard_findings)}",
+        f"hard_gate_status: {hard_gate_state}",
         *(
             [
                 "hard_gate_pass_preservation: current artifact already passed the strict hard gate. Treat profile repair as micro_cluster_surgery with line_ending_lock and mass_floor_lock, not cleanup. Preserve connector spread, complete body mass, rough/public consequence, existing comma continuations, mixed line endings, and preserve working comma-ended continuation rows from the incoming draft; keep row-ending punctuation and line breaks for untouched rows; do not remove a functional consequence sentence unless you replace it inside the same local cluster; do not rewrite a review artifact into `高频词覆盖不足`, `标准日寄句号网格`, below-900 shrinkage, line-final comma ratio zero, or a one-period-per-row surface; do not add a new simile, analogy, or caption to explain pressure.",
@@ -259,7 +438,7 @@ def format_brief(
             if hard_gate_passed and profile_result.returncode != 0
             else []
         ),
-        f"hard_gate_primary_action: {hard_gate_primary_action(hard_findings)}",
+        f"hard_gate_primary_action: {hard_gate_primary_action(parsed_hard_findings)}",
         "hard_gate_blockers:",
     ]
     if hard_blockers:
@@ -291,7 +470,11 @@ def main() -> int:
     draft = args.draft.resolve()
     if not draft.is_file():
         parser.error(f"draft not found: {draft}")
+    if draft.name != "draft.md":
+        parser.error(f"expected finalized artifact name draft.md, received {draft.name}")
     output = args.output.resolve() if args.output else draft.parent / "repair-brief.txt"
+    if output == draft:
+        parser.error("repair brief output must not overwrite draft.md")
     profile = args.profile.resolve() if args.profile is not None else None
     corpus_dir = args.corpus_dir.resolve() if args.corpus_dir is not None else None
 
@@ -308,6 +491,7 @@ def main() -> int:
         draft=draft,
         genre=args.genre,
         hard_findings=hard_findings,
+        hard_returncode=hard_result.returncode,
         profile_result=profile_result,
     )
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -317,12 +501,20 @@ def main() -> int:
         "draft": str(draft),
         "output": str(output),
         "selected_genre": args.genre,
-        "hard_gate_status": hard_status(hard_findings),
+        "hard_gate_status": hard_status(hard_findings, returncode=hard_result.returncode),
         "hard_gate_returncode": hard_result.returncode,
         "profile_returncode": profile_result.returncode,
-        "repair_required": hard_status(hard_findings) != "pass" or profile_result.returncode != 0,
-        "hard_blocker_count": sum(1 for item in hard_findings if item.get("severity") == "error"),
-        "note": "Nonzero hard/profile gate return codes mean the draft needs repair; the brief was still generated for the repair agent.",
+        "profile_result_valid": profile_result_valid(profile_result),
+        "repair_required": (
+            hard_status(hard_findings, returncode=hard_result.returncode) != "pass"
+            or not profile_result_valid(profile_result)
+            or profile_result.returncode != 0
+        ),
+        "hard_blocker_count": sum(1 for item in (hard_findings or []) if item.get("severity") == "error"),
+        "note": (
+            "Gate return code 1 with a valid result means not passed; invalid output or any other nonzero "
+            "controller-tool result is unavailable, not quality evidence. The brief was still generated for fallback repair."
+        ),
     }
     if args.json:
         print(json.dumps(payload, ensure_ascii=False, indent=2))
