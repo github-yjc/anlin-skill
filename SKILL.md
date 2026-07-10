@@ -15,19 +15,23 @@ Generated prose should not contain process labels such as "仿写", "AI", "生�
 
 ## Load Order
 
-Always start with these two files:
+Always start with these four files:
 
 1. `references/runtime-brief.md`
 2. `references/feature-budget.md`
+3. `references/anti-ai-slop.md`
+4. `references/anlin-background.md`
 
 For ordinary article generation, use the minimal generation pack:
 
 1. `references/runtime-brief.md`
 2. `references/feature-budget.md`
-3. `references/era-state.md` only if date/phase matters
-4. `references/generation-modes.md`
-5. `references/structure-patterns.md`
-6. `references/vocabulary-rules.md` only for review or uncertain wording
+3. `references/anti-ai-slop.md`
+4. `references/anlin-background.md`
+5. `references/era-state.md` only if date/phase matters
+6. `references/generation-modes.md`
+7. `references/structure-patterns.md`
+8. `references/vocabulary-rules.md` only for review or uncertain wording
 
 Do not read `anlin-reference-library.md`, `writing-checklist.md`, `self-check.md`, `review-rubric.md`, or `blind-judge-angles.md` before the first draft. Those are critique/reference materials and can cause the agent to stall or overfit. Use them only after the first checker pass fails or when the user explicitly asks for analysis/validation.
 
@@ -38,6 +42,8 @@ Then load only the branch-specific files as needed:
 | Need | Load |
 |---|---|
 | Target date, phase, or projection handling | `references/era-state.md` |
+| Place, game, platform, school/work, or background facts | `references/anlin-background.md`, then `references/era-state.md` |
+| AI-like formulaic phrasing, over-smoothness, or human-reader slop audit | `references/anti-ai-slop.md` |
 | Standard, sincere, micro-hope, surreal, or mixed genre choices | `references/generation-modes.md` |
 | Detailed rhythm, structure, endings, Bathos | `references/structure-patterns.md` |
 | Specific characters or role budget | `references/role-orchestration.md`, then `references/anlin-characters.md` |
@@ -48,6 +54,10 @@ Then load only the branch-specific files as needed:
 | Full validation and blind review | `references/validation-protocol.md`, `references/blind-judge-angles.md` |
 
 Do not read every reference before drafting. The generation pass uses a small state model; the critique pass uses the rule library.
+
+For formal clean generation, checker call count is a hard protocol boundary. The second checker call must be the final tool action by the generation agent: do not edit, write, read, compare, or run another checker after it. Output the best pure article immediately; the external controller will decide pass/fail.
+
+For formal clean generation, the visible final article must be exactly the current `draft.md` content after the last write. Do not create an unpersisted "manual repair" in the final response after the second checker call. If the second checker still reports errors, output the current `draft.md` anyway and let the controller fail it.
 
 ## Workflow
 
@@ -111,7 +121,7 @@ Use `generation-modes.md`. Do not force every scene through one template.
 
 Select the smallest set of scenes that can carry the piece. Standard diary usually uses several fragments; sincere and micro-hope pieces can be short. The five-step cognitive path is a strong mode for misread/self-sabotage scenes, not a global obligation.
 
-For blind-evaluation drafts, always produce a complete article with a title. Put the generated title on the first line as plain text or `# Title`; do not bold it, label it as `标题：`, or wrap it in controller notes. Serious blind review keeps and normalizes titles for all samples, then length-matches complete articles. A formal standard diary should aim safely above the lower boundary, usually 700+ body Chinese characters and preferably not by padding. Short sincere or micro-hope pieces require short-original matched evaluation; otherwise expand with concrete actions, dialogue, body/money consequence, and non-theme residue before blind testing.
+For blind-evaluation drafts, always produce a complete article with a title. Put the generated title on the first line as plain text or `# Title`; do not bold it, label it as `标题：`, or wrap it in controller notes. Serious blind review keeps and normalizes titles for all samples, then length-matches complete articles. A formal standard diary should aim safely above the lower boundary, usually 800-1100 body Chinese characters and preferably not by padding. Short sincere or micro-hope pieces require short-original matched evaluation; otherwise expand with concrete actions, dialogue, body/money consequence, and non-theme residue before blind testing.
 
 ### 6. Separate Review From Generation
 
@@ -119,17 +129,19 @@ After drafting, switch to review mode:
 
 1. Run `scripts/check_anlin_violations.py <draft>`.
    - For formal standard-diary blind-evaluation drafts, run `scripts/check_anlin_violations.py <draft> --strict --draft-gate` as a bounded gate. `--draft-gate` is for generated drafts only; do not use it when calibrating originals.
+   - If the current working directory is not the skill directory, use the absolute checker path from this skill, e.g. `python C:\Users\34025\.config\opencode\skills\anlin-writing\scripts\check_anlin_violations.py draft.md --strict --draft-gate`. Do not first try a relative `scripts\...` path from the case directory.
    - Even if the user only asked for prose, write the draft to `draft.md` in the current working directory, run the checker, then output prose only after the bounded gate. Do not use OS temp paths for formal evaluation drafts; timeout recovery needs the local draft. Do not print checker output unless the user asked for validation notes.
    - Fix hard errors, process leakage, missing title, copied source phrasing, high-signal opening, learned ending buttons, sealed-night/story enclosure, pure ambient endings, repeated material hooks, formulaic comment-chain summaries, and obvious prompt-shape leakage before output.
+   - Also fix generated-draft AI-slop errors: explanatory `不是X，是Y` / `不是X，而是Y` structures, unsupported specific place names, unsupported game-role filler, blog-like explainer phrases, or any line that reads like a model announcing a reframe.
    - Treat quiet explanation, weak paragraph engine, and missing coarse self-damage as serious review signals, not automatic hard failures: the original corpus contains some of these. In generated full-article blind tests, `--draft-gate` promotes diagnostic title, underbuilt length, single-theme density, prompt-chain over-compliance, and formulaic comment-chain summaries to blocking errors.
-   - Use at most one checker-driven repair loop inside the generation agent. Call the checker at most twice. After the second checker call, if there are no `error` findings, immediately output the clean article even if warnings remain. Do not continue repairing high-frequency coverage, coarse self-damage, paragraph engine, comma-ratio, breathing-point, scene-count, metadata, or other corpus-calibrated warnings. The external controller will validate it.
+   - Use at most one checker-driven repair loop inside the generation agent. Call the checker at most twice total, including failed/nonzero checker runs. A nonzero checker exit is normal when findings include `error`; it is not a tooling failure. After the second checker call, stop all tool use: no edit, write, read, compare, or third checker command. Output the current `draft.md` content exactly, even if errors or warnings remain. Do not hand-repair a different final answer after the second checker. Do not continue repairing high-frequency coverage, coarse self-damage, paragraph engine, comma-ratio, breathing-point, scene-count, metadata, or other corpus-calibrated warnings. The external controller will validate it.
    - If temporary-file creation, overwrite, or checker execution fails for tooling reasons, do not stop with process notes. Apply the strict checklist manually, rewrite once, and output the article only; the controller can run the checker externally.
 2. If the full corpus is available, run `scripts/compare_anlin_corpus.py <draft> --corpus-dir <corpus>`.
 3. Read `review-rubric.md` and inspect the draft against the appropriate genre gates.
 4. Use `writing-checklist.md` and `self-check.md` as critic material only. Do not retrofit every high-frequency label into the draft.
 5. Run anti-pastiche checks if any source phrasing may have leaked.
 
-Warnings are review prompts, not automatic failure. Errors and hard identity/date mistakes must be fixed. Do at most one targeted revision pass for ordinary warnings. For formal standard-diary blind evaluation, prioritize prompt-shape leakage, single-theme density, sealed-night/story enclosure, quiet explanation, weak paragraph engine, missing title, copied source phrasing, diagnostic title, underbuilt length, formulaic comment-chain summaries, and learned ending buttons. If one of these high-risk warnings remains after the first patch, rewrite once from the scene slate instead of polishing the same draft. After that rewrite, deliver the cleanest pure article rather than logs or analysis; do not loop until every ordinary warning disappears.
+Warnings are review prompts, not automatic failure. Errors and hard identity/date mistakes must be fixed. Do at most one targeted revision pass for ordinary warnings. For formal standard-diary blind evaluation, prioritize prompt-shape leakage, AI-slop phrasing, unsupported background facts, single-theme density, sealed-night/story enclosure, quiet explanation, weak paragraph engine, missing title, copied source phrasing, diagnostic title, underbuilt length, formulaic comment-chain summaries, and learned ending buttons. If one of these high-risk warnings remains after the first patch, rewrite once from the scene slate instead of polishing the same draft. After that rewrite, deliver the cleanest pure article rather than logs or analysis; do not loop until every ordinary warning disappears.
 
 ### 7. Validate Blind-Evaluation Claims
 

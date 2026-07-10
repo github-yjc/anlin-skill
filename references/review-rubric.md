@@ -25,6 +25,11 @@ Rewrite or refuse the relevant part if any appears:
 - standard diary reads as a smooth realist short story: all scenes follow one emotional arc, every object serves the same wound, no lateral branch, no rough social misfire, and no crooked laugh
 - ending is a tasteful withheld image that completes the emotional argument rather than a low consequence or interrupted action
 - standard diary is sealed inside one room/night/app chain and closes by neatly repaying an early object or debt
+- generated formal draft uses AI-reframe prose such as `不是X，是Y`, `不是因为X，而是因为Y`, `真正的问题是`, `本质上`, or other blog-like explanation that announces the insight
+- generated formal draft uses literary annotation prose such as `——那种...`, `终于可以...的放松`, `释然`, `自洽`, `真实感`, or other abstract feeling labels that caption a scene
+- generated formal draft uses A/B, 甲乙, or variable placeholders to explain a concrete daily failure
+- generated formal draft invents unsupported concrete background: named district, city route, company park, local policy, game role, platform fact, or location inconsistent with corpus/user-provided facts
+- generated formal draft keeps online discussion as a comment-chain residue such as `底下跟了一串回答`, or writes ordinary chat as standalone quoted script lines
 
 ## Structural Gates
 
@@ -67,6 +72,42 @@ Registers include laugh, sting, tenderness, deflection, absurdity, analysis, bod
 - 2: contains roughness, topic drift, uneven rhythm, and at least one non-symbolic daily detail
 - 1: generally plausible but a few scenes feel designed for the prompt
 - 0: over-tidy, theme-first, uniformly short-lined, or visibly engineered to close a motif
+
+### Anti-AI Surface
+
+- 2: no explanatory binary reframe, no blog-like thesis translation, no literary captioning, no smooth prompt-answer structure; the turn comes from scene/action/dialogue/body
+- 1: one line has AI-ish symmetry, explanation, or abstract feeling caption but local scene still carries most of the meaning
+- 0: multiple not-X-but-Y frames, insight labels, "this means" sentences, `——那种...` captions, A/B variables, balanced contrasts, or artificial humanizer roughness
+
+### Literary Annotation Surface
+
+- 2: images, jokes, and emotional turns are carried by action, body, money, route, food, or another person's line
+- 1: one phrase names a feeling (`放松`, `释然`, `自洽`, `真实感`) but does not dominate the scene
+- 0: a polished sentence tells the reader exactly what the scene feels like, especially through `——` or `那种...` annotation
+
+### Background Plausibility
+
+- 2: place, game, platform, school/work, family, and phase facts are supported by corpus, user-provided background, or documented lookup
+- 1: some vague or projection details are not fully supported but remain generic enough not to assert false specificity
+- 0: named city/district/company/game role/policy appears without support, or contradicts the corpus phase
+
+### Dialogue And Screen Surface
+
+- 2: ordinary chat, group messages, and app surfaces enter through action, screen texture, or `问/说/回` narration
+- 1: one quoted line or vague group summary remains but does not carry the scene
+- 0: ordinary dialogue appears as script lines, or online content appears as a chain/residue of comments rather than a lived screen surface
+
+### Middle Randomness
+
+- 2: the middle third contains at least one off-axis but hooked scene that would not appear in a prompt outline
+- 1: the middle has some residue but it still mostly serves the central topic
+- 0: the middle is a clean execution chain, even if the opening and ending are disguised
+
+### Human-Reader Smell Test
+
+- 2: a skeptical reader cannot point to one sentence and say "AI wrote this"; awkwardness feels local and lived
+- 1: one sentence is suspicious, but alternative human explanations remain plausible
+- 0: one or more sentences have obvious model habits: polished binary contrast, over-explanation, template empathy, or frictionless transition
 
 ### Associative Wildness
 

@@ -72,6 +72,9 @@ COMMENT_CHAIN_FORMULA_MARKERS = [
     "下面一排",
     "下面三个人",
     "一排人",
+    "底下跟了一串",
+    "跟了一串回答",
+    "一串回答",
 ]
 LOW_FREQUENCY_TERMS = ["然而", "因此", "可是", "也许", "或许", "认为", "意识到"]
 HIGH_FREQUENCY_TERMS = ["其实", "觉得", "发现", "好像", "不过", "突然", "于是", "因为", "所以"]
@@ -90,6 +93,80 @@ DRIFT_TERMS = [
     "彻底",
     "已读不回",
     "太熟悉了",
+]
+AI_SLOP_TERMS = [
+    "这说明",
+    "这意味着",
+    "说白了",
+    "换句话说",
+    "换言之",
+    "翻译过来就是",
+    "本质上",
+    "核心是",
+    "真正的问题",
+    "真正让",
+    "最终我意识到",
+    "我终于明白",
+    "这就是为什么",
+    "简单来说",
+    "从某种意义上",
+    "更重要的是",
+    "总之",
+    "一方面",
+    "另一方面",
+]
+ABSTRACT_EMOTION_TERMS = [
+    "放松",
+    "释然",
+    "自洽",
+    "真实感",
+    "完整感",
+    "命运感",
+    "松弛",
+    "破碎感",
+]
+UNSUPPORTED_DISTRICT_TERMS = [
+    "黄埔区",
+    "天河区",
+    "南山区",
+    "福田区",
+    "浦东新区",
+    "西湖区",
+    "海淀区",
+    "朝阳区",
+]
+UNSUPPORTED_CITY_REVIEW_TERMS = [
+    "广州",
+    "深圳",
+    "上海",
+    "杭州",
+    "成都",
+    "重庆",
+    "武汉",
+    "南京",
+    "天津",
+    "苏州",
+    "珠海",
+    "东莞",
+    "佛山",
+    "长沙",
+    "昆明",
+]
+UNSUPPORTED_GAME_ROLE_TERMS = [
+    "打野教学",
+    "打野",
+    "辅助位",
+    "中路被抓",
+    "压血线",
+    "大腿带",
+    "adc",
+    "ADC",
+    "ad",
+    "AD",
+    "上单",
+    "中单",
+    "射手",
+    "辅助装",
 ]
 HOLLOW_OBSERVATION_TERMS = [
     "其实不知道在吵什么",
@@ -291,11 +368,21 @@ DRAFT_GATE_RULE_PREFIXES = (
     "单主题词密度偏高",
     "题面链条过于完整",
     "评论链公式化转述",
+    "高频词覆盖不足",
+    "AI二元解释句式",
+    "AI解释腔",
+    "AI变量代称",
+    "AI文艺解释面",
+    "破折号解释连接",
+    "无依据具体地名",
+    "无依据游戏角色细节",
+    "日常对话引号",
+    "行末逗号比例",
 )
 DRAFT_GATE_RULE_NAMES: set[str] = set()
 
 STANDARD_DIARY_FORMAL_MIN_CHARS = 650
-STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS = 700
+STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS = 800
 
 
 def clean_excerpt(line: str) -> str:
@@ -392,12 +479,133 @@ def check_process_leakage(findings: list[Finding], lines: list[str]) -> None:
 
 
 def check_not_x_is_y(findings: list[Finding], lines: list[str]) -> None:
-    pattern = re.compile(r"不是[^，。！？\n]{1,24}[,，]?[而只也]?是")
-    matches = [(line_number, line) for line_number, line in enumerate(lines, start=1) if pattern.search(line)]
-    if len(matches) <= 1:
-        return
+    patterns = [
+        re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:而|只|也)?是"),
+        re.compile(r"不是[^，。！？\n]{1,28}[,，]?(?:就是|只是)"),
+        re.compile(r"不是[^。！？\n]{1,28}[。！？]\s*(?:就是|只是)"),
+    ]
+    matches = [
+        (line_number, line)
+        for line_number, line in enumerate(lines, start=1)
+        if any(pattern.search(line) for pattern in patterns)
+    ]
     for line_number, line in matches:
-        findings.append(Finding("warning", "不是X是Y overuse", line_number, clean_excerpt(line), "高风险句式；若是解释性二元对比，优先直接陈述Y。若来自自然对话或原文式复杂句，人工保留。"))
+        findings.append(
+            Finding(
+                "warning",
+                "AI二元解释句式",
+                line_number,
+                clean_excerpt(line),
+                "生成稿高风险：不是X是Y/而是Y/只是Y常像AI在宣布重构。优先删除否定框架，让动作、人物、身体或物件直接呈现事实。原文校准时人工区分自然对话。",
+            )
+        )
+
+
+def check_ai_slop_terms(findings: list[Finding], lines: list[str]) -> None:
+    for line_number, line in enumerate(lines, start=1):
+        for term in AI_SLOP_TERMS:
+            if term in line:
+                findings.append(
+                    Finding(
+                        "warning",
+                        f"AI解释腔: {term}",
+                        line_number,
+                        clean_excerpt(line),
+                        "该词常把场景翻译成结论。删除解释句，改由具体动作、对话、app表面、付款或身体反应承载转向。",
+                    )
+                )
+                break
+
+
+def check_literary_ai_surface(findings: list[Finding], lines: list[str]) -> None:
+    dash_patterns = [
+        re.compile(r"——[^”\"。！？\n]{0,36}(?:那种|一种|终于|其实|好像|可以|变成|像|让人|让我)"),
+        re.compile(r"[^”\"\n]{4,48}——(?:[^。！？\n]{0,24})(?:放松|释然|自洽|真实感|完整感|命运感|松弛|破碎感)"),
+    ]
+    literary_patterns = [
+        re.compile(r"那种[^。！？\n]{0,28}(?:放松|释然|自洽|真实感|完整感|命运感|松弛|破碎感)"),
+        re.compile(r"终于可以[^。！？\n]{0,28}(?:放松|喘气|把话说得|做自己|不用)"),
+        re.compile(r"(?:有了|获得|抵达|完成)[^。！？\n]{0,16}(?:自洽|释然|真实感|完整感|命运感|松弛)"),
+    ]
+    for line_number, line in enumerate(lines, start=1):
+        if any(pattern.search(line) for pattern in dash_patterns):
+            findings.append(
+                Finding(
+                    "warning",
+                    "破折号解释连接",
+                    line_number,
+                    clean_excerpt(line),
+                    "生成稿高风险：破折号后接解释、抽象情绪或'那种'补充，常像模型在替画面加注解。删掉破折号解释，改成下一步动作、对方原话、身体反应或低处后果。",
+                )
+            )
+        if any(term in line for term in ABSTRACT_EMOTION_TERMS) or any(pattern.search(line) for pattern in literary_patterns):
+            findings.append(
+                Finding(
+                    "warning",
+                    "AI文艺解释面",
+                    line_number,
+                    clean_excerpt(line),
+                    "生成稿高风险：放松/释然/自洽/真实感等抽象情绪命名容易把场景写成文学腔。用具体动作、付款、食物、身体、路线或一句笨拙回复替代。",
+                )
+            )
+
+
+def check_ai_variable_placeholders(findings: list[Finding], lines: list[str]) -> None:
+    patterns = [
+        re.compile(r"(?<![A-Za-z])A(?![A-Za-z])[^。！？\n]{0,48}(?<![A-Za-z])B(?![A-Za-z])"),
+        re.compile(r"[甲乙丙丁][^。！？\n]{0,48}[甲乙丙丁]"),
+    ]
+    for line_number, line in enumerate(lines, start=1):
+        if any(pattern.search(line) for pattern in patterns):
+            findings.append(
+                Finding(
+                    "warning",
+                    "AI变量代称",
+                    line_number,
+                    clean_excerpt(line),
+                    "生成稿高风险：A/B、甲乙这类变量代称会把日常失败抽象成模型解释。删除变量句，保留具体物件、价格、动作或人的原话。",
+                )
+            )
+
+
+def check_background_fact_specificity(findings: list[Finding], lines: list[str]) -> None:
+    for line_number, line in enumerate(lines, start=1):
+        for term in UNSUPPORTED_DISTRICT_TERMS:
+            if term in line:
+                findings.append(
+                    Finding(
+                        "warning",
+                        f"无依据具体地名: {term}",
+                        line_number,
+                        clean_excerpt(line),
+                        "Anlin语料支持云南/小城/老家等纹理，不支持随手编具体城区。除非用户或检索提供背景，删掉地名，保留实际动作/路线失败。",
+                    )
+                )
+                break
+        for term in UNSUPPORTED_GAME_ROLE_TERMS:
+            if term in line:
+                findings.append(
+                    Finding(
+                        "warning",
+                        f"无依据游戏角色细节: {term}",
+                        line_number,
+                        clean_excerpt(line),
+                        "语料支持王者荣耀、星耀、ELO、蔡文姬、原神；该角色/教学词不是默认事实。除非用户提供或锚点支持，换成更稳的王者/排位/星耀/ELO表面。",
+                    )
+                )
+                break
+        for term in UNSUPPORTED_CITY_REVIEW_TERMS:
+            if term in line:
+                findings.append(
+                    Finding(
+                        "info",
+                        f"具体城市需核实: {term}",
+                        line_number,
+                        clean_excerpt(line),
+                        "城市名不一定错误，但必须来自用户背景、检索或语料锚点；否则优先降级为小城/那边/一个园区/学校门口等低断言表面。",
+                    )
+                )
+                break
 
 
 def check_money_suffix(findings: list[Finding], lines: list[str]) -> None:
@@ -414,7 +622,14 @@ def check_money_suffix(findings: list[Finding], lines: list[str]) -> None:
                     "金额后缀通常删除；如需保留，确认是原文式口语而非账本语言。",
                 )
             )
-        elif chinese_pattern.search(line):
+        else:
+            chinese_match = chinese_pattern.search(line)
+            if not chinese_match:
+                continue
+            matched = chinese_match.group(0)
+            following = line[chinese_match.end() : chinese_match.end() + 1]
+            if matched == "一块" and following not in {"钱", "五"}:
+                continue
             findings.append(
                 Finding(
                     "info",
@@ -441,9 +656,20 @@ def check_repeated_you(findings: list[Finding], lines: list[str]) -> None:
 
 def check_dialogue_quotes(findings: list[Finding], lines: list[str]) -> None:
     pattern = re.compile(r"(?:说|问|继续说|又说|他说|她说|我说).{0,8}[“\"『「]")
+    standalone_pattern = re.compile(r"^[“\"『「][^。！？\n]{1,40}[。！？]?[”\"』」]$")
     for line_number, line in enumerate(lines, start=1):
         if pattern.search(line):
             findings.append(Finding("info", "疑似日常对话引号", line_number, clean_excerpt(line), "原文中存在引号；这里只提示人工检查是否为代理生成稿的戏剧化对话。"))
+        elif standalone_pattern.search(line.strip()):
+            findings.append(
+                Finding(
+                    "warning",
+                    "日常对话引号",
+                    line_number,
+                    clean_excerpt(line),
+                    "生成稿高风险：普通微信/饭桌/室友对话不应像剧本台词一样单独加引号。改成“他说/我回/她问”引导的散文化对话，或只保留一条屏幕表面。",
+                )
+            )
 
 
 def check_high_frequency_coverage(findings: list[Finding], text: str) -> None:
@@ -504,7 +730,7 @@ def check_standard_diary_length(findings: list[Finding], lines: list[str], text:
                 "标准日寄完整文章篇幅偏短",
                 0,
                 f"body_chinese_chars={chars}",
-                "完整文章盲评最低比较边界约650字；正式生成稿以700字以上为安全目标。扩展具体动作、对话、身体/金钱后果和非主题残留，或改为短体裁匹配评估。",
+                "完整文章盲评最低比较边界约650字；正式生成稿以800字以上为安全目标。扩展具体动作、对话、身体/金钱后果和非主题残留，或改为短体裁匹配评估。",
             )
         )
     elif chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
@@ -514,7 +740,7 @@ def check_standard_diary_length(findings: list[Finding], lines: list[str], text:
                 "标准日寄完整文章篇幅缓冲不足",
                 0,
                 f"body_chinese_chars={chars}",
-                "650-699字容易在生成波动中变成长度识别点；正式生成稿应补到700字以上，优先增加行动链、社交误伤、身体/金钱后果或无用日常残留。",
+                "650-799字容易在生成波动和修复中变成长度识别点；正式生成稿应补到800字以上，优先增加行动链、社交误伤、身体/金钱后果或无用日常残留。",
             )
         )
 
@@ -938,6 +1164,10 @@ def collect_findings(text: str) -> list[Finding]:
     add_term_findings(findings, lines, FAKE_SENTIMENT_TERMS, "warning", "假感动收尾", "静止情绪画面替代具体动作——用具体动作收束（关了、划掉、回了句去你妈的、又打开了）。")
     check_news_name_drop(findings, lines)
     check_not_x_is_y(findings, lines)
+    check_ai_slop_terms(findings, lines)
+    check_literary_ai_surface(findings, lines)
+    check_ai_variable_placeholders(findings, lines)
+    check_background_fact_specificity(findings, lines)
     check_money_suffix(findings, lines)
     check_like_something(findings, lines)
     check_repeated_you(findings, lines)
@@ -1007,6 +1237,15 @@ def format_text(findings: list[Finding]) -> str:
     return "\n".join(output)
 
 
+def read_text_flexible(path: Path) -> str:
+    for encoding in ("utf-8", "utf-8-sig", "utf-16"):
+        try:
+            return path.read_text(encoding=encoding)
+        except UnicodeError:
+            continue
+    return path.read_text(encoding="utf-8", errors="replace")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check deterministic Anlin-style hard-rule violations.")
     parser.add_argument("file", type=Path, help="Draft markdown/text file to inspect")
@@ -1016,7 +1255,7 @@ def main() -> int:
     parser.add_argument("--fail-on-warning", action="store_true", help="Return nonzero for warnings as well as errors")
     args = parser.parse_args()
 
-    text = args.file.read_text(encoding="utf-8")
+    text = read_text_flexible(args.file)
     findings = collect_findings(text)
     if args.strict or args.draft_gate:
         findings = apply_strict_mode(findings, draft_gate=args.draft_gate)

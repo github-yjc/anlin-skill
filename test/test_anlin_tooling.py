@@ -110,6 +110,22 @@ class AnlinToolingTests(unittest.TestCase):
             errors = [item for item in findings if item["severity"] == "error"]
             self.assertTrue(any("过程说明泄漏" in item["rule"] for item in errors))
 
+    def test_checker_reads_utf16_drafts_from_windows_tools(self) -> None:
+        body = "# 日寄\n\n手机充电口又松了。\n"
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-16")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            findings = json.loads(result.stdout)
+            self.assertIsInstance(findings, list)
+
     def test_checker_flags_theme_density_and_tasteful_withholding(self) -> None:
         body = "\n".join(
             [
@@ -383,6 +399,248 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(
                 any(item["rule"] == "strict: 评论链公式化转述" for item in findings)
             )
+
+    def test_checker_draft_gate_rejects_ai_binary_reframe(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "酸梅汤漏了一路。",
+                "不是包装袋漏，是电动车前面那个篮子。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            strict_result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            draft_gate_result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(strict_result.returncode, 0, strict_result.stderr)
+            self.assertNotEqual(draft_gate_result.returncode, 0)
+            findings = json.loads(draft_gate_result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: AI二元解释句式" for item in findings))
+
+    def test_checker_draft_gate_rejects_split_binary_reframe(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "也不是故意的。就是想拿充电器而已。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: AI二元解释句式" for item in findings))
+
+    def test_checker_draft_gate_rejects_unsupported_background_specifics(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "上周去黄埔区面了一家公司，出了站发现走错了口。",
+                "回来刷了个打野教学。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 无依据具体地名: 黄埔区" for item in findings))
+            self.assertTrue(any(item["rule"] == "strict: 无依据游戏角色细节: 打野教学" for item in findings))
+
+    def test_checker_draft_gate_rejects_blog_like_explainer_voice(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "手机红点一直亮。",
+                "本质上这说明我还在等一个根本不会来的消息。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"].startswith("strict: AI解释腔") for item in findings))
+
+    def test_checker_draft_gate_rejects_literary_ai_explanation_surface(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "听不太清，但能认出那句没问题下周可以的语气——那种终于可以把话说得很轻的放松。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any(rule == "strict: 破折号解释连接" for rule in rules))
+            self.assertTrue(any(rule == "strict: AI文艺解释面" for rule in rules))
+
+    def test_checker_draft_gate_rejects_residual_comment_chain_surface(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "底下跟了一串回答。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 评论链公式化转述" for item in findings))
+
+    def test_checker_draft_gate_rejects_standalone_daily_dialogue_quotes(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "\"晚上吃的啥。\"",
+                "\"面。\"",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 日常对话引号" for item in findings))
+
+    def test_checker_draft_gate_rejects_adc_game_role_but_not_one_piece_surface(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "第一把选了蔡文姬，adc走位像在送。",
+                "嘴皮上烫了一块。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: 无依据游戏角色细节: adc" for item in findings))
+            self.assertFalse(any(item["rule"] == "金额后缀（中文数字）" for item in findings))
+
+    def test_checker_draft_gate_rejects_ai_variable_placeholder_sentence(self) -> None:
+        body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "你准备好的是A，拿到的却是B，而且不能退货，得咽下去。",
+                *(["我把杯子拿去洗水龙头先咳了一下喷到裤子上"] * 36),
+            ]
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            self.assertTrue(any(item["rule"] == "strict: AI变量代称" for item in findings))
+
+    def test_checker_draft_gate_promotes_sparse_connector_and_comma_rhythm(self) -> None:
+        body = "\n".join(["# 日寄", "", *(["杯子脏了。"] * 120)])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertTrue(any(rule == "strict: 高频词覆盖不足" for rule in rules))
+            self.assertTrue(any(rule == "strict: 行末逗号比例" for rule in rules))
 
     def test_checker_flags_quiet_explanation_and_weak_engine(self) -> None:
         body = "\n".join(

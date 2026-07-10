@@ -49,9 +49,11 @@ target-length:
 line-rhythm:
 feature-budget:
 forbidden-risks:
+background-fact-boundary:
+anti-ai-slop-watch:
 ```
 
-The state card is not part of the final prose.
+The state card is not part of the final prose. For formal standard diary blind evaluation, set `target-length` to roughly 800-1100 body Chinese characters. Do not aim near 650 or 700; repairs often shorten drafts.
 
 If the user asked for an article, the final answer must contain only the article title and body. Do not print the state card, prompt buckets, scene slate, validation summary, checker output, overlap score, or any line such as `草拟`, `校验通过`, `State Card`, or `Prompt item`.
 
@@ -59,9 +61,11 @@ For formal standard diary blind evaluation, run the checker with `--strict --dra
 
 This applies even when the user asked only for the article. Use `draft.md` in the current working directory for the check, keep the report internal, and output only the title and article body after the bounded gate. Do not use OS temp files for formal evaluation drafts because timeout recovery needs the artifact.
 
-Blocking issues are process leakage, missing title, copied source phrasing, high-signal opening, learned ending buttons, sealed-night/story enclosure, pure ambient endings, repeated material hooks, obvious prompt-shape leakage, and any `--draft-gate` error. Quiet explanation, weak paragraph engine, missing coarse self-damage, connector coverage, comma ratio, breathing-point warnings, and rhythm hints are review prompts.
+Blocking issues are process leakage, missing title, copied source phrasing, high-signal opening, learned ending buttons, sealed-night/story enclosure, pure ambient endings, repeated material hooks, obvious prompt-shape leakage, generated-draft AI slop, unsupported background facts, literary annotation voice, severe rhythm/connective outliers, and any `--draft-gate` error. Quiet explanation, weak paragraph engine, missing coarse self-damage, breathing-point warnings, and minor rhythm hints are review prompts.
 
-Use at most one checker-driven repair loop and call the checker at most twice. After the second checker call, if there are no `error` findings, output the cleanest pure article immediately. Soft style warnings are not permission to run a third repair.
+Generated-draft AI slop includes explanatory `不是X，是Y` / `不是X，而是Y`, blog-like insight translation, unsupported specific place names, unsupported game-role filler, literary `——那种...` explanation, abstract emotion labels such as `放松` / `释然` / `自洽`, A/B or 甲乙 variable explanation, or any line that mainly announces a reframe rather than letting a scene create it.
+
+Use at most one checker-driven repair loop and call the checker at most twice. The second checker call is the last tool action. After it returns, do not edit, write, read, compare, or run another command. Output the current `draft.md` content exactly, even if errors remain. Do not produce an unpersisted hand-repaired final variant after the second checker. Soft style warnings are not permission to run a third repair.
 
 If the file/checker tool flow itself fails, do not end the response with logs or process text. Manually apply the strict gate, rewrite once, and output the article only. The external controller will validate afterward.
 
@@ -135,6 +139,7 @@ Repairs:
 - replace quiet object symbolism with a bad practical consequence
 - replace polite dialogue with a possible accidental wound
 - delete the prettiest explanatory sentence after a good image
+- replace `——` plus abstract feeling with the next action: the food goes cold, a reply arrives from the wrong person, the body hurts, money is paid, a route changes, or someone says a plain ugly line
 
 ## Open Montage Gate
 
@@ -181,8 +186,14 @@ Use concrete behavior instead of emotional labels. Use actions, numbers, bad sle
 - Do not default to short-line lyricism. Mix short cuts with longer spoken or thought clauses, especially in standard diary mode.
 - Do not let the title, first scene, and ending agree too neatly. At least one of them should be weaker, dirtier, or off-axis.
 - Do not use learned Anlin-like end buttons unless the scene forces them. `哦`, `算了`, `睡了`, sound effects, and dark-screen endings are high-risk when used as decorative closure.
+- Do not use AI-humanizer contrast frames. If a sentence negates one interpretation before revealing another, delete the negation and let the scene carry the turn.
+- Do not use literary annotation frames. If a sentence needs `——` to explain a feeling, delete the explanation and make a concrete thing happen next. Avoid `放松`, `释然`, `自洽`, `真实感`, `完整感`, and `命运感` in generated formal drafts.
+- Do not use A/B or 甲乙 variable placeholders to explain a daily failure. Keep the actual wrong food, broken object, price, app surface, or person's line.
+- Do not invent a named district, city route, game role, company park, or platform fact to make the day concrete. Use `anlin-background.md`: unsupported specifics are worse than vague but truthful surfaces.
 - Do not make every required prompt detail visible. A blind judge can identify prompt-compliant writing faster than subtle style drift.
 - For standard diary blind evaluation, revise before final output if the body is under roughly 700 Chinese characters. 650 is only the lower comparison boundary; 650-699 is still a generated-draft risk zone. Expand with action, dialogue, body/material pressure, and useless daily residue rather than adjectives.
+- During repair, never fix a draft-gate error by shrinking below the length target. If deleting a high-risk line, replace it with a concrete action or off-axis residue before the second checker call.
+- Before the first checker call, make sure `draft.md` itself is the candidate final article: line-broken, complete, titled, and near 800-1100 body Chinese characters. The checker validates `draft.md`, not a later terminal-only rewrite.
 - For standard diary, do not deliver a title that diagnoses the prompt. `日寄` is safer than `春招日寄`, `情人节日寄`, `婚礼日寄`, or any title built from the user's topic noun unless the corpus phase and body strongly justify it.
 - Before final output, inspect the first five content lines, the title, and the last three content lines together. If a judge could reconstruct the user's prompt from those surfaces, displace one of them.
 - If the last line is `哦`, `算了`, `睡了`, `关屏`, a dark-screen action, or a lone sound effect, keep it only when the preceding scene forces that exact consequence. Otherwise end on a less iconic unfinished action, reply, route, object, payment, or bodily interruption.
@@ -191,6 +202,8 @@ Use concrete behavior instead of emotional labels. Use actions, numbers, bad sle
 - Do not end on pure ambient sound unless the sound is actively doing social or bodily damage. `空调外机嗡嗡嗡。`, fan noise, rain noise, light hum, or screen buzz as the final line is a high-risk literary button when it merely fades out.
 - Do not repeat the same material hook almost verbatim. If medicine, a charger, a temperature, or an app badge returns, the second return must change the social/body consequence rather than echo the first sentence.
 - Do not compress standard diary into evenly spaced prose paragraphs. In corpus-calibrated full articles, 550+ Chinese characters usually need many short content lines rather than 8-12 large blocks. Keep broken line rhythm, blunt single-line drops, and one messy dialogue/action chain.
+- Do not end every content line with a full stop. Keep some comma-led broken lines and natural connective tissue; a formal generated draft with almost no high-frequency connectors or comma endings reads over-edited.
+- Do not write ordinary chat or room dialogue as standalone quoted script lines. Prefer `我妈问晚上吃的啥，我回面。` or a single screen-surface line over `"晚上吃的啥。"` / `"面。"`
 
 ## Source Of Truth
 
