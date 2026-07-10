@@ -68,8 +68,8 @@ This matrix intentionally uses stable owner files and short evidence anchors, no
 | 44 | No local machine paths in runtime docs | README, `SKILL.md`, runtime docs | `<skill-dir>` and `<corpus-dir>`, not user-specific paths |
 | 45 | Rhythm scripts are finite repair, not source | `references/finalized-repair-minimum.md`, `references/standard-diary-source-engine.md`, `references/clean-generation-brief.md` | `Do not depend on rebalance_line_rhythm.py`; scripts cannot create first article shape |
 | 46 | Old small-sample blind protocol is inactive | `references/validation-protocol.md`, README, judge docs, tests | active readiness uses `8 impostor + 2 placebo`; legacy smaller rounds are historical only |
-| 47 | Mixed preflight repair order | `scripts/clean_run_checker.py`, `references/clean-generation-brief.md`, `references/runtime-brief.md`, tests | source/content blockers before `rebalance_line_rhythm.py`; rhythm script is final shape step after last content write |
-| 48 | Post-check preflight before checker call 2/2 | `scripts/clean_run_checker.py`, `SKILL.md`, `references/clean-generation-brief.md`, `references/runtime-brief.md`, `references/validation-protocol.md`, tests | `CLEAN_RUN_POSTCHECK_PREFLIGHT`; protect checker call 2/2 from underbuilt shrinkage; repair by source replacement |
+| 47 | Mixed preflight repair order | `scripts/clean_run_checker.py`, `SKILL.md`, `references/clean-eval-first-draft-minimum.md`, `references/runtime-layer-map.md`, tests | wrapper output only; source/content blockers before `rebalance_line_rhythm.py`; rhythm script is final shape step after last content write |
+| 48 | Post-check preflight before checker call 2/2 | `scripts/clean_run_checker.py`, `SKILL.md`, `references/clean-eval-first-draft-minimum.md`, `references/validation-protocol.md`, tests | `CLEAN_RUN_POSTCHECK_PREFLIGHT`; protect checker call 2/2 from underbuilt shrinkage; no long reference reload; repair by source replacement |
 
 ## Current Assessment
 

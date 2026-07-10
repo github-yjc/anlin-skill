@@ -54,7 +54,7 @@ After the minimal source reads finish, the next tool action must be one complete
 
 Before the first complete `draft.md`, do not open long repair, validation, judge, style-ratio, corpus-card, or checker-source files. In particular, do not load `references/clean-generation-brief.md`, `references/runtime-brief.md`, `references/anti-ai-slop.md`, `references/generation-modes.md`, `references/review-rubric.md`, `references/writing-checklist.md`, `references/self-check.md`, `references/stylometric-ratio-protocol.md`, `references/validation-protocol.md`, `references/development-log.md`, `evals/README.md`, or `references/corpus-cards/`.
 
-If the wrapper reports `CLEAN_RUN_PREFLIGHT` or `CLEAN_RUN_POSTCHECK_PREFLIGHT`, use `references/clean-generation-brief.md` as the detailed repair interface. The post-check variant is still a clean-eval preflight: it protects checker call 2/2 from a known underbuilt source and does not consume that second checker call. If it reports `CLEAN_RUN_PREFLIGHT_STOP` or `CLEAN_RUN_STOP`, stop repairing, read `draft.md` once, and output that exact article. Do not switch to ordinary checker flow after the bounded stop.
+If the wrapper reports `CLEAN_RUN_PREFLIGHT` or `CLEAN_RUN_POSTCHECK_PREFLIGHT`, the wrapper output is the complete repair interface. In bounded clean-eval, do not load `references/clean-generation-brief.md` or another repair/reference file after that result. Treat multiple findings as one source diagnosis: preserve or rebuild complete genre-appropriate mass, replace the smallest broken movement, and do not solve one item per metric. After any `draft.md` rewrite, rerun the wrapper immediately; if the wrapper explicitly names a rhythm script, run that exact final shape step and then rerun the wrapper. Do not hand-count rows, characters, punctuation, or connectors between calls. The post-check variant still protects checker call 2/2 and does not consume it. If the wrapper reports `CLEAN_RUN_PREFLIGHT_STOP` or `CLEAN_RUN_STOP`, stop repairing, read `draft.md` once, and output that exact article. Do not switch to ordinary checker flow after the bounded stop.
 
 ## Finalized Repair Entry
 
@@ -73,7 +73,7 @@ Use these files by task; do not load everything.
 | Need | Read |
 |---|---|
 | Clean-eval first draft | `references/clean-eval-first-draft-minimum.md`; add `references/standard-diary-source-engine.md` for standard diary |
-| Clean-eval repair after wrapper output | `references/clean-generation-brief.md` |
+| Clean-eval repair after wrapper output | wrapper output only; no additional reference read |
 | Ordinary drafting or non-formal repair | `references/runtime-brief.md`, then `references/feature-budget.md` and `references/anti-ai-slop.md` only as needed |
 | Fact or background check after scene selection | `references/anlin-background.md`, `references/background-fact-classes.json`, `references/era-state.md` |
 | Title problem | `references/title-model.md` |

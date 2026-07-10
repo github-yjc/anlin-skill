@@ -1,6 +1,6 @@
 # Generation Modes
 
-Use these scene modes for ordinary drafting, explicit analysis, or repair after the first clean-eval checker pass. For clean-eval generation, `clean-generation-brief.md` already carries the first-draft mode summary; do not open this file before the first complete `draft.md` unless the scene slate is stuck. Do not force every scene through one path.
+Use these scene modes for ordinary drafting or explicit analysis. In bounded clean-eval, the minimal first-draft files own source formation and wrapper output alone owns repair; do not load this file or `clean-generation-brief.md` as another bounded checklist. Do not force every scene through one path.
 
 ## Mode A: Misread Scene
 

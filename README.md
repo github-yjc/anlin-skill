@@ -40,6 +40,8 @@ The paired direction-aware retest changed the failure but did not close it. The 
 
 The compact hard-pass/review experiment is now closed: it preserved artifact scope and strict hard-gate status, but finalized quality still did not converge and style-profile remained `review` with punctuation/ngram drift. Stop repairing the same artifact. Targeted all-original calibration produced 0/2 raw and 0/2 stable false accusations across two valid six-original rounds and did not reproduce punctuation/ngram as an accusation cue. This result is calibration-only and does not validate the generated draft; it does not count toward the formal `8 impostor + 2 placebo` readiness package or create a reportable recognition rate. The next hypothesis is bounded source formation: globally high period placement, enumeration packets, and too little natural recurring phrase texture. Do not change profile thresholds from this result.
 
+Fresh bounded retest 146 produced a real first draft but did not reach a bounded stop. The controller timed out while the generation process kept running in the background; after the captured JSONL ended, the same session loaded the 94KB expanded clean-generation reference, rewrote `draft.md`, and stopped before rerunning `clean_run_checker.py`. The first submission was 985 body Chinese characters and failed source/rhythm gates; the unverified rewrite shrank to 769 characters, kept private wet-room texture instead of a refusal-coupled consequence, and failed hard gate plus style-profile review. This run is invalid timeout/incomplete-boundary evidence, not a generation case. Current fix: bounded preflight and post-check repair now use the wrapper output as the complete interface, with no additional long reference read; related findings should be handled by one integrated source change, and every rewrite must be followed immediately by the wrapper. Trace audit also now rejects a post-wrapper rewrite that ends without another wrapper result. The project remains not ready for blind rounds.
+
 ## Quick Start
 
 1. Install this directory wherever the target OpenCode-compatible agent discovers local skills.
@@ -70,7 +72,7 @@ Use the smallest document set that matches the task:
 |---|---|
 | GitHub user or installer | this `README.md` |
 | Ordinary runtime article generation | `SKILL.md`, then `references/runtime-brief.md`; use `references/feature-budget.md` and `references/anti-ai-slop.md` only as needed |
-| Formal clean-eval first draft | `SKILL.md`, then `references/clean-eval-first-draft-minimum.md`; add `references/standard-diary-source-engine.md` for standard diary; use `references/clean-generation-brief.md` only after wrapper findings |
+| Formal clean-eval first draft and bounded repair | `SKILL.md`, then `references/clean-eval-first-draft-minimum.md`; add `references/standard-diary-source-engine.md` for standard diary; after wrapper findings use wrapper output only; no additional reference read |
 | Ordinary repair after a draft exists | `references/runtime-brief.md`, `references/feature-budget.md`, `references/anti-ai-slop.md`, then targeted fact/voice/title references as needed |
 | Fact and background checks | `references/anlin-background.md`, `references/background-fact-classes.json`, `references/era-state.md` |
 | Controller validation and blind testing | `references/validation-protocol.md`, `references/stylometric-ratio-protocol.md`, `references/blind-judge-angles.md`, `evals/README.md` |
@@ -79,7 +81,7 @@ Use the smallest document set that matches the task:
 
 Clean-eval first drafts should not load controller, development-log, route-coverage, or architecture-convergence files before the first complete `draft.md`; those files exist for validation, diagnosis, and maintenance.
 
-For source-load conflict audits, `references/clean-eval-first-draft-minimum.md` owns the first formal draft. `references/clean-generation-brief.md`, `runtime-brief.md`, `generation-modes.md`, and `anti-ai-slop.md` remain available after the first draft or for ordinary repair, but they should not be preloaded as a checklist in clean-eval first-draft generation.
+For source-load conflict audits, `references/clean-eval-first-draft-minimum.md` owns the first formal draft and the wrapper output owns bounded repair. `references/clean-generation-brief.md` is an expanded controller/developer reference; `runtime-brief.md`, `generation-modes.md`, and `anti-ai-slop.md` remain available for ordinary repair or explicit analysis, but none should be loaded into a bounded clean-eval repair as a checklist.
 
 ## Architecture
 
@@ -90,7 +92,7 @@ anlin-writing/
 ├── SKILL.md                         # routing, clean-eval boundary, output rules
 ├── references/
 │   ├── clean-eval-first-draft-minimum.md # short first-draft contract
-│   ├── clean-generation-brief.md     # expanded clean-eval repair contract
+│   ├── clean-generation-brief.md     # expanded controller/developer repair reference
 │   ├── standard-diary-source-engine.md # compact standard-diary middle engine
 │   ├── runtime-layer-map.md          # architecture map for audits
 │   ├── route-coverage-matrix.md      # owner anchors for route/information-loss audits

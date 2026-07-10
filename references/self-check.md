@@ -4,7 +4,7 @@
 
 自查逐条执行，不得跳过。主观判断不能替代硬规则检查；硬规则同时运行 `scripts/check_anlin_violations.py`。
 
-clean-eval 例外：如果当前任务是盲评用完整文章生成，必须服从 `SKILL.md` 与 `clean-generation-brief.md` 的两次 `clean_run_checker.py` 上限。本文件只用于第一次失败后的诊断和一次修复，不允许覆盖 clean-eval 停止规则，不允许因为 warning 或普通 error 继续第三次写稿/第三次检查。第二次 checker 后，下一步只能读取当前 `draft.md` 并原样输出；剩余问题由 controller 记录。
+clean-eval 例外：如果当前任务是盲评用完整文章生成，必须服从 `SKILL.md` 与 wrapper 输出的两次 `clean_run_checker.py` 上限；不要再加载本文件或 `clean-generation-brief.md`。wrapper 输出是 bounded repair 的完整接口，不允许因为 warning 或普通 error 继续第三次写稿/第三次检查。第二次 checker 后，下一步只能读取当前 `draft.md` 并原样输出；剩余问题由 controller 记录。
 
 ### 快速诊断
 

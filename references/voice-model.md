@@ -56,7 +56,7 @@ Anlin 的文章是从"一个具体的人在某一段日子里的具体经历"中
 
 ### 2.6 开始写作
 
-以上完成后，按本文件后续章节、`references/structure-patterns.md` 和 `references/vocabulary-rules.md` 组织文章。普通修稿可以进入 `references/self-check.md` 的 §8；clean-eval 必须遵守 `SKILL.md` / `clean-generation-brief.md` 的两次 checker 上限，不能用 §8.6 开无限循环。
+以上完成后，按本文件后续章节、`references/structure-patterns.md` 和 `references/vocabulary-rules.md` 组织文章。普通修稿可以进入 `references/self-check.md` 的 §8；bounded clean-eval 必须遵守 `SKILL.md` 与 wrapper 输出的两次 checker 上限，不能再加载长 repair reference 或用 §8.6 开无限循环。
 
 ### 2.7 开头变体库（构思时选择，不可默认一种）
 
