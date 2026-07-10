@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import shutil
 import tempfile
 from dataclasses import asdict, dataclass
 from datetime import datetime
@@ -28,7 +29,7 @@ JUDGE_PROFILES = [
     "emotion-reality",
     "dialogue-social",
     "phase-genre-title",
-    "ai-impostor-risk",
+    "synthetic-risk",
 ]
 
 
@@ -38,6 +39,7 @@ class RoundInfo:
     kind: str
     seed: int
     directory: str
+    judge_directory: str
     generated_sample: str
     prompt: str
 
@@ -75,14 +77,22 @@ def create_round(
     )
     prompt_path = round_dir / "prompt.txt"
     prompt_path.write_text(prompt, encoding="utf-8")
+    judge_dir = output_root / f"judge-view-{round_id:02d}"
+    if judge_dir.exists():
+        raise FileExistsError(f"Neutral judge directory already exists: {judge_dir}")
+    judge_dir.mkdir(parents=True)
+    shutil.copy2(prompt_path, judge_dir / "prompt.txt")
+    for sample_path in sorted(round_dir.glob("sample-*.txt")):
+        shutil.copy2(sample_path, judge_dir / sample_path.name)
     generated_sample = next((name for name, item in mapping.items() if item["is_draft"]), "NONE")
     return RoundInfo(
         round_id=round_id,
         kind=f"placebo:{profile}" if placebo else f"impostor:{profile}",
         seed=seed,
         directory=str(round_dir),
+        judge_directory=str(judge_dir),
         generated_sample=generated_sample,
-        prompt=str(prompt_path),
+        prompt=str(judge_dir / "prompt.txt"),
     )
 
 
@@ -167,7 +177,7 @@ def main(argv: Optional[list[str]] = None) -> int:
         "placebo_rounds": placebo_rounds,
         "profiles": profiles,
         "rounds": [asdict(item) for item in rounds],
-        "controller_rule": "Give each prompt.txt to an isolated judge. Judges may read only sample-*.txt and may answer NONE. Titles are retained and normalized; title fit is evidence but cannot be the sole basis. Count a stable accusation only when IDENTIFIED is not NONE, confidence is >=75, and at least three independent evidence families are named, including one non-title/non-topic family. Report raw and stable rates plus placebo false accusations. Treat placebo rounds as original-text calibration; if the same evidence families accuse originals, lower confidence in those cues before revising the generator.",
+        "controller_rule": "Give each prompt.txt from judge_directory to an isolated pure judge. Do not run judges from the controller round directory, because those directory names may contain impostor/placebo labels and mapping.json. For opencode, run judges with --pure and the neutral judge_directory containing only prompt.txt and sample-*.txt. If the runtime has any local writing/style skills installed, also run with an isolated OPENCODE_CONFIG_DIR or equivalent configuration that contains no skills; --pure alone may not disable skills. Judges may read only prompt.txt and sample-*.txt and may answer NONE. If a judge uses any style skill, author-specific skill, original corpus, mapping, controller notes, web search, prior analysis, or round-kind directory names, mark that round contaminated. Titles are retained and normalized; title fit is evidence but cannot be the sole basis. Count a stable accusation only when IDENTIFIED is not NONE, confidence is >=75, and at least three independent evidence families are named, including one non-title/non-topic family. Report raw and stable rates plus placebo false accusations. Treat placebo rounds as original-text calibration; if the same evidence families accuse originals, lower confidence in those cues before revising the generator.",
     }
     manifest_path = output_root / "controller-manifest.json"
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -175,7 +185,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     print(f"output_root: {output_root}")
     print(f"manifest: {manifest_path}")
     for item in rounds:
-        print(f"round {item.round_id:02d} [{item.kind}] prompt: {item.prompt} generated: {item.generated_sample}")
+        print(f"round {item.round_id:02d} [{item.kind}] judge_prompt: {item.prompt} generated: {item.generated_sample}")
     return 0
 
 

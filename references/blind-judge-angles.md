@@ -14,7 +14,7 @@ The evaluation target is anonymous blind review: generated complete articles sho
 - When placebo false accusations are high, first suspect the judge calibration rather than the generation target.
 - Use all-original placebo rounds as source-style calibration. If an evidence cue would also accuse original samples, downgrade that cue before using it against generated text.
 - Give detailed reasons even when answering `NONE`; non-identifications are useful only if they explain why the evidence stayed ambiguous.
-- Mark a round invalid if the judge saw mapping files, corpus filenames, skill files, previous analysis, or controller notes.
+- Mark a round invalid if the judge saw mapping files, corpus filenames, skill files, previous analysis, controller notes, or invoked any style/author skill. Automated judges should run source-neutral, in pure mode where available, and with local skills disabled through an isolated config when the runtime can auto-load installed skills.
 
 ## Evidence Families
 
@@ -330,7 +330,7 @@ Use multiple profiles across rounds. Each profile reads the same sample files bu
 | emotion-reality | emotional masking, body/money/social texture, ordinary noise |
 | dialogue-social | dialogue plausibility, social collision, awkward residue |
 | phase-genre-title | date-zone, genre fit, title contract, ending, phase leakage |
-| ai-impostor-risk | AI smoothness, prompt-shape leakage, imitator over-display, surface/deep mismatch |
+| synthetic-risk | AI smoothness, prompt-shape leakage, imitator over-display, surface/deep mismatch |
 | placebo-calibrated | false-accusation control; actively prefer NONE when evidence is weak |
 
 ## Required Judge Output
@@ -348,11 +348,11 @@ DETAILED_REASONS:
 4. <specific reason> | evidence: "short quote"
 5. <specific reason> | evidence: "short quote"
 
-MOST_ANLIN_LIKE:
+MOST_SOURCE_LIKE:
 1. <feature> | deep-or-surface: deep | evidence: "short quote"
 2. <feature> | deep-or-surface: surface | evidence: "short quote"
 
-LEAST_ANLIN_LIKE:
+LEAST_SOURCE_LIKE:
 1. <feature> | possible alternative explanation: <topic/genre/phase/fragment/editorial/none> | evidence: "short quote"
 2. <feature> | possible alternative explanation: <topic/genre/phase/fragment/editorial/none> | evidence: "short quote"
 

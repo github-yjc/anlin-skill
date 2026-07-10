@@ -59,7 +59,20 @@ FORBIDDEN_TERMS = [
     "我妈要是知道",
 ]
 
-COMMENT_CHAIN_TERMS = ["有人说", "评论说", "回复说", "热评"]
+COMMENT_CHAIN_TERMS = ["有人说", "有人回", "评论说", "回复说", "热评"]
+COMMENT_CHAIN_FORMULA_MARKERS = [
+    "有人说",
+    "有人回",
+    "又有人",
+    "评论说",
+    "回复说",
+    "热评",
+    "第一条",
+    "第二条",
+    "下面一排",
+    "下面三个人",
+    "一排人",
+]
 LOW_FREQUENCY_TERMS = ["然而", "因此", "可是", "也许", "或许", "认为", "意识到"]
 HIGH_FREQUENCY_TERMS = ["其实", "觉得", "发现", "好像", "不过", "突然", "于是", "因为", "所以"]
 NORMAL_ROUTINE_TERMS = ["关机", "关灯", "按时睡觉", "关机睡觉"]
@@ -96,11 +109,224 @@ DRIFT_MESSAGES = {
     "睡吧": ("warning", "imperative goodnight closure — prefer 睡了/去睡了/不写了"),
     "招聘软件": ("info", "abstract noun — prefer 点开招聘/刷了刷招聘"),
 }
+PROCESS_LEAK_TERMS = [
+    "State Card",
+    "Prompt item",
+    "prompt item",
+    "分桶",
+    "visible pressure",
+    "driver：",
+    "pressure #",
+    "preflight",
+    "首段 preflight",
+    "校验通过",
+    "Jaccard",
+    "jaccard",
+    "与 38 篇",
+    "内部）：",
+]
+PROCESS_LEAK_LINE_PATTERNS = [
+    r"^#\s*草拟\s*$",
+    r"^草拟\s*$",
+    r"^\*\*State Card",
+]
+TOPIC_DIAGNOSTIC_TITLE_TERMS = [
+    "春招",
+    "求职",
+    "面试",
+    "offer",
+    "入职",
+    "情人节",
+    "平安夜",
+    "母亲节",
+    "婚礼",
+    "痛风",
+    "跨年",
+    "搬家",
+    "写作",
+    "外卖",
+    "中暑",
+    "租房",
+]
+HIGH_SIGNAL_OPENING_TERMS = [
+    "春招",
+    "offer",
+    "入职体检",
+    "租房补贴",
+    "情人节",
+    "母亲节",
+    "婚礼",
+    "痛风",
+    "跨年",
+    "搬家",
+    "写不出来",
+    "无人便利店",
+    "简历",
+]
+LEARNED_ENDING_LINES = {
+    "哦。",
+    "算了。",
+    "睡了。",
+    "关屏。",
+    "屏幕暗了。",
+    "屏幕黑了。",
+    "嗡嗡嗡。",
+}
+THEME_DOMAINS = {
+    "job": [
+        "春招",
+        "求职",
+        "offer",
+        "入职",
+        "体检",
+        "租房补贴",
+        "大厂",
+        "boss",
+        "直聘",
+        "招聘",
+        "岗位",
+        "职位",
+        "简历",
+        "hr",
+        "工位",
+        "公积金",
+        "水杯",
+        "同学群",
+    ],
+    "romance": ["情人节", "礼物", "玫瑰", "情侣", "对象", "恋爱", "结婚", "婚礼", "随礼"],
+    "family": ["母亲节", "我妈", "妈妈", "我爸", "鸡蛋", "雨衣", "回家", "饭桌"],
+    "illness": ["痛风", "脚踝", "尿酸", "肿", "疼", "富贵病", "腐乳", "可乐"],
+}
+TASTEFUL_WITHHOLDING_ENDINGS = [
+    "没点开",
+    "没回",
+    "没看",
+    "没发",
+    "没说话",
+    "放下手机",
+    "扣在桌上",
+]
+QUIET_EXPLANATION_PATTERNS = [
+    r"大概是因为[^。！？\n]{1,35}",
+    r"可能是因为[^。！？\n]{1,35}",
+    r"突然觉得[^。！？\n]{1,35}",
+]
+ENGINE_SIGNAL_TERMS = [
+    "还以为",
+    "原来",
+    "算",
+    "尿",
+    "厕所",
+    "马桶",
+    "痔疮",
+    "阳痿",
+    "傻逼",
+    "滚",
+    "去你妈",
+    "像",
+    "算法",
+    "系统",
+    "ELO",
+    "血压",
+    "麻木",
+]
+SEALED_NIGHT_TERMS = ["失眠", "床", "枕", "闹钟", "睡", "手机", "通知", "群", "Boss", "直聘"]
+CLOSED_LOOP_TAIL_TERMS = ["到现在也没", "明天再", "还没请", "还没还", "又点开"]
+ROUGH_SELF_DAMAGE_TERMS = [
+    "他妈",
+    "傻逼",
+    "嘴贱",
+    "破口大骂",
+    "滚蛋",
+    "滚回去",
+    "滚出去",
+    "屎",
+    "拉屎",
+    "尿",
+    "痔疮",
+    "阳痿",
+    "舔狗",
+    "社死",
+    "丢人",
+    "好家伙",
+    "工贼",
+]
+ROUGH_SELF_DAMAGE_PATTERNS = [
+    r"(?<![一二两三四五六七八九十百千万\d])滚(?![一二两三四五六七八九十百千万\d年月日天点分秒])",
+    r"我[^。！？\n]{0,12}(?:丢人|社死|嘴贱|像个傻逼|像傻逼)",
+    r"(?:拉屎|尿|痔疮|阳痿)[^。！？\n]{0,24}(?:我|自己|本人|室友|同学|群|厕所)?",
+]
+AMBIENT_ENDING_PATTERNS = [
+    r"(空调|外机|风扇|雨|灯|屏幕|手机|机器|冰箱)[^。！？\n]{0,16}(嗡|响|亮|暗|黑|震)[^。！？\n]{0,8}[。！？]?$",
+    r"^(嗡|嗡嗡|嗡嗡嗡|滴|滴滴|哗啦|呼呼)[。！？]?$",
+]
+MATERIAL_ECHO_TERMS = [
+    "奥美拉唑还剩最后一片",
+    "明天记得买",
+    "Type-C",
+]
+PROMPT_CHAIN_TERMS = sorted(
+    {
+        term
+        for terms in THEME_DOMAINS.values()
+        for term in terms
+    },
+    key=len,
+    reverse=True,
+)
+STRICT_ERROR_RULE_PREFIXES = (
+    "题面高信号开头",
+    "习得式结尾按钮",
+    "文艺悬停式结尾",
+    "封闭夜晚短篇结构",
+    "纯环境音结尾",
+    "材料钩子重复过直",
+    "散文块压缩",
+)
+STRICT_ERROR_RULE_NAMES: set[str] = set()
+DRAFT_GATE_RULE_PREFIXES = (
+    "题面诊断型标题",
+    "标准日寄完整文章篇幅偏短",
+    "标准日寄完整文章篇幅缓冲不足",
+    "单主题词密度偏高",
+    "题面链条过于完整",
+    "评论链公式化转述",
+)
+DRAFT_GATE_RULE_NAMES: set[str] = set()
+
+STANDARD_DIARY_FORMAL_MIN_CHARS = 650
+STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS = 700
 
 
 def clean_excerpt(line: str) -> str:
     stripped = line.strip()
     return stripped[:120] + ("..." if len(stripped) > 120 else "")
+
+
+def chinese_len(text: str) -> int:
+    return len(re.findall(r"[\u4e00-\u9fff]", text))
+
+
+def normalize_title_line(line: str) -> str:
+    title = line.strip()
+    title = re.sub(r"^#+\s*", "", title).strip()
+    title = re.sub(r"^(标题|题目)\s*[:：]\s*", "", title).strip()
+    for marker in ("**", "__", "*", "_"):
+        if title.startswith(marker) and title.endswith(marker) and len(title) > len(marker) * 2:
+            title = title[len(marker):-len(marker)].strip()
+    return title
+
+
+def split_title_and_content_lines(lines: list[str]) -> tuple[str, list[str]]:
+    nonempty = [(index, line.strip()) for index, line in enumerate(lines) if line.strip()]
+    if not nonempty:
+        return "", []
+    first_index, first = nonempty[0]
+    if first.startswith("# "):
+        return normalize_title_line(first), [line.strip() for line in lines[first_index + 1 :] if line.strip()]
+    if not re.search(r"[。！？!?，,：:；;]", first) and chinese_len(first) <= 24:
+        return normalize_title_line(first), [line.strip() for line in lines[first_index + 1 :] if line.strip()]
+    return "", [line.strip() for line in lines if line.strip()]
 
 
 def is_chinese_word_char(char: str) -> bool:
@@ -134,6 +360,35 @@ def add_drift_term_findings(findings: list[Finding], lines: list[str]) -> None:
         for term, (severity, suggestion) in DRIFT_MESSAGES.items():
             if term in line:
                 findings.append(Finding(severity, f"词汇域漂移: {term}", line_number, clean_excerpt(line), suggestion))
+
+
+def check_process_leakage(findings: list[Finding], lines: list[str]) -> None:
+    for line_number, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        for pattern in PROCESS_LEAK_LINE_PATTERNS:
+            if re.search(pattern, stripped):
+                findings.append(
+                    Finding(
+                        "error",
+                        "过程说明泄漏",
+                        line_number,
+                        clean_excerpt(line),
+                        "用户要文章时最终输出只能包含标题和正文；删除草稿标记、分隔线、状态卡、校验说明和控制器说明。",
+                    )
+                )
+                break
+        for term in PROCESS_LEAK_TERMS:
+            if term in line:
+                findings.append(
+                    Finding(
+                        "error",
+                        f"过程说明泄漏: {term}",
+                        line_number,
+                        clean_excerpt(line),
+                        "用户要文章时最终输出只能包含标题和正文；内部状态卡、prompt分桶、校验结果和语料对比必须留在过程或报告中。",
+                    )
+                )
+                break
 
 
 def check_not_x_is_y(findings: list[Finding], lines: list[str]) -> None:
@@ -197,6 +452,269 @@ def check_high_frequency_coverage(findings: list[Finding], text: str) -> None:
         findings.append(Finding("warning", "高频词覆盖不足", 0, f"present={present}", "自然补入至少5个高频连接词，不要硬塞。"))
 
 
+def check_diagnostic_title(findings: list[Finding], lines: list[str]) -> None:
+    title, _ = split_title_and_content_lines(lines)
+    if not title:
+        return
+    if title != "日寄" and title.endswith("日寄"):
+        matched = [term for term in TOPIC_DIAGNOSTIC_TITLE_TERMS if term in title]
+        if matched:
+            findings.append(
+                Finding(
+                    "warning",
+                    "题面诊断型标题",
+                    1,
+                    title,
+                    f"标题含高信号主题词 {matched}；标准日寄盲评通常优先弱化为“日寄”，除非修饰词来自正文里的侧面把手。",
+                )
+            )
+
+
+def check_high_signal_opening(findings: list[Finding], lines: list[str]) -> None:
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [line for line in content_lines if not line.startswith("<!--")][:5]
+    if not visible_lines:
+        return
+    first_line_matches = [term for term in HIGH_SIGNAL_OPENING_TERMS if term in visible_lines[0]]
+    opening_text = "\n".join(visible_lines)
+    opening_matches = sorted({term for term in HIGH_SIGNAL_OPENING_TERMS if term in opening_text})
+    if first_line_matches or len(opening_matches) >= 2:
+        findings.append(
+            Finding(
+                "warning",
+                "题面高信号开头",
+                1,
+                " / ".join(visible_lines[:3]),
+                "开头过早暴露题面压力；标准日寄应从身体、物件、app残留或无用动作进入，再让主题晚一点漏出。",
+            )
+        )
+
+
+def check_standard_diary_length(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    style = detect_style(text)
+    if style != "standard" or "日寄" not in title:
+        return
+    body = "\n".join(line for line in content_lines if not line.startswith("<!--"))
+    chars = chinese_len(body)
+    if 0 < chars < STANDARD_DIARY_FORMAL_MIN_CHARS:
+        findings.append(
+            Finding(
+                "warning",
+                "标准日寄完整文章篇幅偏短",
+                0,
+                f"body_chinese_chars={chars}",
+                "完整文章盲评最低比较边界约650字；正式生成稿以700字以上为安全目标。扩展具体动作、对话、身体/金钱后果和非主题残留，或改为短体裁匹配评估。",
+            )
+        )
+    elif chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
+        findings.append(
+            Finding(
+                "warning",
+                "标准日寄完整文章篇幅缓冲不足",
+                0,
+                f"body_chinese_chars={chars}",
+                "650-699字容易在生成波动中变成长度识别点；正式生成稿应补到700字以上，优先增加行动链、社交误伤、身体/金钱后果或无用日常残留。",
+            )
+        )
+
+
+def check_learned_ending_button(findings: list[Finding], lines: list[str]) -> None:
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if not visible_lines:
+        return
+    tail = visible_lines[-3:]
+    normalized_tail = [re.sub(r"\s+", "", line) for line in tail]
+    matched = [line for line in normalized_tail if line in LEARNED_ENDING_LINES]
+    if matched:
+        findings.append(
+            Finding(
+                "warning",
+                "习得式结尾按钮",
+                len(lines),
+                " / ".join(tail),
+                "哦/算了/睡了/关屏/屏幕暗等只在被前文强迫时保留；否则换成未完成动作、回复、路线、物件、付款或身体中断。",
+            )
+        )
+
+
+def check_ambient_ending(findings: list[Finding], lines: list[str]) -> None:
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if not visible_lines:
+        return
+    last_line = visible_lines[-1]
+    if any(re.search(pattern, last_line) for pattern in AMBIENT_ENDING_PATTERNS):
+        findings.append(
+            Finding(
+                "warning",
+                "纯环境音结尾",
+                len(lines),
+                last_line,
+                "纯声音/灯光/屏幕作为最后一行容易变成文学按钮；让声音造成具体身体、社交、付款、路线或回复后果，或改用该后果收束。",
+            )
+        )
+
+
+def check_theme_density(findings: list[Finding], text: str) -> None:
+    lower_text = text.lower()
+    for domain, terms in THEME_DOMAINS.items():
+        matched_terms = [term for term in terms if term.lower() in lower_text]
+        hit_count = sum(lower_text.count(term.lower()) for term in terms)
+        if len(matched_terms) >= 7 or hit_count >= 12:
+            findings.append(
+                Finding(
+                    "warning",
+                    f"单主题词密度偏高: {domain}",
+                    0,
+                    f"terms={matched_terms}, hits={hit_count}",
+                    "盲评高风险：场景可能都在服务同一主轴。替换一段为由气味、身体、路线、无关社交或脏物件触发的旁逸分支。",
+                )
+            )
+
+
+def check_comment_chain_formula(findings: list[Finding], lines: list[str]) -> None:
+    for line_number, line in enumerate(lines, start=1):
+        marker_hits = sum(line.count(marker) for marker in COMMENT_CHAIN_FORMULA_MARKERS)
+        actor_hits = len(re.findall(r"有人(?:说|回|问|发|开始)", line))
+        if marker_hits >= 2 or actor_hits >= 2:
+            findings.append(
+                Finding(
+                    "warning",
+                    "评论链公式化转述",
+                    line_number,
+                    clean_excerpt(line),
+                    "群聊/评论入口不能写成多人接力摘要。改成一条具体消息、一个屏幕视觉概括、一次实际回复或一个由消息造成的动作后果。",
+                )
+            )
+
+
+def check_rough_self_damage(findings: list[Finding], text: str) -> None:
+    style = detect_style(text)
+    if style != "standard" or chinese_len(text) < 650:
+        return
+    present = [term for term in ROUGH_SELF_DAMAGE_TERMS if term in text]
+    pattern_present = [pattern for pattern in ROUGH_SELF_DAMAGE_PATTERNS if re.search(pattern, text)]
+    if not present:
+        present = pattern_present
+    if not present:
+        findings.append(
+            Finding(
+                "warning",
+                "粗粝自毁信号不足",
+                0,
+                "present=[]",
+                "标准日寄不能只靠安静观察和物件真实感；加入一个粗粝自嘲、身体尴尬、社交误伤或不好看的笑点。",
+            )
+        )
+
+
+def check_material_echo(findings: list[Finding], text: str) -> None:
+    normalized = re.sub(r"[，,。！？；;\s]+", "", text)
+    present = [term for term in MATERIAL_ECHO_TERMS if normalized.count(term) >= 2]
+    if present:
+        findings.append(
+            Finding(
+                "warning",
+                "材料钩子重复过直",
+                0,
+                f"terms={present}",
+                "同一药、线、温度或app钩子重复得太工整；保留一次，或让第二次改变行动/社交/身体后果。",
+            )
+        )
+
+
+def check_prompt_chain_surface(findings: list[Finding], lines: list[str], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [line for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if not visible_lines:
+        return
+    opening = "\n".join(visible_lines[:6])
+    tail = "\n".join(visible_lines[-4:])
+    surface = "\n".join([title, opening, tail])
+    matched = [term for term in PROMPT_CHAIN_TERMS if term.lower() in surface.lower()]
+    if len(matched) >= 5:
+        findings.append(
+            Finding(
+                "warning",
+                "题面链条过于完整",
+                0,
+                f"title/opening/tail_terms={matched[:10]}",
+                "标题、开头和结尾暴露太多题面名词；删除或后移至少两个高信号元素，让文章先像一天，再像回答题目。",
+            )
+        )
+
+
+def check_tasteful_withholding_ending(findings: list[Finding], lines: list[str]) -> None:
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    if not visible_lines:
+        return
+    tail_text = "\n".join(visible_lines[-3:])
+    if any(term in tail_text for term in TASTEFUL_WITHHOLDING_ENDINGS):
+        findings.append(
+            Finding(
+                "warning",
+                "文艺悬停式结尾",
+                len(lines),
+                " / ".join(visible_lines[-3:]),
+                "没点开/没回/放下手机等结尾容易变成漂亮短篇收束；确认是否有低处后果，否则改成身体、付款、路线、冷饭、错物件或第二条消息。",
+            )
+        )
+
+
+def check_quiet_explanation(findings: list[Finding], lines: list[str]) -> None:
+    for line_number, line in enumerate(lines, start=1):
+        for pattern in QUIET_EXPLANATION_PATTERNS:
+            if re.search(pattern, line):
+                findings.append(
+                    Finding(
+                        "warning",
+                        "安静解释句",
+                        line_number,
+                        clean_excerpt(line),
+                        "这类句子容易把伤口解释干净；优先删除解释，让外部人物、app、身体或低处后果回答。",
+                    )
+                )
+                break
+
+
+def check_engine_signal_density(findings: list[Finding], text: str) -> None:
+    style = detect_style(text)
+    if style != "standard":
+        return
+    hits = [term for term in ENGINE_SIGNAL_TERMS if term in text]
+    if len(hits) < 3:
+        findings.append(
+            Finding(
+                "warning",
+                "段落发动机信号偏弱",
+                0,
+                f"present={hits}",
+                "标准日寄不能只是安静低落；至少需要误读、自毁、社交误伤、身体降格或荒谬系统解释中的几种。",
+            )
+        )
+
+
+def check_sealed_nocturne(findings: list[Finding], text: str) -> None:
+    title, content_lines = split_title_and_content_lines(text.splitlines())
+    body = "\n".join(content_lines)
+    night_hits = [term for term in SEALED_NIGHT_TERMS if term in text]
+    tail = "\n".join(content_lines[-6:]) if content_lines else ""
+    tail_hits = [term for term in CLOSED_LOOP_TAIL_TERMS if term in tail]
+    if ("失眠" in title or "失眠" in body) and len(night_hits) >= 6 and tail_hits:
+        findings.append(
+            Finding(
+                "warning",
+                "封闭夜晚短篇结构",
+                0,
+                f"night_terms={night_hits}, tail={tail_hits}",
+                "标准日寄高风险：文章可能封闭在一夜、一房间、一串通知里，并用早期物件/旧债闭环。加入时间/空间横跳，或改掉整齐回收结尾。",
+            )
+        )
+
+
 def check_period_comma_ratio(findings: list[Finding], lines: list[str]) -> None:
     content_lines = [line.strip() for line in lines if line.strip() and not line.lstrip().startswith("#")]
     if not content_lines:
@@ -215,13 +733,70 @@ def check_period_comma_ratio(findings: list[Finding], lines: list[str]) -> None:
             )
         )
     elif ratio < 0.45 or ratio > 0.85:
+        severity = "warning" if ratio < 0.15 or ratio > 0.9 else "info"
         findings.append(
             Finding(
-                "info",
+                severity,
                 "行末逗号比例",
                 0,
                 f"first_{len(sample)}_lines_ratio={ratio:.2f}",
                 "参考区间约60-75%；偏离时人工检查节奏。",
+            )
+        )
+
+
+def check_prose_block_compression(findings: list[Finding], lines: list[str], text: str) -> None:
+    style = detect_style(text)
+    if style != "standard":
+        return
+    _, content_lines = split_title_and_content_lines(lines)
+    visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
+    lengths = [chinese_len(line) for line in visible_lines if chinese_len(line)]
+    body_chars = chinese_len("\n".join(visible_lines))
+    if body_chars < 550 or not lengths:
+        return
+    avg_len = sum(lengths) / len(lengths)
+    sorted_lengths = sorted(lengths)
+    mid = len(sorted_lengths) // 2
+    if len(sorted_lengths) % 2:
+        median_len = sorted_lengths[mid]
+    else:
+        median_len = (sorted_lengths[mid - 1] + sorted_lengths[mid]) / 2
+    long_lines = sum(1 for length in lengths if length >= 80)
+    if len(visible_lines) < 20 or avg_len >= 40 or median_len >= 35 or long_lines >= 3:
+        findings.append(
+            Finding(
+                "warning",
+                "散文块压缩",
+                0,
+                f"body_chars={body_chars}, content_lines={len(visible_lines)}, avg_line_chars={avg_len:.2f}, median_line_chars={median_len:.2f}, lines_ge80={long_lines}",
+                "完整标准日寄不能压成少数大散文段；拆成更接近原文的短行/碎段，让动作、对话、误读和低处后果逐行推进。",
+            )
+        )
+
+
+def check_short_line_poem_surface(findings: list[Finding], lines: list[str], text: str) -> None:
+    style = detect_style(text)
+    if style != "standard" or chinese_len(text) < 450:
+        return
+    content_lines = [
+        line.strip()
+        for line in split_title_and_content_lines(lines)[1]
+        if line.strip() and not line.startswith("<!--")
+    ]
+    if len(content_lines) < 12:
+        return
+    lengths = [chinese_len(line) for line in content_lines]
+    short_ratio = sum(1 for length in lengths if length <= 12) / len(lengths)
+    long_count = sum(1 for length in lengths if length >= 28)
+    if short_ratio >= 0.70 and long_count <= 1:
+        findings.append(
+            Finding(
+                "warning",
+                "短行诗化表面",
+                0,
+                f"short_line_ratio={short_ratio:.2f}, long_lines={long_count}",
+                "标准日寄不应全是漂亮短行；合并若干行，加入更粗糙的长口语句、对话或行动链。",
             )
         )
 
@@ -351,6 +926,8 @@ def check_news_name_drop(findings: list[Finding], lines: list[str]) -> None:
 def collect_findings(text: str) -> list[Finding]:
     lines = text.splitlines()
     findings: list[Finding] = []
+    check_process_leakage(findings, lines)
+    check_comment_chain_formula(findings, lines)
     add_term_findings(findings, lines, COMMENT_CHAIN_TERMS, "warning", "可能的评论链", "Anlin 在线内容入口是'我看到了什么，我什么反应'。检查上下文：如果这是评论链格式（热评→回复→又有人说）→删除。如果是一般观察或转述（'有人说当年我差点就买了'）→可能可接受，但需人工确认。")
     add_term_findings(findings, lines, FORBIDDEN_TERMS, "warning", "禁用/高风险词", "替换为 Anlin 词汇域内的具体动作或感官描述。")
     add_term_findings(findings, lines, LOW_FREQUENCY_TERMS, "info", "低频词", "优先替换为不过/所以/可能/好像/觉得/发现。")
@@ -366,11 +943,58 @@ def collect_findings(text: str) -> list[Finding]:
     check_repeated_you(findings, lines)
     check_dialogue_quotes(findings, lines)
     check_high_frequency_coverage(findings, text)
+    check_diagnostic_title(findings, lines)
+    check_high_signal_opening(findings, lines)
+    check_standard_diary_length(findings, lines, text)
+    check_learned_ending_button(findings, lines)
+    check_ambient_ending(findings, lines)
+    check_theme_density(findings, text)
+    check_rough_self_damage(findings, text)
+    check_material_echo(findings, text)
+    check_prompt_chain_surface(findings, lines, text)
+    check_tasteful_withholding_ending(findings, lines)
+    check_quiet_explanation(findings, lines)
+    check_engine_signal_density(findings, text)
+    check_sealed_nocturne(findings, text)
     check_period_comma_ratio(findings, lines)
+    check_prose_block_compression(findings, lines, text)
+    check_short_line_poem_surface(findings, lines, text)
     check_scene_count(findings, lines, text)
     check_breathing_point(findings, lines, text)
     check_metadata_comment(findings, text)
     return findings
+
+
+def apply_strict_mode(findings: list[Finding], *, draft_gate: bool = False) -> list[Finding]:
+    strict_findings: list[Finding] = []
+    for finding in findings:
+        should_promote = (
+            finding.severity == "warning"
+            and (
+                finding.rule in STRICT_ERROR_RULE_NAMES
+                or any(finding.rule.startswith(prefix) for prefix in STRICT_ERROR_RULE_PREFIXES)
+                or (
+                    draft_gate
+                    and (
+                        finding.rule in DRAFT_GATE_RULE_NAMES
+                        or any(finding.rule.startswith(prefix) for prefix in DRAFT_GATE_RULE_PREFIXES)
+                    )
+                )
+            )
+        )
+        if should_promote:
+            strict_findings.append(
+                Finding(
+                    "error",
+                    f"strict: {finding.rule}",
+                    finding.line,
+                    finding.excerpt,
+                    finding.suggestion,
+                )
+            )
+        else:
+            strict_findings.append(finding)
+    return strict_findings
 
 
 def format_text(findings: list[Finding]) -> str:
@@ -387,12 +1011,15 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Check deterministic Anlin-style hard-rule violations.")
     parser.add_argument("file", type=Path, help="Draft markdown/text file to inspect")
     parser.add_argument("--json", action="store_true", help="Output JSON findings")
-    parser.add_argument("--strict", action="store_true", help="Reserved for stricter collection; exit code still fails only on errors")
+    parser.add_argument("--strict", action="store_true", help="Promote blind-evaluation high-risk warnings to errors")
+    parser.add_argument("--draft-gate", action="store_true", help="Promote generated-draft-only formal article gates; do not use for original-corpus calibration")
     parser.add_argument("--fail-on-warning", action="store_true", help="Return nonzero for warnings as well as errors")
     args = parser.parse_args()
 
     text = args.file.read_text(encoding="utf-8")
     findings = collect_findings(text)
+    if args.strict or args.draft_gate:
+        findings = apply_strict_mode(findings, draft_gate=args.draft_gate)
     if args.json:
         print(json.dumps([asdict(finding) for finding in findings], ensure_ascii=False, indent=2))
     else:

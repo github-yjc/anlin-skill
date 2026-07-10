@@ -20,6 +20,10 @@ These apply to all normal generation:
 10. No prompt-shaped article: the title, scene order, and ending must not reveal the user's prompt as an outline.
 11. No learned ending button: `哦`, `算了`, `睡了`, a dark screen, or a lone sound effect cannot be used as default closure.
 12. No external-test scaffolding: formal evaluation drafts must be achievable from the skill and a realistic user prompt, not from extra controller hints, judge rubrics, or post-failure advice supplied to the generator.
+13. No diagnostic standard title: when writing a standard diary for blind evaluation, default to `日寄`; use a modified `X日寄` only if `X` is a local defensive handle rather than the user's topic noun.
+14. No underbuilt complete article: a generated standard diary submitted to full complete-article blind evaluation should normally land at 700+ body Chinese characters. 650 is only the lower comparison boundary; 650-699 is a draft-risk buffer zone. Below 700, expand with lived actions and residues or mark the evaluation as short-genre only.
+15. No realist-short-story smoothing: standard diary cannot keep every scene inside one coherent emotional arc. It needs lateral branches, rough social misfires, crooked jokes, and unhelpful residue.
+16. No high-signal prompt coverage: formal standard-diary blind evaluation should visibly use at most two prompt pressure surfaces; discard or bury the rest.
 
 ## Strong Defaults
 
@@ -37,19 +41,25 @@ Use most of these, but not all:
 - one piece of ordinary noise that does not help the central motif: a stray message, bad wording, boring object, repeated action, or minor social interruption
 - uneven rhythm: at least one longer spoken/thought line and at least one hard cut; do not make all lines 4-12 Chinese characters
 - at least one prompt item displaced into another person's line, a screen surface, an unfinished action, or a practical consequence rather than stated directly
+- first visible scene that survives without the prompt topic
+- one non-iconic ending consequence: unfinished reply, cold food, wrong object, route, payment, bodily interruption, or interrupted chore
+- at least one off-axis scene connected by a hook, not by chronology
+- at least one plausible social misfire or ugly small line, when the mode is standard diary
 
 ## Standard Diary
 
 Recommended budget:
 
 - 5-10 scene units depending on phase and length.
-- Usually 650-1200 Chinese characters for full blind evaluation; always include a title; if shorter, judge only against matched short originals.
+- Usually 700-1200 body Chinese characters for generated full blind evaluation; always include a title; if shorter, judge only against matched short originals or revise before submission.
 - 2-4 emotional registers: laugh, sting, tenderness, deflection, absurdity, analysis.
 - 1-2 central motifs at most.
 - 0-2 recurring characters. Use none if the material is body, solitude, or observation driven.
 - 1-3 one-off/random social figures at most.
 - 1 main system/phone/platform texture, not a news digest.
 - 2+ non-theme residues: details that make the day feel lived rather than designed.
+- main-domain scenes below half the selected slate; use side-pressure and off-axis scenes to prevent a single-topic essay.
+- at most two visible high-signal prompt items. If the request lists roommate offer, class group physical exam, rent subsidy, job app, and resume, do not include all of them.
 
 Avoid:
 
@@ -63,6 +73,9 @@ Avoid:
 - title-to-ending closure that tells the judge the piece was designed around one idea
 - repeated typing/deleting as the main emotional engine
 - evaluation-prompt compliance: visible montage, unrelated details, anti-summary behavior, or title choice appearing only because the test prompt instructed them
+- a smooth chain of scenes where every object proves the same wound
+- polite melancholy in place of a real laugh, self-own, or social embarrassment
+- a tasteful withheld ending that could close any literary short story
 
 ## Sincere Piece
 

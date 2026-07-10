@@ -45,9 +45,14 @@ Run:
 
 ```powershell
 python scripts/check_anlin_violations.py draft.md
+python scripts/check_anlin_violations.py draft.md --strict --draft-gate
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
 python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2
 ```
+
+`--strict` is a corpus-calibrated blocking gate. It should fail generated drafts only for deterministic contamination or high-risk structural buttons that do not hard-fail original corpus files. Other blind-review risks remain warnings and must be interpreted with placebo/original calibration.
+
+`--draft-gate` is generated-draft-only. It promotes formal article length and prompt-shape risks that may appear in some originals but should still block clean generated drafts for complete-article blind evaluation. Do not use `--draft-gate` when reporting original-corpus hard-error calibration.
 
 `run_blind_test.py` prepares anonymous rounds and prints the judge prompts. If no LLM automation key is configured, the controller manually gives each prompt to an isolated judge and records verdicts.
 
@@ -100,13 +105,20 @@ Each round creates a clean directory containing only:
 - `mapping.json` for the controller only
 - `prompt.txt` for the judge
 
+`run_blind_test.py` also creates a neutral `judge-view-XX` directory for each round. Run automated judges from `judge-view-XX`, not from `round-XX-impostor` or `round-XX-placebo`, because round directory names leak the controller's answer key. A valid judge directory contains only `prompt.txt` and `sample-*.txt`.
+
+For OpenCode automation, `--pure` disables external plugins but may still leave installed skills available. If any local writing/style skill is installed, run judges with an isolated `OPENCODE_CONFIG_DIR` or equivalent no-skill configuration. A judge stderr line such as `Skill "..."` invalidates that round even when the judge only read `sample-*.txt` afterwards.
+
 Judge rules:
 
-- The judge may read only `sample-*.txt`.
-- The judge must not read `mapping.json`, the original corpus, or skill files.
+- The judge may read only `prompt.txt` and `sample-*.txt` in the neutral judge directory.
+- The judge prompt must be source-neutral: use `MOST_SOURCE_LIKE` / `LEAST_SOURCE_LIKE`, not author-name field labels that may trigger a style skill.
+- The judge must not read `mapping.json`, the original corpus, skill files, controller notes, previous verdicts, web results, or a directory path/name that exposes `impostor`, `placebo`, `generated`, or similar controller labels.
+- The judge must not invoke or rely on any style skill, author-specific skill, corpus memory, previous analysis, or source-name prior knowledge. For opencode judge automation, run `opencode run --pure --dir <neutral-judge-view-dir> <prompt>` from a directory containing only `prompt.txt` and `sample-*.txt`, and set a temporary no-skill `OPENCODE_CONFIG_DIR` when installed skills would otherwise auto-trigger.
 - Titles are retained and normalized for all samples; metadata is removed.
 - Generated drafts must include the title as article text on the first line. The preparation script normalizes `# 标题`, plain first-line titles, and simple emphasis wrappers to the same `# 标题` form so title formatting does not become a leakage cue.
 - Impostor rounds are length-matched by complete article length.
+- Generated standard-diary drafts should clear the safer 700+ body-character buffer before complete-article impostor rounds. 650-699 can be used only with an explicit short/matched protocol and should not support formal full-article claims.
 - The judge may evaluate title fit as one evidence family, but must not use title, filename, ordering, or length as the sole basis for identification.
 - Treat blind review as open-set verification, not forced attribution. A stable accusation requires `IDENTIFIED` not `NONE`, confidence at least 75, and at least three independent evidence families, including one family that is not title, topic, length, filename, or order.
 - If the strongest accusation depends mainly on title neatness, prompt-topic compliance, article length, file order, or one polished ending, record it as raw suspicion but not stable identification.
@@ -128,7 +140,7 @@ For serious evaluation, read `blind-judge-angles.md` and use multiple profiles p
 - emotion-reality: emotional masking, body/money/social texture, ordinary noise
 - dialogue-social: dialogue plausibility, social collision, awkward residue
 - phase-genre: date-zone, genre fit, title/ending, phase leakage
-- ai-impostor-risk: AI smoothness, imitator over-display, surface/deep mismatch
+- synthetic-risk: AI smoothness, imitator over-display, surface/deep mismatch
 - placebo-calibrated reader: at least two all-original rounds; must be allowed and encouraged to answer `NONE`
 
 Treat invalid format, timeout, or contaminated access as invalid, not as a pass or failure. Re-run invalid rounds or report them separately.
@@ -156,8 +168,8 @@ DETAILED_REASONS:
 1. ...
 2. ...
 3. ...
-MOST_ANLIN_LIKE:
-LEAST_ANLIN_LIKE:
+MOST_SOURCE_LIKE:
+LEAST_SOURCE_LIKE:
 AI_OR_IMITATOR_RISK:
 PLACEBO_CHECK:
 SOURCE_COHESION_CHECK:
@@ -185,7 +197,7 @@ Recommended wording:
 Under 8 impostor rounds and 2 placebo rounds, judges produced raw accusations in 2/8 impostor rounds, stable accusations in 1/8 impostor rounds under confidence >=75 and 3-family threshold, and falsely accused originals in 0/2 placebo rounds. This supports revision status X under these conditions only.
 ```
 
-If a judge sees `mapping.json`, original corpus filenames, skill files, or previous analysis, mark the round contaminated and exclude it.
+If a judge sees `mapping.json`, original corpus filenames, skill files, previous analysis, or invokes any style/author skill, mark the round contaminated and exclude it.
 
 ## Revision Priority
 
@@ -205,7 +217,7 @@ If a judge sees `mapping.json`, original corpus filenames, skill files, or previ
 - [ ] Corpus path and date-zone recorded outside prose.
 - [ ] Checker output saved or summarized.
 - [ ] Corpus comparison inspected for overlap, not treated as style proof.
-- [ ] Blind rounds use isolated directories.
+- [ ] Blind rounds use isolated neutral judge directories whose paths do not reveal impostor/placebo status.
 - [ ] Titles retained and normalized for generated and original samples.
 - [ ] Draft is not a length outlier for the selected complete-article protocol.
 - [ ] Judge prompts require detailed quoted evidence and alternative explanations.

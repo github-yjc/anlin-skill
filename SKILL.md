@@ -1,10 +1,6 @@
 ---
-name: anlin
-description: Use when the user explicitly asks for Anlin, 日寄, Anlin-style anonymous blind-evaluation writing, 像Anlin那样写, 模拟日寄, or asks to generate/review/evaluate prose against the Anlin corpus. Do not use for ordinary depressed prose, generic Zhihu answers, or black-humor web writing unless Anlin or 日寄 is named.
-metadata:
-  compatibility: opencode
-  corpus: C:\Users\34025\Desktop\Anlin
-  target: anonymous-blind-evaluation
+name: "anlin-writing"
+description: "Generate, review, or evaluate Anlin/日寄-style anonymous blind-evaluation prose against the Anlin corpus. Use ONLY when the user explicitly mentions Anlin, 日寄, Anlin-style, 像Anlin那样写, 模拟日寄, 盲评, or asks for Anlin corpus evaluation."
 ---
 
 # Anlin Writing Skill
@@ -24,7 +20,20 @@ Always start with these two files:
 1. `references/runtime-brief.md`
 2. `references/feature-budget.md`
 
-Then load only the branch-specific files:
+For ordinary article generation, use the minimal generation pack:
+
+1. `references/runtime-brief.md`
+2. `references/feature-budget.md`
+3. `references/era-state.md` only if date/phase matters
+4. `references/generation-modes.md`
+5. `references/structure-patterns.md`
+6. `references/vocabulary-rules.md` only for review or uncertain wording
+
+Do not read `anlin-reference-library.md`, `writing-checklist.md`, `self-check.md`, `review-rubric.md`, or `blind-judge-angles.md` before the first draft. Those are critique/reference materials and can cause the agent to stall or overfit. Use them only after the first checker pass fails or when the user explicitly asks for analysis/validation.
+
+Do not list the skill directory recursively during ordinary generation. The paths above are known. Do not read `references/corpus-cards/` before the first draft in clean generation; corpus cards are for failed-draft repair or explicit validation.
+
+Then load only the branch-specific files as needed:
 
 | Need | Load |
 |---|---|
@@ -82,6 +91,8 @@ Read 3-5 short anchors, not the whole archive:
 
 If `references/corpus-cards/` exists, prefer cards first; open full originals only when a card points to a needed passage.
 
+For formal clean generation, skip this step before the first draft. Draft from the minimal generation pack, run the checker, then read at most 1-2 cards only if repair is needed. The goal is to avoid long reference browsing and prompt-overfitting.
+
 ### 4. Generate Candidate Scenes
 
 List 8-12 candidate fragments. Each fragment must come from one of:
@@ -100,19 +111,25 @@ Use `generation-modes.md`. Do not force every scene through one template.
 
 Select the smallest set of scenes that can carry the piece. Standard diary usually uses several fragments; sincere and micro-hope pieces can be short. The five-step cognitive path is a strong mode for misread/self-sabotage scenes, not a global obligation.
 
-For blind-evaluation drafts, always produce a complete article with a title. Put the generated title on the first line as plain text or `# Title`; do not bold it, label it as `标题：`, or wrap it in controller notes. Serious blind review keeps and normalizes titles for all samples, then length-matches complete articles. A standard diary should normally be long enough to compare against full original articles. Short sincere or micro-hope pieces require short-original matched evaluation; otherwise expand with concrete actions, dialogue, and non-theme residue before blind testing.
+For blind-evaluation drafts, always produce a complete article with a title. Put the generated title on the first line as plain text or `# Title`; do not bold it, label it as `标题：`, or wrap it in controller notes. Serious blind review keeps and normalizes titles for all samples, then length-matches complete articles. A formal standard diary should aim safely above the lower boundary, usually 700+ body Chinese characters and preferably not by padding. Short sincere or micro-hope pieces require short-original matched evaluation; otherwise expand with concrete actions, dialogue, body/money consequence, and non-theme residue before blind testing.
 
 ### 6. Separate Review From Generation
 
 After drafting, switch to review mode:
 
 1. Run `scripts/check_anlin_violations.py <draft>`.
+   - For formal standard-diary blind-evaluation drafts, run `scripts/check_anlin_violations.py <draft> --strict --draft-gate` as a bounded gate. `--draft-gate` is for generated drafts only; do not use it when calibrating originals.
+   - Even if the user only asked for prose, write the draft to `draft.md` in the current working directory, run the checker, then output prose only after the bounded gate. Do not use OS temp paths for formal evaluation drafts; timeout recovery needs the local draft. Do not print checker output unless the user asked for validation notes.
+   - Fix hard errors, process leakage, missing title, copied source phrasing, high-signal opening, learned ending buttons, sealed-night/story enclosure, pure ambient endings, repeated material hooks, formulaic comment-chain summaries, and obvious prompt-shape leakage before output.
+   - Treat quiet explanation, weak paragraph engine, and missing coarse self-damage as serious review signals, not automatic hard failures: the original corpus contains some of these. In generated full-article blind tests, `--draft-gate` promotes diagnostic title, underbuilt length, single-theme density, prompt-chain over-compliance, and formulaic comment-chain summaries to blocking errors.
+   - Use at most one checker-driven repair loop inside the generation agent. Call the checker at most twice. After the second checker call, if there are no `error` findings, immediately output the clean article even if warnings remain. Do not continue repairing high-frequency coverage, coarse self-damage, paragraph engine, comma-ratio, breathing-point, scene-count, metadata, or other corpus-calibrated warnings. The external controller will validate it.
+   - If temporary-file creation, overwrite, or checker execution fails for tooling reasons, do not stop with process notes. Apply the strict checklist manually, rewrite once, and output the article only; the controller can run the checker externally.
 2. If the full corpus is available, run `scripts/compare_anlin_corpus.py <draft> --corpus-dir <corpus>`.
 3. Read `review-rubric.md` and inspect the draft against the appropriate genre gates.
 4. Use `writing-checklist.md` and `self-check.md` as critic material only. Do not retrofit every high-frequency label into the draft.
 5. Run anti-pastiche checks if any source phrasing may have leaked.
 
-Warnings are review prompts, not automatic failure. Errors and hard identity/date mistakes must be fixed.
+Warnings are review prompts, not automatic failure. Errors and hard identity/date mistakes must be fixed. Do at most one targeted revision pass for ordinary warnings. For formal standard-diary blind evaluation, prioritize prompt-shape leakage, single-theme density, sealed-night/story enclosure, quiet explanation, weak paragraph engine, missing title, copied source phrasing, diagnostic title, underbuilt length, formulaic comment-chain summaries, and learned ending buttons. If one of these high-risk warnings remains after the first patch, rewrite once from the scene slate instead of polishing the same draft. After that rewrite, deliver the cleanest pure article rather than logs or analysis; do not loop until every ordinary warning disappears.
 
 ### 7. Validate Blind-Evaluation Claims
 
@@ -127,7 +144,8 @@ Required wording:
 
 ## Output Rules
 
-- If the user asks for prose, output prose only unless they asked for process notes.
+- If the user asks for prose, output prose only unless they asked for process notes. The first visible line must be the article title, usually `日寄` or `# 日寄`; never print `State Card`, prompt buckets, scene slate, validation notes, Jaccard scores, checker summaries, or `草拟`.
+- Do not narrate reference loading, file checks, or internal decisions to the user. Tool use and validation stay internal unless validation reporting was requested.
 - Do not include methodology labels inside the prose.
 - If the user asks for validation, report commands, conditions, sample size, and results.
 - If the corpus or background cannot be accessed, state the limitation in the validation report, not inside the prose.
@@ -137,6 +155,7 @@ Required wording:
 
 ```powershell
 python scripts/check_anlin_violations.py draft.md
+python scripts/check_anlin_violations.py draft.md --strict --draft-gate
 python scripts/compare_anlin_corpus.py draft.md --corpus-dir "C:\Users\34025\Desktop\Anlin"
 python scripts/prepare_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --min-fragment-chars 550 --seed 1
 python scripts/run_blind_test.py draft.md "C:\Users\34025\Desktop\Anlin" --rounds 8 --min-fragment-chars 550 --placebo-rounds 2

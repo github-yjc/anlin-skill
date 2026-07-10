@@ -22,6 +22,9 @@ Rewrite or refuse the relevant part if any appears:
 - title, scene order, and ending reveal the user's prompt as an outline
 - the ending uses `哦`, `算了`, `睡了`, a dark screen, or a lone sound effect as a decorative style marker rather than a forced consequence
 - formal blind-evaluation draft depends on extra style hints outside the skill and realistic user prompt
+- standard diary reads as a smooth realist short story: all scenes follow one emotional arc, every object serves the same wound, no lateral branch, no rough social misfire, and no crooked laugh
+- ending is a tasteful withheld image that completes the emotional argument rather than a low consequence or interrupted action
+- standard diary is sealed inside one room/night/app chain and closes by neatly repaying an early object or debt
 
 ## Structural Gates
 
@@ -64,6 +67,24 @@ Registers include laugh, sting, tenderness, deflection, absurdity, analysis, bod
 - 2: contains roughness, topic drift, uneven rhythm, and at least one non-symbolic daily detail
 - 1: generally plausible but a few scenes feel designed for the prompt
 - 0: over-tidy, theme-first, uniformly short-lined, or visibly engineered to close a motif
+
+### Associative Wildness
+
+- 2: at least one off-axis branch is connected by a concrete hook; the piece cannot be reduced to the user's prompt
+- 1: some topic drift exists but most scenes still follow the central wound
+- 0: scene order is a coherent prompt-answer chain or a realist short-story arc
+
+### Montage Openness
+
+- 2: time/place/app surfaces shift; at least one scene comes from outside the immediate room/night chain
+- 1: one weak lateral move exists but the piece still feels enclosed
+- 0: the article is a sealed chamber narrative with a tidy object/debt callback
+
+### Humor And Social Roughness
+
+- 2: contains a crooked laugh or embarrassing self-own plus one plausible social misfire
+- 1: has light humor or dialogue, but it is polite, functional, or mostly theme-serving
+- 0: no real laugh, no social danger, or every dialogue line advances the prompt
 
 ### Prompt Displacement
 
