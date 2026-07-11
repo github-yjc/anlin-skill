@@ -170,7 +170,7 @@ For clean-eval formal article generation:
 8. Run `scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing` so bounded generation receives qualitative repair guidance while exact telemetry stays in controller evidence.
 9. If `CLEAN_RUN_PREFLIGHT` appears, revise before the first checker call is consumed. If `CLEAN_RUN_POSTCHECK_PREFLIGHT` appears after checker call 1/2, follow its one printed source-replacement or explicit shape-repair action before spending checker call 2/2; the wrapper itself does not rewrite the submitted draft. If `CLEAN_RUN_PREFLIGHT_STOP` appears, output the current draft unchanged and let the controller record failure.
 10. If a rhythm script runs and `draft.md` is then rewritten or edited, rerun the relevant rhythm script before the next wrapper call or keep the repair inside the existing line-broken corridor.
-11. Do at most one repair/rewrite and at most two clean-eval checker calls.
+11. Do at most one repair/rewrite per bounded source action and at most two actual clean-eval checker calls; preflight attempts do not consume that budget, so stop only at an explicit `CLEAN_RUN_PREFLIGHT_STOP` or actual checker result.
 12. After the second checker call, output the current `draft.md` exactly.
 
 For ordinary user generation, use the same scene-first drafting principles but do not apply the clean-eval two-call stop rule. Continue repairing hard errors and obvious process leakage until the article is usable or the user stops, while avoiding mechanical ratio chasing.

@@ -41,6 +41,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from check_anlin_violations import detect_style  # noqa: E402
 from clean_run_checker import (  # noqa: E402
     build_preflight_guidance,
+    generator_facing_contract,
     generator_facing_summary,
     normalize_before_final_check,
     post_checker_preflight_before_second_check,
@@ -2706,6 +2707,11 @@ class AnlinToolingTests(unittest.TestCase):
 
         _labels, action = generator_facing_summary(["period_row_grid=present"])
         self.assertIn("rebalance_line_rhythm", action)
+
+    def test_generator_facing_contract_separates_preflight_from_checker_budget(self) -> None:
+        contract = generator_facing_contract()
+        self.assertIn("preflight attempts do not consume actual checker calls", contract)
+        self.assertIn("wait for an explicit CLEAN_RUN_PREFLIGHT_STOP", contract)
 
     def test_clean_run_checker_marker_forces_generator_facing_without_flag(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

@@ -455,7 +455,7 @@ If the wrapper prints `CLEAN_RUN_PREFLIGHT_STOP`, the draft still is not ready a
 
 `CLEAN_RUN_PREFLIGHT_STOP` and `CLEAN_RUN_STOP` are stop signals even when the wrapper exits with status 0. Status 0 at a stop boundary only means the protocol message was delivered; it does not mean the article passed. Treat the words `FINAL BOUNDARY` in wrapper output literally. The controller will read the state file and validation reports.
 
-In clean-eval mode, use at most two clean-run checker calls. If the first actual checker reports severe line grid, over-fragmentation, dialogue ladder, reference contamination, underbuilt length, background stuffing, or more than three errors, rewrite once from a new scene slate. Repair by replacement, not deletion.
+In clean-eval mode, use at most two actual clean-run checker calls. Preflight attempts do not consume that budget; continue the bounded source action until the wrapper returns an explicit `CLEAN_RUN_PREFLIGHT_STOP` or an actual checker result. If the first actual checker reports severe line grid, over-fragmentation, dialogue ladder, reference contamination, underbuilt length, background stuffing, or more than three errors, rewrite once from a new scene slate. Repair by replacement, not deletion.
 
 In ordinary user mode, use the normal checker and continue repair as needed, but do not chase every ratio warning by adding visible features. Repeated warnings mean the scene source or title/rhythm model is wrong.
 

@@ -287,6 +287,8 @@ def generator_facing_summary(messages: list[str]) -> tuple[list[str], str]:
 def generator_facing_contract() -> str:
     return (
         "next_action=one_complete_draft_write_then_immediate_wrapper_rerun; "
+        "preflight attempts do not consume actual checker calls; "
+        "wait for an explicit CLEAN_RUN_PREFLIGHT_STOP or actual checker result; "
         "do not count characters, lines, punctuation, or connectors; "
         "do not run python counters or other commands; "
         "if a rhythm script is named, run only that script after the last content write"
