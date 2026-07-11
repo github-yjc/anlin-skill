@@ -4198,6 +4198,142 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotIn("clean-eval写稿路径不是相对draft.md", rules)
             self.assertNotIn("clean-eval未写入draft.md", rules)
 
+    def test_clean_eval_trace_accepts_relative_apply_patch_draft_mutations(self) -> None:
+        events = [
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "Test-Path .anlin-clean-eval-mode; Get-Location"},
+                        "metadata": {"output": "True\nC:\\case\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "apply_patch",
+                    "state": {
+                        "title": "Success. Updated the following files:\nA case/draft.md",
+                        "input": {
+                            "patchText": "*** Begin Patch\n*** Add File: draft.md\n+# 日寄\n+\n+正文\n*** End Patch"
+                        },
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate"},
+                        "metadata": {"output": "CLEAN_RUN_PREFLIGHT: rewrite source\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "apply_patch",
+                    "state": {
+                        "title": "Success. Updated the following files:\nM case/draft.md",
+                        "input": {
+                            "patchText": "*** Begin Patch\n*** Update File: draft.md\n@@\n-正文\n+修订正文\n*** End Patch"
+                        },
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {
+                            "command": "python C:/skill/scripts/rebalance_line_rhythm.py draft.md --in-place; python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate"
+                        },
+                        "metadata": {"output": "CLEAN_RUN_STOP: FINAL BOUNDARY\n"},
+                    },
+                },
+            },
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.jsonl"
+            path.write_text("\n".join(json.dumps(event, ensure_ascii=False) for event in events), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("clean-eval未写入draft.md", rules)
+            self.assertNotIn("clean-eval写稿路径不是相对draft.md", rules)
+            self.assertNotIn("clean-eval改写后未复跑wrapper", rules)
+
+    def test_clean_eval_trace_flags_unchecked_post_wrapper_apply_patch(self) -> None:
+        events = [
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "Test-Path .anlin-clean-eval-mode; Get-Location"},
+                        "metadata": {"output": "True\nC:\\case\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "apply_patch",
+                    "state": {
+                        "input": {
+                            "patchText": "*** Begin Patch\n*** Add File: draft.md\n+# 日寄\n+\n+正文\n*** End Patch"
+                        }
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "bash",
+                    "state": {
+                        "input": {"command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate"},
+                        "metadata": {"output": "CLEAN_RUN_PREFLIGHT: rewrite source\n"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "tool": "apply_patch",
+                    "state": {
+                        "input": {
+                            "patchText": "*** Begin Patch\n*** Update File: draft.md\n@@\n-正文\n+修订正文\n*** End Patch"
+                        }
+                    },
+                },
+            },
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.jsonl"
+            path.write_text("\n".join(json.dumps(event, ensure_ascii=False) for event in events), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("clean-eval未写入draft.md", rules)
+            self.assertIn("clean-eval改写后未复跑wrapper", rules)
+
     def test_clean_eval_trace_accepts_opencode_export_json(self) -> None:
         session = {
             "info": {"directory": "C:\\case", "title": "eval"},

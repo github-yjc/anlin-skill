@@ -218,6 +218,14 @@ def sanitized_tool_input(value: Any) -> Any:
     if isinstance(value, dict):
         sanitized: dict[str, Any] = {}
         for key, child in value.items():
+            if key == "patchText" and isinstance(child, str):
+                headers = [
+                    line
+                    for line in child.splitlines()
+                    if re.match(r"^\*\*\* (?:Add|Update|Delete) File: ", line)
+                ]
+                sanitized[key] = "\n".join(headers) if headers else "<patch omitted>"
+                continue
             if key in {"content", "text", "body"} and isinstance(child, str):
                 sanitized[key] = "<content omitted>"
             else:
@@ -287,6 +295,7 @@ def actual_draft_write_index(text: str) -> int:
     patterns = [
         r"(?im)^\s*(?:←\s*)?Write\s+\.?[/\\]?draft\.md\b",
         r"(?im)^\s*TITLE\s+Write\s+\.?[/\\]?draft\.md\b",
+        r"(?im)^\s*INPUT\s+[^\n]*\*\*\*\s+(?:Add|Update) File:\s*\.?/?draft\.md\b",
         # Formatted OpenCode logs can collapse file edits to only
         # `% Patch 1 file`, without the path. Count it only when the same
         # action block still names draft.md, before or after the patch line,
@@ -330,6 +339,7 @@ def actual_draft_mutation_indices(text: str) -> list[int]:
     patterns = [
         r"(?im)^\s*(?:←\s*)?(?:Write|Edit)\s+\.?[/\\]?draft\.md\b",
         r"(?im)^\s*TITLE\s+(?:Write|Edit)\s+\.?[/\\]?draft\.md\b",
+        r"(?im)^\s*INPUT\s+[^\n]*\*\*\*\s+(?:Add|Update) File:\s*\.?/?draft\.md\b",
         FORMATTED_PATCH_DRAFT_CONTEXT_PATTERN,
         FORMATTED_PATCH_DRAFT_PRE_CONTEXT_PATTERN,
         r"(?im)^\s*TOOL\s+filesystem_(?:write|edit)_file\b[^\n]*(?:\n[^\n]*){0,4}draft\.md\b",
