@@ -167,7 +167,7 @@ For clean-eval formal article generation:
 5. Select scenes from action, body, screen, money, route, social misfire, memory trigger, or useless residue.
 6. Open `anlin-background.md` only after selected scenes already contain facts that need checking.
 7. Write a complete titled article using exactly relative `draft.md` / `.\draft.md` before the first checker. Do not run line-rhythm scripts before the first wrapper call.
-8. Run `scripts/clean_run_checker.py draft.md --strict --draft-gate`.
+8. Run `scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing` so bounded generation receives qualitative repair guidance while exact telemetry stays in controller evidence.
 9. If `CLEAN_RUN_PREFLIGHT` appears, revise before the first checker call is consumed. If `CLEAN_RUN_POSTCHECK_PREFLIGHT` appears after checker call 1/2, follow its one printed source-replacement or explicit shape-repair action before spending checker call 2/2; the wrapper itself does not rewrite the submitted draft. If `CLEAN_RUN_PREFLIGHT_STOP` appears, output the current draft unchanged and let the controller record failure.
 10. If a rhythm script runs and `draft.md` is then rewritten or edited, rerun the relevant rhythm script before the next wrapper call or keep the repair inside the existing line-broken corridor.
 11. Do at most one repair/rewrite and at most two clean-eval checker calls.

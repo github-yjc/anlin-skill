@@ -118,6 +118,215 @@ def save_stop_state(state_path: Path, draft: Path, state: dict[str, Any]) -> Non
     save_state(lock_path, state)
 
 
+def generator_facing_summary(messages: list[str]) -> tuple[list[str], str]:
+    """Collapse raw preflight telemetry into a qualitative repair interface.
+
+    The state file keeps the raw messages for controller diagnostics.  The
+    bounded generator should not receive exact counts or thresholds: those
+    numbers turn a source repair into a metric-filling exercise.
+    """
+
+    labels: list[str] = []
+
+    def add(label: str) -> None:
+        if label not in labels:
+            labels.append(label)
+
+    body_chars: int | None = None
+    for message in messages:
+        match = re.search(r"body_chinese_chars=(\d+)", message)
+        if match:
+            body_chars = int(match.group(1))
+            break
+    underbuilt = (
+        (body_chars is not None and body_chars < 950)
+        or any(message.startswith("body_lines=") and "<" in message for message in messages)
+    )
+    severely_underbuilt = body_chars is not None and body_chars < STANDARD_DIARY_FORMAL_MIN_CHARS
+    overfull = (
+        (body_chars is not None and body_chars > STANDARD_DIARY_DRAFT_OVERFULL_CHARS)
+        or any(message.startswith("body_lines=") and ">" in message for message in messages)
+    )
+    shape = any(
+        message.startswith(
+            (
+                "medium_short_line_grid=",
+                "long_lines=",
+                "short_breath_lines=",
+                "period_row_grid=",
+                "short_line_grid=",
+                "bare_line_grid=",
+                "prose_block_shape=",
+                "early_comma_ratio=",
+                "short_genre_",
+            )
+        )
+        for message in messages
+    )
+    source = any(
+        message.startswith(
+            (
+                "connectors=",
+                "paragraph_engine=weak",
+                "rough_self_damage=missing",
+                "private_grime_without_public_consequence=",
+                "social_decline_plain_reply_private_loop=",
+                "social_decline_group_fake_consequence=",
+                "social_decline_tidy_etiquette_closure=",
+                "social_decline_decoupled_consequence=",
+                "feed_inventory_opening=",
+                "soft_witness_no_consequence=",
+                "prompt_performing_dialogue=",
+                "quoted_dialogue=",
+                "binary_reframe=",
+            )
+        )
+        for message in messages
+    )
+    surface = any(
+        message.startswith(
+            (
+                "process_leak_terms=",
+                "comment_chain_markers=",
+                "meta_ai_topic_hits=",
+                "current_office_persona=",
+                "background_display_groups=",
+                "learned_ending_button=",
+                "pure_ambient_ending=",
+                "literary_simile_caption=",
+                "em_dash=",
+            )
+        )
+        for message in messages
+    )
+
+    shape_script: str | None = None
+    if any(message.startswith("early_comma_ratio=") for message in messages):
+        shape_script = "soften_line_endings"
+    elif any(
+        message.startswith(
+            (
+                "period_row_grid=",
+                "prose_block_shape=",
+                "medium_short_line_grid=",
+                "long_lines=",
+                "short_line_grid=",
+                "bare_line_grid=",
+                "short_breath_lines=",
+            )
+        )
+        for message in messages
+    ):
+        shape_script = "rebalance_line_rhythm"
+
+    if overfull:
+        add("source_shape=overfull")
+    elif underbuilt:
+        add("source_shape=underbuilt")
+    elif shape:
+        add("rhythm_shape=needs_local_reset")
+    if any(message.startswith("connectors=") for message in messages):
+        add("movement_connections=thin")
+    if any(message.startswith("paragraph_engine=weak") for message in messages):
+        add("paragraph_engine=weak")
+    if any(
+        message.startswith(("rough_self_damage=missing", "private_grime_without_public_consequence="))
+        for message in messages
+    ):
+        add("public_roughness=missing")
+    if any(
+        message.startswith(
+            (
+                "social_decline_plain_reply_private_loop=",
+                "social_decline_group_fake_consequence=",
+                "social_decline_tidy_etiquette_closure=",
+                "social_decline_decoupled_consequence=",
+            )
+        )
+        for message in messages
+    ):
+        add("refusal_consequence=needs_source_action")
+    if surface:
+        add("surface_risk=remove_locally")
+    if not labels:
+        add("source_or_surface_review=required")
+
+    if overfull:
+        action = (
+            "overfull_action=trim_or_replace_repeated_material_preserve_working_movement; "
+            "do_not_add_new_scene_or_proof_packet"
+        )
+    elif severely_underbuilt:
+        action = (
+            "source_action=whole_source_rebuild_from_strongest_movement; preserve_complete_mass; "
+            "release_each_carrier_after_one_consequence_transfer; do_not_append_proof_packets"
+        )
+    elif underbuilt or source:
+        action = (
+            "source_action=replace_one_overloaded_movement_in_place; preserve_or_restore_mass; "
+            "release_each_carrier_after_one_consequence_transfer"
+        )
+    elif shape:
+        if shape_script == "soften_line_endings":
+            action = "shape_action=run_soften_line_endings_after_content_then_immediate_wrapper_rerun"
+        elif shape_script == "rebalance_line_rhythm":
+            action = "shape_action=run_rebalance_line_rhythm_after_content_then_immediate_wrapper_rerun"
+        else:
+            action = "shape_action=perform_only_the_named_local_rhythm_step_after_the_last_content_write"
+    elif surface:
+        action = "surface_action=remove_only_the_named_surface_form_and_preserve_scene_movement"
+    else:
+        action = "source_action=change_one_existing_movement_that_changes_what_happens_next"
+
+    if shape_script and shape and (overfull or underbuilt or source) and "shape_action=" not in action:
+        action += f"; after_content_write_run_{shape_script}_once_then_immediate_wrapper_rerun"
+
+    return labels, action
+
+
+def generator_facing_contract() -> str:
+    return (
+        "next_action=one_complete_draft_write_then_immediate_wrapper_rerun; "
+        "do not count characters, lines, punctuation, or connectors; "
+        "do not run python counters or other commands; "
+        "if a rhythm script is named, run only that script after the last content write"
+    )
+
+
+def generator_facing_checker_output(stdout: str, stderr: str) -> str:
+    """Keep checker findings actionable without exposing metric telemetry."""
+
+    compact: list[str] = []
+    for raw_line in stdout.splitlines():
+        line = raw_line.strip()
+        match = re.match(r"^\[(error|warning|info)\]\s+(.+)$", line)
+        if match:
+            compact.append(f"[{match.group(1)}] {match.group(2)}")
+            continue
+        if not line.startswith("->"):
+            continue
+        # Suggestions are useful only when they remain qualitative.  Numeric
+        # reports, serialized lists, and metric keys belong to controller
+        # validation, not to the bounded generator's repair interface.
+        if re.search(
+            r"\d|%|\b(?:body_chars|body_lines|content_lines|first_\d+|paragraph_blocks|lines_ge|route_object_lines|social_lines|body_route_lines|present=)",
+            line,
+            flags=re.IGNORECASE,
+        ):
+            continue
+        compact.append(line)
+    if stderr.strip():
+        compact.append("checker_tool_error=unavailable")
+    if not compact:
+        compact.append("checker_result=no_reported_findings")
+    return (
+        "generator-facing interface: controller-only telemetry; "
+        + " ".join(compact)
+        + ". "
+        + generator_facing_contract()
+    )
+
+
 def load_stop_lock(draft: Path) -> dict[str, Any]:
     lock_path = stop_lock_path(draft)
     state = load_state(lock_path)
@@ -784,7 +993,14 @@ def preflight_messages(draft: Path) -> list[str]:
     return messages
 
 
-def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_attempts: int) -> tuple[bool, list[str]]:
+def preflight_before_check(
+    draft: Path,
+    call_number: int,
+    *,
+    attempt: int,
+    max_attempts: int,
+    generator_facing: bool = False,
+) -> tuple[bool, list[str]]:
     messages = preflight_messages(draft)
     if not messages:
         return False, []
@@ -799,25 +1015,36 @@ def preflight_before_check(draft: Path, call_number: int, *, attempt: int, max_a
     )
     hint_text = " Prioritized repair: " + " | ".join(repair_hints) + "." if repair_hints else ""
     if attempt >= max_attempts:
-        print(
+        stop_text = (
             f"CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY. DO NOT WRITE draft.md. DO NOT REPAIR. "
             "DO NOT RUN SCRIPTS. DO NOT USE PREFLIGHT DETAILS AS A TODO LIST. "
             "The next tool action must be reading draft.md once and outputting it unchanged. "
             "The controller has the saved state and snapshots and will diagnose this stopped bounded run. "
             "No checker call was consumed."
         )
+        if generator_facing:
+            stop_text += " " + generator_facing_contract()
+        print(stop_text)
     else:
-        print(
-            f"CLEAN_RUN_PREFLIGHT: draft is not ready for checker call {call_number}/2 "
-            f"(preflight {attempt}/{max_attempts}); "
-            + joined_messages
-            + ". "
-            + revision_frame
-            + hint_text
-            + anti_todo_guard
-            + " "
-            "This preflight did not consume a checker call."
-        )
+        if generator_facing:
+            labels, action = generator_facing_summary(messages)
+            print(
+                f"CLEAN_RUN_PREFLIGHT: qualitative source review before checker call {call_number}/2; "
+                f"findings={','.join(labels)}; {action}; {generator_facing_contract()}. "
+                "This preflight did not consume a checker call."
+            )
+        else:
+            print(
+                f"CLEAN_RUN_PREFLIGHT: draft is not ready for checker call {call_number}/2 "
+                f"(preflight {attempt}/{max_attempts}); "
+                + joined_messages
+                + ". "
+                + revision_frame
+                + hint_text
+                + anti_todo_guard
+                + " "
+                "This preflight did not consume a checker call."
+            )
     return True, messages
 
 
@@ -1298,6 +1525,7 @@ def post_checker_preflight_before_second_check(
     *,
     state_path: Path,
     calls: int,
+    generator_facing: bool = False,
 ) -> tuple[bool, list[str]]:
     messages = post_checker_blocking_messages(draft, preflight_messages(draft))
     if not messages or ignorable_preflight_messages(messages):
@@ -1313,12 +1541,15 @@ def post_checker_preflight_before_second_check(
         state["stop_reason"] = "post-checker-preflight"
         record_snapshot(draft, state, "bounded_final", overwrite=True)
         save_stop_state(state_path, draft, state)
-        print(
+        stop_text = (
             "CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY after post-check preflight. "
             "The draft was still not ready for checker call 2/2 after the one bounded source-or-shape action. "
             "DO NOT WRITE draft.md. DO NOT REPAIR. Read draft.md once and output it unchanged. "
             "No second checker call was consumed."
         )
+        if generator_facing:
+            stop_text += " " + generator_facing_contract()
+        print(stop_text)
         return True, messages
     repair_hints, revision_frame = build_preflight_guidance(messages)
     source_prefixes = (
@@ -1386,16 +1617,24 @@ def post_checker_preflight_before_second_check(
     hint_text = " Prioritized repair: " + " | ".join(repair_hints[:4]) + "." if repair_hints else ""
     state["calls"] = calls
     save_state(state_path, state)
-    print(
-        "CLEAN_RUN_POSTCHECK_PREFLIGHT: draft is not ready for checker call 2/2; "
-        + joined_messages
-        + ". "
-        + postcheck_source_note
-        + " "
-        + revision_frame
-        + hint_text
-        + " This post-check preflight did not consume checker call 2/2."
-    )
+    if generator_facing:
+        labels, action = generator_facing_summary(messages)
+        print(
+            "CLEAN_RUN_POSTCHECK_PREFLIGHT: qualitative source review before checker call 2/2; "
+            f"findings={','.join(labels)}; {action}; {generator_facing_contract()}. "
+            "This post-check preflight did not consume checker call 2/2."
+        )
+    else:
+        print(
+            "CLEAN_RUN_POSTCHECK_PREFLIGHT: draft is not ready for checker call 2/2; "
+            + joined_messages
+            + ". "
+            + postcheck_source_note
+            + " "
+            + revision_frame
+            + hint_text
+            + " This post-check preflight did not consume checker call 2/2."
+        )
     return True, messages
 
 
@@ -1465,6 +1704,11 @@ def main() -> int:
     parser.add_argument("--fail-on-warning", action="store_true")
     parser.add_argument("--state", type=Path, default=None)
     parser.add_argument("--reset", action="store_true")
+    parser.add_argument(
+        "--generator-facing",
+        action="store_true",
+        help="Hide exact preflight telemetry from the bounded generator; keep raw messages in state for controller diagnostics.",
+    )
     args = parser.parse_args()
     try:
         set_forced_genre(args.genre)
@@ -1474,6 +1718,7 @@ def main() -> int:
     draft = args.draft.resolve()
     if not draft.is_file():
         parser.error(f"draft not found: {draft}")
+    generator_facing = args.generator_facing or (draft.parent / ".anlin-clean-eval-mode").exists()
     if args.reset:
         try:
             stop_lock_path(draft).unlink()
@@ -1488,6 +1733,7 @@ def main() -> int:
         state = locked_state
     if state.get("draft") != draft_key:
         state = {"draft": draft_key, "calls": 0, "preflights": 0}
+    state["generator_facing"] = generator_facing
     if not state.get("stopped"):
         record_snapshot(draft, state, "first_submission")
     calls = int(state.get("calls", 0))
@@ -1537,6 +1783,7 @@ def main() -> int:
             calls + 1,
             attempt=preflight_attempt,
             max_attempts=max_preflight_attempts,
+            generator_facing=generator_facing,
         )
         if blocked:
             state["preflights"] = min(preflight_attempt, max_preflight_attempts)
@@ -1558,6 +1805,7 @@ def main() -> int:
             state,
             state_path=state_path,
             calls=calls,
+            generator_facing=generator_facing,
         )
         if blocked:
             return 0 if state.get("stopped") else 3
@@ -1579,7 +1827,24 @@ def main() -> int:
     if args.fail_on_warning:
         command.append("--fail-on-warning")
 
-    result = subprocess.run(command, text=True, encoding="utf-8", check=False)
+    if generator_facing:
+        result = subprocess.run(
+            command,
+            text=True,
+            encoding="utf-8",
+            capture_output=True,
+            check=False,
+        )
+        print(generator_facing_checker_output(result.stdout, result.stderr))
+        state = load_state(state_path)
+        state["generator_facing"] = True
+        state["last_checker_call"] = call_number
+        state["last_checker_returncode"] = result.returncode
+        state["last_checker_stdout"] = result.stdout
+        state["last_checker_stderr"] = result.stderr
+        save_state(state_path, state)
+    else:
+        result = subprocess.run(command, text=True, encoding="utf-8", check=False)
     if call_number == 2:
         state = load_state(state_path)
         state["draft"] = draft_key

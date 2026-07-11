@@ -41,6 +41,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from check_anlin_violations import detect_style  # noqa: E402
 from clean_run_checker import (  # noqa: E402
     build_preflight_guidance,
+    generator_facing_summary,
     normalize_before_final_check,
     post_checker_preflight_before_second_check,
     preflight_messages,
@@ -2622,6 +2623,110 @@ class AnlinToolingTests(unittest.TestCase):
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 1)
             self.assertEqual(state["preflights"], 1)
+
+    def test_clean_run_checker_generator_interface_hides_numeric_preflight_telemetry(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("# 日寄\n\n杯子脏了。", encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+                "--generator-facing",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+
+            self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
+            self.assertIn("CLEAN_RUN_PREFLIGHT", preflight.stdout)
+            self.assertIn("source_shape=underbuilt", preflight.stdout)
+            self.assertIn("next_action=one_complete_draft_write_then_immediate_wrapper_rerun", preflight.stdout)
+            self.assertIn("do not count characters, lines, punctuation, or connectors", preflight.stdout)
+            self.assertNotRegex(preflight.stdout, r"body_chinese_chars=\d")
+            self.assertNotRegex(preflight.stdout, r"body_lines=\d")
+            self.assertNotIn("connectors=[", preflight.stdout)
+            self.assertNotIn("long_lines=", preflight.stdout)
+
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 0)
+            self.assertEqual(state["preflights"], 1)
+            self.assertTrue(any(message.startswith("body_chinese_chars=") for message in state["last_preflight_messages"]))
+
+    def test_clean_run_checker_generator_interface_hides_numeric_checker_telemetry(self) -> None:
+        ready_lines = [
+            "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",
+            "很丢人。",
+            "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
+            "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
+            "不过镜子里那张脸像没睡醒，还以为自己要去面试。",
+        ] * 12
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 日寄", "", *ready_lines]), encoding="utf-8")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+                "--generator-facing",
+            ]
+            checker = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+
+            self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", checker.stdout)
+            self.assertIn("generator-facing interface: controller-only telemetry", checker.stdout)
+            self.assertNotRegex(checker.stdout, r"body_chinese_chars=\d")
+            self.assertNotRegex(checker.stdout, r"first_20_lines_ratio=\d")
+            self.assertNotIn("present=[", checker.stdout)
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 1)
+            self.assertEqual(state["last_checker_returncode"], checker.returncode)
+            self.assertIn("body_chars=", state["last_checker_stdout"])
+
+    def test_generator_facing_summary_preserves_mass_routing_boundaries(self) -> None:
+        labels, action = generator_facing_summary(["body_chinese_chars=875 < 900", "paragraph_engine=weak"])
+        self.assertIn("source_shape=underbuilt", labels)
+        self.assertIn("replace_one_overloaded_movement_in_place", action)
+        self.assertNotIn("whole_source_rebuild", action)
+
+        labels, action = generator_facing_summary(["body_chinese_chars=913 < 950 with source_shape_weak", "paragraph_engine=weak"])
+        self.assertIn("source_shape=underbuilt", labels)
+        self.assertIn("replace_one_overloaded_movement_in_place", action)
+        self.assertNotIn("whole_source_rebuild", action)
+
+        labels, action = generator_facing_summary(["body_chinese_chars=1450 > 1350", "rough_self_damage=missing"])
+        self.assertIn("source_shape=overfull", labels)
+        self.assertNotIn("source_shape=underbuilt", labels)
+        self.assertIn("overfull", action)
+
+    def test_generator_facing_summary_names_shape_script(self) -> None:
+        _labels, action = generator_facing_summary(["early_comma_ratio=0.00 < 0.15"])
+        self.assertIn("soften_line_endings", action)
+
+        _labels, action = generator_facing_summary(["period_row_grid=present"])
+        self.assertIn("rebalance_line_rhythm", action)
+
+    def test_clean_run_checker_marker_forces_generator_facing_without_flag(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            case = Path(temp)
+            draft = case / "draft.md"
+            draft.write_text("# 日寄\n\n杯子脏了。", encoding="utf-8")
+            (case / ".anlin-clean-eval-mode").write_bytes(b"")
+            command = [
+                sys.executable,
+                str(CLEAN_RUN_CHECKER),
+                str(draft),
+                "--strict",
+                "--draft-gate",
+            ]
+            preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
+            self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
+            self.assertIn("qualitative source review", preflight.stdout)
+            self.assertNotRegex(preflight.stdout, r"body_chinese_chars=\d")
+            self.assertNotIn("connectors=[", preflight.stdout)
+            state = json.loads((case / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+            self.assertTrue(state["generator_facing"])
 
     def test_clean_run_checker_preflight_blocks_overfull_without_consuming_call(self) -> None:
         long_line = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"

@@ -36,7 +36,7 @@ Clean-eval first-draft tool order is part of the test, not a suggestion: marker 
 
 Use the relative path `draft.md` or `.\draft.md` for the article file in the current task workspace. When using a write/file tool, the file/path argument must be exactly `draft.md` or `.\draft.md`. Do not construct an absolute path from memory, from a previous evaluation directory, from `<skill-dir>`, or from a date-stamped folder. In clean-eval, `Get-Location` / `pwd` is mandatory before the first write, not optional; do not guess.
 
-Keep `<skill-dir>` separate from the output directory. `<skill-dir>` may appear in a checker command such as `python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate`, but it must not appear in the article write path. Do not write `<skill-dir>/<iteration-or-case>/draft.md`; write only `draft.md` in the current task workspace. If `Get-Location` shows `<skill-dir>` or a path ending in `anlin-writing`, do not write the article there; switch to an external case/task workspace or let the controller mark the run invalid.
+Keep `<skill-dir>` separate from the output directory. `<skill-dir>` may appear in a checker command such as `python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing`, but it must not appear in the article write path. Do not write `<skill-dir>/<iteration-or-case>/draft.md`; write only `draft.md` in the current task workspace. If `Get-Location` shows `<skill-dir>` or a path ending in `anlin-writing`, do not write the article there; switch to an external case/task workspace or let the controller mark the run invalid.
 
 For ordinary user mode, the same quiet drafting rule applies, but the checker loop may continue until hard errors are cleared or the user is satisfied. The two-call stop rule belongs to clean-eval only.
 
@@ -415,7 +415,7 @@ Write the complete titled article to relative `draft.md` in the current task wor
 For clean-eval mode, then run:
 
 ```powershell
-python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate
+python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
 ```
 
 Resolve `<skill-dir>` from the directory that contains this `SKILL.md`. Do not make `<skill-dir>` the output directory.
@@ -423,8 +423,8 @@ Resolve `<skill-dir>` from the directory that contains this `SKILL.md`. Do not m
 If the selected genre is known, pass it explicitly, including standard diary, for example:
 
 ```powershell
-python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate --genre standard
-python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate --genre sincere
+python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing --genre standard
+python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing --genre sincere
 ```
 
 When maintaining the bounded protocol, keep `CLEAN_RUN_PREFLIGHT` and `CLEAN_RUN_POSTCHECK_PREFLIGHT` self-contained. The first protects checker call 1/2; the post-check variant protects call 2/2 from a known underbuilt source or hard shape failure. The wrapper does not rewrite `draft.md`; the bounded generator performs the printed source replacement or explicit rhythm action, then reruns the wrapper without reading this file, inspecting checker source/tests, grepping thresholds, or switching to ordinary repair. If the message is hard to satisfy, it changes the source shape rather than reverse-engineering the metric.
