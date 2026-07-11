@@ -2445,7 +2445,8 @@ class AnlinToolingTests(unittest.TestCase):
         ] * 12
         with tempfile.TemporaryDirectory() as temp:
             draft = Path(temp) / "draft.md"
-            draft.write_text("\n".join(["# 日寄", "", *ready_lines]), encoding="utf-8")
+            first_submission_bytes = "\r\n".join(["# 日寄", "", *ready_lines]).encode("utf-8")
+            draft.write_bytes(first_submission_bytes)
             command = [
                 sys.executable,
                 str(CLEAN_RUN_CHECKER),
@@ -2455,9 +2456,11 @@ class AnlinToolingTests(unittest.TestCase):
             ]
             first = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertIn("checker call 1/2", first.stdout)
-            draft.write_text("\n".join(["# 日寄", "", *repaired_lines]), encoding="utf-8")
+            submitted_bytes = "\r\n".join(["# 日寄", "", *repaired_lines]).encode("utf-8")
+            draft.write_bytes(submitted_bytes)
             second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertIn("FINAL BOUNDARY", second.stdout)
+            self.assertEqual(draft.read_bytes(), submitted_bytes)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             snapshots = state["snapshots"]
             for key in [
@@ -2471,6 +2474,10 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("厕所灯坏了以后", Path(snapshots["first_submission"]).read_text(encoding="utf-8"))
             self.assertIn("其实第二次", Path(snapshots["checker_call_2_submission"]).read_text(encoding="utf-8"))
             self.assertIn("其实第二次", Path(snapshots["bounded_final"]).read_text(encoding="utf-8"))
+            self.assertEqual(Path(snapshots["first_submission"]).read_bytes(), first_submission_bytes)
+            self.assertEqual(Path(snapshots["checker_call_1_submission"]).read_bytes(), first_submission_bytes)
+            self.assertEqual(Path(snapshots["checker_call_2_submission"]).read_bytes(), submitted_bytes)
+            self.assertEqual(Path(snapshots["bounded_final"]).read_bytes(), submitted_bytes)
 
     def test_clean_run_checker_preflight_does_not_consume_checker_call(self) -> None:
         short_body = "\n".join(["# 日寄", "", "杯子脏了。"])
@@ -2932,6 +2939,95 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertFalse(state.get("stopped", False))
             self.assertIn("post_checker_preflight_1", state["snapshots"])
             self.assertNotIn("checker_call_2_submission", state["snapshots"])
+
+    def test_clean_run_checker_shape_only_postcheck_does_not_add_source_material(self) -> None:
+        lines = [
+            "其实我在厕所门口差点跪下，裤腿蹭上黑泥很丢人。",
+            "我觉得收银员还在等付款，手机却卡在二维码那页。",
+            "突然发现袋子漏汤，鞋底一滑，我扶着墙才没摔。",
+            "不过后面的人咳了一声，我把脏手藏到袖子里面。",
+            "因为胃里咕噜咕噜，扫码两次都没扫上，店员没走。",
+            "所以我拿纸巾擦了擦手，油印反而蹭到屏幕上。",
+            "于是我把袋子递回去，收银员看了裤脚一眼没接。",
+            "好像这单饭要命，塑料袋又裂了，汤流到拖鞋边。",
+            "原来我还以为是水，低头才发现裤子上都是红油。",
+            "结果我又去厕所洗手，门口那个人一直等着我让路。",
+        ] * 5
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 袋子", "", *lines]), encoding="utf-8")
+            submitted_bytes = draft.read_bytes()
+            state_path = draft.parent / ".anlin-clean-run-state.json"
+            state_path.write_text(
+                json.dumps({"draft": str(draft.resolve()), "calls": 1}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [sys.executable, str(CLEAN_RUN_CHECKER), str(draft), "--strict", "--draft-gate", "--genre", "standard"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+            self.assertIn("CLEAN_RUN_POSTCHECK_PREFLIGHT", result.stdout)
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            messages = state["last_post_checker_preflight_messages"]
+            shape_prefixes = ("short_breath_lines=", "period_row_grid=", "early_comma_ratio=")
+            self.assertTrue(messages)
+            self.assertTrue(all(message.startswith(shape_prefixes) for message in messages), messages)
+            self.assertNotIn("known underbuilt source", result.stdout)
+            self.assertNotIn("add one functional consequence cluster", result.stdout)
+            self.assertIn("wrapper left `draft.md` unchanged", result.stdout)
+
+            stopped = subprocess.run(
+                [sys.executable, str(CLEAN_RUN_CHECKER), str(draft), "--strict", "--draft-gate", "--genre", "standard"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(stopped.returncode, 0, stopped.stdout + stopped.stderr)
+            self.assertIn("CLEAN_RUN_PREFLIGHT_STOP", stopped.stdout)
+            self.assertIn("source-or-shape action", stopped.stdout)
+            self.assertNotIn("source-rewrite chance", stopped.stdout)
+            self.assertEqual(draft.read_bytes(), submitted_bytes)
+            stopped_state = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(stopped_state["calls"], 1)
+            self.assertEqual(stopped_state["stop_reason"], "post-checker-preflight")
+            self.assertEqual(Path(stopped_state["snapshots"]["bounded_final"]).read_bytes(), submitted_bytes)
+
+    def test_clean_run_checker_overfull_postcheck_routes_to_trim_without_mutating_submission(self) -> None:
+        long_line = "其实我觉得厕所灯突然坏了，于是发现杯子好像也脏，因为我差点吐出来，丢人得很。"
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            submitted_bytes = "\r\n".join(["# 日寄", "", *([long_line] * 46)]).encode("utf-8")
+            draft.write_bytes(submitted_bytes)
+            state_path = draft.parent / ".anlin-clean-run-state.json"
+            state_path.write_text(
+                json.dumps({"draft": str(draft.resolve()), "calls": 1}, ensure_ascii=False),
+                encoding="utf-8",
+            )
+
+            result = subprocess.run(
+                [sys.executable, str(CLEAN_RUN_CHECKER), str(draft), "--strict", "--draft-gate", "--genre", "standard"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+            self.assertIn("CLEAN_RUN_POSTCHECK_PREFLIGHT", result.stdout)
+            self.assertIn("Post-check overfull reset", result.stdout)
+            self.assertIn("remove or replace repeated material", result.stdout)
+            self.assertNotIn("Perform only the explicit local rhythm action", result.stdout)
+            self.assertNotIn("add one functional consequence cluster", result.stdout)
+            self.assertEqual(draft.read_bytes(), submitted_bytes)
+            state = json.loads(state_path.read_text(encoding="utf-8"))
+            self.assertEqual(state["calls"], 1)
 
     def test_clean_run_checker_preflight_blocks_missing_true_short_breaths(self) -> None:
         lines = [
@@ -6260,7 +6356,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(payload["finalized"]["trace_findings"][0]["rule"], "finalized修复运行本地检查器")
             self.assertIn("controller prepares repair-brief.txt", payload["finalized"]["trace_findings"][0]["suggestion"])
 
-    def test_clean_run_checker_merges_uniform_medium_grid_before_second_call(self) -> None:
+    def test_clean_run_checker_blocks_uniform_medium_grid_without_mutating_submission(self) -> None:
         fragments = [
             "其实厕所灯坏了我站着很丢人",
             "觉得杯子好像也脏我又拿回去",
@@ -6277,6 +6373,7 @@ class AnlinToolingTests(unittest.TestCase):
                 json.dumps({"draft": str(draft.resolve()), "calls": 1}, ensure_ascii=False),
                 encoding="utf-8",
             )
+            submitted_bytes = draft.read_bytes()
             command = [
                 sys.executable,
                 str(CLEAN_RUN_CHECKER),
@@ -6285,12 +6382,13 @@ class AnlinToolingTests(unittest.TestCase):
                 "--draft-gate",
             ]
             second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
-            self.assertIn("CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2", second.stdout)
-            lines = [line for line in draft.read_text(encoding="utf-8").splitlines() if line.strip()]
-            body_lines = [line for line in lines[1:] if not line.lstrip().startswith("#")]
-            self.assertLess(len(body_lines), 80)
+            self.assertEqual(second.returncode, 3, second.stdout + second.stderr)
+            self.assertIn("CLEAN_RUN_POSTCHECK_PREFLIGHT", second.stdout)
+            self.assertEqual(draft.read_bytes(), submitted_bytes)
+            saved = json.loads(state.read_text(encoding="utf-8"))
+            self.assertEqual(saved["calls"], 1)
 
-    def test_clean_run_checker_rebalances_medium_grid_before_second_call(self) -> None:
+    def test_clean_run_checker_blocks_medium_grid_without_mutating_submission(self) -> None:
         fragments = [
             "其实厕所灯坏了我站着很丢人还假装没事",
             "觉得杯子好像也脏我又拿回去冲了一下",
@@ -6307,6 +6405,7 @@ class AnlinToolingTests(unittest.TestCase):
                 json.dumps({"draft": str(draft.resolve()), "calls": 1}, ensure_ascii=False),
                 encoding="utf-8",
             )
+            submitted_bytes = draft.read_bytes()
             command = [
                 sys.executable,
                 str(CLEAN_RUN_CHECKER),
@@ -6315,14 +6414,13 @@ class AnlinToolingTests(unittest.TestCase):
                 "--draft-gate",
             ]
             second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
-            self.assertIn("CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2", second.stdout)
-            lines = [line for line in draft.read_text(encoding="utf-8").splitlines() if line.strip()]
-            body_lines = [line for line in lines[1:] if not line.lstrip().startswith("#")]
-            long_lines = [line for line in body_lines if len([char for char in line if "\u4e00" <= char <= "\u9fff"]) >= 28]
-            self.assertGreaterEqual(len(body_lines), 45)
-            self.assertGreaterEqual(len(long_lines), 6)
+            self.assertEqual(second.returncode, 3, second.stdout + second.stderr)
+            self.assertIn("CLEAN_RUN_POSTCHECK_PREFLIGHT", second.stdout)
+            self.assertEqual(draft.read_bytes(), submitted_bytes)
+            saved = json.loads(state.read_text(encoding="utf-8"))
+            self.assertEqual(saved["calls"], 1)
 
-    def test_clean_run_checker_normalizes_rhythm_before_second_call(self) -> None:
+    def test_clean_run_checker_blocks_prose_compression_without_mutating_submission(self) -> None:
         long_line = (
             "其实我摸了摸手机，觉得六条未读有点多，突然发现三条是运营商的催缴短信，"
             "于是去厕所洗了把脸，因为差点吐出来，丢人得很，好像还是没躲过去。"
@@ -6336,6 +6434,7 @@ class AnlinToolingTests(unittest.TestCase):
                 json.dumps({"draft": str(draft.resolve()), "calls": 1}, ensure_ascii=False),
                 encoding="utf-8",
             )
+            submitted_bytes = draft.read_bytes()
             command = [
                 sys.executable,
                 str(CLEAN_RUN_CHECKER),
@@ -6344,16 +6443,13 @@ class AnlinToolingTests(unittest.TestCase):
                 "--draft-gate",
             ]
             second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
-            self.assertIn("CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2", second.stdout)
-            lines = [line for line in draft.read_text(encoding="utf-8").splitlines() if line.strip()]
-            body_lines = [line for line in lines[1:] if not line.lstrip().startswith("#")]
-            self.assertGreaterEqual(len(body_lines), 45)
-            first_twenty = body_lines[:20]
-            comma_ratio = sum(1 for line in first_twenty if line.endswith("，")) / len(first_twenty)
-            self.assertGreaterEqual(comma_ratio, 0.45)
-            self.assertLessEqual(comma_ratio, 0.85)
+            self.assertEqual(second.returncode, 3, second.stdout + second.stderr)
+            self.assertIn("CLEAN_RUN_POSTCHECK_PREFLIGHT", second.stdout)
+            self.assertEqual(draft.read_bytes(), submitted_bytes)
+            saved = json.loads(state.read_text(encoding="utf-8"))
+            self.assertEqual(saved["calls"], 1)
 
-    def test_clean_run_checker_merges_short_grid_before_second_call(self) -> None:
+    def test_clean_run_checker_blocks_short_grid_without_mutating_submission(self) -> None:
         fragments = [
             "其实我觉得杯子脏了",
             "突然发现厕所灯坏了",
@@ -6370,6 +6466,7 @@ class AnlinToolingTests(unittest.TestCase):
                 json.dumps({"draft": str(draft.resolve()), "calls": 1}, ensure_ascii=False),
                 encoding="utf-8",
             )
+            submitted_bytes = draft.read_bytes()
             command = [
                 sys.executable,
                 str(CLEAN_RUN_CHECKER),
@@ -6378,14 +6475,11 @@ class AnlinToolingTests(unittest.TestCase):
                 "--draft-gate",
             ]
             second = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
-            self.assertIn("CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2", second.stdout)
-            lines = [line for line in draft.read_text(encoding="utf-8").splitlines() if line.strip()]
-            body_lines = [line for line in lines[1:] if not line.lstrip().startswith("#")]
-            self.assertLessEqual(len(body_lines), 75)
-            first_twenty = body_lines[:20]
-            comma_ratio = sum(1 for line in first_twenty if line.endswith("，")) / len(first_twenty)
-            self.assertGreaterEqual(comma_ratio, 0.45)
-            self.assertLessEqual(comma_ratio, 0.85)
+            self.assertEqual(second.returncode, 3, second.stdout + second.stderr)
+            self.assertIn("CLEAN_RUN_POSTCHECK_PREFLIGHT", second.stdout)
+            self.assertEqual(draft.read_bytes(), submitted_bytes)
+            saved = json.loads(state.read_text(encoding="utf-8"))
+            self.assertEqual(saved["calls"], 1)
 
     def test_checker_accepts_ugly_low_engine_terms_as_paragraph_engine(self) -> None:
         body = "\n".join(
@@ -9137,6 +9231,25 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Formal clean-eval first draft", readme)
         self.assertIn("references/runtime-brief.md", readme)
         self.assertIn("references/clean-eval-first-draft-minimum.md", readme)
+
+    def test_postcheck_preflight_contract_keeps_submission_read_only(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
+        clean_brief = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        validation = (ROOT / "references" / "validation-protocol.md").read_text(encoding="utf-8")
+        matrix = (ROOT / "references" / "route-coverage-matrix.md").read_text(encoding="utf-8")
+
+        self.assertIn("The wrapper does not rewrite `draft.md`", skill)
+        self.assertIn("If the output contains only shape findings, do not add material", skill)
+        self.assertIn("If the output is shape-only, do not add material", first_draft)
+        self.assertIn("known underbuilt source or hard shape failure", clean_brief)
+        self.assertIn("For a pure shape result, do not add a new scene or consequence cluster", clean_brief)
+        self.assertIn("known underbuilt source, overfull packet, or hard shape failure", runtime)
+        self.assertIn("The wrapper does not rewrite `draft.md`", runtime)
+        self.assertNotIn("Treat it as a source-rewrite stop sign before the final checker", runtime)
+        self.assertIn("known underbuilt source or hard shape failure", validation)
+        self.assertIn("byte-read-only wrapper", matrix)
 
     def test_readme_uses_portable_skill_and_corpus_paths(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")

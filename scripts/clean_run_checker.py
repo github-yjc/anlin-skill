@@ -135,8 +135,7 @@ def record_snapshot(draft: Path, state: dict[str, Any], key: str, *, overwrite: 
     if not overwrite and key in snapshots and Path(str(snapshots[key])).is_file():
         return
     path.parent.mkdir(parents=True, exist_ok=True)
-    shutil_text = draft.read_text(encoding="utf-8")
-    path.write_text(shutil_text, encoding="utf-8", newline="\n")
+    path.write_bytes(draft.read_bytes())
     snapshots[key] = str(path.resolve())
 
 
@@ -1146,21 +1145,49 @@ def post_checker_preflight_before_second_check(
         save_stop_state(state_path, draft, state)
         print(
             "CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY after post-check preflight. "
-            "The draft was still not ready for checker call 2/2 after the one bounded source-rewrite chance. "
+            "The draft was still not ready for checker call 2/2 after the one bounded source-or-shape action. "
             "DO NOT WRITE draft.md. DO NOT REPAIR. Read draft.md once and output it unchanged. "
             "No second checker call was consumed."
         )
         return True, messages
     repair_hints, revision_frame = build_preflight_guidance(messages)
-    postcheck_source_note = (
-        "Post-check source reset: do not spend checker call 2/2 on a known underbuilt source. "
-        "Rewrite by replacement, not subtraction: preserve or rebuild the complete standard-diary mass, "
-        "add one functional consequence cluster that changes hand, reply, payment, route, body, door, object, "
-        "or social position, and let connector turns come from that movement. "
-        "For social-decline or invitation cases, add one refusal-coupled consequence cluster instead of another "
-        "private screen, water, room, or etiquette line. "
-        "After the content rewrite, run any needed rhythm script only as the final shape step, then call this wrapper again."
+    source_prefixes = (
+        "connectors=",
+        "paragraph_engine=weak",
+        "rough_self_damage=missing",
+        "private_grime_without_public_consequence=",
+        "social_decline_plain_reply_private_loop=",
+        "social_decline_group_fake_consequence=",
+        "social_decline_tidy_etiquette_closure=",
+        "social_decline_decoupled_consequence=",
     )
+    source_blocked = any(message.startswith(source_prefixes) for message in messages) or any(
+        message.startswith("body_chinese_chars=") and "<" in message for message in messages
+    )
+    overfull = any(message.startswith("body_chinese_chars=") and ">" in message for message in messages)
+    if overfull:
+        postcheck_source_note = (
+            "Post-check overfull reset: the wrapper left `draft.md` unchanged. "
+            "Do not add a new scene, consequence cluster, or material packet. "
+            "Use the printed trim/shape action to remove or replace repeated material while preserving the article's working movement, "
+            "then call this wrapper again."
+        )
+    elif source_blocked:
+        postcheck_source_note = (
+            "Post-check source reset: do not spend checker call 2/2 on a known underbuilt source. "
+            "Rewrite by replacement, not subtraction: preserve or rebuild the complete standard-diary mass, "
+            "add one functional consequence cluster that changes hand, reply, payment, route, body, door, object, "
+            "or social position, and let connector turns come from that movement. "
+            "For social-decline or invitation cases, add one refusal-coupled consequence cluster instead of another "
+            "private screen, water, room, or etiquette line. "
+            "After the content rewrite, run any needed rhythm script only as the final shape step, then call this wrapper again."
+        )
+    else:
+        postcheck_source_note = (
+            "Post-check shape reset: the wrapper left `draft.md` unchanged. "
+            "Do not add a new scene, consequence cluster, or material packet for a pure shape result. "
+            "Perform only the explicit local rhythm action printed below, then call this wrapper again."
+        )
     hint_text = " Prioritized repair: " + " | ".join(repair_hints[:4]) + "." if repair_hints else ""
     state["calls"] = calls
     save_state(state_path, state)
@@ -1183,9 +1210,9 @@ def post_checker_blocking_messages(draft: Path, messages: list[str]) -> list[str
     The first preflight deliberately lets some near-miss drafts reach checker call
     1/2 so the bounded protocol can measure limited repair. After that first
     checker, do not spend call 2/2 on a draft that has already shrunk below the
-    standard corridor or still lacks hard-gate connector coverage. Pure residual
-    shape issues still go to call 2/2 so old rhythm-normalization behavior stays
-    bounded instead of becoming an extra open repair loop.
+    standard corridor, still lacks source movement, or still has a known hard
+    shape failure. The wrapper must leave the submitted artifact byte-for-byte
+    unchanged; any rhythm repair is an explicit generator action before call 2.
     """
     text = draft.read_text(encoding="utf-8")
     style = detect_style(text)
@@ -1199,6 +1226,19 @@ def post_checker_blocking_messages(draft: Path, messages: list[str]) -> list[str
         if message.startswith("body_chinese_chars="):
             blocking.append(message)
         elif body_chars < 950 and message.startswith("medium_short_line_grid="):
+            blocking.append(message)
+        elif message.startswith(
+            (
+                "body_lines=",
+                "long_lines=",
+                "short_breath_lines=",
+                "period_row_grid=",
+                "short_line_grid=",
+                "bare_line_grid=",
+                "prose_block_shape=",
+                "early_comma_ratio=",
+            )
+        ):
             blocking.append(message)
         elif message.startswith(
             (
@@ -1318,7 +1358,6 @@ def main() -> int:
 
     call_number = calls + 1
     if args.draft_gate and call_number == 2:
-        normalize_before_final_check(draft)
         blocked, _messages = post_checker_preflight_before_second_check(
             draft,
             state,
