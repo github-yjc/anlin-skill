@@ -1,6 +1,6 @@
 # Finalized Repair Minimum
 
-Use this file only when a controller or user explicitly starts a finalized repair checkpoint from a copied bounded draft in a `finalized/` directory. Do not use this file for `repair_mode: hard_pass_review_in_place`; that compact brief is self-contained and deliberately routes the repair agent to `draft.md` plus `repair-brief.txt` only. For hard-gate failure, profile `revise`, missing compact mode, or absent brief, this file remains the generator-facing minimum path. Do not load `validation-protocol.md`, `development-log.md`, full style-profile reports, checker source, tests, or hidden thresholds while repairing.
+Use this file only when a controller or user explicitly starts a finalized repair checkpoint from a copied bounded draft in a `finalized/` directory. Do not use this file for `repair_mode: hard_pass_review_in_place` or `repair_mode: source_rewrite_compact`; those compact briefs are self-contained and deliberately route the repair agent to `draft.md` plus `repair-brief.txt` only. For a missing/invalid brief or `controller_tool_error`, this file remains the generator-facing minimum path. Do not load `validation-protocol.md`, `development-log.md`, full style-profile reports, checker source, tests, or hidden thresholds while repairing.
 
 ## Contract
 

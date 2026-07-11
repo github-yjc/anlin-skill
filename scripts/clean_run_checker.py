@@ -176,29 +176,31 @@ def generator_facing_summary(messages: list[str]) -> tuple[list[str], str]:
                 "social_decline_decoupled_consequence=",
                 "feed_inventory_opening=",
                 "soft_witness_no_consequence=",
-                "prompt_performing_dialogue=",
-                "quoted_dialogue=",
-                "binary_reframe=",
             )
         )
         for message in messages
     )
-    surface = any(
-        message.startswith(
-            (
-                "process_leak_terms=",
-                "comment_chain_markers=",
-                "meta_ai_topic_hits=",
-                "current_office_persona=",
-                "background_display_groups=",
-                "learned_ending_button=",
-                "pure_ambient_ending=",
-                "literary_simile_caption=",
-                "em_dash=",
-            )
-        )
-        for message in messages
+    surface_prefixes = (
+        ("process_leak_terms=", "process_leak_terms"),
+        ("comment_chain_markers=", "comment_chain_markers"),
+        ("meta_ai_topic_hits=", "meta_ai_topic_hits"),
+        ("current_office_persona=", "current_office_persona"),
+        ("background_display_groups=", "background_display_groups"),
+        ("learned_ending_button=", "learned_ending_button"),
+        ("pure_ambient_ending=", "pure_ambient_ending"),
+        ("literary_simile_caption=", "literary_simile_caption"),
+        ("em_dash=", "em_dash"),
+        ("prompt_performing_dialogue=", "prompt_performing_dialogue"),
+        ("quoted_dialogue=", "quoted_dialogue"),
+        ("binary_reframe=", "binary_reframe"),
     )
+    surface_forms = [
+        label
+        for message in messages
+        for prefix, label in surface_prefixes
+        if message.startswith(prefix)
+    ]
+    surface = bool(surface_forms)
 
     shape_script: str | None = None
     if any(message.startswith("early_comma_ratio=") for message in messages):
@@ -247,6 +249,8 @@ def generator_facing_summary(messages: list[str]) -> tuple[list[str], str]:
     ):
         add("refusal_consequence=needs_source_action")
     if surface:
+        for form in surface_forms:
+            add(f"surface_form={form}")
         add("surface_risk=remove_locally")
     if not labels:
         add("source_or_surface_review=required")

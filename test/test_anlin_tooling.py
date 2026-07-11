@@ -2708,6 +2708,18 @@ class AnlinToolingTests(unittest.TestCase):
         _labels, action = generator_facing_summary(["period_row_grid=present"])
         self.assertIn("rebalance_line_rhythm", action)
 
+    def test_generator_facing_summary_routes_surface_only_findings_locally(self) -> None:
+        for message, surface_form in (
+            ("binary_reframe=present count=1", "binary_reframe"),
+            ("quoted_dialogue=present count=1", "quoted_dialogue"),
+            ("prompt_performing_dialogue=present count=1", "prompt_performing_dialogue"),
+        ):
+            labels, action = generator_facing_summary([message])
+            self.assertIn("surface_risk=remove_locally", labels)
+            self.assertIn(f"surface_form={surface_form}", labels)
+            self.assertNotIn("source_shape=underbuilt", labels)
+            self.assertIn("surface_action=remove_only_the_named_surface_form", action)
+
     def test_generator_facing_contract_separates_preflight_from_checker_budget(self) -> None:
         contract = generator_facing_contract()
         self.assertIn("preflight attempts do not consume actual checker calls", contract)
@@ -11740,24 +11752,124 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("producer: controller", brief)
             self.assertIn("selected_genre: standard", brief)
             self.assertIn("hard_gate_status: not_pass", brief)
+            self.assertIn("repair_mode: source_rewrite_compact", brief)
             self.assertIn("hard_gate_primary_action:", brief)
-            self.assertIn("AI二元解释句式", brief)
-            self.assertIn("style_repair_brief:", brief)
-            self.assertIn("Anlin style-profile repair brief", brief)
+            self.assertIn("source_focus:", brief)
+            self.assertIn("scope_contract: rebuild the existing incomplete source", brief)
+            self.assertIn("mass_contract: restore complete standard-diary mass", brief)
+            self.assertIn("profile_diagnostics: controller_only", brief)
             self.assertIn("tool_boundary: do not run check_anlin_violations.py", brief)
-            self.assertIn("first_action_contract: read draft.md and this brief", brief)
-            self.assertIn("first write to draft.md must be the final complete revised article", brief)
-            self.assertIn("not a placeholder copy or unchanged draft", brief)
-            self.assertIn("write one complete revised draft.md", brief)
-            self.assertIn("exactly one artifact mutation is the repair", brief)
-            self.assertIn("copying the current draft back unchanged and then rewriting is invalid", brief)
+            self.assertIn("read draft.md and repair-brief.txt", brief)
+            self.assertIn("exactly one complete draft.md write", brief)
             self.assertIn("controller_boundary: after the single write", brief)
+            self.assertNotIn("hard_gate_blockers:", brief)
+            self.assertNotIn("style_repair_brief:", brief)
+            self.assertNotIn("Anlin style-profile repair brief", brief)
             self.assertNotIn("findings:", brief)
             self.assertNotIn("observed=", brief)
+            self.assertNotIn("body_chinese_chars=", brief)
+            self.assertNotIn("AI二元解释句式", brief)
             self.assertNotIn("q10-q90", brief)
             self.assertNotIn("q05-q95", brief)
             self.assertNotIn("count80", brief)
             self.assertNotIn("robust_z", brief)
+
+    def test_prepare_finalized_repair_brief_hard_gate_failure_uses_compact_source_interface(self) -> None:
+        from prepare_finalized_repair_brief import CommandResult, format_brief
+
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("下次聚\n\n" + ("我" * 889), encoding="utf-8")
+            findings = [
+                {
+                    "severity": "error",
+                    "rule": "strict: 标准日寄完整文章篇幅缓冲不足",
+                    "excerpt": "body_chinese_chars=889",
+                    "suggestion": "restore mass",
+                },
+                {
+                    "severity": "error",
+                    "rule": "strict: 社交拒绝纹理替代后果不足",
+                    "excerpt": "private room loop",
+                    "suggestion": "make the refusal change the next action",
+                },
+                {
+                    "severity": "warning",
+                    "rule": "私密湿脏纹理替代粗粝",
+                    "excerpt": "裤腿",
+                    "suggestion": "replace the private packet",
+                },
+            ]
+            brief = format_brief(
+                draft=draft,
+                genre="standard",
+                hard_findings=findings,
+                hard_returncode=1,
+                profile_result=CommandResult(command=[], returncode=2, stdout="", stderr="unavailable"),
+            )
+
+        self.assertIn("repair_mode: source_rewrite_compact", brief)
+        self.assertIn("hard_gate_primary_action: replace_underbuilt_standard_carrier", brief)
+        self.assertIn("source_focus:", brief)
+        self.assertIn("one existing local cluster", brief)
+        self.assertIn("do not append an independent scene or proof packet", brief)
+        self.assertNotIn("one refusal-coupled consequence", brief)
+        self.assertIn("profile_diagnostics: controller_only", brief)
+        self.assertNotIn("hard_gate_blockers:", brief)
+        self.assertNotIn("style_repair_brief:", brief)
+        self.assertNotIn("Anlin style-profile repair brief", brief)
+        self.assertNotRegex(brief, r"body_chinese_chars=\d|roughly 950|650-899|900-949|1250")
+
+    def test_compact_source_interface_matches_primary_route_boundaries(self) -> None:
+        from prepare_finalized_repair_brief import CommandResult, format_brief
+
+        profile_error = CommandResult(command=[], returncode=2, stdout="", stderr="unavailable")
+
+        def render(body_chars: int, findings: list[dict[str, str]]) -> str:
+            with tempfile.TemporaryDirectory() as temp:
+                draft = Path(temp) / "draft.md"
+                draft.write_text("# 日寄\n\n" + ("我" * body_chars), encoding="utf-8")
+                return format_brief(
+                    draft=draft,
+                    genre="standard",
+                    hard_findings=findings,
+                    hard_returncode=1,
+                    profile_result=profile_error,
+                )
+
+        severe = render(
+            568,
+            [
+                {"severity": "error", "rule": "标准日寄完整文章篇幅偏短"},
+                {"severity": "error", "rule": "社交拒绝纹理替代后果不足"},
+            ],
+        )
+        self.assertIn("hard_gate_primary_action: rebuild_severely_underbuilt_standard", severe)
+        self.assertIn("scope_contract: rebuild the existing incomplete source", severe)
+        self.assertNotIn("choose one existing local cluster", severe)
+
+        overfull = render(
+            1450,
+            [
+                {"severity": "error", "rule": "标准日寄完整文章过满"},
+                {"severity": "error", "rule": "社交拒绝纹理替代后果不足"},
+            ],
+        )
+        self.assertIn("hard_gate_primary_action: delete_and_merge_overfull_standard", overfull)
+        self.assertIn("source_focus: remove repeated proof", overfull)
+        self.assertIn("scope_contract: remove the smallest repeated proof cluster", overfull)
+        self.assertNotIn("refusal-coupled consequence", overfull)
+
+        period = render(
+            1000,
+            [
+                {"severity": "error", "rule": "标准日寄句号网格"},
+                {"severity": "warning", "rule": "社交拒绝纹理替代后果不足"},
+            ],
+        )
+        self.assertIn("hard_gate_primary_action: break_period_grid", period)
+        self.assertIn("source_focus: repair one existing action/reply/body movement", period)
+        self.assertNotIn("refusal-coupled consequence", period)
 
     def test_prepare_finalized_repair_brief_hard_pass_review_uses_compact_in_place_interface(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -11868,13 +11980,15 @@ class AnlinToolingTests(unittest.TestCase):
 
         for text in (skill, runtime):
             self.assertIn("repair_mode: hard_pass_review_in_place", text)
+            self.assertIn("repair_mode: source_rewrite_compact", text)
             self.assertIn("read only `draft.md` and `repair-brief.txt`", text)
             self.assertIn("do not load `references/finalized-repair-minimum.md`", text)
-            self.assertIn("hard-gate failure, profile `revise`, missing compact mode, or absent brief", text)
+            self.assertIn("missing/invalid brief", text)
         self.assertIn(
             "Do not use this file for `repair_mode: hard_pass_review_in_place`",
             finalized_minimum,
         )
+        self.assertIn("or `repair_mode: source_rewrite_compact`", finalized_minimum)
         for text in (skill, runtime, finalized_minimum, validation):
             self.assertIn("schema-valid", text)
             self.assertIn("unavailable, not quality evidence", text)
@@ -12189,8 +12303,9 @@ class AnlinToolingTests(unittest.TestCase):
             payload = json.loads(result.stdout)
             self.assertNotEqual(payload["profile_returncode"], 2, payload)
             brief = (finalized_dir / "repair-brief.txt").read_text(encoding="utf-8")
-            self.assertIn("Anlin style-profile repair brief", brief)
-            self.assertIn("primary_source_rewrite:", brief)
+            self.assertIn("repair_mode: source_rewrite_compact", brief)
+            self.assertIn("profile_diagnostics: controller_only", brief)
+            self.assertNotIn("Anlin style-profile repair brief", brief)
             self.assertNotIn("repair_mode: controller_tool_error", brief)
 
     def test_prepare_finalized_repair_brief_prioritizes_overfull_delete_merge_action(self) -> None:
@@ -12231,13 +12346,11 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             brief = (finalized_dir / "repair-brief.txt").read_text(encoding="utf-8")
             self.assertIn("hard_gate_primary_action: delete_and_merge_overfull_standard", brief)
-            self.assertIn("Do not add new scenes while this overfull/fragmented hard gate is present", brief)
-            self.assertIn("Do not solve it by making every row a closed sentence", brief)
-            self.assertIn("delete polished simile captions", brief)
-            self.assertLess(
-                brief.index("strict: 标准日寄完整文章过满"),
-                brief.index("strict: AI二元解释句式"),
-            )
+            self.assertIn("source_focus: remove repeated proof", brief)
+            self.assertIn("do not add material, a new scene, or a new explanation", brief)
+            self.assertIn("do not close every row with a period", brief)
+            self.assertNotIn("hard_gate_blockers:", brief)
+            self.assertNotIn("Anlin style-profile repair brief", brief)
 
     def test_prepare_finalized_repair_brief_prioritizes_period_grid_after_overfull_repair(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -12277,13 +12390,10 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             brief = (finalized_dir / "repair-brief.txt").read_text(encoding="utf-8")
             self.assertIn("hard_gate_primary_action: preserve_boundary_mass_replace_weak_carrier", brief)
-            self.assertIn("preserve complete article mass", brief)
-            self.assertIn("release that carrier after one consequence transfer", brief)
-            self.assertNotIn("hard_gate_primary_action: break_period_grid", brief)
-            self.assertLess(
-                brief.index("strict: 标准日寄句号网格"),
-                brief.index("strict: 字幕式明喻解释"),
-            )
+            self.assertIn("shape_contract: preserve the incoming line-broken surface", brief)
+            self.assertIn("do not apply a page-wide comma or period transformation", brief)
+            self.assertNotIn("hard_gate_blockers:", brief)
+            self.assertNotIn("Anlin style-profile repair brief", brief)
 
     def test_prepare_finalized_repair_brief_prioritizes_social_decline_engine_over_period_grid(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -12326,51 +12436,23 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             brief = (finalized_dir / "repair-brief.txt").read_text(encoding="utf-8")
             self.assertIn("hard_gate_primary_action: rebuild_refusal_aftermath_engine", brief)
-            self.assertIn("social refusal must become the source engine", brief)
-            self.assertIn("Do not solve this by shortening the article", brief)
-            self.assertIn("roughly 950-1150 body Chinese characters", brief)
-            self.assertIn("Do not save a 650-899 shrink", brief)
-            self.assertIn("do not save a 900-949 underbuilt boundary draft", brief)
-            self.assertIn("rough self-damage or paragraph-engine movement", brief)
-            self.assertIn("Replace one existing overloaded/private packet one-for-one", brief)
-            self.assertIn("restore whichever single relation that movement earns", brief)
-            self.assertIn("neighboring existing movements", brief)
-            self.assertNotIn("one unfinished reply/payment/body line may trail with a comma", brief)
-            self.assertNotIn("refusal-coupled consequence cluster", brief)
-            self.assertIn("Do not fix this by adding group-chat crowd", brief)
-            self.assertLess(
-                brief.index("strict: 社交拒绝纹理替代后果不足"),
-                brief.index("strict: 标准日寄句号网格"),
-            )
+            self.assertIn("source_focus: replace one existing private room/screen/wet-texture", brief)
+            self.assertIn("one refusal-coupled consequence", brief)
+            self.assertIn("do not add a new scene, witness, route, or message chain", brief)
+            self.assertIn("mass_contract: keep the revised page close", brief)
+            self.assertNotIn("hard_gate_blockers:", brief)
+            self.assertNotIn("Anlin style-profile repair brief", brief)
 
     def test_finalized_repair_brief_routes_standard_mass_before_social_family(self) -> None:
         from prepare_finalized_repair_brief import CommandResult, format_brief
 
         cases = [
-            (
-                568,
-                "标准日寄完整文章篇幅偏短",
-                "rebuild_severely_underbuilt_standard",
-                "whole-source rebuild",
-                "restore complete standard-diary mass across released carriers",
-            ),
-            (
-                875,
-                "标准日寄完整文章篇幅缓冲不足",
-                "replace_underbuilt_standard_carrier",
-                "one-for-one",
-                "restore the complete article mass across the replacement and neighboring existing movements",
-            ),
-            (
-                913,
-                None,
-                "preserve_boundary_mass_replace_weak_carrier",
-                "preserve complete article mass",
-                "release that carrier after one consequence transfer",
-            ),
+            (568, "标准日寄完整文章篇幅偏短", "rebuild_severely_underbuilt_standard"),
+            (875, "标准日寄完整文章篇幅缓冲不足", "replace_underbuilt_standard_carrier"),
+            (913, None, "preserve_boundary_mass_replace_weak_carrier"),
         ]
 
-        for body_chars, length_rule, route, route_text, mass_text in cases:
+        for body_chars, length_rule, route in cases:
             with self.subTest(body_chars=body_chars):
                 with tempfile.TemporaryDirectory() as temp:
                     draft = Path(temp) / "draft.md"
@@ -12401,8 +12483,12 @@ class AnlinToolingTests(unittest.TestCase):
                     )
 
                 self.assertIn(f"hard_gate_primary_action: {route}", brief)
-                self.assertIn(route_text, brief)
-                self.assertIn(mass_text, brief)
+                if body_chars < 650:
+                    self.assertIn("scope_contract: rebuild the existing incomplete source", brief)
+                    self.assertIn("mass_contract: restore complete standard-diary mass", brief)
+                else:
+                    self.assertIn("scope_contract: choose one existing local cluster", brief)
+                    self.assertIn("mass_contract: keep the revised page close", brief)
                 self.assertNotIn("扩展具体动作", brief)
                 self.assertNotIn("增加行动链", brief)
                 self.assertNotIn("无用日常残留", brief)
@@ -12428,7 +12514,7 @@ class AnlinToolingTests(unittest.TestCase):
                     )
 
                 self.assertIn("hard_gate_primary_action: preserve_boundary_mass_replace_weak_carrier", brief)
-                self.assertIn("preserve complete article mass", brief)
+                self.assertIn("mass_contract: keep the revised page close", brief)
 
     def test_finalized_repair_docs_route_profile_brief_and_full_report_separately(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
@@ -12514,6 +12600,17 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("8-25 dense prose rows", (ROOT / "references" / "finalized-repair-minimum.md").read_text(encoding="utf-8"))
         self.assertIn("45-70-line caption grid", layer)
         self.assertIn("has almost every line trailing with `，` and almost no landed `。`", finalized_minimum)
+
+    def test_finalized_reference_routing_keeps_both_compact_modes_brief_only(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn(
+            "| Finalized repair checkpoint | `repair-brief.txt` only for `hard_pass_review_in_place` or `source_rewrite_compact`;",
+            skill,
+        )
+        self.assertNotIn(
+            "| Finalized repair checkpoint | `repair-brief.txt` only for `hard_pass_review_in_place`; otherwise",
+            skill,
+        )
 
     def test_runtime_source_docs_guard_comma_carpet_and_public_hinge_cameos(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

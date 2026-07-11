@@ -241,6 +241,128 @@ def hard_gate_primary_action(findings: list[dict[str, Any]], *, body_chars: int 
     return "no_hard_gate_primary_action: use the compact style brief only if profile repair is still required."
 
 
+def compact_source_focus(findings: list[dict[str, Any]], *, body_chars: int | None = None) -> str:
+    """Turn valid hard-gate findings into one source-level repair focus.
+
+    The controller keeps the full findings in its audit output.  A not-pass
+    repair brief must not hand the agent a checklist of metrics: that invites
+    packet-by-packet expansion and punctuation chasing.  Route by the most
+    consequential source family and keep the remaining families controller-only.
+    """
+
+    route = hard_gate_primary_action(findings, body_chars=body_chars).split(":", 1)[0]
+    if route == "rebuild_severely_underbuilt_standard":
+        return (
+            "rebuild the existing incomplete source from its strongest workable movement; restore complete standard-diary mass "
+            "across the released carriers and do not preserve the fragment as a one-for-one packet or append a proof scene"
+        )
+    if route == "delete_and_merge_overfull_standard":
+        return (
+            "remove repeated proof from the overfull surface and merge only the rows needed for that existing movement; "
+            "do not add material, a new scene, or a new explanation"
+        )
+    if route == "replace_underbuilt_standard_carrier":
+        return (
+            "replace one existing overloaded carrier one-for-one and restore complete article mass across that replacement and "
+            "neighboring existing movements; do not append an independent scene or proof packet"
+        )
+    if route == "preserve_boundary_mass_replace_weak_carrier":
+        return (
+            "replace one existing weak carrier one-for-one while preserving complete article mass and the useful scene facts; "
+            "move the next function through a different existing medium"
+        )
+    if route == "break_period_grid":
+        return (
+            "repair one existing action/reply/body movement locally so its continuation or landing is earned; "
+            "preserve unrelated row endings and do not apply a page-wide comma or period transformation"
+        )
+    if route == "rebuild_refusal_aftermath_engine":
+        return (
+            "replace one existing private room/screen/wet-texture or polite-closure cluster with one refusal-coupled "
+            "consequence that changes the next visible action; keep the same people, message channel, and room; "
+            "do not add a new scene, witness, route, or message chain"
+        )
+    if route == "delete_polished_caption":
+        return (
+            "delete one caption-like explanation inside the existing movement and keep the underlying object, body, "
+            "reply, or payment consequence; do not replace it with another explanation"
+        )
+    return (
+        "replace one existing overloaded movement in place with the smallest source change that alters what happens next; "
+        "do not append an independent scene or proof packet"
+    )
+
+
+def compact_source_rewrite_brief(
+    *,
+    genre: str,
+    findings: list[dict[str, Any]],
+    body_chars: int | None,
+) -> str:
+    """Format the single-action interface used for valid hard-gate failures."""
+
+    route = hard_gate_primary_action(findings, body_chars=body_chars).split(":", 1)[0]
+    if route == "rebuild_severely_underbuilt_standard":
+        scope_contract = (
+            "scope_contract: rebuild the existing incomplete source across its current movements; do not pretend one local cluster "
+            "is sufficient, do not append a separate scene, and keep every changed fact within the supplied prompt/source boundary."
+        )
+        mass_contract = (
+            "mass_contract: restore complete standard-diary mass across released carriers and change medium after each consequence transfer; "
+            "do not preserve the fragment as a short summary or fill the gap with a checker-shaped proof list."
+        )
+        shape_contract = (
+            "shape_contract: write one complete line-broken article with uneven movement; do not apply a page-wide punctuation transform "
+            "or use a caption grid to simulate completeness."
+        )
+    elif route == "delete_and_merge_overfull_standard":
+        scope_contract = (
+            "scope_contract: remove the smallest repeated proof cluster or adjacent caption rows that cause overfill, merging only rows "
+            "needed for that existing movement; do not add a scene, witness, route, or explanation."
+        )
+        mass_contract = (
+            "mass_contract: keep the remaining functional article mass close to the incoming artifact; trim repetition without shrinking "
+            "the piece into a summary or rebuilding a new premise."
+        )
+        shape_contract = (
+            "shape_contract: preserve the useful line-broken surface and retain mixed row endings; do not close every row with a period "
+            "or merge the page into a comma chain."
+        )
+    else:
+        scope_contract = (
+            "scope_contract: choose one existing local cluster that already carries the failed movement and replace that cluster in place; "
+            "keep the title, people, message channel, and current scene; do not append a new paragraph or packet."
+        )
+        mass_contract = (
+            "mass_contract: keep the revised page close to the incoming artifact; restore missing consequence inside the chosen cluster "
+            "rather than expanding the article or shrinking it into a summary."
+        )
+        shape_contract = (
+            "shape_contract: preserve the incoming line-broken surface and mixed row endings; repair only the selected movement; "
+            "do not globally merge rows, split every sentence, seal every row with a period, and do not apply a page-wide comma or period transformation."
+        )
+    lines = [
+        "Anlin finalized repair brief",
+        "producer: controller",
+        f"selected_genre: {genre}",
+        "artifact_path: draft.md",
+        "repair_mode: source_rewrite_compact",
+        "hard_gate_status: not_pass",
+        "profile_diagnostics: controller_only",
+        f"hard_gate_primary_action: {route}",
+        f"source_focus: {compact_source_focus(findings, body_chars=body_chars)}",
+        "tool_boundary: do not run check_anlin_violations.py, check_style_profile.py, clean_run_checker.py, prepare_finalized_repair_brief.py, local counters, path probes, source/test/threshold/log searches, or controller helpers during the repair attempt.",
+        "read_contract: read draft.md and repair-brief.txt only; do not load finalized-repair-minimum.md for this valid compact brief, and do not read checker, source, test, threshold, log, or controller files.",
+        scope_contract,
+        mass_contract,
+        shape_contract,
+        "fact_contract: do not invent a new witness, route, backstory, group chat, second message chain, or independent payment ledger; every changed detail must alter the selected movement's next action.",
+        "write_contract: exactly one complete draft.md write, then stop; do not write a placeholder, validate, count, search, or print an alternate article. If a chat reply is required, output only artifact_written.",
+        "controller_boundary: after the single write, the controller reruns strict hard gate and full style-profile reports. The repair agent does not validate the frozen artifact.",
+    ]
+    return "\n".join(lines) + "\n"
+
+
 def build_profile_command(
     draft_name: str,
     *,
@@ -467,6 +589,13 @@ def format_brief(
             primary_action=compact_primary_action,
             candidate_ranges=candidate_ranges,
             protected_tail=protected_tail,
+        )
+
+    if hard_gate_state == "not_pass" and draft.name == "draft.md":
+        return compact_source_rewrite_brief(
+            genre=genre,
+            findings=parsed_hard_findings,
+            body_chars=body_chars,
         )
 
     lines = [
