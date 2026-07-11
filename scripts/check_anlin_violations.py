@@ -3659,7 +3659,7 @@ def check_standard_diary_length(findings: list[Finding], lines: list[str], text:
                 "标准日寄完整文章篇幅偏短",
                 0,
                 f"body_chinese_chars={chars}",
-                "完整文章盲评最低比较边界约650字；正式生成稿以900字以上为安全缓冲、950-1150字为常规目标。扩展具体动作、对话、身体/金钱后果和非主题残留，或改为短体裁匹配评估。",
+                "低于650字属于严重残稿；从最强可用 movement 整体重建，跨已释放 carrier 恢复完整标准日寄质量，不要把残稿保留为一换一 packet repair，也不要追加检查器形状的证明场景；若本来就是短体裁则改用匹配评估。",
             )
         )
     elif chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
@@ -3669,7 +3669,7 @@ def check_standard_diary_length(findings: list[Finding], lines: list[str], text:
                 "标准日寄完整文章篇幅缓冲不足",
                 0,
                 f"body_chinese_chars={chars}",
-                "650-899字容易在生成波动和修复中变成长度识别点；正式生成稿应补到900字以上，并优先接近950-1150字，增加行动链、社交误伤、身体/金钱后果或无用日常残留。",
+                "650-899字容易在生成波动和修复中变成长度识别点；一换一替换一个过载 carrier，把缺失质量分摊到 replacement 与相邻既有 movement，carrier 完成一次 consequence transfer 后退出；不要追加独立行动链、社交误伤、身体/金钱证明或无用残留。",
             )
         )
     elif chars > STANDARD_DIARY_DRAFT_OVERFULL_CHARS:
@@ -4379,7 +4379,7 @@ def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str],
                 "标准日寄行数缓冲异常",
                 0,
                 f"body_chars={body_chars}, content_lines={line_count}, avg_line_chars={avg_len:.2f}",
-                "正式标准日寄生成稿建议在45-70行附近；行数过少像压缩短篇，行数过多像短行网格。通过动作、对话、身体和现实后果调整，不要机械换行。",
+                "正式标准日寄生成稿建议在45-70行附近；行数过少像压缩短篇，行数过多像短行网格。只修最小的真实坏点：合并被误切开的既有 movement，或拆开被压成散文块的同一 movement，不要机械换行或追加素材。",
             )
         )
 
@@ -4390,7 +4390,7 @@ def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str],
                 "标准日寄长行缓冲不足",
                 0,
                 f"body_chars={body_chars}, content_lines={line_count}, lines_ge24={long_24}, lines_ge28={long_28}",
-                "生成稿需要几条粗糙长口语/动作链打破短行表面；合并相邻短行，让一次误读、对话、身体中断或现实动作自然跑长。",
+                "生成稿缺少承载完整 movement 的粗糙长行；只修最小的真实坏点，合并同一既有动作/回复/身体移动中被误切开的相邻短行，不要另补一条长口语或证明动作。",
             )
         )
 
@@ -4412,7 +4412,7 @@ def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str],
                 "标准日寄短行网格",
                 0,
                 f"body_chars={body_chars}, content_lines={line_count}, avg_line_chars={avg_len:.2f}, short_10_ratio={short_10_ratio:.2f}",
-                "这不是自然断裂，而像模型把正文切成均匀小格。先合并多数4-10字行，再补一条有后果的长动作/对话/身体线。",
+                "这不是自然断裂，而像模型把正文切成均匀小格。只修最小的真实坏点，合并同一既有 movement 中被人工切开的4-10字行，并保留原有功能后果；不要再补一条长动作、对话或身体证明线。",
             )
         )
 
@@ -4797,7 +4797,7 @@ def check_global_comma_density(findings: list[Finding], lines: list[str], text: 
                 "逗号密度过高",
                 0,
                 f"body_chars={chars}, comma_count={comma_count}, comma_per_1k={comma_per_1k:.2f}",
-                "生成稿高风险：过多逗号会像模型为了制造口语呼吸而持续拖句。优先删掉解释尾巴，把一两条逗号链拆成短硬停顿或具体动作/对话切断，再补少数真正较长的行动句；不要继续撒逗号、连接词或把短行机械合并成内部逗号长句。",
+                "生成稿高风险：过多逗号会像模型为了制造口语呼吸而持续拖句。只修最小的真实坏点：删掉解释尾巴，把一条失真的逗号链恢复成它实际需要的硬停顿或既有动作边界；不要再补长行动句、继续撒逗号/连接词，或把短行机械合并成内部逗号长句。",
             )
         )
 
@@ -4832,7 +4832,7 @@ def check_standard_period_row_grid(findings: list[Finding], lines: list[str], te
                     f"period_per_1k={period_per_1k:.1f}, line_period_ratio={line_period_ratio:.2f}, "
                     f"short_breath_lines={short_breath_count}"
                 ),
-                "生成稿高风险：标准日寄不能修成一排封闭句号句。不要把逗号问题反向修成句号网格；重建呼吸簇，让一行动作/回复/身体还没结束时自然拖到下一行，另一些行用硬停顿或短落点承担失败决定、低处身体或社交后果。",
+                "生成稿高风险：标准日寄不能修成一排封闭句号句。不要把逗号问题反向修成句号网格；只修最小的真实坏点，从 continuation、hard landing、rough long row、short failed retreat 中选择该 movement 实际需要的一种关系，不要配齐模板。",
             )
         )
 

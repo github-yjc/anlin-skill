@@ -33,7 +33,9 @@ Then privately check three overlapping consequence functions:
 - public hinge: another person, app/payment step, object handoff, door movement, or visible body problem keeps pressure active long enough to force a reply, wait, point, hold, wipe, drop, hide, pay, answer, leave, or change of room/route/body
 - off-axis residue: one unrelated daily branch changes a later action; it is not random decoration
 
-The three functions may overlap; they are not three scene modules, paragraph slots, or proof packets. One moving chain may carry side engine and public hinge at once; an off-axis residue may grow from the position or object that chain leaves behind and change a later action. Do not draft a separate demonstration for each function or assign one blank-line cluster to each label. The test is whether consequence transfers, not whether the article visibly proves three parts.
+The three functions may overlap; they are not three scene modules, paragraph slots, or proof packets. Multiple diagnostic labels may describe the same single consequence transfer, but they do not authorize a longer proof chain. Do not draft a separate demonstration for each function or assign one blank-line cluster to each label. The test is whether consequence transfers and then changes medium, not whether the article visibly proves three parts.
+
+A carrier is the combined person/place/transaction/object chain, not merely one repeated noun. Multiple diagnostic labels may describe the same single consequence transfer, but they do not authorize a longer proof chain. After one consequence transfer, release that carrier: exit the person, place, transaction, or proof object and let the next function travel through a different medium. A cashier, rider, counter, payment, or object chain may cause one handoff or lowering move; do not let the same chain carry calculation, repair, reply, connector turns, and the tail. This is carrier replacement, not a quota for another scene.
 
 The user's topic is pressure, not the route map. Let one prompt surface leak only after the first engine has already moved the body, room, hand, route, payment, or reply. A complete article does not mean complete prompt coverage.
 
@@ -56,24 +58,24 @@ For a standard diary / `日寄` clean-eval draft, the first saved article should
 
 Do not hand-count. Look at the page shape. If it is visibly a prose block, a tiny-row grid, or a neat sentence grid, rebuild the source movement before saving.
 
-The first saved file is not allowed to be a prose draft waiting for later lineation. If you can describe your candidate as 5-7 long paragraphs, as 8-15 paragraphs, as 16-25 dense rows where each row is really a paragraph, or as 45-70 neat 10-18-character caption rows with zero real long movement, it is not a clean-eval first draft yet. Rebuild it into roughly 6-8 visible breathing clusters before writing: each cluster should have multiple actual body lines, an unfinished action/reply/body/payment/object movement, one rougher line that keeps moving, and a landing or short failure drop when the action actually closes. Do not depend on `rebalance_line_rhythm.py`, `split_long_lines.py`, or later punctuation repair to create the first article shape.
+The first saved file is not allowed to be a prose draft waiting for later lineation. If you can describe your candidate as 5-7 long paragraphs, as 8-15 paragraphs, as 16-25 dense rows where each row is really a paragraph, or as 45-70 neat 10-18-character caption rows with zero real long movement, it is not a clean-eval first draft yet. Rebuild it into roughly 6-8 visible breathing clusters before writing. Across the page, keep multiple actual body lines and several rougher rows where action, reply, payment, body, or object movement genuinely keeps going. Use whichever relationships the movement earns in each cluster—a continuation, a rough longer row, a hard landing, or a short failure drop—and do not force all four into every cluster. Do not depend on `rebalance_line_rhythm.py`, `split_long_lines.py`, or later punctuation repair to create the first article shape.
 
 Do not write a few long paragraph lines and expect the wrapper to create the article's shape. When using a file write tool, the `content` field itself should already show broken body rows: title, blank line, then many uneven article lines. If the content you are about to write has only five or six body rows, or every row contains several complete actions separated by many commas, stop before writing and split the movement by cause and consequence in the draft itself. A script can repair a near-miss corridor; it cannot make a prose block count as natural source guidance.
 
 ## Cluster Grammar
 
-Write breathing clusters, not sentence rows. A cluster can be 2-5 visible lines:
+Write breathing clusters, not sentence rows. A cluster often spans a few visible lines, but it is not a fixed packet. Use whichever relationships the movement earns:
 
-- one line trails with `，` because the hand, reply, payment, body, door, or object has not finished moving
-- one rougher line runs longer because speech/action/thought has to keep going
-- one line lands with `。` when an action closes
+- a line may trail with `，` because the hand, reply, payment, body, door, or object has not finished moving
+- a rougher line may run longer because speech/action/thought has to keep going
+- a line may land with `。` when an action closes
 - one short drop may land a failed answer, low body fact, or retreat
 
 Punctuation follows movement. Do not fix rhythm by deleting punctuation, adding connector words, making one giant comma chain, or turning every beat into `没管。/删了。/没回。/算了。`.
 
 Do not allocate one period to each line or cluster. A cluster is a span of pressure, not a sentence template: an action may continue across several visible rows and land only when the hand, reply, payment, door, body, or object actually changes state. Do not close a row merely because the line break is already there.
 
-Every cluster must contain an unfinished action question. A visible `，` should answer "what is still happening after this line?" — a hand still dripping, a reply still unsent, a payment still hanging, a door still open, a body still exposed. If a cluster can be read as a finished statement with no continuing pressure, rebuild that cluster before saving `draft.md`.
+For any visible comma-ended row, ask "what is still happening after this line?" — a hand still dripping, a reply still unsent, a payment still hanging, a door still open, a body still exposed. A cluster whose action genuinely lands may contain no comma continuation; do not invent unfinished pressure to fill a shape slot. Rebuild only when the saved rows falsely seal or falsely prolong the movement.
 
 ## Prompt Displacement
 

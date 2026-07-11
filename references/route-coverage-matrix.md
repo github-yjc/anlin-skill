@@ -50,7 +50,7 @@ This matrix intentionally uses stable owner files and short evidence anchors, no
 | 26 | Refuse real-provenance deception | `SKILL.md` | `If a request asks to impersonate real provenance... refuse that part` |
 | 27 | Clean-eval, finalized, ordinary, controller modes are separate | `SKILL.md`, validation protocol, `README.md` | `Mode Router`; `separate checkpoints`; finalized pass does not retroactively fix bounded |
 | 28 | Breathing clusters are syntax units | `references/clean-eval-first-draft-minimum.md`, `references/standard-diary-source-engine.md` | `breathing clusters, not sentence rows`; `cluster can trail` |
-| 29 | Cluster starts from unfinished action | `references/clean-eval-first-draft-minimum.md`, `references/standard-diary-source-engine.md` | `Every cluster must contain an unfinished action question` |
+| 29 | Cluster relation follows actual movement | `references/clean-eval-first-draft-minimum.md`, `references/standard-diary-source-engine.md` | `Use whichever relationships the movement earns`; `what is still happening after this line?` |
 | 30 | Connectors come from real turns | `references/standard-diary-source-engine.md`, `references/runtime-brief.md` | `Connector words must come from real scene turns` |
 | 31 | Title from body, not prompt-prop loop | `references/clean-eval-first-draft-minimum.md`, `references/standard-diary-source-engine.md`, `references/title-model.md` | `Title from the body after the body exists`; `avoid prompt-prop title loop` |
 | 32 | Private wet/dirty only counts when it changes action | `references/standard-diary-source-engine.md`, `references/clean-generation-brief.md`, `references/runtime-brief.md` | `Private grime is not an event`; `changes payment, reply, door, bag, body movement, or social position` |

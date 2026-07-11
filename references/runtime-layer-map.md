@@ -26,10 +26,10 @@ Files:
 Purpose:
 
 - Tell the agent the goal, output rules, clean-eval boundary, and the smallest writing surface.
-- Keep the first draft scene-led: friction -> 2-3 load-bearing action clusters -> fact gate -> draft -> bounded checker.
+- Keep the first draft scene-led: friction -> linked consequence transfers across released carriers -> fact gate -> draft -> bounded checker.
 - Prevent visible process chatter and checker-loop contamination.
 - Own the clean-eval first-draft source loop and bounded repair handoff so the generator does not need long repair or validation files. After a preflight, the wrapper output is the complete repair interface and the next content action should be one integrated source change followed immediately by the wrapper. `clean-generation-brief.md` is an expanded controller/developer repair reference, not a generator-facing bounded prompt.
-- For standard diary, keep the first-draft middle engine short and operational: `standard-diary-source-engine.md` tells the generator to choose consequence kernels and write the article, instead of reading long repair libraries as a checklist.
+- For standard diary, keep the first-draft middle engine short and operational: `standard-diary-source-engine.md` tells the generator to check overlapping consequence functions, release each carrier after one transfer, and write the article instead of reading long repair libraries as a checklist.
 
 Ordinary generation should start here and usually stay here until the first complete `draft.md` exists.
 
@@ -51,7 +51,7 @@ Purpose:
 
 These files may guide ordinary drafting, explicit analysis, or repair after the first clean-eval checker pass, but they must not become visible subject matter. A negative example about AI, game, background, or detection is not a scene prompt. In clean-eval generation, Layer 1 is not a pre-draft requirement; Layer 0 must be enough to produce the first complete article.
 
-For repeated standard-diary failures, inspect whether Layer 0 produced load-bearing action clusters or only decorative texture. A cluster is load-bearing only if deleting it breaks the next action, reply, payment, route, body state, room position, or social position. Phone/feed/order/bed chains usually need one cluster outside the prompt's obvious screen/order/object and one exposed practical or social consequence before the first draft. Do not turn this into a new quota for games, places, recurring people, platforms, or background facts; those remain Layer 2 contradiction gates.
+For repeated standard-diary failures, inspect whether Layer 0 produced linked consequence transfers across released carriers or only decorative texture. A transfer is load-bearing only if deleting it breaks the next action, reply, payment, route, body state, room position, or social position. Phone/feed/order/bed chains should leave the prompt's obvious screen/order/object carrier after its first consequence and continue through a different medium; do not prescribe separate outside-contact and exposed-consequence clusters. This is not a quota for games, places, recurring people, platforms, or background facts; those remain Layer 2 contradiction gates.
 
 ## Layer 2: Post-Scene Fact Gate
 

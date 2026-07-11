@@ -29,7 +29,7 @@ DEFAULT_CONTINUOUS_FEATURES = {
 }
 
 SUGGESTIONS = {
-    "length": "Match the chosen evaluation mode: expand through lived action, dialogue, body, money, or social consequence rather than padding.",
+    "length": "Match the chosen evaluation mode by rebuilding a severe fragment or replacing one weak movement one-for-one; do not pad with feature categories.",
     "structure": "Repair structure by changing scene movement, not by adding a decorative paragraph.",
     "title": "Weaken diagnostic or clever title behavior; for standard blind evaluation, plain 日寄 is often safer.",
     "line_rhythm": "Change rhythm through action, speech, body interruption, or thought turns; do not create a visible short-line grid.",
@@ -43,10 +43,10 @@ SUGGESTIONS = {
 }
 
 REPAIR_BRIEF_ACTIONS = {
-    "length": "change length only through lived action, a failed exchange, body cost, money, route, or social consequence; do not pad.",
+    "length": "follow the selected genre's length branch and restore mass through source replacement rather than feature padding.",
     "structure": "change scene movement: cut designed prompt echoes, opening-tail loops, or decorative off-axis material before adding anything.",
     "title": "retitle from the earned side action or weak handle; do not use a diagnostic prompt label.",
-    "line_rhythm": "shape first: rebuild the visible body as 6-8 line-broken clusters, not a handful of prose paragraphs or equal sentence rows.",
+    "line_rhythm": "repair the smallest broken existing movement and restore the single line relation it earns; do not rebuild every cluster or stamp equal sentence rows.",
     "ngram_texture": "follow the reported n-gram direction; do not synonym-scrub low-reuse prose or preserve a mechanically repeated packet.",
     "punctuation": "let punctuation follow unfinished action/reply/payment/door/body movement; do not globally merge rows or split every sentence.",
     "connectors": "create a turn that naturally needs connection: failed reply, payment handoff, body interruption, route/object change; do not paste connector words.",
@@ -112,10 +112,9 @@ def primary_source_rewrite(families: list[str]) -> str:
     if {"punctuation", "line_rhythm"} & family_set:
         return (
             "preserve the scene slate and repair page shape locally: keep the existing title, people, message channel, "
-            "refusal facts, body mass, connector turns, and hard-gate-passing consequence. Choose a few existing "
-            "action/reply/payment/body rows and reshape their cluster boundaries; micro-edit only inside existing "
-            "clusters so some lines continue through real movement, some land with hard stops, and a few short drops "
-            "remain earned; preserve working comma-ended continuation rows from the incoming draft, and do not merge "
+            "refusal facts, body mass, connector turns, and hard-gate-passing consequence. Repair only the smallest existing movement that is actually broken "
+            "inside one action/reply/payment/body cluster, and restore whichever single relation that movement earns: a continuation, hard landing, "
+            "rough longer row, or short failed retreat. Do not stamp all four into the cluster. Preserve working comma-ended continuation rows from the incoming draft, and do not merge "
             "a comma-ended row with its following line into a sealed sentence. line_ending_lock: keep row-ending "
             "punctuation and line breaks for untouched rows. mass_floor_lock: do not remove a functional consequence "
             "sentence unless you replace it inside the same local cluster; do not add a new simile, analogy, or "
@@ -462,14 +461,14 @@ def summarize_status(findings: list[ProfileFinding]) -> dict[str, Any]:
     elif status == "review" and "line_rhythm" in red_families:
         repair_mode = "rhythm_source_reset"
         next_repair_action = (
-            "Reset the rhythm corridor from scene movement: use breathing clusters and real action/speech/thought rows, "
-            "then write the complete artifact and stop. Let the controller validate; do not bounce between tiny rows, prose blocks, and comma chains."
+            "Reset rhythm from scene movement by repairing only the smallest broken local movement and choosing the one "
+            "earned relation it needs. Then write the complete artifact and stop; do not bounce between tiny rows, prose blocks, and comma chains."
         )
     elif status == "review" and "punctuation" in red_families:
         repair_mode = "punctuation_source_reset"
         next_repair_action = (
-            "Punctuation is a source-shape problem here, not a comma/period target. Rebuild several breathing clusters "
-            "from unfinished action, reply, payment, door/body movement, and short failure drops; do not swing from comma-drag "
+            "Punctuation is a source-shape problem here, not a comma/period target. Repair only the smallest falsely sealed or prolonged "
+            "action/reply/payment/door/body movement and choose one earned relation; do not swing from comma-drag "
             "into one-period-per-row grids or from period grids into huge comma chains."
         )
     elif status == "review":
@@ -802,7 +801,7 @@ def format_repair_brief(report: dict[str, Any]) -> str:
             "attempt_contract: use this controller-prepared brief, choose one primary source rewrite, write one complete draft.md, and stop. Do not repair one family at a time. A second write/edit, any repair-agent checker command, post-write gate loop, post-write python -c/Measure-Object/wc counter, Test-Path/Glob/List/source/test/threshold/log search, threshold argument, TODO/checklist panel, or terminal-only final version is invalid controller evidence. If a chat reply is required after writing, output only artifact_written.",
             *(
                 [
-                    "standard_shape_first: save a titled, line-broken standard diary with roughly 6-8 breathing clusters and a middle corridor. Keep several moving rows that carry hand, reply, payment, body, speech, or thought beyond caption length, plus short failure drops where action actually lands.",
+                    "standard_shape_first: preserve the titled, line-broken standard diary and its middle corridor. If shape itself is broken, repair only the smallest existing movement and restore the single continuation, hard landing, rough longer row, or short failed retreat it actually earns; do not manufacture a long-row/short-drop pair.",
                     "standard_overfill_guard: do not expand beyond the original source mass to satisfy every warning. If the rewrite is trending past about 1250 body Chinese characters, delete repeated proof packets before saving; 140+ rows or a 2000+ character standard repair is usually metric-shaped overfill, not a safer article.",
                     "standard_do_not_save: do not save 8-25 dense prose rows, 70+ equal short rows, a 45-70-line caption grid with 0 real long rows, a comma carpet, a below-900 shrink, a 140+ row overfilled proof ledger, or a draft with only one or two moving long rows.",
                     "standard_preserve_existing: when the incoming standard draft already passed hard gate, preserve its title source, person list, invitation channel, connector spread, rough/public consequence, approximate mass, and existing comma continuations. line_ending_lock: preserve working comma-ended continuation rows from the incoming draft when the next row completes the same action or thought, and keep row-ending punctuation and line breaks for untouched rows. mass_floor_lock: do not save a hard-gate-passing standard draft below 900 body Chinese characters, and do not remove a functional consequence sentence unless you replace it inside the same local cluster. Do micro_cluster_surgery rather than a new premise: Do not add group-chat/comment-chain surfaces, new social witnesses, new route facts, polished simile/caption explanations, or binary `不是X，是Y` lines to solve profile review.",

@@ -39,7 +39,13 @@ BACKGROUND_FACT_CLASSES = ROOT / "references" / "background-fact-classes.json"
 EVALS = ROOT / "evals" / "evals.json"
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_anlin_violations import detect_style  # noqa: E402
-from clean_run_checker import normalize_before_final_check, preflight_messages  # noqa: E402
+from clean_run_checker import (  # noqa: E402
+    build_preflight_guidance,
+    normalize_before_final_check,
+    post_checker_preflight_before_second_check,
+    preflight_messages,
+    soft_witness_matches,
+)
 from summarize_dev_checkpoints import classify_development_result, infer_genre_from_case_dir, summarize_gate  # noqa: E402
 
 
@@ -1449,6 +1455,109 @@ class AnlinToolingTests(unittest.TestCase):
                 messages,
             )
 
+    def test_soft_witness_allows_iteration_147_transaction_cancellation_consequence(self) -> None:
+        self.assertEqual(
+            soft_witness_matches(
+                [
+                    "她看了我一眼，叫旁边的人过来输密码取消，",
+                    "后面排队的男生把两瓶水放到柜台上，往前挪了一步。",
+                    "取消的小票从机器里吐出来，很长一截。",
+                ]
+            ),
+            [],
+        )
+
+    def test_soft_witness_allows_checkout_linked_queue_movement(self) -> None:
+        self.assertEqual(
+            soft_witness_matches(
+                [
+                    "收银员看了我一眼，把扫码枪放回柜台。",
+                    "后面排队的人往前挪了一步，我让出了位置。",
+                    "机器又响了一声。",
+                ]
+            ),
+            [],
+        )
+
+    def test_soft_witness_allows_checkout_context_from_previous_line(self) -> None:
+        self.assertEqual(
+            soft_witness_matches(
+                [
+                    "收银员把手机拿过去，站在柜台里面。",
+                    "她看了我一眼。",
+                    "订单作废，小票从机器里吐出来。",
+                ]
+            ),
+            [],
+        )
+
+    def test_soft_witness_allows_current_checkout_after_later_marker(self) -> None:
+        self.assertEqual(
+            soft_witness_matches(
+                [
+                    "后来收银员看了我一眼，叫旁边的人过来输密码取消。",
+                    "后面排队的人往前挪了一步。",
+                    "取消的小票从机器里吐出来。",
+                ]
+            ),
+            [],
+        )
+
+    def test_soft_witness_does_not_use_unrelated_alarm_cancellation_as_consequence(self) -> None:
+        self.assertEqual(
+            soft_witness_matches(
+                [
+                    "骑手看了我一眼，转身就走。",
+                    "我低头取消了手机里明早的闹钟。",
+                    "门口还是没人说话。",
+                ]
+            ),
+            [(1, "骑手看了我一眼，转身就走。")],
+        )
+
+    def test_soft_witness_rejects_detached_transaction_or_queue_keywords(self) -> None:
+        cases = [
+            [
+                "骑手看了我一眼，说他上周那笔订单退款了。",
+                "门口还是没人说话。",
+            ],
+            [
+                "骑手看了我一眼，说他上周付款取消了。",
+                "门口还是没人说话。",
+            ],
+            [
+                "订单退款是上周的，骑手看了我一眼，转身就走。",
+                "门口还是没人说话。",
+            ],
+            [
+                "付款取消是之前的，骑手看了我一眼，转身就走。",
+                "门口还是没人说话。",
+            ],
+            [
+                "骑手看了我一眼，转身就走。",
+                "我回屋后想起上周那笔付款已经取消。",
+                "门口还是没人说话。",
+            ],
+            [
+                "骑手看了我一眼，转身就走。",
+                "我回屋后取消了昨晚买书的订单。",
+                "门口还是没人说话。",
+            ],
+            [
+                "骑手看了我一眼，转身就走。",
+                "我想起上周那笔交易还没退款。",
+                "门口还是没人说话。",
+            ],
+            [
+                "邻居看了我一眼，关门回屋。",
+                "楼下排队的人往前挪了一步。",
+                "我把灯关了。",
+            ],
+        ]
+        for lines in cases:
+            with self.subTest(lines=lines):
+                self.assertEqual(soft_witness_matches(lines), [(1, lines[0])])
+
     def test_clean_run_preflight_flags_em_dash_surface(self) -> None:
         body = "\n".join(
             [
@@ -2615,8 +2724,12 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("NEXT_ACTION=repair source/content first", preflight.stdout)
             self.assertIn("after the last content write, run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`", preflight.stdout)
             self.assertIn("underbuilt source shape", preflight.stdout)
-            self.assertIn("source-loop rewrite before rhythm tooling", preflight.stdout)
-            self.assertIn("2-3 load-bearing action clusters", preflight.stdout)
+            self.assertIn("whole-source rebuild before rhythm tooling", preflight.stdout)
+            self.assertIn("rebuild the incomplete article from the strongest workable movement", preflight.stdout)
+            self.assertIn("restore complete standard-diary mass", preflight.stdout)
+            self.assertIn("release each carrier after one consequence transfer", preflight.stdout)
+            self.assertNotIn("one-for-one source replacement before rhythm tooling", preflight.stdout)
+            self.assertNotIn("2-3 load-bearing action clusters", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
@@ -2688,9 +2801,12 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("body_chinese_chars=", preflight.stdout)
             self.assertIn("< 950 with source_shape_weak", preflight.stdout)
             self.assertIn("underbuilt source shape", preflight.stdout)
-            self.assertIn("source-loop rewrite before rhythm tooling", preflight.stdout)
+            self.assertIn("one-for-one source replacement before rhythm tooling", preflight.stdout)
             self.assertIn("NEXT_ACTION=repair source/content first", preflight.stdout)
-            self.assertIn("2-3 load-bearing action clusters", preflight.stdout)
+            self.assertIn("replace one repeated or overloaded carrier packet one-for-one", preflight.stdout)
+            self.assertIn("preserve complete article mass", preflight.stdout)
+            self.assertIn("change medium after its first consequence transfer", preflight.stdout)
+            self.assertNotIn("2-3 load-bearing action clusters", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
@@ -2932,7 +3048,15 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("do not spend checker call 2/2", result.stdout)
             self.assertIn("body_chinese_chars=", result.stdout)
             self.assertIn("connectors=", result.stdout)
-            self.assertIn("add one refusal-coupled consequence cluster", result.stdout)
+            self.assertIn("one-for-one carrier replacement, not subtraction or addition", result.stdout)
+            self.assertIn(
+                "restore complete standard-diary mass across the replacement and neighboring existing movements",
+                result.stdout,
+            )
+            self.assertIn("replace a private screen, water, room, or etiquette packet", result.stdout)
+            self.assertIn("instead of appending another cluster", result.stdout)
+            self.assertNotIn("add one functional consequence cluster", result.stdout)
+            self.assertNotIn("add one refusal-coupled consequence cluster", result.stdout)
             state = json.loads(state_path.read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 1)
             self.assertEqual(state.get("post_checker_preflights"), 1)
@@ -3049,7 +3173,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(preflight.returncode, 3)
             self.assertIn("short_breath_lines=0 < 4", preflight.stdout)
             self.assertIn("<=8-Chinese-character breath drops", preflight.stdout)
-            self.assertIn("real <=8-character drops", preflight.stdout)
+            self.assertIn("split a few earned <=8-character landings", preflight.stdout)
+            self.assertIn("do not append decorative one-word captions", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
@@ -8928,11 +9053,15 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("A 900-949 character draft can still be underbuilt", clean)
         self.assertIn("source-loop rewrite before the first file write", clean)
         self.assertIn("Do not patch it by adding five more symptoms", clean)
-        self.assertIn("2-3 load-bearing action clusters", clean)
+        self.assertNotIn("2-3 load-bearing action clusters", clean)
+        self.assertIn("release that carrier after one consequence transfer", clean)
         self.assertIn("deleting it would break the next action", clean)
         self.assertIn("phone/feed -> order food -> wrong item -> wash bowl -> bed", clean)
-        self.assertIn("It must be load-bearing", clean)
-        self.assertIn("load-bearing action clusters", (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8"))
+        self.assertIn("do not automatically insert an outside person", clean)
+        self.assertIn("If contact is used, it must be load-bearing", clean)
+        runtime_brief = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        self.assertNotIn("2-3 load-bearing action clusters", runtime_brief)
+        self.assertIn("release that carrier after one consequence transfer", runtime_brief)
         self.assertIn("Layer 2 contradiction gates", (ROOT / "references" / "runtime-layer-map.md").read_text(encoding="utf-8"))
         self.assertIn("A 900-949 character draft can still be underbuilt", clean)
         self.assertIn("do not make nearly every line carry body, money, route, screen", clean)
@@ -9149,7 +9278,7 @@ class AnlinToolingTests(unittest.TestCase):
                 "Do not keep reading this file as a negative checklist",
             ],
             "references/clean-eval-first-draft-minimum.md": [
-                "Every cluster must contain an unfinished action question",
+                "Use whichever relationships the movement earns",
                 "refusal-coupled",
             ],
             "references/standard-diary-source-engine.md": [
@@ -9359,7 +9488,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("The final visible response must begin with the title", clean)
         self.assertIn("read `draft.md` once, and output that exact article", skill)
 
-    def test_standard_diary_load_bearing_clusters_are_source_guidance_not_background_quota(self) -> None:
+    def test_standard_diary_carrier_release_is_source_guidance_not_background_quota(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
         runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
@@ -9367,14 +9496,14 @@ class AnlinToolingTests(unittest.TestCase):
         checker = (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8")
         combined = "\n".join([skill, clean, runtime, layer, checker])
 
-        self.assertIn("2-3 load-bearing action clusters", combined)
         self.assertIn("deleting it would break", clean)
         self.assertIn("Background is a contradiction boundary, not a content quota", skill)
-        self.assertIn("not the prompt's obvious screen/order/object", combined)
         self.assertIn("phone/feed -> order food -> wrong item -> wash bowl -> bed", combined)
         self.assertIn("decoration rather than paragraph engine", runtime)
         self.assertIn("Layer 2 contradiction gates", layer)
-        self.assertIn("source reset: rebuild 2-3 load-bearing action clusters", checker)
+        self.assertIn("source reset: replace one overloaded carrier packet one-for-one", checker)
+        self.assertIn("release the current person/place/transaction/object carrier after one consequence transfer", checker)
+        self.assertNotIn("source reset: rebuild 2-3 load-bearing action clusters", checker)
 
     def test_standard_diary_source_engine_is_layer0_not_repair_library(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
@@ -9391,7 +9520,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("The first saved article is what the controller is measuring", engine)
         self.assertIn("Do not run line-rhythm scripts before the first wrapper call", readme)
         self.assertIn("The engine is the consequence transfer, not the repeated material", engine)
-        self.assertIn("A public hinge should open a second consequence", engine)
+        self.assertIn("A public hinge completes one consequence transfer", engine)
         self.assertIn("A later private inspection does not turn a contact into social consequence", engine)
         self.assertIn("the hinge ended too early", engine)
         self.assertIn("while the person waits", engine)
@@ -9422,6 +9551,241 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn("choose three private consequence kernels", engine)
         self.assertNotIn("Each kernel needs enough visible movement", engine)
 
+    def test_carrier_release_replaces_additive_repair_for_iteration_147_failure(self) -> None:
+        messages = [
+            "body_chinese_chars=846 < 900",
+            "medium_short_line_grid=present (long_lines=2 < 6, line_stdev=5.9; rewrite rough action/speech/thought lines before checking)",
+            "paragraph_engine=weak (source reset: rebuild 2-3 load-bearing action clusters that change reply/body/route/payment/room/social position; do not inspect checker source/tests)",
+            "quoted_dialogue=present count=1 examples=L35:我看着“不算你”三个字，收银员又问了一遍，",
+            "soft_witness_no_consequence=present count=1 examples=L39:她看了我一眼，叫旁边的人过来输密码取消，",
+        ]
+        repair_hints, revision_frame = build_preflight_guidance(messages)
+        guidance = " | ".join([revision_frame, *repair_hints])
+
+        self.assertIn("replace one overloaded carrier packet one-for-one", guidance)
+        self.assertIn("release the current person/place/transaction/object carrier after one consequence transfer", guidance)
+        self.assertIn(
+            "restore the complete article mass across the replacement and neighboring existing movements",
+            guidance,
+        )
+        self.assertNotIn("rebuild 2-3 load-bearing action clusters", guidance)
+        self.assertNotIn("include one off-axis consequence and one rough body/social turn", guidance)
+        self.assertNotIn("add one full off-axis life cluster", guidance)
+
+        first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
+        engine = (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        finalized = (ROOT / "references" / "finalized-repair-minimum.md").read_text(encoding="utf-8")
+        checker = (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8")
+        for text in (first_draft, engine, finalized):
+            self.assertIn("A carrier is the combined person/place/transaction/object chain", text)
+            self.assertIn("Multiple diagnostic labels may describe the same single consequence transfer", text)
+            self.assertIn("After one consequence transfer, release that carrier", text)
+            self.assertIn("cashier, rider, counter, payment, or object chain", text)
+        self.assertNotIn("One moving chain may carry side engine and public hinge at once", first_draft)
+        self.assertNotIn("may carry more than one function", engine)
+        self.assertNotIn("Let one chain carry more than one job", engine)
+        self.assertNotIn("A public hinge should open a second consequence", engine)
+        self.assertNotIn("Add one off-axis life cluster", clean)
+        self.assertNotIn("add one off-axis consequence and one rough body/social turn", clean)
+        self.assertNotIn("Add one active consequence cluster", finalized)
+        self.assertNotIn("add one active consequence cluster", finalized)
+        self.assertIn("source reset: replace one overloaded carrier packet one-for-one", checker)
+        self.assertNotIn("source reset: rebuild 2-3 load-bearing action clusters", checker)
+
+    def test_standard_underbuilt_guidance_keeps_severe_and_replacement_boundaries_exclusive(self) -> None:
+        cases = [
+            (
+                649,
+                "body_chinese_chars=649 < 900",
+                "whole-source rebuild",
+                "restore complete standard-diary mass",
+            ),
+            (
+                650,
+                "body_chinese_chars=650 < 900",
+                "one-for-one",
+                "restore the complete article mass across the replacement and neighboring existing movements",
+            ),
+            (
+                899,
+                "body_chinese_chars=899 < 900",
+                "one-for-one",
+                "restore the complete article mass across the replacement and neighboring existing movements",
+            ),
+            (
+                900,
+                "body_chinese_chars=900 < 950 with source_shape_weak",
+                "one-for-one",
+                "preserve complete article mass",
+            ),
+        ]
+
+        for body_chars, body_message, route_text, mass_text in cases:
+            with self.subTest(body_chars=body_chars):
+                repair_hints, revision_frame = build_preflight_guidance(
+                    [
+                        body_message,
+                        "connectors=[] < 3",
+                        "paragraph_engine=weak (source reset required)",
+                    ]
+                )
+                guidance = " | ".join([revision_frame, *repair_hints])
+                self.assertIn(route_text, guidance)
+                self.assertIn(mass_text, guidance)
+                if body_chars < 650:
+                    self.assertNotIn("for a near-miss short draft", guidance)
+                    self.assertNotIn("replace one decorative packet", guidance)
+                    self.assertNotIn("across the replacement", guidance)
+                else:
+                    self.assertNotIn("whole-source rebuild", guidance)
+
+    def test_standard_underbuilt_length_routes_without_extra_source_labels(self) -> None:
+        cases = [
+            (
+                ["body_chinese_chars=649 < 900"],
+                "whole-source rebuild",
+                "restore complete standard-diary mass",
+            ),
+            (
+                ["body_chinese_chars=649 < 900", "connectors=[] < 3"],
+                "whole-source rebuild",
+                "restore complete standard-diary mass",
+            ),
+            (
+                ["body_chinese_chars=650 < 900"],
+                "one-for-one",
+                "restore the complete article mass across the replacement and neighboring existing movements",
+            ),
+            (
+                ["body_chinese_chars=899 < 900", "connectors=[] < 3"],
+                "one-for-one",
+                "restore the complete article mass across the replacement and neighboring existing movements",
+            ),
+            (
+                ["body_chinese_chars=913 < 950 with source_shape_weak"],
+                "one-for-one",
+                "preserve complete article mass",
+            ),
+        ]
+
+        for messages, route_text, mass_text in cases:
+            with self.subTest(messages=messages):
+                repair_hints, revision_frame = build_preflight_guidance(messages)
+                guidance = " | ".join([revision_frame, *repair_hints])
+                self.assertIn(route_text, guidance)
+                self.assertIn(mass_text, guidance)
+                self.assertNotIn("for a near-miss short draft", guidance)
+                self.assertNotIn("Replace one inert connector-bearing movement", revision_frame)
+
+    def test_carrier_release_removes_additive_runtime_quotas_and_shape_templates(self) -> None:
+        first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        engine = (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8")
+        finalized = (ROOT / "references" / "finalized-repair-minimum.md").read_text(encoding="utf-8")
+        checker = (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8")
+        hard_checker = (ROOT / "scripts" / "check_anlin_violations.py").read_text(encoding="utf-8")
+        repair_controller = (ROOT / "scripts" / "prepare_finalized_repair_brief.py").read_text(encoding="utf-8")
+        style_checker = (ROOT / "scripts" / "check_style_profile.py").read_text(encoding="utf-8")
+
+        self.assertIn("These functions are diagnostic lenses, not separate content slots", clean)
+        self.assertIn("Blind-judge angles are review lenses, not pre-draft content requirements", runtime)
+        self.assertIn("Use whichever relationships the movement earns", first_draft)
+        self.assertIn("If neither exists, this is not a missing ingredient", engine)
+        self.assertIn("Choose only the smallest local movement that is actually broken", engine)
+        self.assertIn("Choose only the relation the current movement earns", engine)
+        self.assertIn("choose only the smallest unfinished action spot that is actually broken", runtime)
+        self.assertIn("repair only the smallest local movement that is actually broken", checker)
+        self.assertIn("choose the one relation that movement actually needs", checker)
+        self.assertIn("restore whichever single relation that movement earns", repair_controller)
+        self.assertIn("neighboring existing movements", repair_controller)
+        self.assertIn("Repair only the smallest existing movement that is actually broken", style_checker)
+        self.assertIn("只修最小的真实坏点", hard_checker)
+        self.assertIn("Do not repeat a comma/long-row/short-drop template across clusters", finalized)
+        self.assertIn("preserve the existing page shape and untouched rows", finalized)
+        self.assertIn("repair only the smallest existing movement that is actually broken", finalized)
+        self.assertNotIn("rebuild page shape first", finalized)
+        self.assertNotIn("should usually become 6-8 visible breathing clusters", finalized)
+        self.assertIn("neighboring existing movements", checker)
+        self.assertIn("Below 650 body Chinese characters, rebuild the incomplete source", clean)
+        self.assertIn("At 650-899, replace one overloaded carrier packet one-for-one", clean)
+
+        for text in (clean, runtime, engine, finalized, checker):
+            self.assertNotIn("inside that replacement", text)
+            self.assertNotIn("inside the replacement", text)
+
+        self.assertNotIn("Add one off-axis branch", clean)
+        self.assertNotIn("Give the middle one off-axis branch", clean)
+        self.assertNotIn("one crooked misread or system joke", clean)
+        self.assertNotIn("two small residues that do not summarize the theme", clean)
+        self.assertNotIn("add one full off-axis life cluster", clean)
+        self.assertNotIn("add one outside contact before the first `draft.md`", clean)
+        self.assertNotIn("scene slate must satisfy all four gates", runtime)
+        self.assertNotIn("gates 2 and 3 are not optional", runtime)
+        self.assertNotIn("at least four selected scenes should be non-plain", runtime)
+        self.assertNotIn("Pick 3-5 places", engine)
+        self.assertNotIn("each cluster should have multiple actual body lines, an unfinished action/reply/body/payment/object movement, one rougher line", first_draft)
+        self.assertNotIn("Every cluster must contain an unfinished action question", first_draft)
+        self.assertNotIn("In most clusters, at least one visible row should be long", engine)
+        self.assertNotIn("Write clusters like this in the article", engine)
+        self.assertNotIn("but it also needs hard-stop action lines and a few short failure drops", engine)
+        for text in (first_draft, clean, runtime, engine, finalized, checker):
+            self.assertNotIn("choose 3-5", text.lower())
+        self.assertNotIn("one unfinished reply/payment/body line may trail with a comma", repair_controller)
+        self.assertNotIn("refusal-coupled consequence cluster", repair_controller)
+        self.assertNotIn("Choose a few existing", style_checker)
+        self.assertNotIn("some lines continue through real movement, some land with hard stops, and a few short drops", style_checker)
+        self.assertNotIn("rebuild the visible body as 6-8 line-broken clusters", style_checker)
+        self.assertNotIn("a continuing action can end with `，`, a longer line should carry real movement or speech, and a short drop should land a consequence", checker)
+        self.assertNotIn("再补一条有后果的长动作", hard_checker)
+        self.assertNotIn("另一些行用硬停顿或短落点", hard_checker)
+        self.assertNotIn("再补少数真正较长的行动句", hard_checker)
+        self.assertNotIn("Expand with action, dialogue, body/material pressure, and useless daily residue", runtime)
+        self.assertNotIn("replace it with a concrete action or off-axis residue", runtime)
+        self.assertNotIn("Repeat this across several clusters", finalized)
+
+    def test_connector_only_postcheck_guidance_replaces_existing_movement_without_addition(self) -> None:
+        repair_hints, revision_frame = build_preflight_guidance(
+            ["connectors=['其实', '觉得', '发现'] < 5 before checker_call_2"]
+        )
+        guidance = " | ".join([revision_frame, *repair_hints])
+
+        self.assertIn("Replace one inert connector-bearing movement inside the existing scene slate", guidance)
+        self.assertIn("change what an existing action does next", guidance)
+        self.assertNotIn("add concrete action/body/social/off-axis material", guidance)
+        self.assertIn("Do not add a new scene", guidance)
+
+    def test_connector_only_postcheck_output_stays_local_not_underbuilt_or_refusal_specific(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("# 门口\n\n其实我把门关了一半。", encoding="utf-8")
+            state_path = draft.parent / ".anlin-clean-run-state.json"
+            state = {"draft": str(draft.resolve()), "calls": 1, "preflights": 1, "snapshots": {}}
+            connector_message = "connectors=['其实', '觉得', '发现'] < 5 before checker_call_2"
+
+            with (
+                mock.patch("clean_run_checker.preflight_messages", return_value=[]),
+                mock.patch("clean_run_checker.post_checker_blocking_messages", return_value=[connector_message]),
+                redirect_stdout(io.StringIO()) as output,
+            ):
+                blocked, messages = post_checker_preflight_before_second_check(
+                    draft,
+                    state,
+                    state_path=state_path,
+                    calls=1,
+                )
+
+            guidance = output.getvalue()
+            self.assertTrue(blocked)
+            self.assertEqual(messages, [connector_message])
+            self.assertIn("CLEAN_RUN_POSTCHECK_PREFLIGHT", guidance)
+            self.assertIn("Replace one inert connector-bearing movement", guidance)
+            self.assertNotIn("known underbuilt source", guidance)
+            self.assertNotIn("person/place/transaction/object carrier", guidance)
+            self.assertNotIn("social-decline or invitation", guidance)
+            self.assertNotIn("refusal-coupled", guidance)
+
     def test_clean_eval_source_reads_handoff_directly_to_artifact_write(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
@@ -9451,7 +9815,9 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("period-row grid", combined)
         self.assertIn("标准日寄句号网格", combined)
         self.assertIn("punctuation_source_reset", profile)
-        self.assertIn("unfinished action, reply, payment, door/body movement", combined)
+        self.assertIn("Choose only the smallest local movement that is actually broken", engine)
+        self.assertIn("restore whichever relation the action earns", engine)
+        self.assertIn("not all of them", engine)
         self.assertIn("local cluster surgery", combined)
         self.assertIn("do not globally merge rows into comma chains", combined)
         self.assertIn("delete explanation tails", combined)
@@ -9467,8 +9833,10 @@ class AnlinToolingTests(unittest.TestCase):
         combined = "\n".join([clean, runtime, engine])
 
         self.assertIn("Social-Decline Guard", engine)
-        self.assertIn("one load-bearing kernel must be the refusal aftermath itself", clean)
-        self.assertIn("at least one later cluster should be driven by the refusal aftermath itself", runtime)
+        self.assertIn("must alter the next visible action rather than become a separate proof cluster", clean)
+        self.assertIn("make the social refusal itself produce the next action", runtime)
+        self.assertNotIn("one load-bearing kernel must be the refusal aftermath itself", combined)
+        self.assertNotIn("at least one later cluster should be driven by the refusal aftermath itself", combined)
         self.assertIn("If deleting every room/object detail except one makes the article stop moving", engine)
         self.assertIn("the refusal, not the sleeve or bowl, must produce the next action", engine)
         self.assertIn("Build a refusal chain, not a refusal mention", engine)
@@ -9561,8 +9929,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("16-25 dense rows", clean)
         self.assertIn("16-25 dense rows", (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8"))
         self.assertIn("Do not depend on `rebalance_line_rhythm.py`", (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8"))
-        self.assertIn("600-850 body Chinese characters is usually not restrained", clean)
-        self.assertIn("600-850 body Chinese characters is usually not restrained", (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8"))
+        self.assertIn("below 900 body Chinese characters is usually not restrained", clean)
+        self.assertIn("below 900 body Chinese characters is usually not restrained", (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8"))
         self.assertIn("Do not separate the witness and the ugly fact", clean)
         self.assertIn("Treat a silent witness as decoration", (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8"))
         self.assertIn("pain, heat, and fatigue alone are too polite", clean)
@@ -9601,7 +9969,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("它衡量自然引导能力加有限检查器修复能力", eval_readme)
         self.assertIn("不要只看“最后有没有修好”", eval_readme)
         self.assertIn("Zero red families is not enough", runtime)
-        self.assertIn("target roughly 55-65 body lines", runtime)
+        self.assertIn("roughly 45-70 non-empty body lines", runtime)
         self.assertIn("keep 4-7 uneven clusters", runtime)
         self.assertIn("A finalized `review` status still means the final article has unresolved risk", runtime)
         self.assertIn("avoid 30-line prose blocks", runtime)
@@ -9612,7 +9980,7 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Do not start with plain `--strict` and treat a clean result as a pass", runtime)
         self.assertIn("Replace private texture with a consequence", runtime)
         self.assertIn("thin the draft instead of decorating it", runtime)
-        self.assertIn("breathing clusters of 2-5 visible lines", runtime)
+        self.assertIn("not all four as a repeated cluster template", runtime)
         self.assertIn("references/finalized-repair-minimum.md", skill)
         self.assertIn("The controller records local validation as unresolved", finalized_minimum)
         self.assertIn("generator-facing minimum path", finalized_minimum)
@@ -9655,11 +10023,12 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("micro-cluster surgery", finalized_minimum)
         self.assertIn("do not add a new simile, analogy, or caption", finalized_minimum)
         self.assertIn("do not make line-final comma ratio zero", finalized_minimum)
-        self.assertIn("preserve working comma-ended continuation rows from the incoming draft", finalized_minimum)
+        self.assertIn("Preserve working comma-ended continuation rows from the incoming draft", finalized_minimum)
         self.assertIn("line_ending_lock", finalized_minimum)
         self.assertIn("mass_floor_lock", finalized_minimum)
         self.assertIn("do not remove a functional consequence sentence unless you replace it inside the same local cluster", finalized_minimum)
-        self.assertIn("If connector spread is thin, change what happens next instead of swapping synonyms", runtime)
+        self.assertIn("If connector spread is thin, replace one inert observation", runtime)
+        self.assertIn("do not append a connector scene or swap synonyms", runtime)
         self.assertIn("The reverse priority also matters", runtime)
         self.assertIn("do not clean the article into a new hard-gate failure", runtime)
         self.assertIn("do not change the premise", runtime)
@@ -10133,8 +10502,9 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertTrue(comma_findings, findings)
             suggestion = comma_findings[0]["suggestion"]
             self.assertIn("逗号链", suggestion)
-            self.assertIn("短硬停顿", suggestion)
-            self.assertIn("不要继续撒逗号", suggestion)
+            self.assertIn("实际需要的硬停顿", suggestion)
+            self.assertIn("不要再补长行动句", suggestion)
+            self.assertIn("继续撒逗号", suggestion)
 
     def test_checker_draft_gate_rejects_standard_period_row_grid(self) -> None:
         lines = [
@@ -11022,7 +11392,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("post-write python -c/Measure-Object/wc counter", result.stdout)
             self.assertIn("Test-Path/Glob/List/source/test/threshold/log search", result.stdout)
             self.assertIn("artifact_written", result.stdout)
-            self.assertIn("standard_shape_first: save a titled, line-broken standard diary", result.stdout)
+            self.assertIn("standard_shape_first: preserve the titled, line-broken standard diary", result.stdout)
             self.assertIn("middle corridor", result.stdout)
             self.assertIn("standard_overfill_guard", result.stdout)
             self.assertIn("1250 body Chinese characters", result.stdout)
@@ -11039,7 +11409,9 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("not tool failure", result.stdout)
             self.assertIn("primary_source_rewrite:", result.stdout)
             self.assertIn("preserve the scene slate and repair page shape locally", result.stdout)
-            self.assertIn("micro-edit only inside existing clusters", result.stdout)
+            self.assertIn("Repair only the smallest existing movement that is actually broken", result.stdout)
+            self.assertIn("restore whichever single relation that movement earns", result.stdout)
+            self.assertIn("Do not stamp all four into the cluster", result.stdout)
             self.assertIn("do not merge a comma-ended row with its following line into a sealed sentence", result.stdout)
             self.assertIn("keep row-ending punctuation and line breaks for untouched rows", result.stdout)
             self.assertIn("do not remove a functional consequence sentence unless you replace it inside the same local cluster", result.stdout)
@@ -11793,8 +12165,10 @@ class AnlinToolingTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stderr)
             brief = (finalized_dir / "repair-brief.txt").read_text(encoding="utf-8")
-            self.assertIn("hard_gate_primary_action: break_period_grid", brief)
-            self.assertIn("do not convert every line into a neat complete sentence", brief)
+            self.assertIn("hard_gate_primary_action: preserve_boundary_mass_replace_weak_carrier", brief)
+            self.assertIn("preserve complete article mass", brief)
+            self.assertIn("release that carrier after one consequence transfer", brief)
+            self.assertNotIn("hard_gate_primary_action: break_period_grid", brief)
             self.assertLess(
                 brief.index("strict: 标准日寄句号网格"),
                 brief.index("strict: 字幕式明喻解释"),
@@ -11847,11 +12221,103 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("Do not save a 650-899 shrink", brief)
             self.assertIn("do not save a 900-949 underbuilt boundary draft", brief)
             self.assertIn("rough self-damage or paragraph-engine movement", brief)
+            self.assertIn("Replace one existing overloaded/private packet one-for-one", brief)
+            self.assertIn("restore whichever single relation that movement earns", brief)
+            self.assertIn("neighboring existing movements", brief)
+            self.assertNotIn("one unfinished reply/payment/body line may trail with a comma", brief)
+            self.assertNotIn("refusal-coupled consequence cluster", brief)
             self.assertIn("Do not fix this by adding group-chat crowd", brief)
             self.assertLess(
                 brief.index("strict: 社交拒绝纹理替代后果不足"),
                 brief.index("strict: 标准日寄句号网格"),
             )
+
+    def test_finalized_repair_brief_routes_standard_mass_before_social_family(self) -> None:
+        from prepare_finalized_repair_brief import CommandResult, format_brief
+
+        cases = [
+            (
+                568,
+                "标准日寄完整文章篇幅偏短",
+                "rebuild_severely_underbuilt_standard",
+                "whole-source rebuild",
+                "restore complete standard-diary mass across released carriers",
+            ),
+            (
+                875,
+                "标准日寄完整文章篇幅缓冲不足",
+                "replace_underbuilt_standard_carrier",
+                "one-for-one",
+                "restore the complete article mass across the replacement and neighboring existing movements",
+            ),
+            (
+                913,
+                None,
+                "preserve_boundary_mass_replace_weak_carrier",
+                "preserve complete article mass",
+                "release that carrier after one consequence transfer",
+            ),
+        ]
+
+        for body_chars, length_rule, route, route_text, mass_text in cases:
+            with self.subTest(body_chars=body_chars):
+                with tempfile.TemporaryDirectory() as temp:
+                    draft = Path(temp) / "draft.md"
+                    draft.write_text("去不了\n\n" + ("我" * body_chars), encoding="utf-8")
+                    findings = [
+                        {
+                            "severity": "error",
+                            "rule": "strict: 社交拒绝纹理替代后果不足",
+                            "excerpt": "reply aftermath stayed private",
+                            "suggestion": "replace the room loop with a refusal-coupled next action",
+                        }
+                    ]
+                    if length_rule is not None:
+                        findings.append(
+                            {
+                                "severity": "error",
+                                "rule": f"strict: {length_rule}",
+                                "excerpt": f"body_chinese_chars={body_chars}",
+                                "suggestion": "扩展具体动作、对话、身体/金钱后果和非主题残留，增加行动链、社交误伤和无用日常残留。",
+                            }
+                        )
+                    brief = format_brief(
+                        draft=draft,
+                        genre="standard",
+                        hard_findings=findings,
+                        hard_returncode=1,
+                        profile_result=CommandResult(command=[], returncode=2, stdout="", stderr="unavailable"),
+                    )
+
+                self.assertIn(f"hard_gate_primary_action: {route}", brief)
+                self.assertIn(route_text, brief)
+                self.assertIn(mass_text, brief)
+                self.assertNotIn("扩展具体动作", brief)
+                self.assertNotIn("增加行动链", brief)
+                self.assertNotIn("无用日常残留", brief)
+
+        for weak_rule in ("标准日寄长行缓冲不足", "标准日寄句号网格"):
+            with self.subTest(body_chars=913, weak_rule=weak_rule):
+                with tempfile.TemporaryDirectory() as temp:
+                    draft = Path(temp) / "draft.md"
+                    draft.write_text("去不了\n\n" + ("我" * 913), encoding="utf-8")
+                    brief = format_brief(
+                        draft=draft,
+                        genre="standard",
+                        hard_findings=[
+                            {
+                                "severity": "error",
+                                "rule": f"strict: {weak_rule}",
+                                "excerpt": "source shape stayed weak",
+                                "suggestion": "repair the weak shape",
+                            }
+                        ],
+                        hard_returncode=1,
+                        profile_result=CommandResult(command=[], returncode=2, stdout="", stderr="unavailable"),
+                    )
+
+                self.assertIn("hard_gate_primary_action: preserve_boundary_mass_replace_weak_carrier", brief)
+                self.assertIn("preserve complete article mass", brief)
 
     def test_finalized_repair_docs_route_profile_brief_and_full_report_separately(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
@@ -11903,16 +12369,16 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("beyond about 24 Chinese characters", finalized_minimum)
         self.assertIn("almost every line trailing with `，` and almost no landed `。`", finalized_minimum)
         self.assertIn("8-25 dense prose rows", finalized_minimum)
-        self.assertIn("6-8 visible breathing clusters", finalized_minimum)
-        self.assertIn("70+ similar short rows", finalized_minimum)
+        self.assertNotIn("should usually become 6-8 visible breathing clusters", finalized_minimum)
+        self.assertIn("split the draft into tiny rows", finalized_minimum)
         self.assertIn("Room-only water, wet sleeves, wet pants, wet slippers", finalized_minimum)
         self.assertIn("A public hinge is not the same as a cameo", finalized_minimum)
-        self.assertIn("only one or two rows run long enough", finalized_minimum)
+        self.assertIn("only one or two rows carrying speech/action/thought movement", finalized_minimum)
         self.assertIn("Line-final comma is not the goal either", finalized_minimum)
         self.assertIn("650-899 body Chinese characters", finalized_minimum)
         self.assertIn("Door threshold imagery alone does not count", finalized_minimum)
         self.assertIn("A 45-70-line corridor is not a target count", finalized_minimum)
-        self.assertIn("If the planned rewrite has zero obvious long rows, if only one or two rows", finalized_minimum)
+        self.assertIn("If the planned local rewrite would leave zero obvious long rows, only one or two rows carrying", finalized_minimum)
         self.assertIn("53 short rows and 580 body characters", finalized_minimum)
         self.assertIn("8-15 long paragraphs", finalized_minimum)
         self.assertIn("15-line \"better story\"", finalized_minimum)
@@ -13437,8 +13903,9 @@ class AnlinToolingTests(unittest.TestCase):
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
         runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
         checker = (ROOT / "scripts" / "check_anlin_violations.py").read_text(encoding="utf-8")
+        self.assertIn("post-refusal section", clean)
+        self.assertIn("post-refusal consequence", runtime)
         for text in (clean, runtime):
-            self.assertIn("post-refusal consequence", text)
             self.assertIn("reply aftermath", text)
         self.assertIn("The refusal aftermath also has to shape the page rhythm before saving", first_draft)
         self.assertIn("post-refusal non-screen action", first_draft)

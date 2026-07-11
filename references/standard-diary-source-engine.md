@@ -28,7 +28,9 @@ Use functions, not feature labels:
 2. **Public hinge**: another person, app, payment step, object handoff, door movement, or visible body problem forces a reply, wait, point, hold, return, wipe, drop, hide, pay, answer, leave, or change of room/route/body while that outside pressure is still active.
 3. **Off-axis residue**: a small unrelated daily branch changes the next action. It is not random decoration; deleting it should break a later reply, object state, body state, or room position.
 
-The three functions may overlap; they are not three scene modules, paragraph slots, or proof packets. One door, handoff, payment, reply, or body chain may carry more than one function, and the off-axis residue may grow from the position that chain leaves behind. Do not write three separate demonstrations or assign one blank-line cluster to each label. The engine is consequence transfer, not visible completion of a three-part plan.
+The three functions may overlap; they are not three scene modules, paragraph slots, or proof packets. Multiple diagnostic labels may describe the same single consequence transfer, but they do not authorize a longer proof chain. Do not write three separate demonstrations or assign one blank-line cluster to each label. The engine is consequence transfer followed by a change of medium, not visible completion of a three-part plan.
+
+A carrier is the combined person/place/transaction/object chain, not merely one repeated noun. Multiple diagnostic labels may describe the same single consequence transfer, but they do not authorize a longer proof chain. After one consequence transfer, release that carrier: exit the person, place, transaction, or proof object and let the next function travel through a different medium. A cashier, rider, counter, payment, or object chain may cause one handoff or lowering move; do not let the same chain carry calculation, repair, reply, connector turns, and the tail. This is carrier replacement, not a quota for another scene.
 
 The user's topic is pressure, not a route map. Let one prompt surface leak after the first engine has already moved the body or room. A complete article does not mean complete prompt coverage.
 
@@ -51,28 +53,30 @@ For recurring prompt-heavy standard diary cases, build the first two clusters in
 1. **Snag first**: spend the opening on a non-prompt practical snag that changes the body or room: door, slipper, sleeve, key, sink, charger, bag, payment, trash, stairwell, or a small broken chore. The prompt's obvious object should not be the first engine.
 2. **Topic late**: let the prompt surface enter only after the snag already moved the body, hand, room, reply, or route. `朋友圈`, `香菜`, `备注`, `礼物`, `红包`, `婚礼`, or another assignment object should arrive as pressure, not as the article's steering wheel.
 3. **Outside pressure active**: when another person, app, payment, doorway, or object handoff appears, keep it active for the next move. Somebody waits, asks, points, blocks, holds, returns, or forces a bad reply while the narrator is still doing the ugly practical thing.
-4. **One small failure lands**: each early cluster should contain one visible failure or retreat that can stand as a short line if the rhythm needs it: a bad answer, a hand that cannot find paper, a door closing wrong, a payment stall, a body sound, a missed reply, or an object left in the wrong place.
+4. **A small failure may land**: when either early cluster already contains a bad answer, missing paper, wrong-closing door, payment stall, body sound, missed reply, or misplaced object, let that failure land plainly if the rhythm earns it. Do not insert one into each cluster as a quota.
 5. **Medium changes**: the second cluster should change medium. If the first cluster was oil/food, the second should be reply, door, payment, route, room position, another person's plain sentence, or a different chore. Do not keep proving the first object.
 
 This is not a five-item content quota. It is a source order. If the article opens with the user's prompt object and only later adds a side action, restart before saving `draft.md`.
 
 ## Standard Diary Mass
 
-The article needs enough visible movement overall, but do not give each function its own action-interruption-after-effect packet. Let one chain carry more than one job. A standard diary first draft usually needs several breathing clusters, not one sentence per row and not prose paragraphs. A 15-25-row article can still be prose-block compression when every row carries multiple complete actions; do not save it as a standard diary just because it has line breaks.
+The article needs enough visible movement overall, but do not give each function its own action-interruption-after-effect packet. Let labels overlap inside one consequence transfer, then release that carrier and change medium. A standard diary first draft usually needs several breathing clusters, not one sentence per row and not prose paragraphs. A 15-25-row article can still be prose-block compression when every row carries multiple complete actions; do not save it as a standard diary just because it has line breaks.
 
-Write clusters like this in the article, without labels:
+Treat these as possible line relationships, not a packet. Choose only the relation the current movement earns:
 
-- one line can trail with `，` because the same action continues
-- one rougher line can run longer because a hand, reply, payment, body, or object has to keep moving
-- one short drop can land a failed decision, bad reply, or low body/social fact
+- a line can trail with `，` when the same action continues
+- a rougher line can run longer when a hand, reply, payment, body, or object has to keep moving
+- a short drop can land when an existing failed decision, bad reply, or low body/social fact actually closes
 
-Do not treat line count as the target. A 700-900 character article split into 80-100 tiny rows is not closer to the voice; it is a generated caption grid. The same problem can hide inside a 45-70-line page when every row is only 10-18 Chinese characters. Before the first write, the page should look like 6-8 breathing clusters, not a list of facts. In most clusters, at least one visible row should be long because action or speech is still moving; short rows are punctuation for failure, not the main body. A real long row is not just "longer than the neighboring captions": it should visibly carry enough action, speech, or thought to run past about 24 Chinese characters.
+A cluster may use one or more of these only when its movement requires them; it does not owe the page a continuation/long-row/short-drop set.
+
+Do not treat line count as the target. A 700-900 character article split into 80-100 tiny rows is not closer to the voice; it is a generated caption grid. The same problem can hide inside a 45-70-line page when every row is only 10-18 Chinese characters. Before the first write, the page should look like 6-8 breathing clusters, not a list of facts. Across the page, several visible rows should be long because action or speech is still moving; short rows are punctuation for failure, not the main body. A real long row is not just "longer than the neighboring captions": it should visibly carry enough action, speech, or thought to run past about 24 Chinese characters.
 
 If the opening page has no rough long action/speech/thought row, if most adjacent rows are 4-10 Chinese characters, or if all "long" rows are still 10-18-character captions, do not save it. Merge the facts into moving syntax first: let the hand keep moving while the payment fails, let the door/reply/body continue across a comma line, or let another person's plain sentence force the next action. The saved first draft should not need a rhythm script just to stop being a tiny-line grid.
 
 Do not make every row the same size. Do not create rhythm by deleting punctuation. Do not run a rhythm script to create the first page shape; scripts are only allowed after the wrapper reports a shape problem.
 
-Connected movement does not mean comma-drag. In the first saved draft, a cluster can trail through one or two visible line-final commas, but it also needs hard-stop action lines and a few short failure drops. Do not make a 50-line draft where almost every line is one comma chain, and do not make a 60-line draft where every row is a sealed period sentence. Rhythm should come from hand, reply, payment, body, door, and object movement changing direction.
+Connected movement does not mean comma-drag. In the first saved draft, a cluster may trail through one or two visible line-final commas only while its action continues; landed actions elsewhere keep hard stops, and short failure drops appear only where an existing failure earns them. No cluster must contain all three. Do not make a 50-line draft where almost every line is one comma chain, and do not make a 60-line draft where every row is a sealed period sentence. Rhythm should come from hand, reply, payment, body, door, and object movement changing direction.
 
 Natural connector words should be born inside those turns. If no line needs `其实`, `不过`, `发现`, `结果`, `于是`, `因为`, or `所以`, the scenes are probably just listed facts. Add a cause or correction inside an existing action rather than sprinkling connector words onto finished sentences.
 
@@ -80,7 +84,7 @@ Connector words must come from real scene turns: a failed attempt forces `不过
 
 ## Cluster Grammar, Not Metrics
 
-If a cluster can be summarized as `A happened. B happened. C happened.`, it will likely become a period-row grid. Before saving, make the cluster answer a smaller movement question: `what is still happening after this line?` One row may end with `，` because the hand, reply, payment, door, or body has not finished moving. One row may use `不过/结果/于是/因为/所以` only because the next action truly changes. One short row lands the failed answer or body/social drop. Do this in syntax, not by changing punctuation on finished captions.
+If a cluster can be summarized as `A happened. B happened. C happened.`, it will likely become a period-row grid. Before saving, ask the smaller movement question: `what is still happening after this line?` Then restore only the relation the answer requires: a real continuation, a cause/correction connector, a hard landing, a rough longer movement, or an earned short failure. Do this in syntax, not by changing punctuation on finished captions or filling every relation.
 
 Do not allocate one period to each line or cluster. A blank-line cluster is not a sentence quota; the same action may continue across several rows and land only when its practical or social state changes. Do not seal a row just because it already looks like a beat, and do not force every cluster to demonstrate one comma, one hard stop, and one short drop.
 
@@ -102,7 +106,7 @@ Both are the same source failure. The cluster does not know what is still happen
 
 If a repair is trying to fix high comma density, do not answer by adding one-period rows. If a repair is trying to fix too many hard stops, do not answer by making one giant comma sentence or an all-line-final-comma surface. Choose the action that did not finish, the person who is still waiting, the object that changes hands, or the reply that comes out wrong; punctuation follows that movement.
 
-Repair path for this failure is local, not global. Do not merge the whole article into longer comma rows, and do not split the whole article into hard-stop captions. Pick 3-5 places where the action is still physically or socially unfinished, delete the explanatory tail around each one, and rebuild only those places into breathing clusters: one continuing line, one rough longer action/speech/thought line, one short failure or retreat. Leave other landed actions with hard stops.
+Repair path for this failure is local, not global. Do not merge the whole article into longer comma rows, and do not split the whole article into hard-stop captions. Choose only the smallest local movement that is actually broken, delete its explanatory tail, and restore whichever relation the action earns: continuation, a rough longer movement, a hard landing, or a short failure/retreat. A local repair may need one of these, not all of them. Stop after the drift is removed and leave other landed actions untouched.
 
 ## Private-Holiday / Takeout Guard
 
@@ -112,7 +116,7 @@ For romance-feed, holiday-alone, wrong-food, delivery, or takeout prompts, do no
 phone/feed -> order food -> wrong item -> wash bowl -> bed
 ```
 
-That chain is too close to the assignment even when the details are concrete. Before writing, add a real consequence outside the prompt surface:
+That chain is too close to the assignment even when the details are concrete. Before writing, route the next movement through a real consequence outside the prompt surface:
 
 - the bag leaks during the handoff and changes the door, hand, shoe, payment, or reply
 - a neighbor, rider, cashier, shopkeeper, or hallway person asks, points, waits, holds, returns, or blocks the next move
@@ -123,7 +127,7 @@ Private grime is not an event. Oil stains, sleeve dirt, sticky fingers, burps, m
 
 A rider or cashier who only looks once, points once, or speaks once and then leaves is still decoration if nothing in the narrator's next action changes until later private inspection. Start from bag, payment, door, reply, hand, or body consequence, not from gaze or a single neutral notice.
 
-If the contact already points out the stain, asks for paper, waits, or makes the narrator fail to answer, do not keep proving the same stain for the rest of the article. Spend the next movement somewhere else: the missing paper changes the door, the failed reply changes the phone, a payment/app residue changes the room, or a small unrelated chore comes back wrong. A public hinge should open a second consequence, not authorize more private inspection.
+If the contact already points out the stain, asks for paper, waits, or makes the narrator fail to answer, do not keep proving the same stain for the rest of the article. Spend the next movement somewhere else: the missing paper changes the door, the failed reply changes the phone, a payment/app residue changes the room, or a small unrelated chore comes back wrong. A public hinge completes one consequence transfer; the next movement changes carrier instead of extending the same proof.
 
 ## Social-Decline Guard
 
@@ -186,8 +190,8 @@ Before saving `draft.md`, ask only these five questions:
 
 1. If the feed/order/holiday noun is removed, does the article still have a moving body?
 2. Does at least one non-prompt cluster change reply, payment, route, door, room position, body state, or social position?
-3. Would deleting the outside contact or off-axis branch break a later action before it disappears, rather than only removing a witness to private inspection?
+3. If an outside contact or off-axis branch exists, would deleting it break a later action before it exits, rather than only removing a witness or decoration? If neither exists, this is not a missing ingredient.
 4. Is the draft already a complete titled article rather than a plan, scratch version, or metric repair?
 5. Is the body built from breathing clusters with several rough long rows, rather than 80-100 short fact rows?
 
-If the answer to any of the first three is no, restart the middle from the kernels above. If the fourth is no, write the complete titled article before checking. If the fifth is no, merge and rebuild the visible movement before saving. If all five answers are yes, write `draft.md` now.
+If the answer to either of the first two is no, restart the middle from the kernels above. If the third exposes a decorative contact or branch, remove or replace that existing packet; do not add a contact or off-axis branch just to pass the check. If the fourth is no, write the complete titled article before checking. If the fifth is no, merge and rebuild the visible movement before saving. Otherwise write `draft.md` now.

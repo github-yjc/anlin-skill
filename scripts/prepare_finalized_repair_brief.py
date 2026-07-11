@@ -17,6 +17,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from check_anlin_violations import chinese_len, split_title_and_content_lines
+
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECKER = ROOT / "scripts" / "check_anlin_violations.py"
@@ -106,6 +108,23 @@ SOCIAL_DECLINE_RULES = {
     "社交拒绝礼貌闭合",
 }
 
+STANDARD_LENGTH_RULES = {
+    "标准日寄完整文章篇幅偏短",
+    "标准日寄完整文章篇幅缓冲不足",
+}
+
+WEAK_SOURCE_RULES = SOCIAL_DECLINE_RULES | {
+    "高频词覆盖不足",
+    "粗粝自毁信号不足",
+    "段落发动机信号偏弱",
+    "私密湿脏纹理替代粗粝",
+    "标准日寄行数缓冲异常",
+    "标准日寄长行缓冲不足",
+    "标准日寄短行网格",
+    "标准日寄句号网格",
+    "行末逗号比例",
+}
+
 
 def hard_rule_name(item: dict[str, Any]) -> str:
     rule = str(item.get("rule", "unknown")).strip()
@@ -145,6 +164,8 @@ def compact_hard_blockers(findings: list[dict[str, Any]], limit: int = 5) -> lis
         rule = str(item.get("rule", "unknown")).strip()
         suggestion = str(item.get("suggestion", "")).strip()
         excerpt = str(item.get("excerpt", "")).strip()
+        if hard_rule_name(item) in STANDARD_LENGTH_RULES:
+            suggestion = ""
         parts = [rule]
         if excerpt:
             parts.append(excerpt[:120])
@@ -154,8 +175,26 @@ def compact_hard_blockers(findings: list[dict[str, Any]], limit: int = 5) -> lis
     return lines
 
 
-def hard_gate_primary_action(findings: list[dict[str, Any]]) -> str:
+def hard_gate_primary_action(findings: list[dict[str, Any]], *, body_chars: int | None = None) -> str:
     error_rules = {hard_rule_name(item) for item in findings if item.get("severity") == "error"}
+    if body_chars is not None and 0 < body_chars < 650:
+        return (
+            "rebuild_severely_underbuilt_standard: do a whole-source rebuild from the strongest workable movement; "
+            "restore complete standard-diary mass across released carriers, change medium after each consequence transfer, "
+            "and do not preserve the fragment as a one-for-one packet-replacement frame or append checker-shaped proof scenes."
+        )
+    if body_chars is not None and 650 <= body_chars < 900:
+        return (
+            "replace_underbuilt_standard_carrier: replace one overloaded person/place/transaction/object packet one-for-one, "
+            "restore the complete article mass across the replacement and neighboring existing movements, release that carrier "
+            "after one consequence transfer, and do not append an independent scene or proof packet."
+        )
+    if body_chars is not None and 900 <= body_chars < 950 and error_rules & WEAK_SOURCE_RULES:
+        return (
+            "preserve_boundary_mass_replace_weak_carrier: keep the useful scene facts, replace one weak or overloaded carrier "
+            "one-for-one, preserve complete article mass, release that carrier after one consequence transfer, and move the next "
+            "function through a different existing medium instead of shrinking or appending a proof cluster."
+        )
     if error_rules & OVERFULL_SHAPE_RULES:
         return (
             "delete_and_merge_overfull_standard: first remove repeated proof packets, decorative explanations, "
@@ -171,13 +210,13 @@ def hard_gate_primary_action(findings: list[dict[str, Any]]) -> str:
             "rebuild_refusal_aftermath_engine: the social refusal must become the source engine, not a topic beside "
             "room/screen/water texture. Remove one private room/object proof packet, keep at most one cropped message "
             "surface, and make the post-refusal reply, payment, route, old debt, dirty/wet hand, door/body interruption, "
-            "or one plain person asking change the next visible action. The same rebuild should create uneven breathing "
-            "clusters: one unfinished reply/payment/body line may trail with a comma, one rough longer row carries the "
-            "awkward movement, and one short drop lands the lower answer. Do not solve this by shortening the article "
+            "or one plain person asking change the next visible action. Replace one existing overloaded/private packet one-for-one, "
+            "then repair only the smallest broken movement and restore whichever single relation that movement earns: a continuation, "
+            "hard landing, rough longer row, or short failed retreat. Do not stamp all four into a cluster. Do not solve this by shortening the article "
             "into a summary; keep a complete standard-diary corridor with visible breathing clusters and roughly 950-1150 "
-            "body Chinese characters by replacing the deleted packet with a refusal-coupled consequence cluster. Do not save "
+            "body Chinese characters by restoring mass across the replacement and neighboring existing movements. Do not append an independent consequence cluster. Do not save "
             "a 650-899 shrink, and do not save a 900-949 underbuilt boundary draft when engine, roughness, or connector "
-            "spread is still weak. The replacement cluster must create rough self-damage or paragraph-engine movement, "
+            "spread is still weak. The replacement movement must create rough self-damage or paragraph-engine movement, "
             "not more private wet/body texture. Do not fix this by adding group-chat crowd pressure, tidy etiquette closure, "
             "more ticket/suili ledger, or more water-room texture."
         )
@@ -313,6 +352,16 @@ def read_text_flexible(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
 
 
+def draft_body_chinese_chars(draft: Path) -> int | None:
+    try:
+        text = read_text_flexible(draft)
+    except OSError:
+        return None
+    _, content_lines = split_title_and_content_lines(text.splitlines())
+    body = "\n".join(line for line in content_lines if not line.startswith("<!--"))
+    return chinese_len(body)
+
+
 def compact_edit_ranges(draft: Path) -> tuple[list[tuple[int, int]], tuple[int, int]] | None:
     try:
         lines = read_text_flexible(draft).splitlines()
@@ -395,6 +444,7 @@ def format_brief(
     hard_gate_state = hard_status(hard_findings, returncode=hard_returncode)
     hard_blockers = compact_hard_blockers(parsed_hard_findings)
     hard_gate_passed = hard_gate_state == "pass"
+    body_chars = draft_body_chinese_chars(draft) if genre == "standard" else None
     profile_brief = profile_result.stdout.strip()
     if not profile_result_valid(profile_result):
         profile_brief = (
@@ -438,7 +488,7 @@ def format_brief(
             if hard_gate_passed and profile_result.returncode != 0
             else []
         ),
-        f"hard_gate_primary_action: {hard_gate_primary_action(parsed_hard_findings)}",
+        f"hard_gate_primary_action: {hard_gate_primary_action(parsed_hard_findings, body_chars=body_chars)}",
         "hard_gate_blockers:",
     ]
     if hard_blockers:
