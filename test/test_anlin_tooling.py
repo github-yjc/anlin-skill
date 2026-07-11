@@ -9868,6 +9868,28 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn("replace it with a concrete action or off-axis residue", runtime)
         self.assertNotIn("Repeat this across several clusters", finalized)
 
+    def test_source_contract_distinguishes_local_carrier_release_from_article_movement(self) -> None:
+        first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
+        engine = (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8")
+        contract = (
+            "Carrier release is local: the article still needs several distinct action transfers through different media; "
+            "one carrier transfer is not a one-transfer limit for the whole article."
+        )
+
+        self.assertIn(contract, first_draft)
+        self.assertIn(contract, engine)
+
+    def test_calibrate_style_profile_help_does_not_raise_on_percent(self) -> None:
+        import subprocess
+
+        proc = subprocess.run(
+            [sys.executable, str(ROOT / "scripts" / "calibrate_style_profile.py"), "--help"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(proc.returncode, 0, msg=proc.stderr)
+        self.assertNotIn("ValueError", proc.stderr)
+
     def test_connector_only_postcheck_guidance_replaces_existing_movement_without_addition(self) -> None:
         repair_hints, revision_frame = build_preflight_guidance(
             ["connectors=['其实', '觉得', '发现'] < 5 before checker_call_2"]

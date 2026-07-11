@@ -37,6 +37,8 @@ The three functions may overlap; they are not three scene modules, paragraph slo
 
 A carrier is the combined person/place/transaction/object chain, not merely one repeated noun. Multiple diagnostic labels may describe the same single consequence transfer, but they do not authorize a longer proof chain. After one consequence transfer, release that carrier: exit the person, place, transaction, or proof object and let the next function travel through a different medium. A cashier, rider, counter, payment, or object chain may cause one handoff or lowering move; do not let the same chain carry calculation, repair, reply, connector turns, and the tail. This is carrier replacement, not a quota for another scene.
 
+Carrier release is local: the article still needs several distinct action transfers through different media; one carrier transfer is not a one-transfer limit for the whole article. 释放 carrier 是防止同一 person/place/transaction/object 反复证明同一个功能，不是让完整文章只剩一个动作转移；整篇文章仍需经过多个不同媒介的行动转移。
+
 The user's topic is pressure, not the route map. Let one prompt surface leak only after the first engine has already moved the body, room, hand, route, payment, or reply. A complete article does not mean complete prompt coverage.
 
 Do not compress amounts, reply candidates, or object choices into an `A、B、C` inventory. Put one choice into motion: type it, delete it, pay it, put it back, choose it badly, or leave it unfinished. A second option belongs only when it changes the next action; omit the rest instead of displaying the prompt's materials.

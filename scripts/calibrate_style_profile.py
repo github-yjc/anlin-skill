@@ -138,7 +138,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Calibrate style-profile warnings against original corpus files.")
     parser.add_argument("corpus_dir", type=Path, help="Directory containing original Anlin .md or .txt files")
     parser.add_argument("--profile", type=Path, required=True, help="Profile JSON produced by build_style_profile.py")
-    parser.add_argument("--include-info", action="store_true", help="Include q10-q90 / 80% predictive informational drift")
+    parser.add_argument("--include-info", action="store_true", help="Include q10-q90 / 80%% predictive informational drift")
     parser.add_argument("--json", action="store_true", help="Output JSON")
     args = parser.parse_args()
 
