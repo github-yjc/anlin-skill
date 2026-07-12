@@ -5,11 +5,13 @@ Use this file for the first complete draft in formal clean-eval mode. It is inte
 ## Tool Order
 
 1. Check .anlin-clean-eval-mode.
-2. Confirm the current directory is the external case workspace.
-3. Read this file.
+2. As the next tool action, run standalone `Get-Location` / `pwd` and confirm the external case workspace.
+3. Only after those two separate tool actions are visible, read this file.
 4. If the selected genre is standard diary, read references/anlin-collage-source-model.md.
 5. Write one complete titled article to relative draft.md or .\draft.md.
 6. Run scripts/clean_run_checker.py with --generator-facing and the selected genre when known.
+
+The marker check and cwd confirmation are two separate tool actions. Both must occur before any reference read, glob/path probe, or draft write; do not use controller `--dir`, a glob title, or an absolute path as cwd evidence.
 
 Do not print a plan, title list, metric table, scratch article, or code-fenced final version before writing draft.md. Do not run counters, rhythm scripts, homemade regex probes, python -c, Measure-Object, or the normal checker before the first wrapper call.
 

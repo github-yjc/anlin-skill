@@ -24,7 +24,7 @@ This matrix intentionally uses stable owner files and short evidence anchors, no
 | 3 | No process labels in prose | `SKILL.md` | `Generated prose must not mention process labels` |
 | 4 | Artifact location outside skill dir | `SKILL.md`, clean-generation brief, `README.md` | `Do not write generated articles into the skill directory`; `relative draft.md` |
 | 4a | Article generation is artifact-backed | `SKILL.md`, trace checker, checkpoint summary tests | `Artifact-Backed Entry Contract`; `first prose artifact`; `terminal-only article is a failed run` |
-| 5 | Clean-eval marker and first tool action | `SKILL.md`, clean-generation brief, validation protocol | `.anlin-clean-eval-mode`; `First tool action must check the marker` |
+| 5 | Clean-eval marker then standalone cwd action before any read/probe/write | `SKILL.md`, clean-eval minimum, runtime brief, trace checker | `.anlin-clean-eval-mode`; `two separate tool actions`; standalone `Get-Location` / `pwd` before reference read, glob/path probe, or draft write |
 | 5a | Clean-eval marker priority over ordinary article wording | `SKILL.md`, `references/runtime-brief.md`, `references/anti-ai-slop.md` | `A present marker overrides "write an article"`; `Clean-eval misroute guard`; `clean-eval-first-draft-minimum.md` owns the first-draft source loop |
 | 6 | Bounded clean-eval uses wrapper only | `SKILL.md`, clean-generation brief, validation protocol | `clean_run_checker.py`; `Do not call the normal checker in the bounded case directory` |
 | 7 | First-draft no-load rule | `SKILL.md`, `references/clean-eval-first-draft-minimum.md`, `references/clean-generation-brief.md` | `Before the first complete draft.md, do not open long repair` |

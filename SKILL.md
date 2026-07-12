@@ -21,7 +21,7 @@ Before writing any article sentence, make the routing action visible: in a possi
 
 Choose the smallest mode that matches the current task:
 
-- **Clean-eval mode has priority over ordinary article wording**: `.anlin-clean-eval-mode` exists, or the controller is measuring natural first-draft guidance. First tool action must check the marker and current directory before deciding ordinary mode in any workspace that may be a formal/eval case, for example `Test-Path .anlin-clean-eval-mode; Get-Location`. A present marker overrides "write an article", "give me prose", "save a draft", or other ordinary-user phrasing. Load only `references/clean-eval-first-draft-minimum.md`; for standard diary also load `references/anlin-collage-source-model.md` (replaces the old `standard-diary-source-engine.md`). Write one complete `draft.md`, then use `scripts/clean_run_checker.py` for at most two actual checker calls; preflight attempts do not consume that call budget and may continue until an explicit `CLEAN_RUN_PREFLIGHT_STOP`. Do not call the normal checker in the bounded case directory.
+- **Clean-eval mode has priority over ordinary article wording**: `.anlin-clean-eval-mode` exists, or the controller is measuring natural first-draft guidance. The marker check and cwd confirmation are two separate tool actions: after checking `.anlin-clean-eval-mode`, the next tool action must be standalone `Get-Location` / `pwd`, before deciding ordinary mode. Both must be visible before any reference read, glob/path probe, or draft write; do not use controller `--dir`, a glob title, or an absolute path as cwd evidence. A present marker overrides "write an article", "give me prose", "save a draft", or other ordinary-user phrasing. Load only `references/clean-eval-first-draft-minimum.md`; for standard diary also load `references/anlin-collage-source-model.md` (replaces the old `standard-diary-source-engine.md`). Write one complete `draft.md`, then use `scripts/clean_run_checker.py` for at most two actual checker calls; preflight attempts do not consume that call budget and may continue until an explicit `CLEAN_RUN_PREFLIGHT_STOP`. Do not call the normal checker in the bounded case directory.
 - **Ordinary user mode**: use only after clean-eval mode has been ruled out. The user wants an article, revision, or saved prose outside a bounded clean-eval workspace. Ask only for missing facts that materially change the result. Use `references/runtime-brief.md` for drafting/repair, then run the normal checker if validation is needed.
 - **Finalized repair mode**: the controller copied a bounded draft into a `finalized/` directory. If `repair-brief.txt` declares either compact mode, read only `draft.md` and `repair-brief.txt`.
   - `repair_mode: hard_pass_review_in_place` and `repair_mode: source_rewrite_compact` are self-contained; do not load `references/finalized-repair-minimum.md`.
@@ -46,9 +46,9 @@ Do not write generated articles into the skill directory.
 
 For formal clean-eval generation, the first draft is intentionally under-instructed:
 
-1. Check `.anlin-clean-eval-mode`.
-2. Confirm the current directory is the external case workspace.
-3. Read `references/clean-eval-first-draft-minimum.md`.
+1. Check `.anlin-clean-eval-mode` as one tool action.
+2. As the next tool action, run standalone `Get-Location` / `pwd` and confirm the external case workspace.
+3. Only after both checks are visible, read `references/clean-eval-first-draft-minimum.md`.
 4. If the selected genre is standard diary/日寄, read `references/anlin-collage-source-model.md` (replaces the old `standard-diary-source-engine.md` which is preserved for reference).
 5. Write one complete titled article to `draft.md`.
 6. Run `python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing --genre <selected-genre>` when genre is known.

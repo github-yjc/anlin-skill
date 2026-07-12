@@ -268,6 +268,16 @@ def actual_clean_run_checker_index(text: str) -> int:
     return indices[0] if indices else -1
 
 
+def actual_clean_eval_marker_check_index(text: str) -> int:
+    """Find a real marker check, not a path mentioned by a glob/read action."""
+    patterns = [
+        r"(?im)^\s*\$\s*(?:Test-Path|Get-ChildItem)\b[^\n]*\.anlin-clean-eval-mode\b",
+        r"(?im)^\s*TITLE\s+(?:Test-Path|Get-ChildItem)\b[^\n]*\.anlin-clean-eval-mode\b",
+        r"(?im)^\s*INPUT\s+[^\n]*(?:command|cmd)[^\n]*(?:Test-Path|Get-ChildItem)\b[^\n]*\.anlin-clean-eval-mode\b",
+    ]
+    return first_regex_action_index(text, patterns)
+
+
 def actual_normal_checker_index(text: str) -> int:
     patterns = [
         r"(?im)^\s*\$\s+[^\n]*check_anlin_violations\.py\b",
@@ -318,11 +328,28 @@ def actual_draft_write_index(text: str) -> int:
 
 
 def actual_current_directory_check_index(text: str) -> int:
+    """Find a standalone location command.
+
+    A marker probe such as ``Test-Path ...; Get-Location`` is deliberately not
+    enough: the clean-eval contract uses two visible actions so a controller
+    workdir or a path probe cannot masquerade as a cwd confirmation.
+    """
     patterns = [
-        r"(?im)^\s*\$\s*(?:Get-Location|pwd)\b",
-        r"(?im)^\s*\$\s+[^\n;|&]*(?:;|&&|\|\|)\s*(?:Get-Location|pwd)\b",
-        r"(?im)^\s*TITLE\s+[^\n]*(?:Get-Location|pwd)\b",
-        r"(?im)^\s*INPUT\s+[^\n]*(?:command|cmd)[^\n]*(?:Get-Location|pwd)\b",
+        r"(?im)^\s*\$\s*(?:Get-Location|pwd)\s*$",
+        r"(?im)^\s*TITLE\s+(?:Get-Location|pwd)\s*$",
+        r'(?im)^\s*INPUT\s+\{[^\n]*(?:"command"|"cmd")\s*:\s*"(?:Get-Location|pwd)"[^\n]*\}\s*$',
+    ]
+    return first_regex_action_index(text, patterns)
+
+
+def actual_pre_draft_probe_index(text: str) -> int:
+    """Find a real path/reference probe before the first draft write."""
+    patterns = [
+        r"(?im)^\s*(?:TOOL\s+)?(?:→\s*)?Glob\b",
+        r"(?im)^\s*TOOL\s+glob\b",
+        r"(?im)^\s*(?:TOOL\s+)?(?:→\s*)?Read\b",
+        r"(?im)^\s*TOOL\s+(?:read|filesystem_read_file)\b",
+        r"(?im)^\s*TITLE\s+(?:Glob|Read)\b",
     ]
     return first_regex_action_index(text, patterns)
 
@@ -567,22 +594,52 @@ def collect_findings(text: str) -> list[TraceFinding]:
             )
         )
     pre_draft = normalized[:first_write] if first_write >= 0 else normalized
-    if first_write >= 0 and ".anlin-clean-eval-mode" not in pre_draft:
+    marker_index = actual_clean_eval_marker_check_index(pre_draft)
+    if first_write >= 0 and marker_index < 0:
         findings.append(
             TraceFinding(
                 "error",
                 "clean-eval写稿前未检查模式标记",
                 clean_excerpt(normalized, max(0, first_write - 80)),
-                "The first generation tool action in a bounded clean-eval workspace must check `.anlin-clean-eval-mode` before writing `draft.md`; otherwise the generator may use ordinary checker flow.",
+                "The first clean-eval routing action must execute a real Test-Path or Get-ChildItem check for `.anlin-clean-eval-mode`. A glob path, controller workdir, or quoted planning text is not a marker check.",
             )
         )
-    if first_write >= 0 and actual_current_directory_check_index(pre_draft) < 0:
+    cwd_index = actual_current_directory_check_index(pre_draft)
+    if first_write >= 0 and cwd_index < 0:
         findings.append(
             TraceFinding(
                 "error",
                 "clean-eval写稿前未确认当前目录",
                 clean_excerpt(normalized, max(0, first_write - 120)),
-                "Before the first clean-eval draft write, run Get-Location / pwd and confirm the current directory is the external case workspace. Marker checks alone do not prove the write tool is targeting the case directory.",
+                "After the marker action, run standalone Get-Location / pwd as a separate tool action and confirm the current directory is the external case workspace. Marker checks, glob paths, and controller workdirs do not prove the write tool is targeting the case directory.",
+            )
+        )
+    if marker_index >= 0 and cwd_index >= 0 and cwd_index <= marker_index:
+        findings.append(
+            TraceFinding(
+                "error",
+                "clean-eval模式标记与当前目录顺序错误",
+                clean_excerpt(normalized, cwd_index),
+                "The marker check must be visible before the standalone Get-Location / pwd action; do not route ordinary mode first and inspect the marker later.",
+            )
+        )
+    probe_index = actual_pre_draft_probe_index(pre_draft)
+    if marker_index >= 0 and probe_index >= 0 and probe_index < marker_index:
+        findings.append(
+            TraceFinding(
+                "error",
+                "clean-eval模式标记检查顺序错误",
+                clean_excerpt(normalized, probe_index),
+                "Check `.anlin-clean-eval-mode` before any reference read or glob/path probe. Do not infer the mode from a case path or discover files first.",
+            )
+        )
+    if cwd_index >= 0 and probe_index >= 0 and probe_index < cwd_index:
+        findings.append(
+            TraceFinding(
+                "error",
+                "clean-eval当前目录确认顺序错误",
+                clean_excerpt(normalized, probe_index),
+                "The standalone Get-Location / pwd action must follow the marker check and precede every reference read, glob, or path probe and the first draft write.",
             )
         )
     skill_cwd_index = actual_skill_directory_cwd_index(pre_draft)

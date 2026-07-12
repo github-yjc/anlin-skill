@@ -1,6 +1,6 @@
 # Runtime Brief
 
-This file is for ordinary non-formal drafting and explicit analysis. Clean-eval misroute guard: if `.anlin-clean-eval-mode` exists, or if you have not yet checked that marker, stop using this file before drafting. First confirm the marker and current directory, then load `references/clean-eval-first-draft-minimum.md` plus `references/anlin-collage-source-model.md`. `clean-eval-first-draft-minimum.md` owns the first-draft source loop; this file must not become a hidden second clean-eval checklist. Do not use this file as an extra bounded repair prompt.
+This file is for ordinary non-formal drafting and explicit analysis. Clean-eval misroute guard: if `.anlin-clean-eval-mode` exists, or if you have not yet checked that marker, stop using this file before drafting. The marker check and cwd confirmation are two separate tool actions: after checking the marker, the next tool action must be standalone `Get-Location` / `pwd`. Both must be visible before any reference read, glob/path probe, or draft write; do not use controller `--dir`, a glob title, or an absolute path as cwd evidence. Then load `references/clean-eval-first-draft-minimum.md` plus `references/anlin-collage-source-model.md`. `clean-eval-first-draft-minimum.md` owns the first-draft source loop; this file must not become a hidden second clean-eval checklist. Do not use this file as an extra bounded repair prompt.
 
 ## Goal and Boundary
 

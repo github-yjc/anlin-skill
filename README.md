@@ -165,18 +165,17 @@ The old README-level technique summary is now mapped to maintained references:
 
 For clean-eval formal article generation:
 
-1. Load `references/clean-eval-first-draft-minimum.md` first and use its source loop for the first complete draft.
-2. For standard diary clean-eval, load `references/anlin-collage-source-model.md`; the old `standard-diary-source-engine.md` is historical reference only. For short non-standard genres, stay with the clean brief.
-3. Check `.anlin-clean-eval-mode`, then run `Get-Location` / `pwd`; the current directory must be the external case workspace, not `<skill-dir>`.
-4. Start from a fragment slate, not from a checklist or plot outline.
-5. Select fragment relations from action, body, screen, money, route, social misfire, memory trigger, joke, object, or useless residue; let the voice jump when one relation has done its work.
-6. Open `anlin-background.md` only after selected scenes already contain facts that need checking.
-7. Write a complete titled article using exactly relative `draft.md` / `.\draft.md` before the first checker. Do not run line-rhythm scripts before the first wrapper call.
-8. Run `scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing` so bounded generation receives qualitative repair guidance while exact telemetry stays in controller evidence.
-9. If `CLEAN_RUN_PREFLIGHT` appears, revise before the first checker call is consumed. If `CLEAN_RUN_POSTCHECK_PREFLIGHT` appears after checker call 1/2, follow its one printed source-replacement or explicit shape-repair action before spending checker call 2/2; the wrapper itself does not rewrite the submitted draft. If `CLEAN_RUN_PREFLIGHT_STOP` appears, output the current draft unchanged and let the controller record failure.
-10. If a rhythm script runs and `draft.md` is then rewritten or edited, rerun the relevant rhythm script before the next wrapper call or keep the repair inside the existing line-broken corridor.
-11. Do at most one repair/rewrite per bounded source action and at most two actual clean-eval checker calls; preflight attempts do not consume that budget, so stop only at an explicit `CLEAN_RUN_PREFLIGHT_STOP` or actual checker result.
-12. After the second checker call, output the current `draft.md` exactly.
+1. Check `.anlin-clean-eval-mode` as one tool action, then as the next tool action run standalone `Get-Location` / `pwd`; both checks must be visible before any reference read, glob/path probe, or draft write. Do not use controller `--dir`, a glob title, or an absolute path as cwd evidence.
+2. Load `references/clean-eval-first-draft-minimum.md` only after those two separate actions. For standard diary clean-eval, then load `references/anlin-collage-source-model.md`; the old `standard-diary-source-engine.md` is historical reference only. For short non-standard genres, stay with the clean brief.
+3. Start from a fragment slate, not from a checklist or plot outline.
+4. Select fragment relations from action, body, screen, money, route, social misfire, memory trigger, joke, object, or useless residue; let the voice jump when one relation has done its work.
+5. Open `anlin-background.md` only after selected scenes already contain facts that need checking.
+6. Write a complete titled article using exactly relative `draft.md` / `.\draft.md` before the first checker. Do not run line-rhythm scripts before the first wrapper call.
+7. Run `scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing` so bounded generation receives qualitative repair guidance while exact telemetry stays in controller evidence.
+8. If `CLEAN_RUN_PREFLIGHT` appears, revise before the first checker call is consumed. If `CLEAN_RUN_POSTCHECK_PREFLIGHT` appears after checker call 1/2, follow its one printed source-replacement or explicit shape-repair action before spending checker call 2/2; the wrapper itself does not rewrite the submitted draft. If `CLEAN_RUN_PREFLIGHT_STOP` appears, output the current draft unchanged and let the controller record failure.
+9. If a rhythm script runs and `draft.md` is then rewritten or edited, rerun the relevant rhythm script before the next wrapper call or keep the repair inside the existing line-broken corridor.
+10. Do at most one repair/rewrite per bounded source action and at most two actual clean-eval checker calls; preflight attempts do not consume that budget, so stop only at an explicit `CLEAN_RUN_PREFLIGHT_STOP` or actual checker result.
+11. After the second checker call, output the current `draft.md` exactly.
 
 For ordinary user generation, use the same scene-first drafting principles but do not apply the clean-eval two-call stop rule. Continue repairing hard errors and obvious process leakage until the article is usable or the user stops, while avoiding mechanical ratio chasing.
 
