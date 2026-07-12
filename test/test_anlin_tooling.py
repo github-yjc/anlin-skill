@@ -735,7 +735,6 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertTrue(any(rule == "strict: 粗粝自毁信号不足" for rule in rules))
-            self.assertTrue(any(rule == "strict: 段落发动机信号偏弱" for rule in rules))
             self.assertTrue(any(rule == "strict: 短行诗化表面" for rule in rules))
 
     def test_checker_draft_gate_rejects_short_standard_diary_even_without_riji_title(self) -> None:
@@ -8243,6 +8242,42 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertTrue(any(item["rule"] == "strict: 社交拒绝私密转账假后果" for item in findings), findings)
 
+    def test_checker_draft_gate_allows_social_decline_with_congratulations_not_refusal(self) -> None:
+        body_lines = (
+            [
+                "晚上拖地，拖把杆拧到一半又缩回去。",
+                "狗哥说下个月结婚，问我能不能来。",
+                "我先回恭喜，后面本来接着肯定，打出来又删了。",
+                "因为我已经点开了日历。",
+                "查了查票，周五到得太晚，周六又赶不上中午。",
+                "我点到付款，停住了。",
+                "狗哥问票是不是不好买，我说还在看。",
+                "大叔在外面敲门，帮我送快递，垃圾袋掉了两卷。",
+                "我在楼道里穿着湿袜子追垃圾袋。",
+                "回屋以后打了一句最近忙项目，又改成实在去不了。",
+                "狗哥回好，没事，忙你的。",
+                "门锁没扣住，弹开一点。",
+                "我站在门缝后面，打了几个字又删了。",
+                "地拖了一半，水已经凉了。",
+                "垃圾袋套进桶里，袋口太松，压进去一团纸就滑下去。",
+                "湿袜子踩在鞋印上，滑了一步。",
+            ]
+            + ["窗外安静下来，没人再下楼。"] * 20
+        )
+        body = "\n".join(["# 最后一班", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            self.assertFalse(any("社交拒绝后果过度生长" in item["rule"] for item in findings), findings)
+
     def test_checker_draft_gate_rejects_overextended_social_decline_aftermath(self) -> None:
         body_lines = (
             [
@@ -9089,11 +9124,14 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("Do not skip the temporary artifact just because the final reply should contain prose only", skill)
         self.assertIn("output prose only after the article has existed as `draft.md`", skill)
         self.assertIn("The bounded generator must not read this file", clean)
-        self.assertIn("references/standard-diary-source-engine.md", skill)
-        self.assertIn("standard-diary-source-engine.md", skill)
-        self.assertIn("standard-diary-source-engine.md", first_draft_min)
-        self.assertIn("standard-diary-source-engine.md", clean)
+        self.assertIn("references/anlin-collage-source-model.md", skill)
+        self.assertIn("anlin-collage-source-model.md", skill)
+        # The old standard-diary-source-engine.md is preserved for reference, but the new routing
+        # uses anlin-collage-source-model.md. The old file still exists on disk.
+        self.assertIn("fragment slate", first_draft_min)
+        self.assertIn("anlin-collage-source-model.md", clean)
         self.assertIn("The bounded generator starts from `references/clean-eval-first-draft-minimum.md`", clean)
+        # The old engine file is preserved; test its content
         self.assertIn("after `clean-eval-first-draft-minimum.md` and before the first `draft.md`", standard_engine)
         self.assertNotIn("after `clean-generation-brief.md` and before the first `draft.md`", standard_engine)
         self.assertIn("Build The Middle First", standard_engine)
@@ -9660,15 +9698,26 @@ class AnlinToolingTests(unittest.TestCase):
         first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
         engine = (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8")
 
-        for text in (first_draft, engine):
-            self.assertIn(
-                "The three functions may overlap; they are not three scene modules, paragraph slots, or proof packets",
-                text,
-            )
-            self.assertIn("Do not allocate one period to each line or cluster", text)
-            self.assertIn("Do not compress amounts, reply candidates, or object choices into an `A、B、C` inventory", text)
-            self.assertIn("let one plain action/object phrase return unchanged", text)
-            self.assertIn("not a decorative refrain or repetition quota", text)
+        self.assertIn("fragment slate", first_draft)
+        self.assertIn("Do not compress amounts, reply candidates, or object choices into an `A、B、C` inventory", first_draft)
+        self.assertIn("let one plain action/object phrase return unchanged", first_draft)
+        self.assertIn("not a decorative refrain or repetition quota", first_draft)
+        # The old engine file still has the overlapping-functions text
+        self.assertIn(
+            "The three functions may overlap; they are not three scene modules, paragraph slots, or proof packets",
+            engine,
+        )
+        # But first_draft now uses the fragment model instead
+        self.assertNotIn(
+            "The three functions may overlap; they are not three scene modules, paragraph slots, or proof packets",
+            first_draft,
+        )
+
+        self.assertIn("Do not allocate one period to each line or cluster", first_draft)
+        self.assertIn("Do not allocate one period to each line or cluster", engine)
+        self.assertIn("Do not compress amounts, reply candidates, or object choices into an `A、B、C` inventory", engine)
+        self.assertIn("let one plain action/object phrase return unchanged", engine)
+        self.assertIn("not a decorative refrain or repetition quota", engine)
 
         self.assertNotIn("Then choose three consequence kernels", first_draft)
         self.assertNotIn("choose three private consequence kernels", engine)
@@ -9700,11 +9749,15 @@ class AnlinToolingTests(unittest.TestCase):
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
         finalized = (ROOT / "references" / "finalized-repair-minimum.md").read_text(encoding="utf-8")
         checker = (ROOT / "scripts" / "clean_run_checker.py").read_text(encoding="utf-8")
-        for text in (first_draft, engine, finalized):
+        # The old carrier-release language is still in the preserved engine file and finalized
+        for text in (engine, finalized):
             self.assertIn("A carrier is the combined person/place/transaction/object chain", text)
             self.assertIn("Multiple diagnostic labels may describe the same single consequence transfer", text)
             self.assertIn("After one consequence transfer, release that carrier", text)
             self.assertIn("cashier, rider, counter, payment, or object chain", text)
+        # first_draft now uses the fragment slate model instead
+        self.assertIn("fragment slate", first_draft)
+        self.assertNotIn("A carrier is the combined person/place/transaction/object chain", first_draft)
         self.assertNotIn("One moving chain may carry side engine and public hinge at once", first_draft)
         self.assertNotIn("may carry more than one function", engine)
         self.assertNotIn("Let one chain carry more than one job", engine)
@@ -9868,16 +9921,17 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn("replace it with a concrete action or off-axis residue", runtime)
         self.assertNotIn("Repeat this across several clusters", finalized)
 
-    def test_source_contract_distinguishes_local_carrier_release_from_article_movement(self) -> None:
+    def test_source_contract_uses_fragment_slate_not_carrier_engine(self) -> None:
         first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
         engine = (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8")
-        contract = (
-            "Carrier release is local: the article still needs several distinct action transfers through different media; "
-            "one carrier transfer is not a one-transfer limit for the whole article."
-        )
 
-        self.assertIn(contract, first_draft)
-        self.assertIn(contract, engine)
+        self.assertIn("fragment slate", first_draft)
+        self.assertNotIn(
+            "Carrier release is local: the article still needs several distinct action transfers",
+            first_draft,
+        )
+        # The old engine file still contains the carrier-release language
+        self.assertIn("Carrier release is local: the article still needs", engine)
 
     def test_calibrate_style_profile_help_does_not_raise_on_percent(self) -> None:
         import subprocess
@@ -10610,7 +10664,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(len(glue), 1)
             self.assertEqual(glue[0]["severity"], "warning")
 
-    def test_checker_draft_gate_promotes_sparse_connector_and_comma_rhythm(self) -> None:
+    def test_checker_draft_gate_promotes_comma_rhythm_in_sparse_draft(self) -> None:
         body = "\n".join(["# 日寄", "", *(["杯子脏了。"] * 120)])
         with tempfile.TemporaryDirectory() as temp:
             draft = Path(temp) / "draft.md"
@@ -10625,8 +10679,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
-            self.assertTrue(any(rule == "strict: 高频词覆盖不足" for rule in rules))
-            self.assertTrue(any(rule == "strict: 行末逗号比例" for rule in rules))
+            self.assertTrue(any("行末逗号比例" in rule for rule in rules))
 
     def test_checker_draft_gate_comma_density_repair_guidance_rejects_comma_drag(self) -> None:
         line = "其实我拿起杯子，水还没倒，手机又亮，门口有人敲，鞋底还湿。"
@@ -14292,6 +14345,271 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("OPENCODE_CONFIG_DIR alone is not isolation evidence", manifest["controller_rule"])
             self.assertIn("XDG_CONFIG_HOME", manifest["controller_rule"])
             self.assertIn("any non-built-in skill", manifest["controller_rule"].lower())
+
+
+    # ── RED tests: fragment-based source model ────────────────────
+
+    def test_fragment_collage_not_rejected_for_missing_engine_signal(self) -> None:
+        """Corpus-like multi-fragment draft with topic jumps, self-correction, conversation.
+        Must NOT produce hard errors for missing engine signal or connector words."""
+        body_lines = [
+            "今天下午去超市，发现洗衣液涨价了。",
+            "结账的时候前面排了个大爷，拿了一整购物车的酱油。",
+            "我寻思这是买了几年份的。",
+            "晚上狗哥发消息问我最近在干嘛。",
+            "我说在找工作。他说你不是刚找过吗。",
+            "我说那是去年的了。",
+            "挂掉电话刷到高中同学晒结婚照。",
+            "我放大看了看新娘的脸，又退出来。",
+            "其实没认出来是谁。",
+            "就跟了个赞。",
+            "突然想起上周我妈打电话说隔壁阿姨的女儿考上了公务员。",
+            "她问我最近怎么样，我说还行。",
+            "她说那就好。",
+            "厨房水龙头一直滴答滴答。",
+            "我拧了几次，还是漏。",
+            "算了明天买生料带。",
+            "其实也不是买不到，就是懒得出门。",
+        ]
+        body = "\n".join(["# 日寄", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            engine_errors = [item for item in findings if item["severity"] == "error" and "段落发动机信号偏弱" in item["rule"]]
+            connector_errors = [item for item in findings if item["severity"] == "error" and "高频词覆盖不足" in item["rule"]]
+            self.assertFalse(engine_errors, f"Corpus-like fragment collage should not trigger engine signal hard errors: {engine_errors}")
+            self.assertFalse(connector_errors, f"Corpus-like fragment collage should not trigger connector hard errors: {connector_errors}")
+
+    def test_same_night_refusal_not_overgrowth(self) -> None:
+        """Same-night route calculation, ticket check, refusal activities must NOT be flagged
+        as cross-day social consequence overgrowth."""
+        body_lines = [
+            "晚上拖地，拖把杆拧到一半又缩回去。",
+            "狗哥说下个月结婚，问我能不能来。",
+            "我先回恭喜，后面本来接着肯定，打出来又删了。",
+            "因为我已经点开了日历。",
+            "查了查票，周五到得太晚，周六又赶不上中午。",
+            "我点到付款，停住了。",
+            "狗哥问票是不是不好买，我说还在看。",
+            "大叔在外面敲门，帮我送快递，垃圾袋掉了两卷。",
+            "我在楼道里穿着湿袜子追垃圾袋。",
+            "回屋以后打了一句最近忙项目，又改成实在去不了。",
+            "狗哥回好，没事，忙你的。",
+            "门锁没扣住，弹开一点。",
+            "我站门缝后面，打了几个字又删了。",
+            "垃圾袋套进桶里，袋口太松。",
+            "湿袜子踩在鞋印上，滑了一步。",
+        ]
+        body = "\n".join(["# 最后一班", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            overgrowth = [item for item in findings if "社交拒绝后果过度生长" in item["rule"]]
+            self.assertFalse(overgrowth, f"Same-night refusal must not trigger overgrowth: {overgrowth}")
+
+    def test_next_day_overgrowth_still_flagged(self) -> None:
+        """A draft with explicit next day events, new characters, and continued wedding
+        plot must still be flagged as overgrowth."""
+        body_lines = (
+            [
+                "充电线从桌子下面伸上来，插头有点松。",
+                "狗哥说下个月结婚，问我能不能来。",
+                "我回他说最近忙项目，去不了。",
+                "他回了个表情。",
+                "第二天早上班群里发了合照，我点开放大看了半天。",
+                "中午到站以后同事问我谁结婚，我说大学同学。",
+                "下午狗哥又发了个红包，问能不能当伴郎。",
+                "我回座位打了几个字，说伴郎可能当不了，到时候喝喜酒。",
+                "他回不强求，我把手机扣在桌上。",
+            ]
+            + ["回来时椅子轮子卡住，我弯腰拽了一下，裤脚沾到灰。"] * 40
+        )
+        body = "\n".join(["# 充电线", "", *body_lines])
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text(body, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            overgrowth = [item for item in findings if "社交拒绝后果过度生长" in item["rule"]]
+            self.assertTrue(overgrowth, f"Next-day overgrowth must still be flagged: {findings}")
+
+    def test_active_runtime_uses_fragment_source_contract(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
+        collage = (ROOT / "references" / "anlin-collage-source-model.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        anti_ai = (ROOT / "references" / "anti-ai-slop.md").read_text(encoding="utf-8")
+        old_engine = (ROOT / "references" / "standard-diary-source-engine.md").read_text(encoding="utf-8")
+
+        self.assertIn("references/anlin-collage-source-model.md", skill)
+        self.assertNotIn("load `references/standard-diary-source-engine.md`", skill)
+        self.assertNotIn("side engine -> public hinge -> off-axis residue", first_draft)
+        self.assertNotIn("950-1150", first_draft)
+        self.assertIn("fragment slate", first_draft)
+        self.assertIn("235-1932", collage)
+        self.assertIn("17-91", collage)
+        self.assertIn("references/anlin-collage-source-model.md", clean)
+        self.assertNotIn("load `references/standard-diary-source-engine.md`", runtime)
+        self.assertNotIn("load `references/standard-diary-source-engine.md`", anti_ai)
+        self.assertIn("inactive", old_engine.lower())
+
+    @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
+    def test_corpus_observed_range_matches_source_model(self) -> None:
+        rows: list[tuple[int, int]] = []
+        for path in sorted(CORPUS.glob("*.md")):
+            raw_lines = path.read_text(encoding="utf-8").splitlines()
+            body_lines = [line for line in raw_lines if line.strip() and not line.lstrip().startswith("#")]
+            body = "\n".join(body_lines)
+            rows.append((len(re.findall(r"[\u4e00-\u9fff]", body)), len(body_lines)))
+
+        self.assertEqual(len(rows), 38)
+        self.assertEqual(min(chars for chars, _ in rows), 235)
+        self.assertEqual(max(chars for chars, _ in rows), 1932)
+        self.assertEqual(min(lines for _, lines in rows), 17)
+        self.assertEqual(max(lines for _, lines in rows), 91)
+
+        collage = (ROOT / "references" / "anlin-collage-source-model.md").read_text(encoding="utf-8")
+        self.assertIn("235-1932", collage)
+        self.assertIn("17-91", collage)
+        self.assertNotIn("950-1150", collage)
+        self.assertNotIn("45-70", collage)
+
+    def test_fragment_and_social_decline_checker_pairs(self) -> None:
+        fragment_body = "\n".join(
+            [
+                "# 日寄",
+                "",
+                "今天下午去超市，发现洗衣液涨价了。",
+                "结账的时候前面排了个大爷，拿了一整购物车的酱油。",
+                "我寻思这是买了几年份的。",
+                "晚上狗哥发消息问我最近在干嘛。",
+                "我说在找工作。他说你不是刚找过吗。",
+                "我说那是去年的了。",
+                "挂掉电话刷到高中同学晒结婚照。",
+                "我放大看了看新娘的脸，又退出来。",
+                "其实没认出来是谁，就跟了个赞。",
+                "突然想起上周我妈打电话说隔壁阿姨的女儿考上了公务员。",
+                "她问我最近怎么样，我说还行。",
+                "厨房水龙头一直滴答滴答，我拧了几次，还是漏。",
+                "算了明天买生料带，其实也不是买不到，就是懒得出门。",
+            ]
+        )
+        same_night_body = "\n".join(
+            [
+                "# 最后一班",
+                "",
+                "晚上拖地，拖把杆拧到一半又缩回去。",
+                "狗哥说下个月结婚，问我能不能来。",
+                "我先回恭喜，后面本来接着肯定，打出来又删了。",
+                "查了查票，周五到得太晚，周六又赶不上中午。",
+                "我点到付款，停住了。",
+                "狗哥问票是不是不好买，我说还在看。",
+                "回屋以后打了一句最近忙项目，又改成实在去不了。",
+                "狗哥回好，没事，忙你的。",
+                "门锁没扣住，弹开一点，我站门缝后面又删了几个字。",
+            ]
+        )
+        next_day_body = "\n".join(
+            [
+                "# 充电线",
+                "",
+                "充电线从桌子下面伸上来，插头有点松。",
+                "狗哥说下个月结婚，问我能不能来。",
+                "我回他说最近忙项目，去不了。",
+                "他回了个表情。",
+                "第二天早上班群里发了合照，我点开放大看了半天。",
+                "中午到站以后同事问我谁结婚，我说大学同学。",
+                "下午狗哥又发了个红包，问能不能当伴郎。",
+                "我回座位打了几个字，说伴郎可能当不了，到时候喝喜酒。",
+                "他没有马上回我，头像在那儿亮了一下又暗下去。",
+                "我把充电线重新插好，插头还是往外弹。",
+                "桌上那张快递单被水杯压住，边角卷起来。",
+                "我拿钥匙去刮，刮下来一层胶，手上全是纸屑。",
+                "楼下有人喊了一声，像是在找一辆没锁的车。",
+                "我趴在窗边看，没看见车，只看见垃圾桶旁边的塑料袋。",
+                "袋子被风吹到台阶下面，又被人踢回路中间。",
+                "我想下去捡，脚已经穿进一只拖鞋，另一只找不到。",
+                "手机又亮了，是同事问明天能不能换班。",
+                "我打了个能字，觉得这个字太像已经答应了。",
+                "删掉以后只剩一个输入框，光标在里面闪。",
+                "我把同事的消息和狗哥的消息都往上划了一下。",
+                "两个人的头像挨在一起，看起来像一场小型会议。",
+                "我没有回任何人，先去厨房找剪刀。",
+                "剪刀在抽屉最里面，旁边是上次买的螺丝和一节没电的电池。",
+                "我把电池拿出来，想起去年也有一节这样的。",
+                "去年那天我也说了忙，后来整晚都在给自己找理由。",
+                "这个理由现在已经变成一行字，发出去就不能收回。",
+                "我又打开聊天框，狗哥发来一个问号。",
+                "我先写实在去不了，删掉实在，留下去不了。",
+                "发送以后房间里没有任何变化，只有充电线又松了一点。",
+                "我按住插头，另一只手去摸门锁。",
+                "门锁里卡着一小块灰，转了两下才扣上。",
+                "楼道的感应灯亮了，照见我脚边那只孤零零的拖鞋。",
+                "我把拖鞋踢回门里，手机还停在狗哥的对话框。",
+                "他回了句知道了，后面没有标点。",
+                "我看了半天，最后只把充电线往桌边挪了两厘米。",
+                "桌角那本旧杂志翻到一半，里面夹着去年车票的存根。",
+                "我把存根抽出来，日期已经被手汗磨掉一块。",
+                "楼下的车终于开走，留下一个空车位和一滩水。",
+                "我去关窗，窗框上的灰蹭到袖子上，正好在手肘那里。",
+                "手机又震了一下，我没有拿起来看。",
+                "厨房里的水烧开了，壶盖顶着响了几声。",
+                "我把火关掉，想起同事的换班还没有回。",
+                "狗哥的对话框也没有再亮，像两件都没收尾的事。",
+                "我把拖鞋摆到门边，另一只还是找不到。",
+                "充电线重新掉下来，插头碰到桌腿，发出很轻的一声。",
+                "我弯腰捡起来，顺便把那张快递单翻了个面。",
+                "背面没有字，只有一条被水泡开的蓝线。",
+                "我把蓝线抹掉，手指上还留着一点潮气。",
+            ]
+        )
+
+        def findings_for(body: str) -> list[dict[str, object]]:
+            with tempfile.TemporaryDirectory() as temp:
+                draft = Path(temp) / "draft.md"
+                draft.write_text(body, encoding="utf-8")
+                result = subprocess.run(
+                    [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    check=False,
+                )
+                self.assertTrue(result.stdout, result.stderr)
+                return json.loads(result.stdout)
+
+        fragment_findings = findings_for(fragment_body)
+        same_night_findings = findings_for(same_night_body)
+        next_day_findings = findings_for(next_day_body)
+        weak_rules = {"段落发动机信号偏弱", "高频词覆盖不足"}
+        self.assertFalse(
+            [item for item in fragment_findings if item["severity"] == "error" and item["rule"] in weak_rules]
+        )
+        self.assertFalse([item for item in same_night_findings if "社交拒绝后果过度生长" in item["rule"]])
+        self.assertTrue([item for item in next_day_findings if "社交拒绝后果过度生长" in item["rule"]])
 
 
 if __name__ == "__main__":
