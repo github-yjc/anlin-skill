@@ -1,121 +1,73 @@
 # Clean-Eval First Draft Minimum
 
-Use this file for the first complete draft in formal clean-eval mode. It is intentionally short. The goal is to write one complete titled `draft.md` from source movement before any checker or long repair file can turn the article into a metric checklist.
+Use this file for the first complete draft in formal clean-eval mode. It is intentionally small: the controller is measuring natural source guidance, not the agent's ability to reconstruct a hidden checklist.
 
 ## Tool Order
 
-1. Check `.anlin-clean-eval-mode`.
+1. Check .anlin-clean-eval-mode.
 2. Confirm the current directory is the external case workspace.
 3. Read this file.
-4. If the selected genre is standard diary, read `references/standard-diary-source-engine.md`.
-5. Write one complete article to relative `draft.md` or `.\draft.md`.
-6. Run `python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing --genre <selected-genre>` when the genre is known.
+4. If the selected genre is standard diary, read references/anlin-collage-source-model.md.
+5. Write one complete titled article to relative draft.md or .\draft.md.
+6. Run scripts/clean_run_checker.py with --generator-facing and the selected genre when known.
 
-Do not print a plan, title list, line count, metric table, trial article, or code-fenced final version before writing `draft.md`. Do not run counting scripts, rhythm scripts, homemade regex probes, `python -c`, `Measure-Object`, or the normal checker before the first wrapper call.
+Do not print a plan, title list, metric table, scratch article, or code-fenced final version before writing draft.md. Do not run counters, rhythm scripts, homemade regex probes, python -c, Measure-Object, or the normal checker before the first wrapper call.
 
-After the minimal source reads finish, the next tool action must be one complete write to relative `draft.md` or `.\draft.md`. Do not spend another model turn comparing openings, rehearsing possible hinges, restating the prompt, or drafting scratch prose in reasoning. Choose the first workable moving chain and persist it; an imperfect artifact can be checked, but an unwritten better plan is not evidence.
+After these source reads, the next tool action is one complete write to draft.md. A persisted imperfect article is evidence; an unwritten better plan is not.
 
 ## No-Load Rule
 
-Before the first complete `draft.md`, do not open `runtime-brief.md`, `clean-generation-brief.md`, validation protocol, judge rubrics, style-profile reports, corpus cards, review checklists, anti-slop references, background fact tables, checker source, tests, or hidden thresholds.
+Before the first complete draft.md, do not open runtime-brief.md, clean-generation-brief.md, validation protocol, judge rubrics, style-profile reports, corpus cards, review checklists, anti-slop references, background fact tables, checker source, tests, or hidden thresholds.
 
-If you feel the draft needs more rules, write the best complete titled candidate to `draft.md` first. The controller is measuring source guidance; an imperfect persisted article is better evidence than a perfect article left in the terminal.
+If the draft feels incomplete, write the best complete titled candidate first. The wrapper and controller own later diagnosis.
 
-## Source Loop
+## Fragment Source Contract
 
-Start from friction, not from the prompt noun.
+Build a fragment slate, not a preselected plot. A fragment can be:
 
-Pick one small daily snag that would exist without the assignment: a door, sleeve, sink, bowl, charger, slipper, key, bag, payment, route, room chore, body interruption, bad reply, or object in the wrong place.
+- a present observation or bodily fact;
+- a friend sentence or remembered conversation;
+- an old memory;
+- a platform, school, or work fact that the thought already needs;
+- a joke, pun, logic inversion, fantasy, or absurd explanation;
+- a word echo, self-correction, or change of mind.
 
-Then privately check three overlapping consequence functions:
+Connect fragments by association, contrast, language echo, time jump, self-correction, cognitive habit, or an abrupt but voice-consistent jump. A causal chain is allowed when it occurs naturally, but it is not required.
 
-- side engine: a practical snag changes hand, room, body, reply, route, payment, or next action
-- public hinge: another person, app/payment step, object handoff, door movement, or visible body problem keeps pressure active long enough to force a reply, wait, point, hold, wipe, drop, hide, pay, answer, leave, or change of room/route/body
-- off-axis residue: one unrelated daily branch changes a later action; it is not random decoration
+The prompt is a trigger and a fact boundary, not a material inventory. It may appear early, late, repeatedly, indirectly, or be diluted by side thoughts. Do not turn supplied background into a quota. Keep only facts needed to avoid contradiction or to make an existing fragment truthful.
 
-The three functions may overlap; they are not three scene modules, paragraph slots, or proof packets. Multiple diagnostic labels may describe the same single consequence transfer, but they do not authorize a longer proof chain. Do not draft a separate demonstration for each function or assign one blank-line cluster to each label. The test is whether consequence transfers and then changes medium, not whether the article visibly proves three parts.
+Consistency comes from the narrator: first-person voice, recurring questions, self-deprecation, crooked logic, word echoes, and a shared humor or irritation. Scattered does not mean arbitrary, and coherence does not mean one scene must explain every later line.
 
-A carrier is the combined person/place/transaction/object chain, not merely one repeated noun. Multiple diagnostic labels may describe the same single consequence transfer, but they do not authorize a longer proof chain. After one consequence transfer, release that carrier: exit the person, place, transaction, or proof object and let the next function travel through a different medium. A cashier, rider, counter, payment, or object chain may cause one handoff or lowering move; do not let the same chain carry calculation, repair, reply, connector turns, and the tail. This is carrier replacement, not a quota for another scene.
+The ending may be a joke, question, absurd explanation, word echo, offhand fact, small practical landing, or a thought that fades without explanation. No ending type is mandatory.
 
-Carrier release is local: the article still needs several distinct action transfers through different media; one carrier transfer is not a one-transfer limit for the whole article. 释放 carrier 是防止同一 person/place/transaction/object 反复证明同一个功能，不是让完整文章只剩一个动作转移；整篇文章仍需经过多个不同媒介的行动转移。
+## Minimum Artifact Rules
 
-The user's topic is pressure, not the route map. Let one prompt surface leak only after the first engine has already moved the body, room, hand, route, payment, or reply. A complete article does not mean complete prompt coverage.
+Before the first wrapper call, save a real artifact that has:
 
-Do not compress amounts, reply candidates, or object choices into an `A、B、C` inventory. Put one choice into motion: type it, delete it, pay it, put it back, choose it badly, or leave it unfinished. A second option belongs only when it changes the next action; omit the rest instead of displaying the prompt's materials.
+- a title and a complete body;
+- fragments rather than a prompt inventory;
+- at least one visible relation among fragments through voice, association, contrast, echo, time, or self-correction;
+- no process language about generation, models, checkers, corpus, blind evaluation, or authorship;
+- no unsupported high-risk identity, place, work, game, family, or relationship facts.
 
-Do not force fresh wording onto every return. When the same real action or object remains active later, let one plain action/object phrase return unchanged instead of synonym-scrubbing it. This is permission for natural recurrence, not a decorative refrain or repetition quota; never plant an echo only to make the surface look less unique.
+There is no universal standard-diary character target, line target, cluster count, required jump count, required outside person, required payment, required refusal aftermath, or required practical ending. Do not add material only to satisfy a number.
 
-## Standard Diary Shape
+Broken lines are allowed when the movement earns them. Use the line break, comma, period, or blank space that the thought or action needs; do not make every row a caption, a sealed sentence, or a comma continuation. Do not depend on a later rhythm script to invent the source shape.
 
-For a standard diary / `日寄` clean-eval draft, the first saved article should already look like a complete broken-line piece:
+## Prompt and Fact Discipline
 
-- about 950-1150 body Chinese characters as a visual corridor
-- about 45-70 body lines
-- several rough longer action/speech/thought lines; a real long row is visibly more than a 10-18-character caption and usually runs beyond about 24 Chinese characters because action, speech, or thought is still moving
-- a few short drops that land failure, bad reply, body lowering, social cost, or practical retreat
-- some line-final commas where an action or thought truly continues
-- no 8-15 paragraph prose block
-- no 80-100 tiny caption grid
-- no 50-70 sealed `。` sentence rows
+Do not write a message, feed, price list, game inventory, background biography, or wedding logistics list merely because the prompt mentions it. Put one selected detail into a thought, action, joke, memory, or wrong reply; omit the rest.
 
-Do not hand-count. Look at the page shape. If it is visibly a prose block, a tiny-row grid, or a neat sentence grid, rebuild the source movement before saving.
+For social prompts, an invitation or refusal may be one fragment among many. Keep a local consequence only when the text naturally creates one. Do not force a same-night consequence chain, a group-chat scene, a payment scene, a stranger, or a practical tail.
 
-The first saved file is not allowed to be a prose draft waiting for later lineation. If you can describe your candidate as 5-7 long paragraphs, as 8-15 paragraphs, as 16-25 dense rows where each row is really a paragraph, or as 45-70 neat 10-18-character caption rows with zero real long movement, it is not a clean-eval first draft yet. Rebuild it into roughly 6-8 visible breathing clusters before writing. Across the page, keep multiple actual body lines and several rougher rows where action, reply, payment, body, or object movement genuinely keeps going. Use whichever relationships the movement earns in each cluster—a continuation, a rough longer row, a hard landing, or a short failure drop—and do not force all four into every cluster. Do not depend on `rebalance_line_rhythm.py`, `split_long_lines.py`, or later punctuation repair to create the first article shape.
-
-Do not write a few long paragraph lines and expect the wrapper to create the article's shape. When using a file write tool, the `content` field itself should already show broken body rows: title, blank line, then many uneven article lines. If the content you are about to write has only five or six body rows, or every row contains several complete actions separated by many commas, stop before writing and split the movement by cause and consequence in the draft itself. A script can repair a near-miss corridor; it cannot make a prose block count as natural source guidance.
-
-## Cluster Grammar
-
-Write breathing clusters, not sentence rows. A cluster often spans a few visible lines, but it is not a fixed packet. Use whichever relationships the movement earns:
-
-- a line may trail with `，` because the hand, reply, payment, body, door, or object has not finished moving
-- a rougher line may run longer because speech/action/thought has to keep going
-- a line may land with `。` when an action closes
-- one short drop may land a failed answer, low body fact, or retreat
-
-Punctuation follows movement. Do not fix rhythm by deleting punctuation, adding connector words, making one giant comma chain, or turning every beat into `没管。/删了。/没回。/算了。`.
-
-Do not allocate one period to each line or cluster. A cluster is a span of pressure, not a sentence template: an action may continue across several visible rows and land only when the hand, reply, payment, door, body, or object actually changes state. Do not close a row merely because the line break is already there.
-
-For any visible comma-ended row, ask "what is still happening after this line?" — a hand still dripping, a reply still unsent, a payment still hanging, a door still open, a body still exposed. A cluster whose action genuinely lands may contain no comma continuation; do not invent unfinished pressure to fill a shape slot. Rebuild only when the saved rows falsely seal or falsely prolong the movement.
-
-## Prompt Displacement
-
-For feed, holiday, wrong-food, invitation, old-chat, annual-summary, illness, delivery, route, shopping, or family-pressure prompts:
-
-- keep at most one or two prompt surfaces visible before the checker
-- do not open with a feed/comment/message inventory
-- do not title from the diagnostic prompt noun when the same noun also opens and closes the body
-- do not let one material family own title, opening, middle, sink/table/pants/phone, and tail
-- do not invent a current office identity, named district, route, game rank/role/tactics, spouse, child, or major family fact unless the user supplied it
-- game is allowed only when it changes action, status, social relation, or cognition; it is never a required background label
-
-If the draft can be summarized as `phone/feed -> order food -> wrong item -> wash bowl -> bed`, or `message -> price ledger -> refusal -> old chat -> room object`, restart the middle before saving.
-
-For invitation, wedding, reunion, or other social-decline prompts, the refusal aftermath must be carried by the moving chain itself. A side object may open the article, but the refusal must change a later action through a bad reply, ordinary response, route/payment hesitation, old debt, door/body interruption, or visible social lowering. Keep the chain small: one consequence transfer, one or two later actions, then a loose practical exit. Do not let sink, water, charger, sleeve, food, or another room object carry the whole article while the refusal remains a chat summary; also do not expand it into several days of wedding logistics or workplace biography. Do not move the plot by message order such as `X发了第二条`, `第二条只...`, `又发来一条`, `下面还有一条`, `下面还有一个...`, or `后面跟着...`; use one cropped screen surface that changes hand, reply, payment, route, or body action.
-
-For this family, an `OK` reply or silence is not enough unless it makes the narrator do something lower or more exposed. A plain OK reply plus a private screen mark is still a screen loop if it does not change what the narrator does next. Before saving, give the refusal one active ugly consequence: a wet/dirty hand leaves a mark while answering, somebody at the door waits or points while the reply/payment is unfinished, a payment/route action stalls, the narrator sends a worse small reply, or the body/door/object problem changes the next move. Do not add a private stain or shame sentence after the fact; the low consequence must still be tied to the social pressure. An unrelated delivery, food burn, room chore, or outside errand after the refusal is not a substitute; if it still works after deleting the invitation, it is off-axis residue, not the refusal engine.
-
-Before writing the last third of a social-decline draft, privately name the **post-refusal non-screen action**. It must happen after the refusal is sent or nearly sent, and it must be caused by not going: a door/person waits while the answer is unfinished, the route/payment check leaves the body in a worse position, the narrator sends a smaller wrong reply, an old debt changes whether he transfers money, or a dirty/wet hand changes the reply while the pressure is still live. If the next action is only `he replied OK`, `I did not reply`, `I muted the chat`, `phone bubble`, `screen mark`, `water/stain/sleeve again`, or another room object returning, the draft has no refusal engine yet. Rebuild before saving.
-
-Use at most one private material handle for the refusal chain. Water, oil, sleeve, bowl, phone, screen film, charger, or room dampness may open the draft or interrupt one reply, but it cannot also be the title, middle proof, tail object, and final image. After the refusal enters, move the article through reply/payment/door/body/person/route/old-debt consequence. End through that consequence or a lower practical leftover, not through `问号`, `免打扰`, `屏幕朝下`, `气泡`, or the same wet object proving the feeling again.
-
-Do not overcorrect the refusal into a public crowd scene or tidy etiquette ending. `群里有人问`, `有人@我`, `你怎么说项目忙`, `正在输入`, and similar group-chat summaries read like the generator is proving social consequence from outside. Use one person or one visible action instead. Also avoid narrator red-packet apology, `人不到钱到`, `人不到没事`, `下次一起吃饭`, or `心意到了` as the tail. Those lines close the moral account; leave through an unfinished reply, a route/payment hesitation, a body/door/object problem, or a small low-status residue.
-
-If the refusal excuse is `忙项目`, `最近有项目`, or similar, keep it as a lie/excuse surface inside the reply. Do not make it true by inventing current work logistics such as a leader, office group, project deadline, leave request, half-day leave, `请不下来`, 调休, 排班, attendance, salary deduction, shift, or day-off penalty. The lie should damage the reply, hand, payment, route, body, or status; it should not create a new job biography.
-
-The refusal aftermath also has to shape the page rhythm before saving. Do not first write a smooth refusal story and hope punctuation repair will make it diary-like. Let the social pressure stay physically unfinished across adjacent movement: a reply is being deleted, a transfer or route check is hanging open, somebody at the door is waiting or pointing, a wet/dirty hand changes how the phone is held, or the other person's plain response makes the next action smaller. Do not manufacture separate comma, hard-stop, and short-drop clusters as proof of rhythm; line endings follow the same refusal-coupled action as it turns. If the only movement is `message -> calculation -> refusal -> room object keeps failing`, rebuild before writing `draft.md`.
-
-The refusal consequence must be refusal-coupled. A delivery, food burn, room chore, or outside errand that would still make sense without the wedding/invitation is off-axis residue, not a refusal engine. Test this: if deleting the invitation leaves the scene sequence intact, the consequence is not refusal-coupled. Rebuild until the post-refusal action depends on the refusal having happened.
-
-Before saving a standard diary draft, look at the visible body shape rather than imagining the checker will fix it. If it is mostly one short sentence per row, has no moving long action/speech/thought rows, has 45-70 short caption rows with no line visibly carrying a longer action/speech/thought movement, or has 75-80+ body lines, it is not a line-broken diary yet. Merge and rebuild the action clusters before the first `draft.md` write.
-
-## Title And Ending
-
-Choose the title after the body exists. Bare `日寄` is allowed but not mandatory. `X日寄`, `X寄`, a phrase, question, sentence title, or side-object title can work when earned by the body. Weaken any title that exposes the prompt before the article has lived movement.
-
-End on a loose practical leftover: unfinished reply, wrong object, cold food, route, payment, body interruption, door/room problem, or chore that did not resolve. Avoid clean ambient fades and learned administrative buttons such as `今天先这样` / `就先这样`.
+For background, use facts to prevent contradiction after the fragment exists. Do not invent a current office identity, named route, spouse, child, rank, district, or major family event to make the article feel concrete.
 
 ## Stop
 
-After writing `draft.md`, run the wrapper with `--generator-facing`. If it returns `CLEAN_RUN_PREFLIGHT` or `CLEAN_RUN_POSTCHECK_PREFLIGHT`, the wrapper output is the complete repair interface; exact counts remain controller-only, and the wrapper does not rewrite `draft.md`, so perform the one printed source or shape action explicitly. These preflight results do not consume the two actual checker calls; do not stop merely because the wrapper has been invoked twice—wait for an explicit `CLEAN_RUN_PREFLIGHT_STOP` or an actual checker result. Do not load `references/clean-generation-brief.md` or any other long repair reference inside the bounded run. If the output is shape-only, do not add material; perform only the named local rhythm action. Otherwise let one source movement address related findings together, preserve complete genre-appropriate mass, and avoid solving one item per metric. After any `draft.md` rewrite, rerun the wrapper immediately; if the wrapper names a rhythm script, run that exact final shape step before the wrapper. Do not count rows, characters, punctuation, or connectors by hand, and do not run a homemade counter between the write and rerun. If it returns `CLEAN_RUN_PREFLIGHT_STOP` or `CLEAN_RUN_STOP`, stop repairing, read `draft.md` once, and output it exactly.
+After writing draft.md, run the bounded wrapper. Its generator-facing output is the complete repair interface.
+
+- If it reports a source finding, replace the earliest broken fragment or relation while preserving a complete article. Do not solve each message as a separate material request.
+- If it reports a pure shape finding, perform only the named local rhythm action.
+- After any rewrite, rerun the wrapper immediately.
+- Do not load a long repair reference, inspect checker source/tests/thresholds, run counters, or switch to the normal checker inside the bounded case directory.
+- Stop only at an explicit CLEAN_RUN_PREFLIGHT_STOP, CLEAN_RUN_STOP, or an actual checker result allowed by the protocol. At a stop boundary, read draft.md once and output that exact article.

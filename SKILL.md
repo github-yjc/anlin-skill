@@ -21,7 +21,7 @@ Before writing any article sentence, make the routing action visible: in a possi
 
 Choose the smallest mode that matches the current task:
 
-- **Clean-eval mode has priority over ordinary article wording**: `.anlin-clean-eval-mode` exists, or the controller is measuring natural first-draft guidance. First tool action must check the marker and current directory before deciding ordinary mode in any workspace that may be a formal/eval case, for example `Test-Path .anlin-clean-eval-mode; Get-Location`. A present marker overrides "write an article", "give me prose", "save a draft", or other ordinary-user phrasing. Load only `references/clean-eval-first-draft-minimum.md`; for standard diary also load `references/standard-diary-source-engine.md`. Write one complete `draft.md`, then use `scripts/clean_run_checker.py` for at most two actual checker calls; preflight attempts do not consume that call budget and may continue until an explicit `CLEAN_RUN_PREFLIGHT_STOP`. Do not call the normal checker in the bounded case directory.
+- **Clean-eval mode has priority over ordinary article wording**: `.anlin-clean-eval-mode` exists, or the controller is measuring natural first-draft guidance. First tool action must check the marker and current directory before deciding ordinary mode in any workspace that may be a formal/eval case, for example `Test-Path .anlin-clean-eval-mode; Get-Location`. A present marker overrides "write an article", "give me prose", "save a draft", or other ordinary-user phrasing. Load only `references/clean-eval-first-draft-minimum.md`; for standard diary also load `references/anlin-collage-source-model.md` (replaces the old `standard-diary-source-engine.md`). Write one complete `draft.md`, then use `scripts/clean_run_checker.py` for at most two actual checker calls; preflight attempts do not consume that call budget and may continue until an explicit `CLEAN_RUN_PREFLIGHT_STOP`. Do not call the normal checker in the bounded case directory.
 - **Ordinary user mode**: use only after clean-eval mode has been ruled out. The user wants an article, revision, or saved prose outside a bounded clean-eval workspace. Ask only for missing facts that materially change the result. Use `references/runtime-brief.md` for drafting/repair, then run the normal checker if validation is needed.
 - **Finalized repair mode**: the controller copied a bounded draft into a `finalized/` directory. If `repair-brief.txt` declares either compact mode, read only `draft.md` and `repair-brief.txt`.
   - `repair_mode: hard_pass_review_in_place` and `repair_mode: source_rewrite_compact` are self-contained; do not load `references/finalized-repair-minimum.md`.
@@ -49,7 +49,7 @@ For formal clean-eval generation, the first draft is intentionally under-instruc
 1. Check `.anlin-clean-eval-mode`.
 2. Confirm the current directory is the external case workspace.
 3. Read `references/clean-eval-first-draft-minimum.md`.
-4. If the selected genre is standard diary/日寄, read `references/standard-diary-source-engine.md`.
+4. If the selected genre is standard diary/日寄, read `references/anlin-collage-source-model.md` (replaces the old `standard-diary-source-engine.md` which is preserved for reference).
 5. Write one complete titled article to `draft.md`.
 6. Run `python <skill-dir>/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing --genre <selected-genre>` when genre is known.
 
@@ -75,7 +75,7 @@ Use these files by task; do not load everything.
 
 | Need | Read |
 |---|---|
-| Clean-eval first draft | `references/clean-eval-first-draft-minimum.md`; add `references/standard-diary-source-engine.md` for standard diary |
+| Clean-eval first draft | `references/clean-eval-first-draft-minimum.md`; for standard diary also add `references/anlin-collage-source-model.md` (replaces the old `standard-diary-source-engine.md`) |
 | Clean-eval repair after wrapper output | wrapper output only; no additional reference read |
 | Ordinary drafting or non-formal repair | `references/runtime-brief.md`, then `references/feature-budget.md` and `references/anti-ai-slop.md` only as needed |
 | Fact or background check after scene selection | `references/anlin-background.md`, `references/background-fact-classes.json`, `references/era-state.md` |
@@ -88,18 +88,18 @@ Use these files by task; do not load everything.
 
 Background is a contradiction boundary, not a content quota. Do not add 云南、王者、狗哥、痛风、外卖、知乎, AI/GPT, cities, districts, game ranks, office facts, or platform details merely because a reference permits them. Game may appear when the prompt, action, memory trigger, social wound, practical delay, or cognitive turn needs it; it is optional and should stay low-specificity unless supported.
 
-Do not use corpus ratio targets as a pre-draft recipe. Style-profile and predictive intervals are post-draft audit tools. If a ratio drifts, repair the underlying function: scene mass, consequence, rhythm, prompt displacement, title source, or fact specificity.
+Do not use corpus ratio targets as a pre-draft recipe. Style-profile and predictive intervals are post-draft audit tools. If a ratio drifts, inspect the earliest broken fragment relation, voice signal, prompt surface, title source, fact specificity, or visible shape; do not add a feature merely to move a ratio.
 
 ## Runtime Guardrails
 
-- Start from friction, not a checklist or prompt inventory.
+- Start from a fragment, thought, voice turn, or ordinary friction, not a checklist or prompt inventory.
 - Complete article means title plus body; every test draft must include a title.
 - Ask at most one intake round for missing information that materially affects quality, such as target date/period, usable day material, genre, output destination, and whether low-confidence projection or lookup is allowed. Multiple short questions can be in that one round; skip questions already answered by the user.
 - If information is missing and the user does not answer, lower specificity: avoid unsupported city/district, company, route, current events, game tactics, office biography, spouse/child/family-status claims, and concrete platform facts.
 - Do not satisfy every style feature. Use a few consequential features deeply rather than all labels shallowly.
 - Remove high-risk AI surfaces before output: `不是X，是Y` / `不是X，而是Y`, blog-like explanation, therapeutic humanizer phrases, prompt-shaped titles, neat moral closure, long prompt inventories, `——` feeling captions, unsupported specifics, and visible ratio/checker language.
-- For standard diary, rhythm must come from action, speech, body, payment, reply, door, route, or object movement; avoid prose-block compression, tiny-line grids, period-row grids, and comma carpets.
-- For social-decline prompts, the refusal aftermath must change a later visible action. Do not leave it as `message -> ticket/gift calculation -> OK reply -> room object`; also avoid group-chat crowd summaries and tidy etiquette closure.
+- For standard diary, let rhythm follow thought, speech, memory, association, body, object, or action movement; avoid prose-block compression, tiny-line grids, period-row grids, and comma carpets without prescribing a fixed page shape.
+- For social-decline prompts, treat the invitation or refusal as one possible fragment. Do not invent a consequence chain, group-chat crowd, work biography, or etiquette closure merely to prove the prompt.
 - For sincere/micro-hope short forms, keep uneven clusters, present practical action, awkward reply/logistics, and loose factual retreat. Do not preserve every prompt prop or expand into standard diary bulk.
 - Short-genre profile fallback is not strong evidence. If the style-profile shows `inconclusive` due to small corpus, do not force standard-diary rhythm, length, or texture to satisfy the fallback. A correct short-genre draft may flag `review` under global priors; that is a corpus limitation, not a draft failure. Do not add background, game, body, or platform packets to compensate for an unstable short-genre profile.
 

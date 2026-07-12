@@ -1,6 +1,6 @@
-# Standard Diary Source Engine
+# Standard Diary Source Engine (Inactive Historical Reference)
 
-Use this file only for clean-eval standard-diary first drafts, after `clean-eval-first-draft-minimum.md` and before the first `draft.md`. It is part of the minimal generation pack, not a repair checklist.
+This file is retained for historical failure analysis, migration review, and comparison with older checkpoints. It is not an active clean-eval or ordinary-runtime source guide. Active standard generation uses `clean-eval-first-draft-minimum.md` plus `anlin-collage-source-model.md`; do not load this file before writing `draft.md`.
 
 ## One Quiet Move
 

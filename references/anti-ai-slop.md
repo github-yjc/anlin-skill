@@ -1,8 +1,8 @@
 # Anti-AI Slop Gate
 
-Clean-eval misroute guard: if `.anlin-clean-eval-mode` exists, or if you are in a formal/eval workspace and have not yet checked that marker, stop using this file before drafting. First run the marker and location check, then load `references/clean-eval-first-draft-minimum.md`; for standard diary also load `references/standard-diary-source-engine.md`. Do not keep reading this file as a negative checklist before the first complete `draft.md`.
+Clean-eval misroute guard: if `.anlin-clean-eval-mode` exists, or if you are in a formal/eval workspace and have not yet checked that marker, stop using this file before drafting. First run the marker and location check, then load `references/clean-eval-first-draft-minimum.md`; for standard diary also load `references/anlin-collage-source-model.md`. Do not keep reading this file as a negative checklist before the first complete `draft.md`.
 
-Use this file directly for ordinary drafting or explicit anti-AI analysis. For bounded clean-eval generation, `clean-eval-first-draft-minimum.md` and `standard-diary-source-engine.md` carry the first-draft constraints, and wrapper output alone carries bounded repair. Do not load this file or `clean-generation-brief.md` inside that bounded repair.
+Use this file directly for ordinary drafting or explicit anti-AI analysis. For bounded clean-eval generation, `clean-eval-first-draft-minimum.md` and `anlin-collage-source-model.md` carry the first-draft constraints, and wrapper output alone carries bounded repair. Do not load this file or `clean-generation-brief.md` inside that bounded repair.
 
 The goal is not to make the article casual. The goal is to remove surfaces that make a reader feel a model completed an assignment: too balanced, too explanatory, too coherent, too loyal to the prompt, and too clean.
 
