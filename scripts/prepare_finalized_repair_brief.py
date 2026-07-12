@@ -115,7 +115,6 @@ STANDARD_LENGTH_RULES = {
 
 WEAK_SOURCE_RULES = SOCIAL_DECLINE_RULES | {
     "高频词覆盖不足",
-    "粗粝自毁信号不足",
     "段落发动机信号偏弱",
     "私密湿脏纹理替代粗粝",
     "标准日寄行数缓冲异常",

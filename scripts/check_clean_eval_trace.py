@@ -350,6 +350,8 @@ def actual_pre_draft_probe_index(text: str) -> int:
         r"(?im)^\s*(?:TOOL\s+)?(?:→\s*)?Read\b",
         r"(?im)^\s*TOOL\s+(?:read|filesystem_read_file)\b",
         r"(?im)^\s*TITLE\s+(?:Glob|Read)\b",
+        r"(?im)^\s*\$\s+[^\n]*(?:Get-ChildItem|Get-Content|Select-String|rg|grep|ls|dir|find|cat|type)\b",
+        r"(?im)^\s*INPUT\s+[^\n]*(?:command|cmd)[^\n]*(?:Get-ChildItem|Get-Content|Select-String|rg|grep|ls|dir|find|cat|type)\b",
     ]
     return first_regex_action_index(text, patterns)
 
@@ -624,6 +626,15 @@ def collect_findings(text: str) -> list[TraceFinding]:
             )
         )
     probe_index = actual_pre_draft_probe_index(pre_draft)
+    # Get-ChildItem is a valid marker action. Do not reuse that same action as
+    # the path-probe that supposedly happened before cwd confirmation.
+    if marker_index >= 0 and probe_index == marker_index:
+        marker_line_end = pre_draft.find("\n", marker_index)
+        if marker_line_end < 0:
+            marker_line_end = len(pre_draft)
+        after_marker = pre_draft[marker_line_end + 1 :]
+        next_probe = actual_pre_draft_probe_index(after_marker)
+        probe_index = marker_line_end + 1 + next_probe if next_probe >= 0 else -1
     if marker_index >= 0 and probe_index >= 0 and probe_index < marker_index:
         findings.append(
             TraceFinding(

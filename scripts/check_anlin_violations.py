@@ -1530,6 +1530,8 @@ STRICT_ERROR_RULE_PREFIXES = (
     "散文块压缩",
 )
 STRICT_ERROR_RULE_NAMES: set[str] = set()
+# Fragment-slate diagnostics remain observable warnings. Their lexical/window
+# heuristics are useful review lenses but are not universal draft-gate quotas.
 DRAFT_GATE_RULE_PREFIXES = (
     "缺少标题",
     "标题标签泄漏",
@@ -1587,14 +1589,12 @@ DRAFT_GATE_RULE_PREFIXES = (
     "逗号密度过高",
     "行末逗号比例",
     "节奏过度均匀",
-    "中段旁逸不足",
     "孤立中文标点",
     "断裂过碎",
     "标准日寄行数缓冲异常",
     "标准日寄长行缓冲不足",
     "标准日寄长行过密",
     "标准日寄短行网格",
-    "粗粝自毁信号不足",
     "短行诗化表面",
     "短体裁完整度不足",
     "短体裁整齐散文",

@@ -409,6 +409,31 @@ class AnlinToolingTests(unittest.TestCase):
                     failures.append(f"{path.name} {' '.join(mode)}: {errors}")
         self.assertEqual(failures, [])
 
+    @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
+    def test_checker_draft_gate_keeps_fragment_advisories_as_warnings_on_originals(self) -> None:
+        self.assertTrue(CORPUS.is_dir(), f"missing corpus: {CORPUS}")
+        originals = sorted(CORPUS.glob("*.md"))
+        self.assertEqual(len(originals), 38)
+
+        promoted: list[str] = []
+        for path in originals:
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(path), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            targeted = [
+                item
+                for item in findings
+                if "中段旁逸不足" in item["rule"] or "粗粝自毁信号不足" in item["rule"]
+            ]
+            if any(item["severity"] == "error" for item in targeted):
+                promoted.append(f"{path.name}: {targeted}")
+        self.assertEqual(promoted, [])
+
     def test_checker_flags_prompt_shape_risks_without_hard_failure(self) -> None:
         body = "\n".join(
             [
@@ -743,7 +768,9 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
-            self.assertTrue(any(rule == "strict: 粗粝自毁信号不足" for rule in rules))
+            rough = [item for item in findings if "粗粝自毁信号不足" in item["rule"]]
+            self.assertTrue(rough, findings)
+            self.assertFalse(any(item["severity"] == "error" for item in rough), rough)
             self.assertTrue(any(rule == "strict: 短行诗化表面" for rule in rules))
 
     def test_checker_draft_gate_rejects_short_standard_diary_even_without_riji_title(self) -> None:
@@ -3883,7 +3910,7 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             self.assertFalse(any(item["severity"] == "error" for item in findings), findings)
 
-    def test_clean_eval_trace_accepts_marker_and_location_in_one_command(self) -> None:
+    def test_clean_eval_trace_accepts_marker_then_standalone_location(self) -> None:
         log = """
         → Skill "anlin-writing"
         $ Get-ChildItem -Force .anlin-clean-eval-mode -ErrorAction SilentlyContinue
@@ -3943,6 +3970,34 @@ class AnlinToolingTests(unittest.TestCase):
         $ Test-Path -LiteralPath ".anlin-clean-eval-mode"
         True
         → Read C:/skill/references/clean-eval-first-draft-minimum.md
+        $ Get-Location
+        C:/eval-workspace/iteration-67/eval-03
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --genre standard
+        CLEAN_RUN_STOP: FINAL BOUNDARY, this was checker call 2/2
+        → Read draft.md
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("clean-eval当前目录确认顺序错误", rules)
+
+    def test_clean_eval_trace_rejects_shell_path_probe_before_cwd(self) -> None:
+        log = """
+        → Skill "anlin-writing"
+        $ Test-Path -LiteralPath ".anlin-clean-eval-mode"
+        True
+        $ Get-ChildItem references -Filter *.md
         $ Get-Location
         C:/eval-workspace/iteration-67/eval-03
         ← Write draft.md
@@ -10924,8 +10979,9 @@ class AnlinToolingTests(unittest.TestCase):
             )
             self.assertNotEqual(result.returncode, 0)
             findings = json.loads(result.stdout)
-            rules = [item["rule"] for item in findings if item["severity"] == "error"]
-            self.assertTrue(any(rule == "strict: 中段旁逸不足" for rule in rules))
+            mid = [item for item in findings if "中段旁逸不足" in item["rule"]]
+            self.assertTrue(mid, findings)
+            self.assertFalse(any(item["severity"] == "error" for item in mid), mid)
 
     def test_checker_draft_gate_rejects_parallel_explainer_template(self) -> None:
         body = "\n".join(
