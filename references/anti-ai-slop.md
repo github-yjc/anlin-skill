@@ -2,7 +2,7 @@
 
 Clean-eval misroute guard: if `.anlin-clean-eval-mode` exists, or if you are in a formal/eval workspace and have not yet checked that marker, stop using this file before drafting. First run the marker and location check, then load `references/clean-eval-first-draft-minimum.md`; for standard diary also load `references/anlin-collage-source-model.md`. Do not keep reading this file as a negative checklist before the first complete `draft.md`.
 
-Use this file directly for ordinary drafting or explicit anti-AI analysis. For bounded clean-eval generation, `clean-eval-first-draft-minimum.md` and `anlin-collage-source-model.md` carry the first-draft constraints, and wrapper output alone carries bounded repair. Do not load this file or `clean-generation-brief.md` inside that bounded repair.
+Use this file directly for ordinary drafting or explicit anti-AI analysis. For bounded clean-eval generation, `clean-eval-first-draft-minimum.md` and `anlin-collage-source-model.md` carry the first-draft constraints, and wrapper output alone carries bounded repair. Do not load this file or `references/clean-generation-brief.md` inside that bounded repair.
 
 The goal is not to make the article casual. The goal is to remove surfaces that make a reader feel a model completed an assignment: too balanced, too explanatory, too coherent, too loyal to the prompt, and too clean.
 
@@ -120,7 +120,7 @@ Better:
 
 Generated text often looks fake because it obeys the prompt too well. The article should not show all requested nouns in the title, opening, middle, and ending.
 
-Before drafting, bury or discard most prompt material. Keep one pressure surface and one consequence. Make the rest arrive as a screen residue, another person's line, a practical delay, or not at all.
+Before drafting, bury or discard most prompt material. Choose only pressure surfaces the fragment slate actually earns, and let different fragments answer through association, memory, joke, body, object, or ordinary delay. Do not collapse the article into one pressure/consequence chain; make the rest arrive as a partial screen residue, another person's line, a practical delay, or not at all.
 
 High-risk pattern:
 
@@ -223,11 +223,11 @@ Before choosing the title, ask what a reader can infer from it alone. If the tit
 
 ### Opening Lens
 
-The first scene should survive after deleting the user's prompt. Start from an object, body, app residue, wrong wording, route, food, household friction, or another person's offhand line. Do not open with the clean topic.
+The first fragment should survive after deleting the user's prompt. Start from an object, body, app residue, wrong wording, route, food, household friction, or another person's offhand line. Do not open with the clean topic.
 
 ### Middle Lens
 
-The middle third is where generated drafts often fail. It cannot be a disguised outline. It needs one off-axis branch with its own turn:
+The middle is where generated drafts often fail. It cannot be a disguised outline. Let a later fragment turn through an earned lateral relation when the slate needs one:
 
 - a game/app action that causes a bad thought
 - a body or food interruption
@@ -237,7 +237,7 @@ The middle third is where generated drafts often fail. It cannot be a disguised 
 
 The branch must change action, mood, or social position. A random object that only "adds texture" still reads generated.
 
-If the middle still repeats the prompt's main nouns, the draft is not drifting; it is decorating the assignment. Replace one on-topic middle unit with a practical interruption that makes the narrator do something else.
+If the middle still repeats the prompt's main nouns, the draft is not drifting; it is decorating the assignment. Replace the earliest redundant relation with a practical interruption or lateral thought that makes the narrator do something else; do not add a branch as a quota.
 
 ### Rhythm Lens
 
@@ -247,10 +247,8 @@ Do not repair rhythm by spraying commas through the whole body. Several early co
 
 ### Density Lens
 
-Before the final checker, count by feel:
+Before the final checker, judge density by function rather than a universal length corridor:
 
-- if the article is already beyond about 1250 body Chinese characters, delete before adding
-- if it crosses 1350, assume overfill until proven otherwise
 - if body, screen, and route/object details are all frequent, ask which ones change the day
 - if a detail only proves "there is life texture here," cut it
 - if deleting a supported background noun changes nothing, cut it
@@ -274,7 +272,7 @@ Allowed inference is low-resolution. `He plays games` or `he has played 王者�
 
 ### Prompt-Loyalty Lens
 
-Pick one visible pressure surface and one consequence. If the article includes all prompt items, it will look generated even if each sentence is good.
+Pick only visible pressure surfaces that the fragment slate earns, and let different fragments answer through different kinds of consequence or no consequence at all. If the article includes all prompt items or forces them into one pressure/consequence chain, it will look generated even if each sentence is good.
 
 ### One-Line Smell Lens
 

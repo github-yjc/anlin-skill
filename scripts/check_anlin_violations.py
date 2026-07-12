@@ -639,7 +639,6 @@ SOCIAL_DECLINE_REFUSAL_TERMS = [
     "最近忙",
     "忙项目",
     "赶项目",
-    "恭喜",
     "不来了",
     "来不了",
     "算了吧",
@@ -1545,7 +1544,6 @@ DRAFT_GATE_RULE_PREFIXES = (
     "社交动态库存式开头",
     "旧记录私密考古链",
     "评论链公式化转述",
-    "高频词覆盖不足",
     "AI二元解释句式",
     "提示词报幕式对话",
     "AI解释腔",
@@ -1597,7 +1595,6 @@ DRAFT_GATE_RULE_PREFIXES = (
     "标准日寄长行过密",
     "标准日寄短行网格",
     "粗粝自毁信号不足",
-    "段落发动机信号偏弱",
     "短行诗化表面",
     "短体裁完整度不足",
     "短体裁整齐散文",
@@ -2633,7 +2630,15 @@ def check_high_frequency_coverage(findings: list[Finding], text: str) -> None:
             )
         return
     if len(present) < 5:
-        findings.append(Finding("warning", "高频词覆盖不足", 0, f"present={present}", "需要多个不同的自然连接信号；先让动作、对话、身体或屏幕移动产生连接词，不要在句尾硬撒。"))
+        findings.append(
+            Finding(
+                "warning",
+                "高频词覆盖不足",
+                0,
+                f"present={present}",
+                "只作关系诊断：检查是否缺少真实的思想或动作转向；片段可以通过联想、回声、记忆或直接跳接保持连贯，不要为了覆盖词表硬撒连接词。",
+            )
+        )
 
 
 def check_short_genre_polished_minimalism(findings: list[Finding], lines: list[str], text: str) -> None:
@@ -3659,7 +3664,7 @@ def check_standard_diary_length(findings: list[Finding], lines: list[str], text:
                 "标准日寄完整文章篇幅偏短",
                 0,
                 f"body_chinese_chars={chars}",
-                "低于650字属于严重残稿；从最强可用 movement 整体重建，跨已释放 carrier 恢复完整标准日寄质量，不要把残稿保留为一换一 packet repair，也不要追加检查器形状的证明场景；若本来就是短体裁则改用匹配评估。",
+                "文章明显偏短时，从最强可用 fragment 整体重建，恢复完整文章和必要的多个 thought-turn；不要把残稿保留为一换一 packet repair，也不要追加检查器形状的证明场景；若本来就是短体裁则改用匹配评估。",
             )
         )
     elif chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
@@ -3669,7 +3674,7 @@ def check_standard_diary_length(findings: list[Finding], lines: list[str], text:
                 "标准日寄完整文章篇幅缓冲不足",
                 0,
                 f"body_chinese_chars={chars}",
-                "650-899字容易在生成波动和修复中变成长度识别点；一换一替换一个过载 carrier，把缺失质量分摊到 replacement 与相邻既有 movement，carrier 完成一次 consequence transfer 后退出；不要追加独立行动链、社交误伤、身体/金钱证明或无用残留。",
+                "篇幅缓冲不足时容易在生成波动和修复中变成长度识别点；一换一替换最早过载或重复的 fragment relation，把缺失质量恢复到 replacement 与相邻既有 movement；不要追加独立行动链、社交误伤、身体/金钱证明或无用残留。",
             )
         )
     elif chars > STANDARD_DIARY_DRAFT_OVERFULL_CHARS:
@@ -3679,7 +3684,7 @@ def check_standard_diary_length(findings: list[Finding], lines: list[str], text:
                 "标准日寄完整文章过满",
                 0,
                 f"body_chinese_chars={chars}",
-                "正式标准日寄生成稿过长时常是为了过检查而堆身体、屏幕、物件和解释。优先删掉不改变行动、社交位置、身体后果或下一场景的材料，收回到约950-1250字。",
+                "正式标准日寄生成稿过长时常是为了过检查而堆身体、屏幕、物件和解释。优先删掉不改变行动、社交位置、身体后果或下一片段的材料；不要用篇幅数字决定内容。",
             )
         )
 

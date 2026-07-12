@@ -22,6 +22,8 @@ A fragment is a thought-turn that can stand briefly on its own:
 
 A slate can contain several kinds in any order. Do not assign one slot to each kind, and do not preserve every prompt detail.
 
+For a standard diary, normally let the slate move through several independent thought-turns. One continuous scene, conversation, message thread, or transaction carrying the whole article is a deliberate exception, not the default; after a fragment has done its work, let the voice jump when an earned association, memory, contrast, joke, object, or ordinary fact appears. This is a qualitative source contract, not a fragment-count quota.
+
 ## Fragment Relations
 
 Use the relation the text earns:
@@ -34,7 +36,7 @@ Use the relation the text earns:
 - cognitive habit: a price, system, joke, symptom, or social rank becomes an explanation;
 - direct jump: a new fragment arrives without a bridge because the voice makes the jump believable.
 
-Causal movement is allowed but optional. Do not repair a collage into a plot merely because a checker cannot name its engine.
+causal movement is allowed but optional. Do not repair a collage into a plot merely because a checker cannot name its engine.
 
 ## Coherence Without a Single Scene
 
@@ -67,4 +69,3 @@ An invitation or refusal may be one fragment among memories, jokes, work facts, 
 ## Minimum
 
 The first saved article must be a complete titled artifact in draft.md. It must not contain process language, checker language, model names, corpus claims, authorship claims, or unsupported high-risk facts. There is no fixed character corridor, line corridor, cluster quota, required scene order, required outside contact, or required tail.
-

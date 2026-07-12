@@ -179,46 +179,31 @@ def hard_gate_primary_action(findings: list[dict[str, Any]], *, body_chars: int 
     error_rules = {hard_rule_name(item) for item in findings if item.get("severity") == "error"}
     if body_chars is not None and 0 < body_chars < 650:
         return (
-            "rebuild_severely_underbuilt_standard: do a whole-source rebuild from the strongest workable movement; "
-            "restore complete standard-diary mass across released carriers, change medium after each consequence transfer, "
-            "and do not preserve the fragment as a one-for-one packet-replacement frame or append checker-shaped proof scenes."
+            "rebuild_severely_underbuilt_fragment: rebuild the incomplete article from its strongest existing fragment relation; "
+            "preserve a complete article within the supplied fact boundary and do not append checker-shaped proof material."
         )
     if body_chars is not None and 650 <= body_chars < 900:
         return (
-            "replace_underbuilt_standard_carrier: replace one overloaded person/place/transaction/object packet one-for-one, "
-            "restore the complete article mass across the replacement and neighboring existing movements, release that carrier "
-            "after one consequence transfer, and do not append an independent scene or proof packet."
+            "replace_underbuilt_fragment: replace the earliest underdeveloped fragment or relation in place; "
+            "preserve the article's existing mass and voice, and do not append an independent scene or proof packet."
         )
     if body_chars is not None and 900 <= body_chars < 950 and error_rules & WEAK_SOURCE_RULES:
         return (
-            "preserve_boundary_mass_replace_weak_carrier: keep the useful scene facts, replace one weak or overloaded carrier "
-            "one-for-one, preserve complete article mass, release that carrier after one consequence transfer, and move the next "
-            "function through a different existing medium instead of shrinking or appending a proof cluster."
+            "preserve_boundary_mass_replace_weak_fragment: keep useful existing facts, replace the earliest weak fragment relation "
+            "in place, preserve article mass, and do not shrink or append diagnostic material."
         )
     if error_rules & OVERFULL_SHAPE_RULES:
         return (
-            "delete_and_merge_overfull_standard: first remove repeated proof packets, decorative explanations, "
-            "duplicate body/object/screen evidence, and low-consequence memory ledgers; then merge adjacent caption rows "
-            "into fewer rough action/speech/thought lines. Aim the single rewrite toward a compact complete standard diary "
-            "near 45-70 visible body lines and roughly 950-1250 body Chinese characters. Do not add new scenes while this "
-            "overfull/fragmented hard gate is present. Do not solve it by making every row a closed sentence: keep several "
-            "unfinished action/reply/body lines ending with a comma, and delete polished simile captions instead of "
-            "turning them into shorter explanatory sentences."
+            "thin_overfull_fragment_slate: remove repeated proof, decorative explanations, duplicate object/screen evidence, "
+            "and low-consequence memory ledgers; merge only the rows needed by the affected movement. Do not add a scene or "
+            "new material while the overfull/fragmented gate is present, and do not replace the page with a uniform punctuation template."
         )
     if error_rules & SOCIAL_DECLINE_RULES:
         return (
-            "rebuild_refusal_aftermath_engine: the social refusal must become the source engine, not a topic beside "
-            "room/screen/water texture. Remove one private room/object proof packet, keep at most one cropped message "
-            "surface, and make the post-refusal reply, payment, route, old debt, dirty/wet hand, door/body interruption, "
-            "or one plain person asking change the next visible action. Replace one existing overloaded/private packet one-for-one, "
-            "then repair only the smallest broken movement and restore whichever single relation that movement earns: a continuation, "
-            "hard landing, rough longer row, or short failed retreat. Do not stamp all four into a cluster. Do not solve this by shortening the article "
-            "into a summary; keep a complete standard-diary corridor with visible breathing clusters and roughly 950-1150 "
-            "body Chinese characters by restoring mass across the replacement and neighboring existing movements. Do not append an independent consequence cluster. Do not save "
-            "a 650-899 shrink, and do not save a 900-949 underbuilt boundary draft when engine, roughness, or connector "
-            "spread is still weak. The replacement movement must create rough self-damage or paragraph-engine movement, "
-            "not more private wet/body texture. Do not fix this by adding group-chat crowd pressure, tidy etiquette closure, "
-            "more ticket/suili ledger, or more water-room texture."
+            "repair_refusal_fragment_relation: keep the invitation or refusal as one fragment and replace the earliest broken "
+            "relation only when the draft itself makes a local consequence necessary. A reply, route, payment, body, door, or "
+            "ordinary person may change the next action, but do not manufacture a group-chat crowd, etiquette settlement, ticket ledger, "
+            "or multi-day subplot. Preserve the existing article and do not append a consequence scene."
         )
     if error_rules & PERIOD_GRID_RULES:
         return (
@@ -251,36 +236,35 @@ def compact_source_focus(findings: list[dict[str, Any]], *, body_chars: int | No
     """
 
     route = hard_gate_primary_action(findings, body_chars=body_chars).split(":", 1)[0]
-    if route == "rebuild_severely_underbuilt_standard":
+    if route == "rebuild_severely_underbuilt_fragment":
         return (
-            "rebuild the existing incomplete source from its strongest workable movement; restore complete standard-diary mass "
-            "across the released carriers and do not preserve the fragment as a one-for-one packet or append a proof scene"
+            "rebuild the existing incomplete article from its strongest fragment relation; preserve a complete article and "
+            "do not append checker-shaped material"
         )
-    if route == "delete_and_merge_overfull_standard":
+    if route == "thin_overfull_fragment_slate":
         return (
-            "remove repeated proof from the overfull surface and merge only the rows needed for that existing movement; "
+            "remove repeated proof from the overfull fragment slate and merge only the rows needed by that movement; "
             "do not add material, a new scene, or a new explanation"
         )
-    if route == "replace_underbuilt_standard_carrier":
+    if route == "replace_underbuilt_fragment":
         return (
-            "replace one existing overloaded carrier one-for-one and restore complete article mass across that replacement and "
-            "neighboring existing movements; do not append an independent scene or proof packet"
+            "replace the earliest underdeveloped fragment or relation in place while preserving the existing article; "
+            "do not append an independent scene or proof packet"
         )
-    if route == "preserve_boundary_mass_replace_weak_carrier":
+    if route == "preserve_boundary_mass_replace_weak_fragment":
         return (
-            "replace one existing weak carrier one-for-one while preserving complete article mass and the useful scene facts; "
-            "move the next function through a different existing medium"
+            "replace the earliest weak fragment relation in place while preserving article mass and useful existing facts; "
+            "let the next thought or action change direction without adding a packet"
         )
     if route == "break_period_grid":
         return (
             "repair one existing action/reply/body movement locally so its continuation or landing is earned; "
             "preserve unrelated row endings and do not apply a page-wide comma or period transformation"
         )
-    if route == "rebuild_refusal_aftermath_engine":
+    if route == "repair_refusal_fragment_relation":
         return (
-            "replace one existing private room/screen/wet-texture or polite-closure cluster with one refusal-coupled "
-            "consequence that changes the next visible action; keep the same people, message channel, and room; "
-            "do not add a new scene, witness, route, or message chain"
+            "replace the earliest broken invitation/refusal fragment relation with a local consequence only when the draft earns it; "
+            "keep the same visible facts and do not add a new scene, witness, route, or message chain"
         )
     if route == "delete_polished_caption":
         return (
@@ -302,20 +286,20 @@ def compact_source_rewrite_brief(
     """Format the single-action interface used for valid hard-gate failures."""
 
     route = hard_gate_primary_action(findings, body_chars=body_chars).split(":", 1)[0]
-    if route == "rebuild_severely_underbuilt_standard":
+    if route == "rebuild_severely_underbuilt_fragment":
         scope_contract = (
-            "scope_contract: rebuild the existing incomplete source across its current movements; do not pretend one local cluster "
-            "is sufficient, do not append a separate scene, and keep every changed fact within the supplied prompt/source boundary."
+            "scope_contract: rebuild the existing incomplete article across its current fragment relations; do not pretend one local "
+            "patch is sufficient, do not append a separate scene, and keep every changed fact within the supplied prompt/source boundary."
         )
         mass_contract = (
-            "mass_contract: restore complete standard-diary mass across released carriers and change medium after each consequence transfer; "
-            "do not preserve the fragment as a short summary or fill the gap with a checker-shaped proof list."
+            "mass_contract: preserve a complete article and the useful existing material; do not save a short summary or fill the gap "
+            "with a checker-shaped proof list."
         )
         shape_contract = (
             "shape_contract: write one complete line-broken article with uneven movement; do not apply a page-wide punctuation transform "
             "or use a caption grid to simulate completeness."
         )
-    elif route == "delete_and_merge_overfull_standard":
+    elif route == "thin_overfull_fragment_slate":
         scope_contract = (
             "scope_contract: remove the smallest repeated proof cluster or adjacent caption rows that cause overfill, merging only rows "
             "needed for that existing movement; do not add a scene, witness, route, or explanation."
@@ -330,11 +314,11 @@ def compact_source_rewrite_brief(
         )
     else:
         scope_contract = (
-            "scope_contract: choose one existing local cluster that already carries the failed movement and replace that cluster in place; "
-            "keep the title, people, message channel, and current scene; do not append a new paragraph or packet."
+            "scope_contract: choose the earliest existing local fragment relation that carries the failed movement and replace it in place; "
+            "keep the title and useful visible facts; do not append a new paragraph, scene, or packet."
         )
         mass_contract = (
-            "mass_contract: keep the revised page close to the incoming artifact; restore missing consequence inside the chosen cluster "
+            "mass_contract: keep the revised article close to the incoming artifact; restore missing movement inside the chosen relation "
             "rather than expanding the article or shrinking it into a summary."
         )
         shape_contract = (
@@ -356,7 +340,7 @@ def compact_source_rewrite_brief(
         scope_contract,
         mass_contract,
         shape_contract,
-        "fact_contract: do not invent a new witness, route, backstory, group chat, second message chain, or independent payment ledger; every changed detail must alter the selected movement's next action.",
+        "fact_contract: do not invent a new witness, route, backstory, group chat, second message chain, or independent payment ledger; every changed detail must belong to the selected fragment relation.",
         "write_contract: exactly one complete draft.md write, then stop; do not write a placeholder, validate, count, search, or print an alternate article. If a chat reply is required, output only artifact_written.",
         "controller_boundary: after the single write, the controller reruns strict hard gate and full style-profile reports. The repair agent does not validate the frozen artifact.",
     ]

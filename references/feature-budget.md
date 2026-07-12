@@ -16,38 +16,38 @@ These apply to all normal generation:
 6. No clean moral, advice, motivational ending, or solved emotional arc.
 7. No direct copying of signature passages from the original corpus.
 8. No "polished fragment poem" default: avoid uniformly short lines, numbered sections, or clean cinematic closure unless a source anchor strongly supports that exact form.
-9. No blind-test length outlier: for serious anonymous evaluation, complete articles with titles must be comparable to complete corpus articles. If the draft is too short, expand or mark the evaluation as short-genre only.
+9. No blind-test shape outlier: for serious anonymous evaluation, the controller chooses a matched comparison condition after the artifact exists. Do not expand a draft or mark a genre from a universal length prior.
 10. No prompt-shaped article: the title, scene order, and ending must not reveal the user's prompt as an outline.
 11. No learned ending button or ambient fade-out: `哦`, `算了`, `睡了`, `今天先这样`, `就先这样`, a dark screen, a light still on, wind/noise continuing, or a lone sound effect cannot be used as default closure. End on an earned unfinished action, wrong object, route/payment/reply, or body interruption.
 12. No external-test scaffolding: formal evaluation drafts must be achievable from the skill and a realistic user prompt, not from extra controller hints, judge rubrics, or post-failure advice supplied to the generator.
 13. No diagnostic standard title: when writing a standard diary for blind evaluation, choose the title after the body using `title-model.md`. Bare `日寄` is valid, but not a universal default; use `X日寄`, `X寄`, questions, meme/platform titles, sentence titles, or literary phrases only when the body earns them and they do not expose the user's topic noun. Calendar labels such as `2024日寄`, `新年日寄`, `跨年日寄`, or `年度总结日寄` are high risk when the date/feed topic comes from the prompt.
-14. No underbuilt complete article: a generated standard diary submitted to full complete-article blind evaluation should normally land around 900-1100 body Chinese characters. 650 is only the lower comparison boundary; 650-849 is a draft-risk buffer zone when repairs are likely. Below 850, expand with lived actions and residues or mark the evaluation as short-genre only.
-15. No realist-short-story smoothing: standard diary cannot keep every scene inside one coherent emotional arc. It needs lateral branches, rough social misfires, crooked jokes, and unhelpful residue.
-16. No high-signal prompt coverage: formal standard-diary blind evaluation should visibly use at most two prompt pressure surfaces; discard or bury the rest.
+14. No underbuilt complete article: a generated article must be a complete titled artifact with enough lived movement for its selected genre and evaluation condition. If it is thin, replace the earliest weak relation or restore useful movement inside an existing relation; do not add material solely to reach a length prior.
+15. No realist-short-story smoothing: standard diary may move through a loose montage, memory drift, conversation, or collage. Do not force every fragment into one coherent emotional arc; preserve voice coherence and earned relations.
+16. No high-signal prompt coverage: formal standard-diary evaluation must not become a prompt inventory. Keep only prompt surfaces an existing fragment needs; discard or let the rest disappear without counting them.
 17. No AI-reframe sentence: formal generated drafts should not use `不是X，是Y`, `不是X，而是Y`, `不是因为X，而是因为Y`, `真正的问题是`, `本质上`, `现在我意识到...`, or similar explanation scaffolds. Make the turn happen through scene, body, app, money, or another person's line.
 18. No unsupported concrete background: do not invent named districts, city routes, company parks, local policies, or game-role details. Use `anlin-background.md` and user-provided facts; if unsupported, lower specificity. Supported background is not mandatory material; it only prevents contradictions.
 19. No literary annotation sentence: formal generated drafts should not use `——` to append an explanatory feeling, and should avoid abstract emotion nouns such as `放松`, `释然`, `自洽`, `真实感`, `完整感`, or `命运感`. If the feeling matters, turn it into an action, body interruption, payment, route, food, or another person's plain line.
 20. No pseudo-humanizer regularity: do not manufacture roughness on a schedule. Avoid repeated "口语化" tics, invented internet idioms, four-item concept clusters, and a predictable alternation of short joke / sad line / object detail.
-21. No middle-third prompt loop: the middle of a standard diary cannot keep restating the user's main domain. It needs at least one off-axis branch with consequence, not a decorative realism detail.
+21. No middle-third prompt loop: the middle of a standard diary cannot keep restating the user's main domain. Replace the earliest redundant relation with a lateral thought, memory, joke, object, or practical turn when the voice earns it; do not add a branch as a quota.
 22. No line-length grid: do not make the article a sequence of same-sized short lines. Rhythm variance should come from action, speech, body, and thought turns.
-23. No over-fragmented body: a 900-1300 character standard diary should not become 100+ tiny lines. Broken rhythm is not one clause per line.
+23. No over-fragmented body: broken rhythm is not one clause per line or a mechanically uniform prose block. Let line breaks follow thought, speech, memory, body, object, or action.
 24. No runtime dependence on external style cleanup: anti-AI-writing behavior must come from this skill's own references and checker. Do not call another personal style or anti-slop skill to make the prose acceptable.
 25. No over-specific inference: corpus-supported inference may lower specificity, but it must not invent current city, current game rank, match tactics, employer, local policy, or platform fact.
 26. No helpful clarification sentence: if a line explains why the scene matters, helps the reader understand the theme, or repairs ambiguity, delete it unless a person/app in the scene literally produced that line.
 27. No ratio-matching as composition: corpus priors and predictive intervals are post-draft audit tools, not quotas. Do not add a connector, game cue, body symptom, dialogue line, comma, or short line merely to satisfy a measured ratio. If a measured feature drifts, repair the lived function that caused it.
-28. No overfilled completeness: a formal standard-diary draft above about 1250 body Chinese characters should be checked for padding; 1350+ should be treated as generated-draft overfill unless the material is truly consequence-bearing. Delete non-consequential texture instead of adding another body/screen/object detail.
+28. No overfilled completeness: if a draft feels padded, delete non-consequential texture instead of adding another body, screen, object, or background detail. Length alone is not a pass/fail threshold.
 29. No texture saturation: body, phone/screen, route/object, money, platform, and background facts are not six boxes to tick. If three texture families are all frequent, keep only details that change what the narrator does, what someone says, what the body interrupts, or what the next scene can become.
 30. No anti-AI-reference contamination: anti-slop terms in this skill are negative examples, not content prompts. Unless the user supplied it, do not write AI/GPT/model/text-detection scenes or advice about identifying generated prose.
 31. No repeated texture-packet repair: if a draft keeps returning to the same body/object packet, such as hand dirt, white food, cutting board, garbage, route heat, payment, or dark room, do not add another proof-detail. Delete one packet and replace its function with a social or practical consequence that changes reply, payment, route, room position, or next action.
 32. No private illness case report: illness/body prompts must not spend the whole article cycling through symptom, search page, refrigerator food, room smell, and ambient sound. Before drafting, choose one exposed consequence that changes route, reply, payment, doorway/shop contact, or social position. If a repair adds only a phone message while the illness/food/room packet keeps repeating, it has not escaped the case report.
-33. No polished short-genre essay or sketch: sincere and micro-hope pieces can be short, but they still need uneven breathing, rough logistics, awkward reply/practical interruption, and factual retreat. Do not submit a 25-35-line smooth prose piece where every line completes the same feeling, and do not treat a 250-500-character fragment with no longer clumsy line as a complete article.
-34. No short sincere literary-story closure: a title object, mother/family memory, childhood rain, withheld message, and final tasteful residue must not all point to the same love/guilt argument. When the prompt supplies several of those props, preserve one main pressure and at most one cropped trace; discard or bury the rest. For Mother's Day direct-memory prompts, do not keep all four visible blocks: holiday/feed, eggs/home food, childhood rain, and typed-then-deleted message. Cut one symbolic proof or add a present-day practical interruption before the article becomes a small designed story.
+33. No polished short-genre essay or sketch: sincere and micro-hope pieces can be short, but they still need uneven breathing, rough logistics, awkward reply/practical interruption, and factual retreat. Do not let every line complete the same feeling or let a fragment stand without a complete turn merely because it is concise.
+34. No short sincere literary-story closure: a title object, family memory, withheld message, and final residue must not all point to one neat love/guilt argument. When the prompt supplies several props, let only the relations the existing action earns remain; discard or bury the rest. Cut symbolic proof or let a present-day practical interruption damage the neatness before the article becomes a designed story.
 35. No short-genre repair stuffing: when a sincere or micro-hope draft is thin, do not thicken it by importing unrelated delivery, branded food, gift, media/video, variety-show, game, route, city, or background packets. Repair inside the chosen prop budget first: longer clumsy lines can come from the same object, room, reply, body, and cropped memory. Add a new material family only if it changes action, social position, body, room, or the next scene.
 36. No memory-first sincere proof chain: for mother/family sincere prompts, select a present-action anchor before selecting memory. The anchor must be a current sink/bowl/door/neighbor/call/reply/body/clothing/room/object problem that changes the next action. Eggs, rain, holiday feed, and blessing are pressure props, not anchors, unless the present action around them fails and redirects the scene.
-37. No early prompt-prop takeover: a present-action anchor must hold the opening, not just appear as a preface. If the first few body lines already introduce eggs, plastic bag, rain, mother, holiday feed, and the unsent message as a chain, cut the chain and let the first 8-12 lines stay with today's practical failure before one memory prop leaks in.
+37. No early prompt-prop takeover: a present-action anchor must hold the opening, not just appear as a preface. If the opening already introduces eggs, plastic bag, rain, mother, holiday feed, and the unsent message as a chain, cut the chain and let today's practical failure turn before one memory prop leaks in; there is no fixed line count.
 38. No local patch for a failed sincere spine: when a short sincere draft already runs through a neat egg/rain/holiday/no-message/final-residue chain, do not repair by adding one practical detail while preserving the same title, opening object, memory order, and ending. Reset the source: current practical failure first, new side-action title after the new body exists, at most one old memory prop as a cropped leak, no unrelated repair stuffing.
 39. No main-prop title loop in short sincere: do not let a title like `鸡蛋`, `一袋鸡蛋`, `塑料袋`, `屏幕`, or `没发出去的消息` become the object that opens the body, proves the memory, carries the withheld message, and closes the ending. Prefer a side-action title from today's failed action. If a prompt-prop title remains, the body and tail must stop using it as the emotional proof.
-40. No short-genre expansion drift: once a sincere or micro-hope corridor is selected, repair must not turn it into a standard diary by adding relation exposition, transfer/account scenes, extra social packets, or 900+ character proof-story bulk. Keep the selected genre locked and repair by cutting drift, not by satisfying another genre's length/rhythm gates.
+40. No short-genre expansion drift: once a sincere or micro-hope route is selected, repair must not turn it into a standard diary by adding relation exposition, transfer/account scenes, extra social packets, or proof-story bulk. Keep the selected genre locked and repair by cutting drift, not by satisfying another genre's shape priors.
 41. No unsupported major family status: do not invent that the mother or close family member is dead, gone, no longer there, or unreachable to make a short sincere piece feel heavier. Unless the user supplied it, lower the pressure to a current failed reply, missed call, unfinished transfer, room chore, or visible action stop.
 42. No standard prompt-prop title loop: in standard diary, do not let `备注`, `香菜`, `礼物`, `玫瑰`, `优惠券`, `朋友圈`, or another prompt prop become title, opening engine, and tail proof at the same time. These nouns can appear when the scene earns them, but if they organize the whole article, reset the source through a side consequence such as door/hallway exposure, payment, dirty hand, wrong reply, sink, rider/shopkeeper, or another person's reaction.
 43. No social-feed inventory opening: do not open a generated standard diary by listing posts, gifts, transfers, screenshots, or holiday objects from a feed. `满屏都是花和转账截图` is still prompt inventory even though it is one sentence. Keep one cropped screen surface only after a body/room/payment/door/sink/side action exists, and make it change the next move.
@@ -69,30 +69,23 @@ Use most of these, but not all:
 - one moment of analysis or deliberate misreading
 - one short retreat line or hard cut
 - one piece of ordinary noise that does not help the central motif: a stray message, bad wording, boring object, repeated action, or minor social interruption
-- uneven rhythm: at least one longer spoken/thought line and at least one hard cut; do not make all lines 4-12 Chinese characters
-- at least one prompt item displaced into another person's line, a screen surface, an unfinished action, or a practical consequence rather than stated directly
-- first visible scene that survives without the prompt topic
-- one non-iconic ending consequence: unfinished reply, cold food, wrong object, route, payment, bodily interruption, or interrupted chore
-- at least one off-axis scene connected by a hook, not by chronology
-- at least one plausible social misfire or ugly small line, when the mode is standard diary
+- uneven rhythm: let spoken/thought continuations and hard landings appear where the movement earns them; do not make every line the same shape
+- prompt items may be displaced into another person's line, a screen surface, an unfinished action, or a practical consequence when the existing relation needs that move
+- first visible fragment or action that survives without the prompt topic
+- an ending that stops on an earned unfinished action, wrong object, route, payment, bodily interruption, or interrupted chore when the voice reaches it
+- a lateral fragment connected by a hook when the slate earns one; it is not a chronology or scene quota
+- a plausible social misfire or ugly small line when the selected material naturally creates it
 
 ## Standard Diary
 
 Recommended budget:
 
-- 5-10 scene units depending on phase and length.
-- Usually 900-1100 body Chinese characters for generated full blind evaluation; always include a title; if shorter than 850, judge only against matched short originals or revise before submission.
-- Avoid drifting past about 1250 body Chinese characters. If the draft reaches 1350+, cut material first; do not treat extra length as safer completeness.
-- 2-4 emotional registers: laugh, sting, tenderness, deflection, absurdity, analysis.
-- 1-2 central motifs at most.
-- 0-2 recurring characters. Use none if the material is body, solitude, or observation driven.
-- 1-3 one-off/random social figures at most.
-- 1 main system/phone/platform texture, not a news digest.
-- 2+ non-theme residues: details that make the day feel lived rather than designed.
-- main-domain scenes below half the selected slate; use side-pressure and off-axis scenes to prevent a single-topic essay.
-- at most two visible high-signal prompt items. If the request lists roommate offer, class group physical exam, rent subsidy, job app, and resume, do not include all of them.
+- several fragment relations with room for association, memory, contrast, joke, or direct jump; do not count scenes, clusters, characters, or motifs.
+- always include a complete titled artifact; let the selected comparison condition determine any later mass or line comparison.
+- use whatever emotional registers, recurring people, platform surfaces, and ordinary residues the voice and existing material earn; none is a quota.
+- keep the prompt surface partial or displaced when direct coverage would turn the article into an assignment outline.
 - background facts used as invisible rails. If a scene only exists to show "Anlin plays 王者" or "Anlin is in Yunnan", cut the scene. If game changes action, memory, status, social relation, or cognition, it is allowed; if it only satisfies a perceived label, it fails.
-- if a repair warning mentions n-gram texture, body texture, route/object texture, or low dialogue/social movement, reduce repeated local packets before adding anything. A social consequence is useful only when it changes action or status; it is not a new quota to insert a cashier, neighbor, or vendor into every article.
+- if a repair warning mentions n-gram texture, body texture, route/object texture, or low dialogue/social movement, reduce repeated local packets or replace the earliest weak relation before adding anything. A social consequence is useful only when it changes action or status; it is not a quota to insert a cashier, neighbor, or vendor.
 - if illness, injury, or body pain is the prompt surface, one external consequence should be selected before drafting. This can be payment, doorway, route, reply, other-person reaction, object failure, or food/medicine leakage; it is not a requirement to mention 外卖, shops, or neighbors.
 
 Avoid:
@@ -109,7 +102,7 @@ Avoid:
 - reader-risk fixes that appear only as visible technique: artificially spaced slang, scheduled broken sentences, or one "random" object inserted every paragraph
 - a middle section that still loops through the prompt nouns while pretending to drift
 - line rhythm that looks mechanically cut to avoid prose blocks
-- 100+ tiny body lines in a normal-length draft
+- mechanically uniform tiny body lines or a prose block whose breaks do not follow movement
 - repeated typing/deleting as the main emotional engine
 - evaluation-prompt compliance: visible montage, unrelated details, anti-summary behavior, or title choice appearing only because the test prompt instructed them
 - AI-humanizer surface: obvious not-X-but-Y contrasts, blog-like summary words, or one-line explainer pivots that sound corrected by a machine
@@ -132,14 +125,14 @@ Recommended budget:
 - 1 core relationship or memory.
 - Low joke density.
 - Concrete actions and irreversible cost.
-- 4-7 uneven clusters rather than a single smooth paragraph or equal-length line grid.
-- For formal complete-article clean-eval, usually around 650-850 body Chinese characters and about 28-55 body lines; 55+ tiny rows is a poem-shaped grid, not restraint.
+- uneven fragment movement rather than a single smooth paragraph or equal-length line grid; do not count clusters as a quota.
+- For a matched short-original evaluation, let the selected comparison set determine mass and line shape. Otherwise there is no universal short character or line corridor; a poem-shaped grid is a shape risk, not a length target.
 - Several longer clumsy memory/action/speech/reply lines, plus one or two short fact-retreat drops.
 - One rough ordinary logistics detail or awkward reply that prevents the memory from becoming a clean proof of love.
 - One protected retreat near the end, but do not force a joke.
 - If used in blind evaluation, either expand to a comparable complete-article length or compare only against short sincere originals.
-- For clean-eval short sincere, keep a practical completeness floor: 520 is only a narrow matched-short-original buffer; when the user asks for a complete article, rebuild toward roughly 650-850 body Chinese characters unless the draft already has strong clumsy lines and a practical turn. If the draft is shorter or line-grid shaped, add a current practical cluster that changes action or reply, not another proof-memory.
-- For mother/family sincere, start from the current practical anchor. Let only one memory prop attach to that anchor; crop or discard the rest.
+- For clean-eval short sincere, judge completeness from the saved fragment relations, practical turn, and selected comparison condition. If the draft is thin or line-grid shaped, replace the earliest weak relation or reshape existing movement; do not add a new proof-memory packet to hit a number.
+- For mother/family sincere, start from a current practical anchor when the material naturally offers one. Let memory props attach only when the existing relation earns them; crop or discard the rest.
 - If a repair warning says the current-action anchor is missing, treat the old article spine as unusable. Rebuild from the present action instead of arranging the same proof chain more gracefully.
 
 Allowed:

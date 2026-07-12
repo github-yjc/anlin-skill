@@ -9,7 +9,7 @@ This matrix intentionally uses stable owner files and short evidence anchors, no
 | Owner | Meaning |
 |---|---|
 | `SKILL.md` | Thin runtime router: mode selection, artifact paths, reference routing, output rules, core safety |
-| `Layer 0/1` | User-facing generation source files, chiefly `clean-eval-first-draft-minimum.md`, `standard-diary-source-engine.md`, and clean repair guidance |
+| `Layer 0/1` | User-facing generation source files, chiefly `clean-eval-first-draft-minimum.md`, `anlin-collage-source-model.md`, and clean repair guidance |
 | `Layer 2` | Background/fact contradiction gates |
 | `Layer 3` | Finalized repair, style-profile, deterministic gates, and controller summaries |
 | `Layer 4` | Full validation, blind rounds, placebo calibration, and judge prompts |
@@ -29,8 +29,8 @@ This matrix intentionally uses stable owner files and short evidence anchors, no
 | 6 | Bounded clean-eval uses wrapper only | `SKILL.md`, clean-generation brief, validation protocol | `clean_run_checker.py`; `Do not call the normal checker in the bounded case directory` |
 | 7 | First-draft no-load rule | `SKILL.md`, `references/clean-eval-first-draft-minimum.md`, `references/clean-generation-brief.md` | `Before the first complete draft.md, do not open long repair` |
 | 7a | Misloaded runtime/anti-slop references return to minimum route | `references/runtime-brief.md`, `references/anti-ai-slop.md`, tests | `stop using this file before drafting`; load `references/clean-eval-first-draft-minimum.md`; `Do not keep reading this file as a negative checklist` |
-| 8 | Social-decline refusal aftermath | `references/clean-eval-first-draft-minimum.md`, `references/standard-diary-source-engine.md` | `one kernel must be the refusal aftermath itself`; `refusal-coupled` |
-| 9 | Punctuation pendulum source fix | `references/clean-eval-first-draft-minimum.md`, `references/standard-diary-source-engine.md` | `what is still happening after this line?`; `Connected movement does not mean comma-drag` |
+| 8 | Social-decline refusal aftermath | `references/clean-eval-first-draft-minimum.md`, `references/anlin-collage-source-model.md` | `An invitation or refusal may be one fragment`; local consequence only when earned |
+| 9 | Punctuation pendulum source fix | `references/clean-eval-first-draft-minimum.md`, `references/anlin-collage-source-model.md` | `fragment movement`; thought, speech, memory, body, object, and action decide the marks |
 | 10 | Background as contradiction boundary, not quota | `SKILL.md`, Layer 2 fact docs, README | `Background is a contradiction boundary, not a content quota` |
 | 11 | Game allowed but not required | `SKILL.md`, background docs | `Game may appear ... optional` |
 | 12 | Finalized one-write-and-stop | `SKILL.md`, `references/finalized-repair-minimum.md`, `references/runtime-brief.md`, `references/validation-protocol.md` | `first write to `draft.md` must be the final complete revision`; `artifact_written` |
@@ -43,20 +43,20 @@ This matrix intentionally uses stable owner files and short evidence anchors, no
 | 19 | Missing information lowers specificity | `SKILL.md`, runtime brief | `lower specificity`; avoid unsupported city/company/route/game tactics |
 | 20 | Do not satisfy every style feature | `SKILL.md`, feature-budget docs | `Use a few consequential features deeply` |
 | 21 | Remove high-risk AI surfaces | `SKILL.md`, anti-AI and checker docs | `not X, but Y` / `不是X，是Y`; `high-risk AI surfaces` |
-| 22 | Standard diary rhythm from movement | `SKILL.md`, `references/standard-diary-source-engine.md` | `rhythm must come from action, speech, body, payment, reply, door, route, or object movement` |
-| 23 | Social-decline changes visible action | `SKILL.md`, `references/clean-eval-first-draft-minimum.md`, `references/standard-diary-source-engine.md` | `refusal aftermath must change a later visible action` |
+| 22 | Standard diary rhythm from movement | `SKILL.md`, `references/anlin-collage-source-model.md` | `rhythm follows thought, speech, memory, association, body, object, or action movement`; several independent thought-turns normally appear |
+| 23 | Social-decline remains one possible fragment | `SKILL.md`, `references/clean-eval-first-draft-minimum.md`, `references/anlin-collage-source-model.md` | `An invitation or refusal may be one fragment among memories, jokes, work facts, old messages, bodily observations, or unrelated daily thoughts`; local consequence only when earned |
 | 24 | Short forms keep uneven clusters | `SKILL.md`, `references/clean-generation-brief.md`, `references/runtime-brief.md` | `Short-genre profile fallback is not strong evidence`; `keep uneven clusters` |
 | 25 | Output rules: no wrappers/fences/process chatter | `SKILL.md`, clean-generation brief | `Never prepend Here is`; `Do not print an English or Chinese scene plan` |
 | 26 | Refuse real-provenance deception | `SKILL.md` | `If a request asks to impersonate real provenance... refuse that part` |
 | 27 | Clean-eval, finalized, ordinary, controller modes are separate | `SKILL.md`, validation protocol, `README.md` | `Mode Router`; `separate checkpoints`; finalized pass does not retroactively fix bounded |
-| 28 | Breathing clusters are syntax units | `references/clean-eval-first-draft-minimum.md`, `references/standard-diary-source-engine.md` | `breathing clusters, not sentence rows`; `cluster can trail` |
-| 29 | Cluster relation follows actual movement | `references/clean-eval-first-draft-minimum.md`, `references/standard-diary-source-engine.md` | `Use whichever relationships the movement earns`; `what is still happening after this line?` |
-| 30 | Connectors come from real turns | `references/standard-diary-source-engine.md`, `references/runtime-brief.md` | `Connector words must come from real scene turns` |
-| 31 | Title from body, not prompt-prop loop | `references/clean-eval-first-draft-minimum.md`, `references/standard-diary-source-engine.md`, `references/title-model.md` | `Title from the body after the body exists`; `avoid prompt-prop title loop` |
-| 32 | Private wet/dirty only counts when it changes action | `references/standard-diary-source-engine.md`, `references/clean-generation-brief.md`, `references/runtime-brief.md` | `Private grime is not an event`; `changes payment, reply, door, bag, body movement, or social position` |
-| 33 | Group-chat/etiquette closure guard | `references/clean-eval-first-draft-minimum.md`, `references/standard-diary-source-engine.md` | `group-chat summaries`; `polite balance-sheet endings` |
-| 34 | Refusal chain upper bound | `references/standard-diary-source-engine.md`, `references/clean-eval-first-draft-minimum.md` | `Refusal chain upper bound: chain means one consequence transfer` |
-| 35 | `忙项目` stays an excuse, not biography | `references/clean-eval-first-draft-minimum.md`, `references/standard-diary-source-engine.md`, checker | `keep it as a lie/excuse surface`; no leave/schedule/office biography |
+| 28 | Breathing fragments are syntax units | `references/clean-eval-first-draft-minimum.md`, `references/anlin-collage-source-model.md` | `breathing fragments, not sentence rows`; punctuation follows movement |
+| 29 | Fragment relation follows actual movement | `references/clean-eval-first-draft-minimum.md`, `references/anlin-collage-source-model.md` | `Use whichever relationships the movement earns`; causal movement is allowed but optional; direct jumps are allowed |
+| 30 | Connectors come from real turns | `references/anlin-collage-source-model.md`, `references/runtime-brief.md` | connector coverage is a diagnostic, not a content quota |
+| 31 | Title from body, not prompt-prop loop | `references/clean-eval-first-draft-minimum.md`, `references/anlin-collage-source-model.md`, `references/title-model.md` | title after body exists; avoid prompt-prop title loop |
+| 32 | Private wet/dirty only counts when it changes action | `references/anlin-collage-source-model.md`, `references/clean-generation-brief.md`, `references/runtime-brief.md` | `Private grime is not an event`; changes payment, reply, door, bag, body movement, or social position |
+| 33 | Group-chat/etiquette closure guard | `references/clean-eval-first-draft-minimum.md`, `references/anlin-collage-source-model.md` | group-chat summaries and polite settlement are optional-risk diagnostics |
+| 34 | Refusal overgrowth guard | `references/anlin-collage-source-model.md`, `references/clean-eval-first-draft-minimum.md` | refusal-coupled only when earned; no multi-day subplot |
+| 35 | `忙项目` stays an excuse, not biography | `references/clean-eval-first-draft-minimum.md`, `references/anlin-collage-source-model.md`, checker | keep it as a lie/excuse surface; no leave/schedule/office biography |
 | 36 | Finalized repair is artifact-only | `SKILL.md`, `references/finalized-repair-minimum.md`, `references/runtime-brief.md`, `references/validation-protocol.md` | `artifact-only`; repair agent writes artifact, controller validates |
 | 37 | First finalized write cannot be placeholder | `references/finalized-repair-minimum.md`, `references/runtime-brief.md`, trace summary tests | `Do not write the old draft back as a placeholder`; `Copying the current draft back unchanged and then rewriting is invalid` |
 | 38 | No counters/path probes/checkers inside finalized repair | `SKILL.md`, `references/finalized-repair-minimum.md`, `references/runtime-brief.md`, `references/validation-protocol.md` | `do not run check_anlin_violations.py`; `python -c`, `Measure-Object`, `wc`, path probes |
@@ -66,7 +66,7 @@ This matrix intentionally uses stable owner files and short evidence anchors, no
 | 42 | Cropped trace definition | `references/clean-generation-brief.md`, `references/runtime-brief.md` | `cropped trace`; less than a full scene |
 | 43 | No model-specific runtime branches | README, validation protocol, active runtime docs | `model-specific failures should be generalized` |
 | 44 | No local machine paths in runtime docs | README, `SKILL.md`, runtime docs | `<skill-dir>` and `<corpus-dir>`, not user-specific paths |
-| 45 | Rhythm scripts are finite repair, not source | `references/finalized-repair-minimum.md`, `references/standard-diary-source-engine.md`, `references/clean-generation-brief.md` | `Do not depend on rebalance_line_rhythm.py`; scripts cannot create first article shape |
+| 45 | Rhythm scripts are finite repair, not source | `references/finalized-repair-minimum.md`, `references/anlin-collage-source-model.md`, `references/clean-generation-brief.md` | `Do not depend on rebalance_line_rhythm.py`; scripts cannot create first article shape |
 | 46 | Old small-sample blind protocol is inactive | `references/validation-protocol.md`, README, judge docs, tests | active readiness uses `8 impostor + 2 placebo`; legacy smaller rounds are historical only |
 | 47 | Mixed preflight repair order | `scripts/clean_run_checker.py`, `SKILL.md`, `references/clean-eval-first-draft-minimum.md`, `references/runtime-layer-map.md`, tests | wrapper output only; source/content blockers before `rebalance_line_rhythm.py`; rhythm script is final shape step after last content write |
 | 48 | Post-check preflight before checker call 2/2 | `scripts/clean_run_checker.py`, `SKILL.md`, `references/clean-eval-first-draft-minimum.md`, `references/validation-protocol.md`, tests | `CLEAN_RUN_POSTCHECK_PREFLIGHT`; byte-read-only wrapper; protect checker call 2/2 from underbuilt shrinkage or hard shape failure; no long reference reload; explicit source or shape repair |

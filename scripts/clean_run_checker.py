@@ -84,6 +84,17 @@ from check_anlin_violations import (  # noqa: E402
 )
 
 
+# These are useful controller diagnostics, but they are too weak to stop a
+# bounded first draft on their own. A fragment collage can be coherent through
+# association, echo, memory, or a direct voice jump without containing the old
+# engine vocabulary or a broad connector sampler.
+ADVISORY_PREFLIGHT_PREFIXES = (
+    "connectors=",
+    "paragraph_engine=weak",
+    "rough_self_damage=missing",
+)
+
+
 def load_state(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
@@ -262,13 +273,13 @@ def generator_facing_summary(messages: list[str]) -> tuple[list[str], str]:
         )
     elif severely_underbuilt:
         action = (
-            "source_action=whole_source_rebuild_from_strongest_movement; preserve_complete_mass; "
-            "release_each_carrier_after_one_consequence_transfer; do_not_append_proof_packets"
+            "source_action=whole_source_rebuild_from_strongest_fragment; preserve_complete_article; "
+            "do_not_append_checker_shaped_material"
         )
     elif underbuilt or source:
         action = (
-            "source_action=replace_one_overloaded_movement_in_place; preserve_or_restore_mass; "
-            "release_each_carrier_after_one_consequence_transfer"
+            "source_action=replace_one_broken_fragment_or_relation_in_place; preserve_existing_article; "
+            "do_not_add_material_for_metrics"
         )
     elif shape:
         if shape_script == "soften_line_endings":
@@ -969,19 +980,19 @@ def preflight_messages(draft: Path) -> list[str]:
     if len(engine_hits) < 3:
         if body_chars < STANDARD_DIARY_FORMAL_MIN_CHARS:
             messages.append(
-                "paragraph_engine=weak (source reset: rebuild the incomplete article from the strongest workable movement; "
-                "restore complete standard-diary mass; release each carrier after one consequence transfer; do not inspect checker source/tests)"
+                "paragraph_engine=weak (source reset: rebuild the incomplete article from the strongest fragment; "
+                "preserve a complete article and do not append checker-shaped material; do not inspect checker source/tests)"
             )
         elif body_chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
             messages.append(
-                "paragraph_engine=weak (source reset: replace one overloaded carrier packet one-for-one; restore the complete article mass "
-                "across the replacement and neighboring existing movements; release the current person/place/transaction/object carrier after one consequence transfer; "
+                "paragraph_engine=weak (source reset: replace the earliest overloaded fragment or relation in place; preserve the complete article "
+                "across the replacement and neighboring existing movements; do not add material for a metric; "
                 "do not inspect checker source/tests)"
             )
         else:
             messages.append(
-                "paragraph_engine=weak (source reset: replace one overloaded carrier packet one-for-one; preserve complete article mass; "
-                "release the current person/place/transaction/object carrier after one consequence transfer; do not inspect checker source/tests)"
+                "paragraph_engine=weak (source reset: replace the earliest inert fragment or relation in place; "
+                "preserve the complete article and do not add material for a metric; do not inspect checker source/tests)"
             )
     private_grime_terms = [term for term in PRIVATE_GRIME_TEXTURE_TERMS if term in body]
     if private_grime_terms and not rough_terms and not rough_patterns:
@@ -1008,9 +1019,10 @@ def preflight_before_check(
     generator_facing: bool = False,
 ) -> tuple[bool, list[str]]:
     messages = preflight_messages(draft)
-    if not messages:
+    blocking_messages = blocking_preflight_messages(messages)
+    if not blocking_messages:
         return False, []
-    if ignorable_preflight_messages(messages):
+    if ignorable_preflight_messages(blocking_messages):
         return False, []
     joined_messages = "; ".join(messages)
     repair_hints, revision_frame = build_preflight_guidance(messages)
@@ -1052,6 +1064,22 @@ def preflight_before_check(
                 "This preflight did not consume a checker call."
             )
     return True, messages
+
+
+def blocking_preflight_messages(messages: list[str]) -> list[str]:
+    """Filter weak source heuristics out of the bounded stop decision.
+
+    The raw messages remain controller telemetry and can still be used in a
+    later diagnostic. They are not a source contract: a fragment collage may
+    move by association, echo, memory, or a direct voice jump without named
+    connector words or a legacy paragraph-engine token.
+    """
+
+    return [
+        message
+        for message in messages
+        if not message.startswith(ADVISORY_PREFLIGHT_PREFIXES)
+    ]
 
 
 def ignorable_preflight_messages(messages: list[str]) -> bool:
@@ -1161,21 +1189,21 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
         if severely_underbuilt:
             repair_hints.append(
                 "NEXT_ACTION=repair source/content first; rebuild the incomplete article from the strongest workable movement, restore complete "
-                "standard-diary mass, and release each carrier after one consequence transfer instead of appending diagnostic proof packets; "
+                "article, and do not append checker-shaped material; "
                 "after the last content write, run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place` as the final shape "
                 "step before the wrapper; if you edit draft.md after that script, rerun the script before checking"
             )
         elif short_of_safe_mass:
             repair_hints.append(
-                "NEXT_ACTION=repair source/content first; replace one overloaded carrier packet one-for-one, restore the complete article mass "
-                "across the replacement and neighboring existing movements, and release the current person/place/transaction/object carrier after one consequence transfer; after "
+                "NEXT_ACTION=repair source/content first; replace the earliest broken fragment or relation in place, preserve the complete article "
+                "across the replacement and neighboring existing movements, and do not add material for a metric; after "
                 "the last content write, run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place` as the final shape step "
                 "before the wrapper; if you edit draft.md after that script, rerun the script before checking"
             )
         else:
             repair_hints.append(
-                "NEXT_ACTION=repair source/content first; replace one overloaded carrier packet one-for-one, preserve the complete article mass, "
-                "and release the current person/place/transaction/object carrier after one consequence transfer; after the last content write, run "
+                "NEXT_ACTION=repair source/content first; replace the earliest broken fragment or relation in place, preserve the complete article, "
+                "and do not add material for a metric; after the last content write, run "
                 "`python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place` as the final shape step before "
                 "the wrapper; if you edit draft.md after that script, rerun the script before checking"
             )
@@ -1189,44 +1217,43 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
         if severely_underbuilt:
             repair_hints.append(
                 "for a severely underbuilt source shape, do a whole-source rebuild before rhythm tooling: rebuild the incomplete article from "
-                "the strongest workable movement, restore complete standard-diary mass, change medium after each consequence transfer, and release "
-                "each carrier after one consequence transfer; do not append checker-shaped proof packets to the fragment"
+                "the strongest workable fragment, preserve a complete article, and do not append checker-shaped proof packets or new material"
             )
         elif mixed_rebalance_source:
             mass_action = (
-                "restore the complete article mass across the replacement and neighboring existing movements"
+                "preserve the complete article across the replacement and neighboring existing movements"
                 if short_of_safe_mass
-                else "preserve complete article mass"
+                else "preserve the complete article"
             )
             repair_hints.append(
-                "for an underbuilt source shape, do a one-for-one source replacement before rhythm tooling: keep the strongest movement, "
-                f"replace one repeated or overloaded carrier packet one-for-one, {mass_action}, and change medium after its first consequence "
-                "transfer; write the replacement as visible breathing rows, then run the rhythm script once at the end"
+                "for an underbuilt source shape, do one local source replacement before rhythm tooling: keep the strongest fragment, "
+                f"replace one repeated or overloaded fragment or relation in place, {mass_action}; write the replacement as visible movement, "
+                "then run the rhythm script once at the end"
             )
         else:
             mass_action = (
-                "restore the complete article mass across the replacement and neighboring existing movements"
+                "preserve the complete article across the replacement and neighboring existing movements"
                 if short_of_safe_mass
-                else "preserve complete article mass"
+                else "preserve the complete article"
             )
             repair_hints.append(
                 "for an underbuilt source shape, do a source-loop rewrite after the visible shape is reset: "
-                "keep the strongest movement, replace one repeated or overloaded carrier packet one-for-one, and change medium after its first "
-                f"consequence transfer; {mass_action} and keep the visible breathing corridor instead of patching isolated line additions"
+                "keep the strongest fragment, replace one repeated or overloaded relation in place, and preserve the article; "
+                f"{mass_action} instead of patching isolated line additions"
             )
     if "paragraph_engine=weak" in joined_messages and not underbuilt_source:
         repair_hints.append(
-            "for paragraph_engine=weak, do not append a decorative scene. Replace one quiet or overloaded carrier packet one-for-one; "
-            "let it transfer one consequence, release that person/place/transaction/object chain, and continue through a different medium"
+            "for paragraph_engine=weak, do not append a decorative scene. Replace the earliest inert fragment or relation in place; "
+            "let the next thought, action, memory, or joke change direction while preserving the existing article"
         )
     if near_miss_short:
         mass_action = (
-            "restore the complete article mass across the replacement and neighboring existing movements"
+            "preserve the complete article across the replacement and neighboring existing movements"
             if short_of_safe_mass
             else "preserve visible mass"
         )
         repair_hints.append(
-            "for a near-miss short draft, replace one decorative packet with an off-axis action that changes the next move; "
+            "for a near-miss short draft, replace one decorative packet with an existing lateral fragment that changes the voice or thought; "
             f"{mass_action} and do not append a separate explanatory scene"
         )
     if overfragmented_shape and not mixed_rebalance_source:
@@ -1257,7 +1284,7 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
         )
     if "high_signal_opening=present" in joined_messages:
         repair_hints.append(
-            "for high_signal_opening, rewrite the first 8-12 body lines from body, room, payment, door, charger, sink, or another useless action before any holiday/feed/gift/order prop leaks in"
+            "for high_signal_opening, rewrite the opening from a body, room, payment, door, charger, sink, or another ordinary action before any holiday/feed/gift/order prop leaks in"
         )
     if "feed_inventory_opening=present" in joined_messages:
         repair_hints.append(
@@ -1265,23 +1292,23 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
         )
     if "soft_witness_no_consequence=present" in joined_messages:
         repair_hints.append(
-            "for soft_witness_no_consequence, do not keep a rider, cashier, neighbor, or stranger as a silent camera. Make the handoff change payment, reply, bag/object state, dirty hand/clothing exposure, door movement, or the next action once, then release that witness/place/object carrier; otherwise replace the cameo one-for-one"
+            "for soft_witness_no_consequence, do not keep a rider, cashier, neighbor, or stranger as a silent camera. Make the existing handoff change payment, reply, bag/object state, dirty hand/clothing exposure, door movement, or the next action; otherwise remove or replace the cameo"
         )
     if underbuilt_short_genre:
         repair_hints.append(
-            "for a short-genre source failure, do not solve by deleting memory or shrinking further; rewrite into 4-7 uneven clusters, keep a few longer clumsy lines, add one present practical cluster that changes action or reply, use a side-action title, and discard or bury one prompt-supplied family prop instead of preserving every prompt noun"
+            "for a short-genre source failure, do not solve by deleting memory or shrinking further; keep uneven movement, a few longer clumsy lines, a present practical turn, a side-action title, and discard or bury one prompt-supplied family prop instead of preserving every prompt noun"
         )
         if "short_genre_prompt_prop_too_early=" in joined_messages:
             repair_hints.append(
-                "for short_genre_prompt_prop_too_early, rebuild the first 8-12 body lines before any memory proof: make today's practical action fail and change the next move, then let only one mother/egg/rain/message trace leak in; do not open with the prompt-prop inventory"
+                "for short_genre_prompt_prop_too_early, rebuild the opening before any memory proof: make today's practical action fail and change the next move, then let only one mother/egg/rain/message trace leak in; do not open with the prompt-prop inventory"
             )
         if "short_genre_complete_article_buffer=" in joined_messages or "short_genre_short_line_grid=" in joined_messages:
             repair_hints.append(
-                "for short-genre completion/rhythm, do not expand into standard diary or split into tiny rows; rebuild around 650-850 body Chinese characters, about 28-55 body lines, with 4-8 longer clumsy action/memory/reply lines and one practical consequence that changes the next move"
+                "for short-genre completion/rhythm, do not expand into standard diary or split into tiny rows; rebuild with uneven movement, several longer clumsy action/memory/reply lines, and one practical consequence that changes the next move"
             )
         if "short_genre_body_lines=" in joined_messages or "short_genre_prose_block_compression=" in joined_messages:
             repair_hints.append(
-                "for short-genre prose compression, do not add one more paragraph; rewrite the visible page into about 28-55 actual body lines across 4-7 clusters, preserving punctuation at line ends and using a few longer clumsy lines plus short factual retreats"
+                "for short-genre prose compression, do not add one more paragraph; rewrite the visible page into uneven movement, preserving punctuation at line ends and using a few longer clumsy lines plus short factual retreats"
             )
         if "short_genre_period_grid=" in joined_messages:
             repair_hints.append(
@@ -1333,7 +1360,7 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
         )
     if "private_grime_without_public_consequence=" in joined_messages:
         repair_hints.append(
-            "for private_grime_without_public_consequence, do not add another stain, mirror check, burp, hair, smell, or sleeve detail. Make the existing grime change a public hinge: another person waits/asks/points/holds/returns, payment stalls, the door closes wrong, the bag leaks in the handoff, the narrator drops/wipes/hides/fails to answer, or cut the grime packet"
+            "for private_grime_without_public_consequence, do not add another stain, mirror check, burp, hair, smell, or sleeve detail. Make the existing grime produce a visible practical or social consequence: another person waits/asks/points/holds/returns, payment stalls, the door closes wrong, the bag leaks in the handoff, the narrator drops/wipes/hides/fails to answer, or cut the grime packet"
         )
     if "social_decline_plain_reply_private_loop=" in joined_messages:
         repair_hints.append(
@@ -1400,7 +1427,7 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
     if surface_only:
         revision_frame = (
             "Revise locally: scan the whole draft for every flagged surface and remove or lower all occurrences. "
-            "Keep the same length, rhythm, title, and scene slate unless a local sentence breaks; do not add new scenes, "
+            "Keep the existing title, approximate mass, and fragment slate unless a local relation breaks; do not add new scenes, "
             "short drops, body symptoms, money lines, platform facts, or other texture just because a surface gate fired; "
             "then run this wrapper again."
         )
@@ -1409,36 +1436,36 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
             if severely_underbuilt:
                 revision_frame = (
                     "Rebuild the incomplete source before rhythm tools: do not run the rhythm reset as the first move when the same preflight "
-                    "also names source/content blockers. Rebuild from the strongest workable movement, restore complete standard-diary mass, "
-                    "release each carrier after one consequence transfer, and do not append diagnostic proof packets; then run the named rhythm "
+                    "also names source/content blockers. Rebuild from the strongest fragment, preserve a complete article, "
+                    "and do not append diagnostic proof packets; then run the named rhythm "
                     "reset once as the final shape step before the next wrapper call."
                 )
             elif short_of_safe_mass:
                 revision_frame = (
-                    "Replace the overloaded source carrier before rhythm tools: do not run the rhythm reset as the first move when the same "
-                    "preflight also names connector, engine, roughness, dialogue, opening, or refusal/source blockers. Restore the complete article "
-                    "mass across the replacement and neighboring existing movements, let one consequence transfer, release that carrier, then run the named rhythm reset once as "
+                    "Replace the broken fragment or relation before rhythm tools: do not run the rhythm reset as the first move when the same "
+                    "preflight also names connector, engine, roughness, dialogue, opening, or refusal/source blockers. Preserve the complete article "
+                    "across the replacement and neighboring existing movements, then run the named rhythm reset once as "
                     "the final shape step before the next wrapper call."
                 )
             else:
                 revision_frame = (
-                    "Replace the overloaded source carrier before rhythm tools: do not run the rhythm reset as the first move when the "
+                    "Replace the broken fragment or relation before rhythm tools: do not run the rhythm reset as the first move when the "
                     "same preflight also names connector, engine, roughness, dialogue, opening, or refusal/source blockers. "
-                    "Preserve complete mass, let one consequence transfer, release that carrier, then run the named rhythm reset "
+                    "Preserve the complete article, then run the named rhythm reset "
                     "once as the final shape step before the next wrapper call."
                 )
         elif compressed_shape:
             revision_frame = (
-                "Reset the visible shape first, then repair the source: do not mentally estimate 55-68 lines and do "
+                "Reset the visible shape first, then repair the source: do not mentally estimate a line quota and do "
                 "not rewrite another prose block. Run the rhythm reset named below, inspect the actual draft, then "
-                "rewrite only within a 45-70-line article shape with a working middle."
+                "rewrite only within the existing article shape, preserving the thought movement."
             )
         elif overfragmented_shape:
             revision_frame = (
                 "Reset the short-line grid before content rewriting: run the rhythm reset named below, inspect the "
                 "actual body rows, then regroup existing movement inside that corridor into several longer action/speech/thought lines and "
-                "earned short breath drops. Preserve the scene slate and consequence material; do not answer this by writing a new 80+ row "
-                "caption grid, a 30-line prose block, or an added proof scene."
+                "earned short breath drops. Preserve the existing fragments and consequence material; do not answer this by writing a new "
+                "caption grid, a prose block, or an added proof scene."
             )
         elif "social_decline_plain_reply_private_loop=" in joined_messages:
             revision_frame = (
@@ -1455,19 +1482,18 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
         elif underbuilt_source:
             if severely_underbuilt:
                 revision_frame = (
-                    "Rebuild the incomplete source, not just the metric: keep the strongest workable movement, restore complete standard-diary "
-                    "mass across different media, and release each carrier after one consequence transfer. Do not append isolated symptoms, app "
+                    "Rebuild the incomplete source, not just the metric: keep the strongest fragment, preserve a complete article, and do not append isolated symptoms, app "
                     "lines, or checker-shaped proof packets to the fragment; then run this wrapper again."
                 )
             else:
                 mass_action = (
-                    "restore the complete article mass across the replacement and neighboring existing movements"
+                    "preserve the complete article across the replacement and neighboring existing movements"
                     if short_of_safe_mass
-                    else "preserve complete mass"
+                    else "preserve complete article"
                 )
                 revision_frame = (
-                    "Replace the weak source carrier, not just the metric: keep the useful scene facts, replace one overloaded or repeated "
-                    "person/place/transaction/object packet one-for-one, and move the next function into a different medium. "
+                    "Replace the weak fragment relation, not just the metric: keep useful existing facts, replace one overloaded or repeated "
+                    "fragment in place, and let the next thought or action change direction. "
                     f"{mass_action.capitalize()} instead of adding isolated symptoms, app lines, or short captions; then run this wrapper again."
                 )
         elif standard_prompt_loop:
@@ -1491,7 +1517,7 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
             )
         elif any(message.startswith("connectors=") for message in messages):
             revision_frame = (
-                "Replace one inert connector-bearing movement inside the existing scene slate: change what an existing action does next so the "
+                "Replace one inert connector-bearing fragment relation inside the existing slate: change what an existing action does next (or what an existing thought does next) so the "
                 "turn earns a natural connector. Do not add a new scene, material family, proof packet, or visible connector checklist; then run "
                 "this wrapper again."
             )
@@ -1504,7 +1530,7 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
             )
         elif underbuilt_short_genre:
             revision_frame = (
-                "Rebuild the short-genre source, not the standard-diary length: keep 4-7 uneven clusters, restart "
+                "Rebuild the short-genre source, not a length target: restart "
                 "from a current practical interruption or awkward reply that changes the next action, keep several "
                 "longer clumsy lines, use a side-action title, and drop or bury the old title-object/memory proof "
                 "instead of arranging it better before running this wrapper again."
@@ -1590,28 +1616,25 @@ def post_checker_preflight_before_second_check(
     elif connector_only:
         postcheck_source_note = (
             "Post-check connector reset: the wrapper left `draft.md` unchanged. Replace one inert connector-bearing movement inside the existing "
-            "scene slate so an existing action changes what happens next. Do not add a scene, material family, person/place/transaction carrier, "
+            "fragment slate so an existing thought or action changes direction. Do not add a scene, material family, or new prompt packet, "
             "or invitation/refusal repair branch; then call this wrapper again."
         )
     elif source_blocked and severely_underbuilt:
         postcheck_source_note = (
             "Post-check source reset: do not spend checker call 2/2 on a severely incomplete source. "
-            "Rebuild from the strongest workable movement, restore complete standard-diary mass, and release each carrier after one consequence "
-            "transfer instead of appending checker-shaped proof packets. After the content rewrite, run any needed rhythm script only as the "
+            "Rebuild from the strongest fragment, preserve a complete article, and do not append checker-shaped proof packets. After the content rewrite, run any needed rhythm script only as the "
             "final shape step, then call this wrapper again."
         )
     elif source_blocked:
         mass_action = (
-            "restore complete standard-diary mass across the replacement and neighboring existing movements"
+            "preserve the complete article across the replacement and neighboring existing movements"
             if short_of_safe_mass
-            else "preserve the complete standard-diary mass"
+            else "preserve the complete article"
         )
         postcheck_source_note = (
             "Post-check source reset: do not spend checker call 2/2 on a known underbuilt source. "
-            f"Rewrite by one-for-one carrier replacement, not subtraction or addition: {mass_action}, "
-            "let the current person/place/transaction/object carrier transfer one consequence, then release it and move the next function "
-            "into a different medium. For social-decline or invitation cases, replace a private screen, water, room, or etiquette packet "
-            "with a refusal-coupled action instead of appending another cluster. "
+            f"Rewrite by replacing one broken fragment relation in place, not by adding a packet: {mass_action}. "
+            "For social-decline or invitation cases, keep the prompt as one fragment and do not append a consequence subplot. "
             "After the content rewrite, run any needed rhythm script only as the final shape step, then call this wrapper again."
         )
     else:
@@ -1682,9 +1705,6 @@ def post_checker_blocking_messages(draft: Path, messages: list[str]) -> list[str
             blocking.append(message)
         elif message.startswith(
             (
-                "connectors=",
-                "paragraph_engine=weak",
-                "rough_self_damage=missing",
                 "private_grime_without_public_consequence=",
                 "social_decline_plain_reply_private_loop=",
                 "social_decline_group_fake_consequence=",
@@ -1693,10 +1713,6 @@ def post_checker_blocking_messages(draft: Path, messages: list[str]) -> list[str
             )
         ):
             blocking.append(message)
-    if style == "standard" and body_chars >= 650 and len(connectors) < 5:
-        connector_message = f"connectors={connectors} < 5 before checker_call_2"
-        if not any(message.startswith("connectors=") for message in blocking):
-            blocking.append(connector_message)
     return blocking
 
 
