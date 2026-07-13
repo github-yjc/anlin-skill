@@ -351,7 +351,12 @@ def actual_pre_draft_probe_index(text: str) -> int:
         r"(?im)^\s*TOOL\s+(?:read|filesystem_read_file)\b",
         r"(?im)^\s*TITLE\s+(?:Glob|Read)\b",
         r"(?im)^\s*\$\s+[^\n]*(?:Get-ChildItem|Get-Content|Select-String|rg|grep|ls|dir|find|cat|type)\b",
-        r"(?im)^\s*INPUT\s+[^\n]*(?:command|cmd)[^\n]*(?:Get-ChildItem|Get-Content|Select-String|rg|grep|ls|dir|find|cat|type)\b",
+        # OpenCode may append a `workdir` field to a JSON tool input.  Search
+        # only the command value for shell probes; otherwise a case path such
+        # as `anlin-writing-evals` contains `ls` and is misread as a pre-draft
+        # `ls` action before the standalone cwd confirmation.
+        r'(?im)^\s*INPUT\s+\{[^\n]*"(?:command|cmd)"\s*:\s*(?:(?!,\s*"workdir"\s*:)[^\n])*(?:Get-ChildItem|Get-Content|Select-String|rg|grep|ls|dir|find|cat|type)\b',
+        r"(?im)^\s*INPUT\s+(?:command|cmd)\s*[=:][^\n]*(?:Get-ChildItem|Get-Content|Select-String|rg|grep|ls|dir|find|cat|type)\b",
     ]
     return first_regex_action_index(text, patterns)
 

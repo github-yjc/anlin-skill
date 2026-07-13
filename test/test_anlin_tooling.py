@@ -4046,6 +4046,46 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertIn("clean-eval写稿前未检查模式标记", rules)
 
+    def test_clean_eval_trace_ignores_bash_workdir_field_as_path_probe(self) -> None:
+        log = '''
+        TOOL bash
+        TITLE Test-Path -LiteralPath ".anlin-clean-eval-mode"
+        INPUT {"command": "Test-Path -LiteralPath ".anlin-clean-eval-mode"", "workdir": "C:/eval-workspace/iteration-158/eval-09"}
+        OUTPUT True
+        TOOL bash
+        TITLE Get-Location
+        INPUT {"command": "Get-Location", "workdir": "C:/eval-workspace/iteration-158/eval-09"}
+        OUTPUT C:/eval-workspace/iteration-158/eval-09
+        TOOL read
+        TITLE C:/skill/references/clean-eval-first-draft-minimum.md
+        INPUT {"filePath": "C:/skill/references/clean-eval-first-draft-minimum.md"}
+        TOOL read
+        TITLE C:/skill/references/anlin-collage-source-model.md
+        INPUT {"filePath": "C:/skill/references/anlin-collage-source-model.md"}
+        ← Write draft.md
+        TOOL bash
+        TITLE clean_run_checker.py draft.md
+        INPUT {"command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing --genre standard", "workdir": "C:/eval-workspace/iteration-158/eval-09"}
+        OUTPUT CLEAN_RUN_STOP: FINAL BOUNDARY
+        TOOL read
+        TITLE C:/eval-workspace/iteration-158/eval-09/draft.md
+        INPUT {"filePath": "draft.md"}
+        '''
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("clean-eval当前目录确认顺序错误", rules)
+
     def test_clean_eval_trace_accepts_powershell_relative_set_content_write(self) -> None:
         log = '''
         $ Test-Path .anlin-clean-eval-mode
