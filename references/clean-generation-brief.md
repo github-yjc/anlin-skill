@@ -31,6 +31,8 @@ Let fragments connect by association, contrast, language echo, time jump, self-c
 
 For standard diary, several independent thought-turns should normally appear. One continuous scene, conversation, message thread, or transaction carrying the whole article is a deliberate exception, not the default; let the voice jump after a fragment has done its work instead of extending one local plot until the page ends. This is guidance about source movement, not a count of fragments.
 
+**A thought-turn is not a paragraph.** If a turn contains an observation, crooked read, and next move, write those changes as breathing rows inside the fragment before the first wrapper call. Do not make one sentence per line, but remember that a rhythm script cannot invent missing source movement.
+
 These functions are diagnostic lenses, not separate content slots. A named engine, connector, witness, or residue is not a missing ingredient.
 
 Keep coherence through the narrator's first-person voice, recurring question or irritation, social position, self-deprecation, crooked logic, word return, or a shared humor. These are soft lenses, not counts. Do not assign one fragment to each lens, and do not create a new fragment merely to satisfy a diagnostic label.

@@ -22,6 +22,8 @@ A fragment is a thought-turn that can stand briefly on its own:
 
 A slate can contain several kinds in any order. Do not assign one slot to each kind, and do not preserve every prompt detail.
 
+**A thought-turn is not a paragraph.** When one fragment contains an observation, crooked read, and next move, let those changes appear as breathing rows inside the fragment rather than one dense paragraph. This is not a one-sentence-per-line grid: each row still carries a live continuation or landing. The first artifact must already show the movement; a rhythm script cannot invent missing source movement.
+
 For a standard diary, normally let the slate move through several independent thought-turns. One continuous scene, conversation, message thread, or transaction carrying the whole article is a deliberate exception, not the default; after a fragment has done its work, let the voice jump when an earned association, memory, contrast, joke, object, or ordinary fact appears. This is a qualitative source contract, not a fragment-count quota.
 
 For invitation prompts, reject a single carrier chain such as `present desk/room -> message -> ticket/money -> old-friend inventory -> work excuse -> refusal -> friendship thesis`. If the slate follows that carrier chain, replace one middle fragment with a lateral thought that does not explain the invitation. A dense body of a few prose paragraphs is prose-block compression, not a fragment slate; split multi-turn paragraphs into breathing rows before writing.

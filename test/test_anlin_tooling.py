@@ -9784,6 +9784,9 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("a prompt's sequence is a fact constraint, not the article's outline", lowered)
             self.assertIn("start with a non-prompt fragment before the prompt surface", lowered)
             self.assertIn("after the prompt fragment, leave it for an independent thought-turn", lowered)
+            self.assertIn("a thought-turn is not a paragraph", lowered)
+            self.assertIn("observation, crooked read, and next move", lowered)
+            self.assertIn("a rhythm script cannot invent missing source movement", lowered)
         self.assertIn("prompt sequence is not the article's outline", matrix)
 
     def test_postcheck_preflight_contract_keeps_submission_read_only(self) -> None:

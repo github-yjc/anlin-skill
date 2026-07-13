@@ -79,6 +79,8 @@ Broken lines are allowed when the movement earns them. Use the line break, comma
 
 Draft in breathing fragments, not sentence rows. The content being written must already visibly contain the complete broken article; a script cannot invent a source relation after the write.
 
+**A thought-turn is not a paragraph.** If one turn contains an observation, crooked read, and next move, split those into breathing rows inside the same fragment; a blank line alone is not lineation. This is not one sentence per line: each row must carry a live continuation or landing, and the first draft must show the shape. A rhythm script cannot invent missing source movement.
+
 ## Prompt and Fact Discipline
 
 Do not write a message, feed, price list, game inventory, background biography, or wedding logistics list merely because the prompt mentions it. Put one selected detail into a thought, action, joke, memory, or wrong reply; omit the rest.
