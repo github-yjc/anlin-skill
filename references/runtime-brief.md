@@ -47,7 +47,7 @@ For an article-generation task, write a complete titled artifact to draft.md in 
 For bounded clean-eval:
 
 - the wrapper output is the complete repair interface;
-- when the action says `whole_source_rebuild`, keep that turn source-only: restore a day-shaped collage with independent thought-turns and breathing rows while preserving existing source mass, then call the wrapper again without running a rhythm script; do not interpret complete article as a short premise summary; rhythm tooling is exposed only by a later shape action after the severe source deficit is gone;
+- when the action says `whole_source_rebuild`, keep that turn source-only: restore a day-shaped collage with independent thought-turns while preserving existing source mass; do not shrink it to a short premise summary, then call the wrapper again without running a rhythm script; rhythm tooling is exposed only by a later shape action after the severe source deficit is gone;
 - a named rhythm command is an in-place final mutation: do not read its stdout or write draft.md afterward; rerun the wrapper immediately;
 - after any draft.md rewrite, rerun the wrapper immediately;
 - after any `draft.md` rewrite, rerun the wrapper immediately;

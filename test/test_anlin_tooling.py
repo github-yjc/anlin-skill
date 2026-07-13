@@ -2748,6 +2748,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("whole_source_rebuild_from_strongest_fragment", action)
         self.assertIn("day_shaped_collage", action)
         self.assertIn("independent_thought_turns", action)
+        self.assertIn("do_not_shrink_to_a_premise_summary", action)
+        self.assertNotIn("breathing_rows", action)
         self.assertNotIn("rebalance_line_rhythm", action)
         self.assertNotIn("after_content_write_run_", action)
 
@@ -9324,6 +9326,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("do not read its stdout", lowered)
             self.assertIn("day-shaped collage", lowered)
             self.assertIn("independent thought-turns", lowered)
+            self.assertIn("do not shrink it to a short premise summary", lowered)
 
         self.assertNotIn(
             "use `references/clean-generation-brief.md` as the detailed repair interface",

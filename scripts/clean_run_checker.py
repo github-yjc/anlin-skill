@@ -284,8 +284,9 @@ def generator_facing_summary(messages: list[str]) -> tuple[list[str], str]:
     elif severely_underbuilt:
         action = (
             "source_action=whole_source_rebuild_from_strongest_fragment; "
-            "restore_day_shaped_collage_with_independent_thought_turns_and_breathing_rows; "
-            "preserve_complete_article_and_existing_source_mass; do_not_append_checker_shaped_material"
+            "restore_day_shaped_collage_with_independent_thought_turns; "
+            "preserve_complete_article_and_existing_source_mass; do_not_shrink_to_a_premise_summary; "
+            "do_not_append_checker_shaped_material"
         )
     elif underbuilt or source:
         action = (
