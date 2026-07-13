@@ -47,6 +47,8 @@ For an article-generation task, write a complete titled artifact to draft.md in 
 For bounded clean-eval:
 
 - the wrapper output is the complete repair interface;
+- when the action says `whole_source_rebuild`, keep that turn source-only: write the complete rebuild and call the wrapper again without running a rhythm script; rhythm tooling is exposed only by a later shape action after the severe source deficit is gone;
+- a named rhythm command is an in-place final mutation: do not read its stdout or write draft.md afterward; rerun the wrapper immediately;
 - after any draft.md rewrite, rerun the wrapper immediately;
 - after any `draft.md` rewrite, rerun the wrapper immediately;
 - do not load clean-generation-brief.md, runtime-brief.md, or another long reference after a bounded preflight;

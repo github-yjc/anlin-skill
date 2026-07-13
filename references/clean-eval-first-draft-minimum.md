@@ -97,7 +97,7 @@ If the prompt only says `忙项目`, keep it as an excuse surface; do not invent
 
 After writing draft.md, run the bounded wrapper. Its generator-facing output is the complete repair interface.
 
-The wrapper output is the complete repair interface. It does not rewrite `draft.md`; the generator performs one integrated source or shape action and reruns it immediately.
+The wrapper output is the complete repair interface. It does not rewrite `draft.md`; the generator performs one integrated source or shape action and reruns it immediately. When the action says `whole_source_rebuild`, keep that turn source-only: write the complete rebuild and call the wrapper again without running a rhythm script. Rhythm tooling is exposed only by a later shape action after the severe source deficit is gone. A named rhythm command is an in-place final mutation: do not read its stdout or write `draft.md` afterward; rerun the wrapper immediately.
 
 - If it reports a source finding, replace the earliest broken fragment or relation while preserving a complete article. Do not solve each message as a separate material request.
 - If it reports a pure shape finding, perform only the named local rhythm action.

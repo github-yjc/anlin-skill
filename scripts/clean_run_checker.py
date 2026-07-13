@@ -293,18 +293,35 @@ def generator_facing_summary(messages: list[str]) -> tuple[list[str], str]:
         )
     elif shape:
         if shape_script == "soften_line_endings":
-            action = "shape_action=run_soften_line_endings_after_content_then_immediate_wrapper_rerun"
+            action = "shape_action=run_soften_line_endings_in_place_as_final_mutation_then_immediate_wrapper_rerun"
         elif shape_script == "rebalance_line_rhythm":
-            action = "shape_action=run_rebalance_line_rhythm_after_content_then_immediate_wrapper_rerun"
+            action = (
+                "shape_action=run_rebalance_line_rhythm_in_place_as_final_mutation_then_immediate_wrapper_rerun"
+            )
         else:
-            action = "shape_action=perform_only_the_named_local_rhythm_step_after_the_last_content_write"
+            action = (
+                "shape_action=perform_only_the_named_local_rhythm_step_in_place_as_final_mutation_then_immediate_wrapper_rerun"
+            )
     elif surface:
         action = "surface_action=remove_only_the_named_surface_form_and_preserve_scene_movement"
     else:
         action = "source_action=change_one_existing_movement_that_changes_what_happens_next"
 
-    if shape_script and shape and (overfull or underbuilt or source) and "shape_action=" not in action:
-        action += f"; after_content_write_run_{shape_script}_once_then_immediate_wrapper_rerun"
+    # A severe source deficit is a content-boundary failure, not a shape-tool
+    # opportunity.  Do not expose a rhythm script in the same action: a
+    # generator can otherwise treat the script's output as an intermediate
+    # draft, read it, and write again after the script, invalidating the
+    # bounded trace and allowing shape tooling to stand in for missing source.
+    if (
+        shape_script
+        and shape
+        and (overfull or underbuilt or source)
+        and not severely_underbuilt
+        and "shape_action=" not in action
+    ):
+        action += (
+            f"; after_content_write_run_{shape_script}_once_in_place_as_final_mutation_then_immediate_wrapper_rerun"
+        )
 
     return labels, action
 
@@ -316,7 +333,8 @@ def generator_facing_contract() -> str:
         "wait for an explicit CLEAN_RUN_PREFLIGHT_STOP or actual checker result; "
         "do not count characters, lines, punctuation, or connectors; "
         "do not run python counters or other commands; "
-        "if a rhythm script is named, run only that script after the last content write"
+        "if a rhythm script is named, run it in-place as the final mutation after the last content write; "
+        "do not read its stdout or write draft.md afterward; rerun the wrapper immediately"
     )
 
 

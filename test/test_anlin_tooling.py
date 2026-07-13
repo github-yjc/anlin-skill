@@ -2736,12 +2736,27 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn("source_shape=underbuilt", labels)
         self.assertIn("overfull", action)
 
+    def test_generator_facing_summary_keeps_severe_source_rebuild_before_shape_tools(self) -> None:
+        labels, action = generator_facing_summary(
+            [
+                "body_chinese_chars=480 < 650",
+                "medium_short_line_grid=present",
+                "paragraph_engine=weak",
+            ]
+        )
+        self.assertIn("source_shape=underbuilt", labels)
+        self.assertIn("whole_source_rebuild_from_strongest_fragment", action)
+        self.assertNotIn("rebalance_line_rhythm", action)
+        self.assertNotIn("after_content_write_run_", action)
+
     def test_generator_facing_summary_names_shape_script(self) -> None:
         _labels, action = generator_facing_summary(["early_comma_ratio=0.00 < 0.15"])
         self.assertIn("soften_line_endings", action)
+        self.assertIn("in_place_as_final_mutation", action)
 
         _labels, action = generator_facing_summary(["period_row_grid=present"])
         self.assertIn("rebalance_line_rhythm", action)
+        self.assertIn("in_place_as_final_mutation", action)
 
     def test_generator_facing_summary_routes_surface_only_findings_locally(self) -> None:
         for message, surface_form in (
@@ -9301,6 +9316,10 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("the wrapper output is the complete repair interface", lowered)
             self.assertIn("do not load `references/clean-generation-brief.md`", lowered)
             self.assertIn("after any `draft.md` rewrite, rerun the wrapper immediately", lowered)
+            self.assertIn("when the action says `whole_source_rebuild`", lowered)
+            self.assertIn("without running a rhythm script", lowered)
+            self.assertIn("in-place final mutation", lowered)
+            self.assertIn("do not read its stdout", lowered)
 
         self.assertNotIn(
             "use `references/clean-generation-brief.md` as the detailed repair interface",
