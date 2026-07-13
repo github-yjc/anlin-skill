@@ -14614,6 +14614,29 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn("load `references/standard-diary-source-engine.md`", anti_ai)
         self.assertIn("inactive", old_engine.lower())
 
+    def test_active_fragment_contract_blocks_single_carrier_social_template(self) -> None:
+        first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
+        collage = (ROOT / "references" / "anlin-collage-source-model.md").read_text(encoding="utf-8")
+        combined = "\n".join((first_draft, collage))
+
+        self.assertIn(
+            "present desk/room -> message -> ticket/money -> old-friend inventory -> work excuse -> refusal -> friendship thesis",
+            combined,
+        )
+        self.assertIn("If the slate follows that carrier chain, replace one middle fragment", combined)
+        self.assertIn("A dense body of a few prose paragraphs is prose-block compression", combined)
+
+    def test_active_fragment_contract_keeps_busy_project_as_excuse_boundary(self) -> None:
+        first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
+        collage = (ROOT / "references" / "anlin-collage-source-model.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        combined = "\n".join((first_draft, collage, runtime))
+
+        self.assertIn(
+            'If the prompt only says `忙项目`, keep it as an excuse surface; do not invent a client, deadline, leave, team, coworker, city, or office biography.',
+            combined,
+        )
+
     @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_corpus_observed_range_matches_source_model(self) -> None:
         rows: list[tuple[int, int]] = []

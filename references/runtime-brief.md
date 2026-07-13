@@ -16,11 +16,15 @@ Let the text move by association, contrast, language echo, time jump, self-corre
 
 In standard diary, several independent thought-turns should normally be visible. One room, one conversation, or one transaction carrying the whole article is not the default; after a fragment has done its work, let the voice move through an earned memory, joke, object, contrast, time jump, or ordinary fact. This is a qualitative movement cue, not a fragment quota.
 
+For invitation prompts, reject a single carrier chain such as `present desk/room -> message -> ticket/money -> old-friend inventory -> work excuse -> refusal -> friendship thesis`. If the slate follows that carrier chain, replace one middle fragment with a lateral thought that does not explain the invitation. A dense body of a few prose paragraphs is prose-block compression, not a fragment slate; split multi-turn paragraphs into breathing rows before writing.
+
 Keep coherence through first-person voice, recurring questions, social position, word echoes, humor, irritation, and the narrator's way of explaining or correcting himself. Scattered does not mean random, and coherence does not require every detail to change the next action.
 
 The user prompt is a trigger and fact boundary, not a list of things to include. It may appear early, late, repeatedly, indirectly, or disappear while another thought takes over. Background facts prevent contradiction; they are not content quotas.
 
 There is no universal standard-diary character target, line target, cluster count, required jump count, required outside person, required payment, required refusal aftermath, or required practical tail. If the user or controller specifies a matched length/profile, treat that as an evaluation condition after the source decision, not as a material checklist.
+
+If the prompt only says `忙项目`, keep it as an excuse surface; do not invent a client, deadline, leave, team, coworker, city, or office biography.
 
 The wrapper output is the complete repair interface. The wrapper does not rewrite `draft.md`; after any `draft.md` rewrite, rerun it immediately. Do not load a long repair reference or solve one checker message as a separate material request.
 

@@ -46,6 +46,8 @@ Consistency comes from the narrator: first-person voice, recurring questions, se
 
 For standard diary, several independent thought-turns should normally be visible in the saved body. Do not let one room, one conversation, one message thread, or one transaction carry the whole article by default; let a later fragment move through an earned association, memory, contrast, joke, object, or time jump. This is a qualitative source contract, not a fragment-count quota.
 
+For invitation prompts, reject a single carrier chain such as `present desk/room -> message -> ticket/money -> old-friend inventory -> work excuse -> refusal -> friendship thesis`. If the slate follows that carrier chain, replace one middle fragment with a lateral thought that does not explain the invitation. A dense body of a few prose paragraphs is prose-block compression, not a fragment slate; split multi-turn paragraphs into breathing rows before writing.
+
 The ending may be a joke, question, absurd explanation, word echo, offhand fact, small practical landing, or a thought that fades without explanation. No ending type is mandatory.
 
 ## Minimum Artifact Rules
@@ -75,6 +77,8 @@ Do not write a message, feed, price list, game inventory, background biography, 
 For social prompts, an invitation or refusal may be one fragment among many. Keep a local consequence only when the text naturally creates one. Do not force a same-night consequence chain, a group-chat scene, a payment scene, a stranger, or a practical tail.
 
 For background, use facts to prevent contradiction after the fragment exists. Do not invent a current office identity, named route, spouse, child, rank, district, or major family event to make the article feel concrete.
+
+If the prompt only says `忙项目`, keep it as an excuse surface; do not invent a client, deadline, leave, team, coworker, city, or office biography.
 
 ## Stop
 
