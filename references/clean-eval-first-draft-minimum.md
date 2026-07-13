@@ -55,9 +55,30 @@ Consistency comes from the narrator: first-person voice, recurring questions, se
 
 For standard diary, several independent thought-turns should normally be visible in the saved body. Do not let one room, one conversation, one message thread, or one transaction carry the whole article by default; let a later fragment move through an earned association, memory, contrast, joke, object, or time jump. This is a qualitative source contract, not a fragment-count quota.
 
+### Movement units, not naked rows
+
+A movement unit is a short passage in which an observation, crooked read, and next action remain connected. Keep the natural Chinese punctuation that the thought needs. A line break may expose a continuation or landing, but a line break does not remove punctuation and does not turn every sentence into its own line.
+
+Punctuation-bearing movement units are the source shape. Naked caption rows are not breathing rows; they are a checklist surface. Do not split every sentence into its own line. Keep short clauses attached to the action, reply, object, or thought they complete. A movement unit may occupy one or several uneven rows. A thought-turn is not a paragraph or row count; it changes the object, time, memory, joke, social position, or next action. Within one movement unit, an observation, crooked read, and next move stay connected. The first artifact must already contain the movement; a rhythm script cannot invent missing source movement.
+
+不采用：
+
+```text
+杯子翻了
+水流到桌边
+我去找纸
+```
+
+采用：
+
+```text
+杯子翻了，水沿着桌边往下淌，
+我先去找纸，抽屉卡住，拉了两次才开。
+```
+
 **A complete standard diary is a day-shaped collage, not a premise summary.** If the body only has the prompt surface, one memory, and a final reply, it is a sketch; continue through another independent thought-turn before the required residue. This is structural completeness, not a character or line quota: deepen existing fragments and do not append checker-shaped scenes.
 
-For invitation prompts, reject a single carrier chain such as `present desk/room -> message -> ticket/money -> old-friend inventory -> work excuse -> refusal -> friendship thesis`. If the slate follows that carrier chain, replace one middle fragment with a lateral thought that does not explain the invitation. A dense body of a few prose paragraphs is prose-block compression, not a fragment slate; split multi-turn paragraphs into breathing rows before writing.
+For invitation prompts, reject a single carrier chain such as `present desk/room -> message -> ticket/money -> old-friend inventory -> work excuse -> refusal -> friendship thesis`. If the slate follows that carrier chain, replace one middle fragment with a lateral thought that does not explain the invitation. A dense body of a few prose paragraphs is prose-block compression, not a fragment slate; preserve punctuation-bearing movement units before the first wrapper.
 
 The ending may be a joke, question, absurd explanation, word echo, offhand fact, small practical landing, or a thought that fades without explanation. No ending type is mandatory.
 
@@ -77,11 +98,7 @@ Do not compress amounts, reply candidates, or object choices into an `A、B、C`
 
 When the same real action or object genuinely returns, let one plain action/object phrase return unchanged; this is not a decorative refrain or repetition quota. Do not synonym-scrub it or plant an echo.
 
-Broken lines are allowed when the movement earns them. Use the line break, comma, period, or blank space that the thought or action needs; do not make every row a caption, a sealed sentence, or a comma continuation. Do not depend on a later rhythm script to invent the source shape.
-
-Draft in breathing fragments, not sentence rows. The content being written must already visibly contain the complete broken article; a script cannot invent a source relation after the write.
-
-**A thought-turn is not a paragraph.** If one turn contains an observation, crooked read, and next move, split those into breathing rows inside the same fragment; a blank line alone is not lineation. This is not one sentence per line: each row must carry a live continuation or landing, and the first draft must show the shape. A rhythm script cannot invent missing source movement.
+Line breaks are allowed when the movement earns them. Use the line break, comma, period, or blank space that the thought or action needs; do not make every row a caption, a sealed sentence, or a comma continuation. The content being written must already contain complete movement units; a script cannot invent a source relation after the write.
 
 ## Prompt and Fact Discipline
 

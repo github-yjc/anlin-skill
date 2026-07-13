@@ -33,7 +33,9 @@ For standard diary, several independent thought-turns should normally appear. On
 
 **A complete standard diary is a day-shaped collage, not a premise summary.** If the body only has the prompt surface, one memory, and a final reply, it is a sketch; continue through another independent thought-turn before the required residue. Deepen existing fragments rather than appending checker-shaped scenes.
 
-**A thought-turn is not a paragraph.** If a turn contains an observation, crooked read, and next move, write those changes as breathing rows inside the fragment before the first wrapper call. Do not make one sentence per line, but remember that a rhythm script cannot invent missing source movement.
+A movement unit is a short passage in which an observation, crooked read, and next action remain connected. Keep natural punctuation. Punctuation-bearing movement units are the source shape: a line break does not remove punctuation, and naked caption rows are not breathing rows. Do not split every sentence into its own line. Keep short clauses attached to the action, reply, object, or thought they complete. A movement unit may occupy one or several uneven rows.
+
+A thought-turn is not a paragraph or row count. It is semantic movement: the object, time, memory, joke, social position, or next action changes. Within one movement unit, an observation, crooked read, and next move stay connected. One thought-turn may contain several movement units, and the first artifact must show that movement because a rhythm script cannot invent missing source movement.
 
 These functions are diagnostic lenses, not separate content slots. A named engine, connector, witness, or residue is not a missing ingredient.
 

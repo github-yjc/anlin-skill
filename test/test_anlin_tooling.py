@@ -9799,11 +9799,27 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("a directory listing that merely shows the filename is not a marker check", text.lower())
 
     def test_scattered_source_contract_de_linearizes_linear_prompts(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         minimum = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
         collage = (ROOT / "references" / "anlin-collage-source-model.md").read_text(encoding="utf-8")
         runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
         clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
         matrix = (ROOT / "references" / "route-coverage-matrix.md").read_text(encoding="utf-8")
+
+        for text in (skill, minimum, collage, runtime):
+            lowered = text.lower()
+            self.assertIn("punctuation-bearing movement units", lowered)
+            self.assertIn("a line break does not remove punctuation", lowered)
+            self.assertIn("naked caption rows are not breathing rows", lowered)
+            self.assertIn("do not split every sentence into its own line", lowered)
+            self.assertIn(
+                "keep short clauses attached to the action, reply, object, or thought they complete",
+                lowered,
+            )
+            self.assertIn("fragment slate", lowered)
+            self.assertIn("independent thought-turn", lowered)
+            self.assertIn("day-shaped collage", lowered)
+            self.assertNotIn("split multi-turn paragraphs into breathing rows before writing", lowered)
 
         for text in (minimum, collage, runtime, clean):
             lowered = text.lower()

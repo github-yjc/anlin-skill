@@ -22,13 +22,19 @@ A fragment is a thought-turn that can stand briefly on its own:
 
 A slate can contain several kinds in any order. Do not assign one slot to each kind, and do not preserve every prompt detail.
 
-**A thought-turn is not a paragraph.** When one fragment contains an observation, crooked read, and next move, let those changes appear as breathing rows inside the fragment rather than one dense paragraph. This is not a one-sentence-per-line grid: each row still carries a live continuation or landing. The first artifact must already show the movement; a rhythm script cannot invent missing source movement.
+### Movement units, not naked rows
+
+A movement unit is a short passage in which an observation, crooked read, and next action remain connected. Keep the natural Chinese punctuation that the thought needs. A line break may expose a continuation or landing, but a line break does not remove punctuation and does not turn every sentence into its own line.
+
+Punctuation-bearing movement units are the source shape. Naked caption rows are not breathing rows; they are a checklist surface. Do not split every sentence into its own line. Keep short clauses attached to the action, reply, object, or thought they complete. A movement unit may occupy one or several uneven rows.
+
+**A thought-turn is not a paragraph or row count.** It is semantic movement: the object, time, memory, joke, social position, or next action changes. Within one movement unit, an observation, crooked read, and next move stay connected. One thought-turn may contain several movement units, and one paragraph may contain more than one thought-turn. The first artifact must already contain the movement; a rhythm script cannot invent missing source movement.
 
 For a standard diary, normally let the slate move through several independent thought-turns. One continuous scene, conversation, message thread, or transaction carrying the whole article is a deliberate exception, not the default; after a fragment has done its work, let the voice jump when an earned association, memory, contrast, joke, object, or ordinary fact appears. This is a qualitative source contract, not a fragment-count quota.
 
 **A complete standard diary is a day-shaped collage, not a premise summary.** If the body only has the prompt surface, one memory, and a final reply, it is a sketch; continue through another independent thought-turn before the required residue. This is structural completeness, not a character or line quota: deepen existing fragments rather than appending checker-shaped scenes.
 
-For invitation prompts, reject a single carrier chain such as `present desk/room -> message -> ticket/money -> old-friend inventory -> work excuse -> refusal -> friendship thesis`. If the slate follows that carrier chain, replace one middle fragment with a lateral thought that does not explain the invitation. A dense body of a few prose paragraphs is prose-block compression, not a fragment slate; split multi-turn paragraphs into breathing rows before writing.
+For invitation prompts, reject a single carrier chain such as `present desk/room -> message -> ticket/money -> old-friend inventory -> work excuse -> refusal -> friendship thesis`. If the slate follows that carrier chain, replace one middle fragment with a lateral thought that does not explain the invitation. A dense body of a few prose paragraphs is prose-block compression, not a fragment slate; preserve punctuation-bearing movement units before the first wrapper.
 
 ## Fragment Relations
 
