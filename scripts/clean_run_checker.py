@@ -214,7 +214,17 @@ def generator_facing_summary(messages: list[str]) -> tuple[list[str], str]:
     surface = bool(surface_forms)
 
     shape_script: str | None = None
-    if any(message.startswith("early_comma_ratio=") for message in messages):
+    short_page = any(
+        message.startswith("body_lines=") and "< 45" in message
+        for message in messages
+    )
+    # A near-900 standard draft with too few visible rows needs lineation before
+    # comma softening.  Choosing soften_line_endings first leaves a dense source
+    # block intact; rebalance_line_rhythm can preserve the existing fragments
+    # while creating the breathing rows that the bounded interface is asking for.
+    if short_page:
+        shape_script = "rebalance_line_rhythm"
+    elif any(message.startswith("early_comma_ratio=") for message in messages):
         shape_script = "soften_line_endings"
     elif any(
         message.startswith(

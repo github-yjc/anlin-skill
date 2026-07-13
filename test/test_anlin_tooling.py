@@ -2919,6 +2919,33 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
 
+    def test_clean_run_checker_mixed_short_page_prefers_line_rebalance_over_comma_soften(self) -> None:
+        long_line = "我翻了半天还是没有找到那只袜子，床底下只有一团灰和一个瓶盖，洗衣机里也没有，阳台上更没有，最后我开始怀疑它是不是自己跑去过一种不用成双的生活。"
+        short_line = "我把抽屉重新关上，暂时不想管它。"
+        body_lines = [long_line] * 10 + [short_line] * 16
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("\n".join(["# 差不多", "", *body_lines]), encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(CLEAN_RUN_CHECKER),
+                    str(draft),
+                    "--strict",
+                    "--draft-gate",
+                    "--generator-facing",
+                    "--genre",
+                    "standard",
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+            self.assertIn("after_content_write_run_rebalance_line_rhythm_once", result.stdout)
+            self.assertNotIn("soften_line_endings.py", result.stdout)
+
     def test_clean_run_checker_preflight_blocks_900s_only_with_weak_source_shape(self) -> None:
         from check_anlin_violations import chinese_len
 
