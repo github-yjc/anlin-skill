@@ -16,6 +16,8 @@ Let the text move by association, contrast, language echo, time jump, self-corre
 
 In standard diary, several independent thought-turns should normally be visible. One room, one conversation, or one transaction carrying the whole article is not the default; after a fragment has done its work, let the voice move through an earned memory, joke, object, contrast, time jump, or ordinary fact. This is a qualitative movement cue, not a fragment quota.
 
+**A complete standard diary is a day-shaped collage, not a premise summary.** If the body only has the prompt surface, one memory, and a final reply, it is a sketch; continue through another independent thought-turn before the required residue. Deepen existing fragments rather than appending checker-shaped scenes.
+
 **A thought-turn is not a paragraph.** If a turn contains an observation, crooked read, and next move, split those changes into breathing rows inside the fragment; the first draft must show that movement because a rhythm script cannot invent missing source movement. Do not turn this into one sentence per line.
 
 For invitation prompts, reject a single carrier chain such as `present desk/room -> message -> ticket/money -> old-friend inventory -> work excuse -> refusal -> friendship thesis`. If the slate follows that carrier chain, replace one middle fragment with a lateral thought that does not explain the invitation. A dense body of a few prose paragraphs is prose-block compression, not a fragment slate; split multi-turn paragraphs into breathing rows before writing.

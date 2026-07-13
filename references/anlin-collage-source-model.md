@@ -26,6 +26,8 @@ A slate can contain several kinds in any order. Do not assign one slot to each k
 
 For a standard diary, normally let the slate move through several independent thought-turns. One continuous scene, conversation, message thread, or transaction carrying the whole article is a deliberate exception, not the default; after a fragment has done its work, let the voice jump when an earned association, memory, contrast, joke, object, or ordinary fact appears. This is a qualitative source contract, not a fragment-count quota.
 
+**A complete standard diary is a day-shaped collage, not a premise summary.** If the body only has the prompt surface, one memory, and a final reply, it is a sketch; continue through another independent thought-turn before the required residue. This is structural completeness, not a character or line quota: deepen existing fragments rather than appending checker-shaped scenes.
+
 For invitation prompts, reject a single carrier chain such as `present desk/room -> message -> ticket/money -> old-friend inventory -> work excuse -> refusal -> friendship thesis`. If the slate follows that carrier chain, replace one middle fragment with a lateral thought that does not explain the invitation. A dense body of a few prose paragraphs is prose-block compression, not a fragment slate; split multi-turn paragraphs into breathing rows before writing.
 
 ## Fragment Relations

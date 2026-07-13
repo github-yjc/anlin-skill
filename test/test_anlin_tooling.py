@@ -9787,6 +9787,9 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("a thought-turn is not a paragraph", lowered)
             self.assertIn("observation, crooked read, and next move", lowered)
             self.assertIn("a rhythm script cannot invent missing source movement", lowered)
+            self.assertIn("a complete standard diary is a day-shaped collage, not a premise summary", lowered)
+            self.assertIn("if the body only has the prompt surface, one memory, and a final reply, it is a sketch", lowered)
+            self.assertIn("continue through another independent thought-turn before the required residue", lowered)
         self.assertIn("prompt sequence is not the article's outline", matrix)
 
     def test_postcheck_preflight_contract_keeps_submission_read_only(self) -> None:
