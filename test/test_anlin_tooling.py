@@ -2746,6 +2746,8 @@ class AnlinToolingTests(unittest.TestCase):
         )
         self.assertIn("source_shape=underbuilt", labels)
         self.assertIn("whole_source_rebuild_from_strongest_fragment", action)
+        self.assertIn("day_shaped_collage", action)
+        self.assertIn("independent_thought_turns", action)
         self.assertNotIn("rebalance_line_rhythm", action)
         self.assertNotIn("after_content_write_run_", action)
 
@@ -9320,6 +9322,8 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("without running a rhythm script", lowered)
             self.assertIn("in-place final mutation", lowered)
             self.assertIn("do not read its stdout", lowered)
+            self.assertIn("day-shaped collage", lowered)
+            self.assertIn("independent thought-turns", lowered)
 
         self.assertNotIn(
             "use `references/clean-generation-brief.md` as the detailed repair interface",
