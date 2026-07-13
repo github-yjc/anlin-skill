@@ -17,8 +17,6 @@ Do not print a plan, title list, metric table, scratch article, or code-fenced f
 
 Do not load `references/clean-generation-brief.md` or another long repair reference inside bounded clean-eval. The wrapper output is the complete repair interface.
 
-After these source reads, the next tool action is one complete write to draft.md. Do not spend another model turn comparing openings. Choose the first workable fragment slate and persist it; a persisted imperfect article is evidence; an unwritten better plan is not.
-
 After the minimal source reads finish, the next tool action must be one complete write to relative `draft.md`; do not spend another model turn comparing openings. Choose the first workable fragment slate and persist it; an unwritten better plan is not evidence.
 
 ## No-Load Rule
@@ -59,7 +57,7 @@ For standard diary, several independent thought-turns should normally be visible
 
 A movement unit is a short passage in which an observation, crooked read, and next action remain connected. Keep the natural Chinese punctuation that the thought needs. A line break may expose a continuation or landing, but a line break does not remove punctuation and does not turn every sentence into its own line.
 
-Punctuation-bearing movement units are the source shape. Naked caption rows are not breathing rows; they are a checklist surface. Do not split every sentence into its own line. Keep short clauses attached to the action, reply, object, or thought they complete. A movement unit may occupy one or several uneven rows. A thought-turn is not a paragraph or row count; it changes the object, time, memory, joke, social position, or next action. Within one movement unit, an observation, crooked read, and next move stay connected. The first artifact must already contain the movement; a rhythm script cannot invent missing source movement.
+Punctuation-bearing movement units are the source shape. Naked caption rows are not breathing rows; they are a checklist surface. Do not split every sentence into its own line. Keep short clauses attached to the action, reply, object, or thought they complete. Punctuation inside a long row is not lineation. When the next row completes the same movement, let the previous row keep the natural comma or unfinished landing that carries it forward. Do not hide every continuation inside long prose rows, and do not seal every visible row with a period. This exposes movement without turning lineation into a row-count recipe. A thought-turn is not a paragraph or row count; it changes the object, time, memory, joke, social position, or next action. Within one movement unit, an observation, crooked read, and next move stay connected. The first artifact must already contain the movement; a rhythm script cannot invent missing source movement.
 
 不采用：
 
@@ -114,12 +112,11 @@ If the prompt only says `忙项目`, keep it as an excuse surface; do not invent
 
 After writing draft.md, run the bounded wrapper. Its generator-facing output is the complete repair interface.
 
-The wrapper output is the complete repair interface. It does not rewrite `draft.md`; the generator performs one integrated source or shape action and reruns it immediately. When the action says `whole_source_rebuild`, keep that turn source-only: restore a day-shaped collage with independent thought-turns while preserving existing source mass; do not shrink it to a short premise summary, then call the wrapper again without running a rhythm script. Rhythm tooling is exposed only by a later shape action after the severe source deficit is gone. A named rhythm command is an in-place final mutation: do not read its stdout or write `draft.md` afterward; rerun the wrapper immediately.
+The wrapper output is the complete repair interface. It does not rewrite `draft.md`; follow the emitted `next_action` in order. When the action says `whole_source_rebuild`, keep that turn source-only: restore a day-shaped collage with independent thought-turns while preserving existing source mass; do not shrink it to a short premise summary, then call the wrapper again without running a rhythm script. Rhythm tooling is exposed only by a later shape action after the severe source deficit is gone. If no rhythm script is named, rerun the wrapper immediately after the content write. If a rhythm script is named after a content write, run that exact script with `--in-place` as the final mutation, do not read its stdout or write `draft.md` afterward, and then rerun the wrapper immediately.
 
 - If it reports a source finding, replace the earliest broken fragment or relation while preserving a complete article. Do not solve each message as a separate material request.
 - If it reports a pure shape finding, perform only the named local rhythm action.
 - If the output is shape-only, do not add material.
-- After any rewrite, rerun the wrapper immediately.
-- After any `draft.md` rewrite, rerun the wrapper immediately.
+- Follow the emitted `next_action`; do not skip a named script or change its order.
 - Do not load a long repair reference, inspect checker source/tests/thresholds, run counters, or switch to the normal checker inside the bounded case directory.
 - Stop only at an explicit CLEAN_RUN_PREFLIGHT_STOP, CLEAN_RUN_STOP, or an actual checker result allowed by the protocol. At a stop boundary, read draft.md once and output that exact article.

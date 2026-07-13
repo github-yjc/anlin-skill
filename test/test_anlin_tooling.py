@@ -2782,6 +2782,48 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("preflight attempts do not consume actual checker calls", contract)
         self.assertIn("wait for an explicit CLEAN_RUN_PREFLIGHT_STOP", contract)
 
+    def test_generator_facing_contract_routes_named_rhythm_actions_in_order(self) -> None:
+        _labels, mixed_action = generator_facing_summary(
+            [
+                "body_chinese_chars=910 < 950 with source_shape_weak",
+                "body_lines=28 < 45",
+                "prose_block_shape=compressed",
+            ]
+        )
+        mixed_contract = generator_facing_contract(mixed_action)
+        self.assertIn(
+            "next_action=one_complete_draft_write_then_run_named_rhythm_script_in_place_then_immediate_wrapper_rerun",
+            mixed_contract,
+        )
+        self.assertNotIn(
+            "next_action=one_complete_draft_write_then_immediate_wrapper_rerun",
+            mixed_contract,
+        )
+
+        _labels, shape_action = generator_facing_summary(["period_row_grid=present"])
+        shape_contract = generator_facing_contract(shape_action)
+        self.assertIn(
+            "next_action=run_named_rhythm_script_in_place_then_immediate_wrapper_rerun",
+            shape_contract,
+        )
+        self.assertNotIn("one_complete_draft_write", shape_contract)
+
+    def test_generator_facing_contract_keeps_source_only_and_stop_actions_unambiguous(self) -> None:
+        _labels, source_action = generator_facing_summary(
+            ["body_chinese_chars=480 < 650", "paragraph_engine=weak"]
+        )
+        source_contract = generator_facing_contract(source_action)
+        self.assertIn(
+            "next_action=one_complete_draft_write_then_immediate_wrapper_rerun",
+            source_contract,
+        )
+        self.assertNotIn("run_named_rhythm_script", source_contract)
+
+        stop_contract = generator_facing_contract(stopped=True)
+        self.assertIn("next_action=read_draft_once_and_output_unchanged", stop_contract)
+        self.assertNotIn("one_complete_draft_write", stop_contract)
+        self.assertNotIn("run_named_rhythm_script", stop_contract)
+
     def test_clean_run_checker_marker_forces_generator_facing_without_flag(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             case = Path(temp)
@@ -2966,6 +3008,14 @@ class AnlinToolingTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
             self.assertIn("after_content_write_run_rebalance_line_rhythm_once", result.stdout)
+            self.assertIn(
+                "next_action=one_complete_draft_write_then_run_named_rhythm_script_in_place_then_immediate_wrapper_rerun",
+                result.stdout,
+            )
+            self.assertNotIn(
+                "next_action=one_complete_draft_write_then_immediate_wrapper_rerun",
+                result.stdout,
+            )
             self.assertNotIn("soften_line_endings.py", result.stdout)
 
     def test_clean_run_checker_preflight_blocks_900s_only_with_weak_source_shape(self) -> None:
@@ -4437,6 +4487,119 @@ class AnlinToolingTests(unittest.TestCase):
             findings = json.loads(result.stdout)
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertIn("节奏脚本后重写未重跑节奏修复", rules)
+
+    def test_clean_eval_trace_flags_named_rhythm_action_skipped_after_content_write(self) -> None:
+        log = """
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        $ Get-Location
+        C:/eval-workspace/iteration-164/eval-09/bounded
+        → Read C:/skill/references/clean-eval-first-draft-minimum.md
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT: findings=source_shape=underbuilt; source_action=replace_one_broken_fragment_or_relation_in_place; after_content_write_run_rebalance_line_rhythm_once_in_place_as_final_mutation_then_immediate_wrapper_rerun; next_action=one_complete_draft_write_then_run_named_rhythm_script_in_place_then_immediate_wrapper_rerun
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("已命名节奏动作被跳过", rules)
+
+    def test_clean_eval_trace_accepts_named_rhythm_action_after_last_content_write(self) -> None:
+        log = """
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        $ Get-Location
+        C:/eval-workspace/iteration-165/eval-09/bounded
+        → Read C:/skill/references/clean-eval-first-draft-minimum.md
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT: findings=source_shape=underbuilt; source_action=replace_one_broken_fragment_or_relation_in_place; after_content_write_run_rebalance_line_rhythm_once_in_place_as_final_mutation_then_immediate_wrapper_rerun; next_action=one_complete_draft_write_then_run_named_rhythm_script_in_place_then_immediate_wrapper_rerun
+        ← Write draft.md
+        $ python C:/skill/scripts/rebalance_line_rhythm.py draft.md --in-place
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("已命名节奏动作被跳过", rules)
+
+    def test_clean_eval_trace_flags_content_write_before_pure_shape_action(self) -> None:
+        log = """
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        $ Get-Location
+        C:/eval-workspace/iteration-165/eval-09/bounded
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT: findings=rhythm_shape=needs_local_reset; shape_action=run_rebalance_line_rhythm_in_place_as_final_mutation_then_immediate_wrapper_rerun; next_action=run_named_rhythm_script_in_place_then_immediate_wrapper_rerun
+        ← Write draft.md
+        $ python C:/skill/scripts/rebalance_line_rhythm.py draft.md --in-place
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("纯shape动作前额外写稿", rules)
+
+    def test_clean_eval_trace_flags_rhythm_script_after_stop(self) -> None:
+        log = """
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        $ Get-Location
+        C:/eval-workspace/iteration-165/eval-09/bounded
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        $ python C:/skill/scripts/rebalance_line_rhythm.py draft.md --in-place
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("stop后运行节奏脚本", rules)
 
     def test_clean_eval_trace_flags_rhythm_script_before_first_wrapper(self) -> None:
         log = """
@@ -9322,10 +9485,14 @@ class AnlinToolingTests(unittest.TestCase):
             lowered = text.lower()
             self.assertIn("the wrapper output is the complete repair interface", lowered)
             self.assertIn("do not load `references/clean-generation-brief.md`", lowered)
-            self.assertIn("after any `draft.md` rewrite, rerun the wrapper immediately", lowered)
+            self.assertIn("if no rhythm script is named, rerun the wrapper immediately after the content write", lowered)
+            self.assertIn(
+                "if a rhythm script is named after a content write, run that exact script with `--in-place` as the final mutation",
+                lowered,
+            )
+            self.assertNotIn("after any `draft.md` rewrite, rerun the wrapper immediately", lowered)
             self.assertIn("when the action says `whole_source_rebuild`", lowered)
             self.assertIn("without running a rhythm script", lowered)
-            self.assertIn("in-place final mutation", lowered)
             self.assertIn("do not read its stdout", lowered)
             self.assertIn("day-shaped collage", lowered)
             self.assertIn("independent thought-turns", lowered)
@@ -9632,6 +9799,14 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("after every ten development iterations", development_log)
         self.assertIn("Current active-protocol recognition rate is `N/A`", readme)
 
+    def test_readme_reclassifies_iteration_164_after_named_rhythm_trace_fix(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        lowered = readme.lower()
+        self.assertIn("iteration-164", lowered)
+        self.assertIn("invalid-controller-evidence", lowered)
+        self.assertIn("named rhythm", lowered)
+        self.assertNotIn("latest bounded controller evidence remains process-valid but quality-invalid", lowered)
+
     def test_readme_routes_clean_placebo_calibration_back_to_source_formation(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
 
@@ -9819,10 +9994,18 @@ class AnlinToolingTests(unittest.TestCase):
                 "keep short clauses attached to the action, reply, object, or thought they complete",
                 lowered,
             )
+            self.assertIn("punctuation inside a long row is not lineation", lowered)
+            self.assertIn(
+                "when the next row completes the same movement, let the previous row keep the natural comma or unfinished landing",
+                lowered,
+            )
+            self.assertIn("do not hide every continuation inside long prose rows", lowered)
+            self.assertIn("do not seal every visible row with a period", lowered)
             self.assertIn("fragment slate", lowered)
             self.assertIn("independent thought-turn", lowered)
             self.assertIn("day-shaped collage", lowered)
             self.assertNotIn("split multi-turn paragraphs into breathing rows before writing", lowered)
+            self.assertNotIn("a movement unit may occupy one or several uneven rows", lowered)
 
         for text in (minimum, collage, runtime, clean):
             lowered = text.lower()
@@ -10301,13 +10484,14 @@ class AnlinToolingTests(unittest.TestCase):
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
         for text in (first_draft,):
+            lowered = text.lower()
             self.assertIn(
-                "After the minimal source reads finish, the next tool action must be one complete write to relative `draft.md`",
-                text,
+                "after the minimal source reads finish, the next tool action must be one complete write to relative `draft.md`",
+                lowered,
             )
-            self.assertIn("Do not spend another model turn comparing openings", text)
-            self.assertIn("Choose the first workable fragment slate", text)
-            self.assertIn("an unwritten better plan is not evidence", text)
+            self.assertIn("do not spend another model turn comparing openings", lowered)
+            self.assertIn("choose the first workable fragment slate", lowered)
+            self.assertIn("an unwritten better plan is not evidence", lowered)
 
     def test_punctuation_pendulum_is_source_guidance_not_only_checker(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")

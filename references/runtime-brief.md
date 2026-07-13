@@ -18,7 +18,7 @@ In standard diary, several independent thought-turns should normally be visible.
 
 **A complete standard diary is a day-shaped collage, not a premise summary.** If the body only has the prompt surface, one memory, and a final reply, it is a sketch; continue through another independent thought-turn before the required residue. Deepen existing fragments rather than appending checker-shaped scenes.
 
-A movement unit is a short passage in which an observation, crooked read, and next action remain connected. Keep the natural Chinese punctuation that the thought needs. Punctuation-bearing movement units are the source shape: a line break does not remove punctuation, and naked caption rows are not breathing rows. Do not split every sentence into its own line. Keep short clauses attached to the action, reply, object, or thought they complete. A movement unit may occupy one or several uneven rows.
+A movement unit is a short passage in which an observation, crooked read, and next action remain connected. Keep the natural Chinese punctuation that the thought needs. Punctuation-bearing movement units are the source shape: a line break does not remove punctuation, and naked caption rows are not breathing rows. Do not split every sentence into its own line. Keep short clauses attached to the action, reply, object, or thought they complete. Punctuation inside a long row is not lineation. When the next row completes the same movement, let the previous row keep the natural comma or unfinished landing that carries it forward. Do not hide every continuation inside long prose rows, and do not seal every visible row with a period. This exposes movement without turning lineation into a row-count recipe.
 
 A thought-turn is not a paragraph or row count. It is semantic movement: the object, time, memory, joke, social position, or next action changes. Within one movement unit, an observation, crooked read, and next move stay connected. One thought-turn may contain several movement units, and the first artifact must show that movement because a rhythm script cannot invent missing source movement.
 
@@ -34,7 +34,7 @@ There is no universal standard-diary character target, line target, cluster coun
 
 If the prompt only says `忙项目`, keep it as an excuse surface; do not invent a client, deadline, leave, team, coworker, city, or office biography.
 
-The wrapper output is the complete repair interface. The wrapper does not rewrite `draft.md`; after any `draft.md` rewrite, rerun it immediately. Do not load a long repair reference or solve one checker message as a separate material request.
+The wrapper output is the complete repair interface. The wrapper does not rewrite `draft.md`; follow the emitted `next_action` in order. If no rhythm script is named, rerun the wrapper immediately after the content write. If a rhythm script is named after a content write, run that exact script with `--in-place` as the final mutation, do not read its stdout or write `draft.md` afterward, and then rerun the wrapper immediately. Do not load a long repair reference or solve one checker message as a separate material request.
 
 In ordinary mode, the checker loop may continue until hard errors are cleared; bounded clean-eval and finalized repair have separate stop rules. After a finalized artifact is frozen, the controller may run the full `check_style_profile.py draft.md --draft-gate --strict --genre <selected-genre>` report without exposing that report to the repair agent.
 
@@ -50,10 +50,7 @@ For bounded clean-eval:
 
 - the wrapper output is the complete repair interface;
 - when the action says `whole_source_rebuild`, keep that turn source-only: restore a day-shaped collage with independent thought-turns while preserving existing source mass; do not shrink it to a short premise summary, then call the wrapper again without running a rhythm script; rhythm tooling is exposed only by a later shape action after the severe source deficit is gone;
-- a named rhythm command is an in-place final mutation: do not read its stdout or write draft.md afterward; rerun the wrapper immediately;
-- after any draft.md rewrite, rerun the wrapper immediately;
-- after any `draft.md` rewrite, rerun the wrapper immediately;
-- do not load clean-generation-brief.md, runtime-brief.md, or another long reference after a bounded preflight;
+- follow the emitted `next_action`; do not skip a named script or change its order;
 - do not load `references/clean-generation-brief.md`, `references/runtime-brief.md`, or another long reference after a bounded preflight;
 - do not run checkers, counters, source/test/threshold searches, path probes, or model diagnostics inside the bounded case;
 - stop at CLEAN_RUN_PREFLIGHT_STOP, CLEAN_RUN_STOP, or the permitted checker result and read draft.md once.

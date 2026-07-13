@@ -29,7 +29,8 @@ VISIBLE_PROCESS_CHATTER_PATTERNS = [
     re.compile(r"(?i)paying attention to:"),
     re.compile(r"(?i)the checker (?:requires|reports|detected|says)"),
 ]
-RHYTHM_SCRIPTS_PATTERN = r"(?:rebalance_line_rhythm|split_long_lines|merge_short_lines|soften_line_endings)\.py\b"
+RHYTHM_SCRIPT_NAMES_PATTERN = r"(?:rebalance_line_rhythm|split_long_lines|merge_short_lines|soften_line_endings)"
+RHYTHM_SCRIPTS_PATTERN = rf"{RHYTHM_SCRIPT_NAMES_PATTERN}\.py\b"
 FORMATTED_PATCH_DRAFT_CONTEXT_BODY = (
     r"^\s*%\s*Patch\s+\d+\s+files?\b"
     r"(?:(?!^\s*(?:\$|TOOL|TITLE|INPUT|←|Write|Edit|OUTPUT\s+CLEAN_RUN|CLEAN_RUN))[\s\S]){0,600}"
@@ -394,6 +395,86 @@ def actual_rhythm_script_indices(text: str) -> list[int]:
     return regex_action_indices(text, patterns)
 
 
+def actual_rhythm_script_calls(text: str) -> list[tuple[int, str, bool]]:
+    pattern = re.compile(
+        rf"(?im)^\s*(?:\$|TITLE|INPUT)\s+[^\n]*(?P<script>{RHYTHM_SCRIPT_NAMES_PATTERN})\.py\b(?P<tail>[^\n]*)"
+    )
+    return [
+        (match.start(), match.group("script"), "--in-place" in match.group(0))
+        for match in pattern.finditer(text)
+    ]
+
+
+def named_rhythm_action_directives(text: str) -> list[tuple[int, str, bool]]:
+    patterns = (
+        (
+            re.compile(
+                rf"(?im)^\s*(?:OUTPUT\s+)?CLEAN_RUN_(?:PREFLIGHT|POSTCHECK_PREFLIGHT):[^\n]*"
+                rf"after_content_write_run_(?P<script>{RHYTHM_SCRIPT_NAMES_PATTERN})_once_in_place_as_final_mutation_then_immediate_wrapper_rerun"
+            ),
+            True,
+        ),
+        (
+            re.compile(
+                rf"(?im)^\s*(?:OUTPUT\s+)?CLEAN_RUN_(?:PREFLIGHT|POSTCHECK_PREFLIGHT):[^\n]*"
+                rf"shape_action=run_(?P<script>{RHYTHM_SCRIPT_NAMES_PATTERN})_in_place_as_final_mutation_then_immediate_wrapper_rerun"
+            ),
+            False,
+        ),
+    )
+    directives: list[tuple[int, str, bool]] = []
+    for pattern, requires_write in patterns:
+        directives.extend(
+            (match.start(), match.group("script"), requires_write)
+            for match in pattern.finditer(text)
+        )
+    return sorted(set(directives))
+
+
+def skipped_named_rhythm_action(text: str) -> tuple[int, str] | None:
+    checker_indices = actual_clean_run_checker_indices(text)
+    mutation_indices = actual_draft_mutation_indices(text)
+    rhythm_calls = actual_rhythm_script_calls(text)
+    for directive_index, script, requires_write in named_rhythm_action_directives(text):
+        next_checker = next((index for index in checker_indices if index > directive_index), None)
+        if next_checker is None:
+            continue
+        relevant_mutations = [
+            index for index in mutation_indices if directive_index < index < next_checker
+        ]
+        if requires_write:
+            if not relevant_mutations:
+                return directive_index, script
+            action_floor = relevant_mutations[-1]
+        else:
+            action_floor = directive_index
+        matching_in_place = any(
+            action_floor < index < next_checker and called_script == script and in_place
+            for index, called_script, in_place in rhythm_calls
+        )
+        if not matching_in_place:
+            return directive_index, script
+    return None
+
+
+def pure_shape_write_before_named_rhythm(text: str) -> int:
+    checker_indices = actual_clean_run_checker_indices(text)
+    mutation_indices = actual_draft_mutation_indices(text)
+    for directive_index, _script, requires_write in named_rhythm_action_directives(text):
+        if requires_write:
+            continue
+        next_checker = next((index for index in checker_indices if index > directive_index), None)
+        if next_checker is None:
+            continue
+        unexpected_write = next(
+            (index for index in mutation_indices if directive_index < index < next_checker),
+            None,
+        )
+        if unexpected_write is not None:
+            return unexpected_write
+    return -1
+
+
 def actual_ad_hoc_metric_probe_index(text: str) -> int:
     """Find generator-built metric probes that bypass the clean wrapper."""
 
@@ -743,6 +824,29 @@ def collect_findings(text: str) -> list[TraceFinding]:
             )
         )
 
+    skipped_rhythm = skipped_named_rhythm_action(normalized)
+    if skipped_rhythm is not None:
+        directive_index, script = skipped_rhythm
+        findings.append(
+            TraceFinding(
+                "error",
+                "已命名节奏动作被跳过",
+                clean_excerpt(normalized, directive_index),
+                f"The wrapper explicitly named {script}.py. Follow the emitted next_action in order: complete any required draft write, run that exact script with --in-place as the final mutation, then rerun clean_run_checker.py immediately.",
+            )
+        )
+
+    pure_shape_write = pure_shape_write_before_named_rhythm(normalized)
+    if pure_shape_write >= 0:
+        findings.append(
+            TraceFinding(
+                "error",
+                "纯shape动作前额外写稿",
+                clean_excerpt(normalized, pure_shape_write),
+                "A pure shape next_action permits only the named in-place rhythm script followed by the wrapper. Do not rewrite draft.md or add source material before that script.",
+            )
+        )
+
     if stop_index >= 0:
         after_stop = normalized[stop_index:]
         post_stop_patterns = [
@@ -756,6 +860,11 @@ def collect_findings(text: str) -> list[TraceFinding]:
             (
                 "stop后切普通checker",
                 r"(?m)^\s*(?:\$\s*)?(?:python|py|uv|bash|powershell|cmd|INPUT|TITLE)\b[^\n]{0,220}check_anlin_violations\.py",
+                re.IGNORECASE,
+            ),
+            (
+                "stop后运行节奏脚本",
+                rf"(?m)^\s*(?:\$|TITLE|INPUT)\s+[^\n]*{RHYTHM_SCRIPTS_PATTERN}",
                 re.IGNORECASE,
             ),
             ("stop后删除状态", r"(Remove-Item|rm\s+|del\s+).{0,120}\.anlin-clean-run-state\.json", re.IGNORECASE),

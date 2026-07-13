@@ -33,7 +33,7 @@ For standard diary, several independent thought-turns should normally appear. On
 
 **A complete standard diary is a day-shaped collage, not a premise summary.** If the body only has the prompt surface, one memory, and a final reply, it is a sketch; continue through another independent thought-turn before the required residue. Deepen existing fragments rather than appending checker-shaped scenes.
 
-A movement unit is a short passage in which an observation, crooked read, and next action remain connected. Keep natural punctuation. Punctuation-bearing movement units are the source shape: a line break does not remove punctuation, and naked caption rows are not breathing rows. Do not split every sentence into its own line. Keep short clauses attached to the action, reply, object, or thought they complete. A movement unit may occupy one or several uneven rows.
+A movement unit is a short passage in which an observation, crooked read, and next action remain connected. Keep natural punctuation. Punctuation-bearing movement units are the source shape: a line break does not remove punctuation, and naked caption rows are not breathing rows. Do not split every sentence into its own line. Keep short clauses attached to the action, reply, object, or thought they complete. Punctuation inside a long row is not lineation. When the next row completes the same movement, let the previous row keep the natural comma or unfinished landing that carries it forward. Do not hide every continuation inside long prose rows, and do not seal every visible row with a period. This exposes movement without turning lineation into a row-count recipe.
 
 A thought-turn is not a paragraph or row count. It is semantic movement: the object, time, memory, joke, social position, or next action changes. Within one movement unit, an observation, crooked read, and next move stay connected. One thought-turn may contain several movement units, and the first artifact must show that movement because a rhythm script cannot invent missing source movement.
 
@@ -78,7 +78,7 @@ Avoid prose-block compression, equal short-line grids, one-period-per-row surfac
 
 When a checker reports a shape problem, diagnose the earliest affected fragment relation. Pure shape findings permit only the named local rhythm action and no new material. A source finding calls for one replacement or source reset, not one patch per metric.
 
-Any later `Write draft.md`, `Edit draft.md`, `Set-Content`, or `Out-File` cancels a previous rhythm-script repair; rerun the named shape step after the final content write. Reading the file, thinking about the repair, or visually deciding the rhythm looks okay does not refresh it; only the named shape action after the last content write does.
+Follow the wrapper's emitted `next_action` in order. If no rhythm script is named, rerun the wrapper immediately after the content write. If a rhythm script is named after a content write, run that exact script with `--in-place` as the final mutation, then rerun the wrapper immediately. Any later `Write draft.md`, `Edit draft.md`, `Set-Content`, or `Out-File` cancels a previous rhythm-script repair; rerun the named shape step after the final content write. Reading the file, thinking about the repair, or visually deciding the rhythm looks okay does not refresh it; only the named shape action after the last content write does.
 
 For a period-row grid, delete explanation tails before changing marks, and keep only the relation the local movement earns. Do not globally merge rows into comma chains.
 

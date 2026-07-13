@@ -328,9 +328,21 @@ def generator_facing_summary(messages: list[str]) -> tuple[list[str], str]:
     return labels, action
 
 
-def generator_facing_contract() -> str:
+def generator_facing_contract(action: str = "", *, stopped: bool = False) -> str:
+    if stopped:
+        next_action = "next_action=read_draft_once_and_output_unchanged"
+    elif "after_content_write_run_" in action:
+        next_action = (
+            "next_action=one_complete_draft_write_then_run_named_rhythm_script_in_place_"
+            "then_immediate_wrapper_rerun"
+        )
+    elif "shape_action=run_" in action:
+        next_action = "next_action=run_named_rhythm_script_in_place_then_immediate_wrapper_rerun"
+    else:
+        next_action = "next_action=one_complete_draft_write_then_immediate_wrapper_rerun"
     return (
-        "next_action=one_complete_draft_write_then_immediate_wrapper_rerun; "
+        next_action
+        + "; "
         "preflight attempts do not consume actual checker calls; "
         "wait for an explicit CLEAN_RUN_PREFLIGHT_STOP or actual checker result; "
         "do not count characters, lines, punctuation, or connectors; "
@@ -1071,14 +1083,14 @@ def preflight_before_check(
             "No checker call was consumed."
         )
         if generator_facing:
-            stop_text += " " + generator_facing_contract()
+            stop_text += " " + generator_facing_contract(stopped=True)
         print(stop_text)
     else:
         if generator_facing:
             labels, action = generator_facing_summary(messages)
             print(
                 f"CLEAN_RUN_PREFLIGHT: qualitative source review before checker call {call_number}/2; "
-                f"findings={','.join(labels)}; {action}; {generator_facing_contract()}. "
+                f"findings={','.join(labels)}; {action}; {generator_facing_contract(action)}. "
                 "This preflight did not consume a checker call."
             )
         else:
@@ -1610,7 +1622,7 @@ def post_checker_preflight_before_second_check(
             "No second checker call was consumed."
         )
         if generator_facing:
-            stop_text += " " + generator_facing_contract()
+            stop_text += " " + generator_facing_contract(stopped=True)
         print(stop_text)
         return True, messages
     repair_hints, revision_frame = build_preflight_guidance(messages)
@@ -1680,7 +1692,7 @@ def post_checker_preflight_before_second_check(
         labels, action = generator_facing_summary(messages)
         print(
             "CLEAN_RUN_POSTCHECK_PREFLIGHT: qualitative source review before checker call 2/2; "
-            f"findings={','.join(labels)}; {action}; {generator_facing_contract()}. "
+            f"findings={','.join(labels)}; {action}; {generator_facing_contract(action)}. "
             "This post-check preflight did not consume checker call 2/2."
         )
     else:
