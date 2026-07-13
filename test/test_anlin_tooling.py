@@ -52,7 +52,12 @@ from clean_run_checker import (  # noqa: E402
     preflight_messages,
     soft_witness_matches,
 )
-from summarize_dev_checkpoints import classify_development_result, infer_genre_from_case_dir, summarize_gate  # noqa: E402
+from summarize_dev_checkpoints import (  # noqa: E402
+    classify_development_result,
+    implication_for,
+    infer_genre_from_case_dir,
+    summarize_gate,
+)
 
 
 def short_sincere_prose_block_sample() -> str:
@@ -4659,6 +4664,236 @@ class AnlinToolingTests(unittest.TestCase):
             rules = [item["rule"] for item in findings if item["severity"] == "error"]
             self.assertNotIn("节奏脚本后重写未重跑节奏修复", rules)
 
+    def test_clean_eval_trace_allows_new_source_action_to_supersede_previous_rhythm(self) -> None:
+        log = """
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        $ Get-Location
+        C:/eval-workspace/iteration-165/eval-09/bounded
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT: after_content_write_run_rebalance_line_rhythm_once_in_place_as_final_mutation_then_immediate_wrapper_rerun; next_action=one_complete_draft_write_then_run_named_rhythm_script_in_place_then_immediate_wrapper_rerun
+        ← Write draft.md
+        $ python C:/skill/scripts/rebalance_line_rhythm.py draft.md --in-place
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT: source_action=replace_one_broken_fragment_or_relation_in_place; next_action=one_complete_draft_write_then_immediate_wrapper_rerun
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("节奏脚本后重写未重跑节奏修复", rules)
+
+    def test_clean_eval_trace_flags_multiple_writes_within_one_wrapper_action(self) -> None:
+        log = """
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        $ Get-Location
+        C:/eval-workspace/iteration-165/eval-09/bounded
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT: source_action=replace_one_broken_fragment_or_relation_in_place; next_action=one_complete_draft_write_then_immediate_wrapper_rerun
+        ← Write draft.md
+        → Read draft.md
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("wrapper动作内多次改写draft", rules)
+
+    def test_clean_eval_trace_flags_missing_write_within_source_action(self) -> None:
+        log = """
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        $ Get-Location
+        C:/eval-workspace/iteration-165/eval-09/bounded
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT: source_action=replace_one_broken_fragment_or_relation_in_place; next_action=one_complete_draft_write_then_immediate_wrapper_rerun
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertIn("wrapper动作未写入draft", rules)
+
+    def test_clean_eval_trace_counts_structured_title_and_input_as_one_write(self) -> None:
+        log = """
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        $ Get-Location
+        C:/eval-workspace/iteration-165/eval-09/bounded
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT: source_action=replace_one_broken_fragment_or_relation_in_place; next_action=one_complete_draft_write_then_immediate_wrapper_rerun
+        TOOL apply_patch
+        TITLE Write draft.md
+        INPUT {"patchText": "*** Update File: draft.md"}
+        TOOL bash
+        TITLE clean_run_checker.py draft.md
+        INPUT {"command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing"}
+        OUTPUT CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("wrapper动作内多次改写draft", rules)
+
+    def test_clean_eval_trace_counts_title_input_only_as_one_write(self) -> None:
+        log = """
+        $ Test-Path .anlin-clean-eval-mode
+        True
+        $ Get-Location
+        C:/eval-workspace/iteration-165/eval-09/bounded
+        ← Write draft.md
+        $ python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing
+        CLEAN_RUN_PREFLIGHT: source_action=replace_one_broken_fragment_or_relation_in_place; next_action=one_complete_draft_write_then_immediate_wrapper_rerun
+        TITLE Write draft.md
+        INPUT {"patchText": "*** Update File: draft.md"}
+        TITLE clean_run_checker.py draft.md
+        INPUT {"command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing"}
+        OUTPUT CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY
+        """
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.txt"
+            path.write_text(log, encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("wrapper动作内多次改写draft", rules)
+
+    def test_clean_eval_trace_does_not_count_failed_structured_write_as_persisted(self) -> None:
+        events = [
+            {
+                "type": "tool_use",
+                "part": {
+                    "type": "tool",
+                    "tool": "apply_patch",
+                    "state": {
+                        "status": "completed",
+                        "input": {"patchText": "*** Add File: draft.md"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "type": "tool",
+                    "tool": "bash",
+                    "state": {
+                        "status": "completed",
+                        "input": {
+                            "command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing"
+                        },
+                        "output": "CLEAN_RUN_PREFLIGHT: source_action=replace_one_broken_fragment_or_relation_in_place; next_action=one_complete_draft_write_then_immediate_wrapper_rerun",
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "type": "tool",
+                    "tool": "apply_patch",
+                    "state": {
+                        "status": "error",
+                        "input": {"patchText": "*** Update File: draft.md"},
+                        "error": "expected lines not found",
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "type": "tool",
+                    "tool": "apply_patch",
+                    "state": {
+                        "status": "completed",
+                        "input": {"patchText": "*** Update File: draft.md"},
+                    },
+                },
+            },
+            {
+                "type": "tool_use",
+                "part": {
+                    "type": "tool",
+                    "tool": "bash",
+                    "state": {
+                        "status": "completed",
+                        "input": {
+                            "command": "python C:/skill/scripts/clean_run_checker.py draft.md --strict --draft-gate --generator-facing"
+                        },
+                        "output": "CLEAN_RUN_PREFLIGHT_STOP: FINAL BOUNDARY",
+                    },
+                },
+            },
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "opencode-output.jsonl"
+            path.write_text(
+                "\n".join(json.dumps(event, ensure_ascii=False) for event in events),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [sys.executable, str(CHECK_TRACE), str(path), "--json"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+            rules = [item["rule"] for item in findings if item["severity"] == "error"]
+            self.assertNotIn("wrapper动作内多次改写draft", rules)
+
     def test_clean_eval_trace_allows_wrapper_internal_rhythm_after_rewrite(self) -> None:
         log = """
         → Skill "anlin-writing"
@@ -5838,13 +6073,35 @@ class AnlinToolingTests(unittest.TestCase):
 
     def test_dev_checkpoint_classifier_keeps_bounded_and_finalized_separate(self) -> None:
         self.assertEqual(classify_development_result("fail", "pass")[0], "source_guidance_gap")
-        self.assertEqual(classify_development_result("invalid", "pass")[0], "source_guidance_gap")
         self.assertEqual(classify_development_result("fail", "review")[0], "systemic_gap")
         self.assertEqual(classify_development_result("fail", "fail")[0], "systemic_gap")
         self.assertEqual(classify_development_result("pass", "pass")[0], "ready_for_blind_rounds")
         self.assertEqual(classify_development_result("pass", "fail")[0], "repair_or_validator_gap")
         self.assertEqual(classify_development_result("pass", "review")[0], "repair_or_validator_gap")
         self.assertEqual(classify_development_result("fail", None)[0], "bounded_fail_finalized_missing")
+
+    def test_dev_checkpoint_classifier_blocks_finalized_after_invalid_bounded(self) -> None:
+        for finalized_status in (None, "pass", "review", "fail", "invalid"):
+            with self.subTest(finalized_status=finalized_status):
+                diagnosis, next_action = classify_development_result("invalid", finalized_status)
+                self.assertEqual(diagnosis, "bounded_invalid")
+                self.assertIn("fresh bounded", next_action.lower())
+                self.assertIn("before any finalized checkpoint", next_action.lower())
+                self.assertIn("invalid bounded", implication_for(diagnosis).lower())
+
+    def test_dev_checkpoint_classifier_blocks_finalized_after_preflight_stop(self) -> None:
+        for bounded_status in ("fail", "review", "pass"):
+            for finalized_status in (None, "pass", "review", "fail", "invalid"):
+                with self.subTest(bounded_status=bounded_status, finalized_status=finalized_status):
+                    diagnosis, next_action = classify_development_result(
+                        bounded_status,
+                        finalized_status,
+                        "preflight",
+                    )
+                    self.assertEqual(diagnosis, "bounded_preflight_fail")
+                    self.assertIn("fresh bounded", next_action.lower())
+                    self.assertIn("before finalized", next_action.lower())
+                    self.assertIn("source/preflight", implication_for(diagnosis).lower())
 
     def test_dev_checkpoint_infers_genre_from_eval_case_directory(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -5891,6 +6148,26 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertEqual(gate.style_status, "inconclusive")
         self.assertEqual(gate.style_checkpoint_decision, "profile_inconclusive_fallback")
         self.assertTrue(any("inconclusive" in note for note in gate.notes or []))
+
+    def test_dev_checkpoint_treats_clean_preflight_stop_as_fail_not_pass_or_invalid(self) -> None:
+        gate = summarize_gate(
+            hard_findings=[],
+            style_report={
+                "summary": {
+                    "status": "yellow",
+                    "checkpoint_decision": "pass",
+                    "red_families": [],
+                    "yellow_families": ["punctuation"],
+                    "profile_gate_applicable": True,
+                }
+            },
+            trace_findings=[],
+            clean_state={"calls": 0, "preflights": 3, "stop_reason": "preflight"},
+            bounded=True,
+        )
+        self.assertEqual(gate.status, "fail")
+        self.assertNotEqual(gate.status, "invalid")
+        self.assertTrue(any("stopped before a checker-ready article" in note for note in gate.notes or []))
 
     def test_dev_checkpoint_summary_creates_controller_audit_copy(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -6070,6 +6347,11 @@ class AnlinToolingTests(unittest.TestCase):
             )
             self.assertNotEqual(result.returncode, 0)
             payload = json.loads(result.stdout)
+            self.assertEqual(payload["bounded"]["gate"]["status"], "fail")
+            self.assertEqual(payload["diagnosis"], "bounded_preflight_fail")
+            self.assertIn("fresh bounded", payload["next_action"].lower())
+            self.assertIn("before finalized", payload["next_action"].lower())
+            self.assertIn("source/preflight", payload["repair_implication"].lower())
             self.assertIn("stopped at preflight before formal checker call 1/2", payload["bounded_checkpoint_answer"])
             self.assertIn("not evidence that the two actual checker corrections were tested", payload["bounded_checkpoint_answer"])
 
@@ -9806,6 +10088,17 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("invalid-controller-evidence", lowered)
         self.assertIn("named rhythm", lowered)
         self.assertNotIn("latest bounded controller evidence remains process-valid but quality-invalid", lowered)
+
+    def test_readme_records_iteration_165_as_process_valid_quality_invalid(self) -> None:
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        lowered = readme.lower()
+        self.assertIn("iteration-165", lowered)
+        self.assertIn("process-valid but quality-invalid", lowered)
+        self.assertIn("failed `apply_patch` attempt", lowered)
+        self.assertIn("did not persist", lowered)
+        self.assertIn("did execute the first named rhythm action in order", lowered)
+        self.assertIn("do not start finalized repair", lowered)
+        self.assertNotIn("wrapper动作内多次改写draft", readme)
 
     def test_readme_routes_clean_placebo_calibration_back_to_source_formation(self) -> None:
         readme = (ROOT / "README.md").read_text(encoding="utf-8")

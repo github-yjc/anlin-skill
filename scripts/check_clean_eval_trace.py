@@ -123,6 +123,9 @@ def extract_json_event_trace(text: str) -> str:
         tool_input = state.get("input")
         title = state.get("title") or part.get("title") or ""
         chunks.append(f"TOOL {tool}")
+        status = state.get("status")
+        if isinstance(status, str) and status.strip():
+            chunks.append(f"STATUS {status}")
         if title:
             chunks.append(f"TITLE {title}")
         if tool_input is not None:
@@ -192,6 +195,9 @@ def extract_opencode_export_trace(text: str) -> str | None:
             tool_input = state.get("input")
             title = state.get("title") or part.get("title") or ""
             chunks.append(f"TOOL {tool}")
+            status = state.get("status")
+            if isinstance(status, str) and status.strip():
+                chunks.append(f"STATUS {status}")
             if title:
                 chunks.append(f"TITLE {title}")
             if tool_input is not None:
@@ -395,6 +401,76 @@ def actual_rhythm_script_indices(text: str) -> list[int]:
     return regex_action_indices(text, patterns)
 
 
+def structured_action_spans(text: str) -> list[tuple[int, int]]:
+    """Group TOOL/TITLE/INPUT rows into calls while preserving mixed plain logs."""
+
+    spans: list[tuple[int, int]] = []
+    current_start: int | None = None
+    current_kind = ""
+    has_title = False
+    has_input = False
+    offset = 0
+
+    def flush(end: int) -> None:
+        nonlocal current_start, current_kind, has_title, has_input
+        if current_start is not None:
+            spans.append((current_start, end))
+        current_start = None
+        current_kind = ""
+        has_title = False
+        has_input = False
+
+    for line in text.splitlines(keepends=True):
+        stripped = line.lstrip()
+        if re.match(r"(?i)^TOOL\s+", stripped):
+            flush(offset)
+            current_start = offset
+            current_kind = "tool"
+        elif re.match(r"(?i)^TITLE\s+", stripped):
+            if current_start is None or current_kind != "tool" or has_title:
+                flush(offset)
+                current_start = offset
+                current_kind = "title"
+            has_title = True
+        elif re.match(r"(?i)^INPUT\s+", stripped):
+            if current_start is None or has_input:
+                flush(offset)
+                current_start = offset
+                current_kind = "input"
+            has_input = True
+        elif re.match(r"(?i)^(?:STATUS|OUTPUT)\s+", stripped) or not stripped.strip():
+            pass
+        else:
+            flush(offset)
+        offset += len(line)
+    flush(len(text))
+    return spans
+
+
+def actual_draft_mutation_action_indices(text: str) -> list[int]:
+    """Count persisted mutation calls once, excluding failed structured tools."""
+
+    spans = structured_action_spans(text)
+    if not spans:
+        return actual_draft_mutation_indices(text)
+
+    actions: list[int] = []
+    unstructured = list(text)
+    for start, end in spans:
+        block = text[start:end]
+        status_match = re.search(r"(?im)^\s*STATUS\s+(\S+)", block)
+        status = status_match.group(1).lower() if status_match else ""
+        persisted = not status or status in {"complete", "completed", "success", "succeeded"}
+        if persisted and actual_draft_mutation_indices(block):
+            actions.append(start)
+        for index in range(start, end):
+            if unstructured[index] not in "\r\n":
+                unstructured[index] = " "
+
+    actions.extend(actual_draft_mutation_indices("".join(unstructured)))
+    return sorted(set(actions))
+
+
 def actual_rhythm_script_calls(text: str) -> list[tuple[int, str, bool]]:
     pattern = re.compile(
         rf"(?im)^\s*(?:\$|TITLE|INPUT)\s+[^\n]*(?P<script>{RHYTHM_SCRIPT_NAMES_PATTERN})\.py\b(?P<tail>[^\n]*)"
@@ -514,7 +590,17 @@ def stale_rhythm_rewrite_indices(text: str) -> tuple[int, int] | None:
     draft_mutations = actual_draft_mutation_indices(text)
     checker_indices = actual_clean_run_checker_indices(text)
     for mutation_index in draft_mutations:
-        if not any(rhythm_index < mutation_index for rhythm_index in rhythm_indices):
+        prior_rhythm = max(
+            (rhythm_index for rhythm_index in rhythm_indices if rhythm_index < mutation_index),
+            default=-1,
+        )
+        if prior_rhythm < 0:
+            continue
+        prior_checker = max(
+            (checker_index for checker_index in checker_indices if checker_index < mutation_index),
+            default=-1,
+        )
+        if prior_checker > prior_rhythm:
             continue
         next_checker = next((checker for checker in checker_indices if checker > mutation_index), None)
         if next_checker is None:
@@ -523,6 +609,27 @@ def stale_rhythm_rewrite_indices(text: str) -> tuple[int, int] | None:
         wrapper_auto_rhythm = clean_wrapper_auto_rhythm_index(text, next_checker) >= 0
         if not rhythm_after_mutation and not wrapper_auto_rhythm:
             return mutation_index, next_checker
+    return None
+
+
+def wrapper_write_budget_violation(text: str) -> tuple[str, int] | None:
+    directive_pattern = re.compile(
+        r"(?im)^\s*(?:OUTPUT\s+)?CLEAN_RUN_(?:PREFLIGHT|POSTCHECK_PREFLIGHT):[^\n]*"
+        r"next_action=one_complete_draft_write_then_(?:run_named_rhythm_script_in_place_then_)?immediate_wrapper_rerun"
+    )
+    checker_indices = actual_clean_run_checker_indices(text)
+    mutation_actions = actual_draft_mutation_action_indices(text)
+    for directive in directive_pattern.finditer(text):
+        next_checker = next((index for index in checker_indices if index > directive.start()), None)
+        if next_checker is None:
+            continue
+        writes = [
+            index for index in mutation_actions if directive.start() < index < next_checker
+        ]
+        if not writes:
+            return "missing", directive.start()
+        if len(writes) > 1:
+            return "multiple", writes[1]
     return None
 
 
@@ -823,6 +930,28 @@ def collect_findings(text: str) -> list[TraceFinding]:
                 "If draft.md is written or edited after a rhythm script in bounded clean-eval, rerun the relevant rhythm script or preserve the same line-broken corridor before the next clean_run_checker.py call. A previous split/merge/rebalance does not apply to a newly overwritten draft.",
             )
         )
+
+    write_budget = wrapper_write_budget_violation(normalized)
+    if write_budget is not None:
+        violation, index = write_budget
+        if violation == "missing":
+            findings.append(
+                TraceFinding(
+                    "error",
+                    "wrapper动作未写入draft",
+                    clean_excerpt(normalized, index),
+                    "A one-complete-draft-write next_action requires exactly one persisted draft.md mutation before the next wrapper call. Do not rerun the wrapper on an unchanged artifact.",
+                )
+            )
+        else:
+            findings.append(
+                TraceFinding(
+                    "error",
+                    "wrapper动作内多次改写draft",
+                    clean_excerpt(normalized, index),
+                    "A one-complete-draft-write next_action permits one integrated draft.md mutation only. Do not read, reconsider, and write a second version before rerunning the wrapper.",
+                )
+            )
 
     skipped_rhythm = skipped_named_rhythm_action(normalized)
     if skipped_rhythm is not None:

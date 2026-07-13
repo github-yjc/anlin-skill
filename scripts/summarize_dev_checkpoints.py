@@ -631,7 +631,7 @@ def summarize_gate(
     if trace_errors or (bounded and clean_calls is not None and clean_calls > 2):
         status = "invalid"
     elif bounded and clean_stop_reason == "preflight":
-        status = "invalid"
+        status = "fail"
     elif hard_errors:
         status = "fail"
     elif profile_status == "revise":
@@ -758,7 +758,21 @@ def build_stage_audits(
     return audits
 
 
-def classify_development_result(bounded_status: str, finalized_status: str | None) -> tuple[str, str]:
+def classify_development_result(
+    bounded_status: str,
+    finalized_status: str | None,
+    bounded_stop_reason: str | None = None,
+) -> tuple[str, str]:
+    if bounded_status == "invalid":
+        return (
+            "bounded_invalid",
+            "Discard this controller sequence as evidence and run a fresh bounded case before any finalized checkpoint.",
+        )
+    if bounded_stop_reason == "preflight":
+        return (
+            "bounded_preflight_fail",
+            "Resolve the source/preflight blocker, then run a fresh bounded case before finalized repair.",
+        )
     bounded_good = bounded_status == "pass"
     bounded_usable = bounded_status in {"pass", "review"}
     finalized_good = finalized_status == "pass"
@@ -843,6 +857,11 @@ def bounded_answer(checkpoint: CheckpointReport) -> str:
         boundary = "It reached only checker call 1/2, so limited checker repair evidence is partial."
     else:
         boundary = "Checker-boundary evidence is incomplete; inspect trace and clean-run state."
+    if gate.status == "invalid":
+        boundary += (
+            " The bounded controller sequence is invalid because its trace or artifact protocol failed. "
+            "Do not interpret its quality result or start finalized repair; rerun a fresh bounded case."
+        )
     return (
         f"Natural-guidance checkpoint: first-submission snapshot is {first_status}; bounded clean-eval checkpoint is {gate.status} "
         f"after {calls}/2 actual clean-eval checker calls and {preflights} preflight attempt(s). "
@@ -881,6 +900,10 @@ def implication_for(diagnosis: str) -> str:
         return "Both checkpoints are clean; proceed to isolated blind rounds and placebo calibration before reporting rates."
     if diagnosis == "source_guidance_gap":
         return "The final article can converge, so strengthen the first-draft source loop and natural guidance; do not only tune the checker."
+    if diagnosis == "bounded_invalid":
+        return "An invalid bounded sequence cannot support quality diagnosis or finalized repair; fix the protocol failure and rerun a fresh bounded case."
+    if diagnosis == "bounded_preflight_fail":
+        return "The process is valid but the source/preflight checkpoint failed before formal checker call 1/2; resolve that blocker before finalized repair."
     if diagnosis == "systemic_gap":
         return "The final article is not clean, so broaden diagnosis across source guidance, repair references, fact gates, style profile, and checker design."
     if diagnosis in {"repair_path_gap", "repair_or_validator_gap"}:
@@ -1156,6 +1179,7 @@ def main() -> int:
     diagnosis, next_action = classify_development_result(
         bounded.gate.status,
         finalized.gate.status if finalized else None,
+        bounded.gate.clean_stop_reason,
     )
     summary = DevelopmentSummary(
         case_dir=str(case_dir),
