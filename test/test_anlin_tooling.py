@@ -39,6 +39,9 @@ BACKGROUND_FACT_CLASSES = ROOT / "references" / "background-fact-classes.json"
 EVALS = ROOT / "evals" / "evals.json"
 sys.path.insert(0, str(ROOT / "scripts"))
 from check_anlin_violations import check_high_frequency_coverage, detect_style  # noqa: E402
+from build_style_profile import split_title_body as split_style_title_body  # noqa: E402
+from calibrate_style_profile import calibrate as calibrate_style_profile  # noqa: E402
+from check_style_profile import SOFT_REVISE_FAMILY_THRESHOLD, read_json as read_style_profile  # noqa: E402
 from clean_run_checker import (  # noqa: E402
     build_preflight_guidance,
     blocking_preflight_messages,
@@ -11543,7 +11546,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(profile["corpus_dir"], "<corpus-dir>")
             self.assertEqual(len(profile["documents"]), 38)
             self.assertEqual(profile["profile_kind"], "corpus_prior_predictive_intervals")
-            self.assertEqual(profile["version"], "1.6")
+            self.assertEqual(profile["version"], "1.7")
             self.assertIn("body_chars", profile["value_summary"])
             self.assertIn("ai_binary_reframe", profile["count_summary"])
             self.assertIn("unique_3gram_ratio", profile["value_summary"])
@@ -11677,7 +11680,7 @@ class AnlinToolingTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             report = json.loads(result.stdout)
-            self.assertEqual(report["profile_version"], "1.6")
+            self.assertEqual(report["profile_version"], "1.7")
             self.assertEqual(report["corpus_file_count"], 38)
 
     def test_style_profile_strict_returns_nonzero_for_review_status(self) -> None:
@@ -14748,8 +14751,8 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn("side engine -> public hinge -> off-axis residue", first_draft)
         self.assertNotIn("950-1150", first_draft)
         self.assertIn("fragment slate", first_draft)
-        self.assertIn("235-1932", collage)
-        self.assertIn("17-91", collage)
+        self.assertIn("226-1923", collage)
+        self.assertIn("13-87", collage)
         self.assertIn("references/anlin-collage-source-model.md", clean)
         self.assertNotIn("load `references/standard-diary-source-engine.md`", runtime)
         self.assertNotIn("load `references/standard-diary-source-engine.md`", anti_ai)
@@ -14778,24 +14781,54 @@ class AnlinToolingTests(unittest.TestCase):
             combined,
         )
 
+    def test_style_profile_splitter_excludes_corpus_metadata(self) -> None:
+        title, body, body_lines = split_style_title_body(
+            "\n".join(
+                [
+                    "# 日寄",
+                    "",
+                    "- **作者**: Anlin",
+                    "- **原链接**: https://example.invalid/article",
+                    "- **发布日期**: 2022-04-11",
+                    "",
+                    "---",
+                    "正文第一行，",
+                    "",
+                    "正文第二行。",
+                ]
+            )
+        )
+
+        self.assertEqual(title, "日寄")
+        self.assertEqual(body, "正文第一行，\n正文第二行。")
+        self.assertEqual(body_lines, ["正文第一行，", "正文第二行。"])
+        self.assertEqual(read_style_profile(STYLE_PROFILE)["version"], "1.7")
+
+    @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
+    def test_style_profile_soft_revise_threshold_matches_corpus_calibration(self) -> None:
+        report = calibrate_style_profile(CORPUS, read_style_profile(STYLE_PROFILE), include_info=False)
+
+        self.assertEqual(
+            SOFT_REVISE_FAMILY_THRESHOLD,
+            report["recommended_thresholds"]["soft_revise_threshold"],
+        )
+
     @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_corpus_observed_range_matches_source_model(self) -> None:
         rows: list[tuple[int, int]] = []
         for path in sorted(CORPUS.glob("*.md")):
-            raw_lines = path.read_text(encoding="utf-8").splitlines()
-            body_lines = [line for line in raw_lines if line.strip() and not line.lstrip().startswith("#")]
-            body = "\n".join(body_lines)
+            _, body, body_lines = split_style_title_body(path.read_text(encoding="utf-8"))
             rows.append((len(re.findall(r"[\u4e00-\u9fff]", body)), len(body_lines)))
 
         self.assertEqual(len(rows), 38)
-        self.assertEqual(min(chars for chars, _ in rows), 235)
-        self.assertEqual(max(chars for chars, _ in rows), 1932)
-        self.assertEqual(min(lines for _, lines in rows), 17)
-        self.assertEqual(max(lines for _, lines in rows), 91)
+        self.assertEqual(min(chars for chars, _ in rows), 226)
+        self.assertEqual(max(chars for chars, _ in rows), 1923)
+        self.assertEqual(min(lines for _, lines in rows), 13)
+        self.assertEqual(max(lines for _, lines in rows), 87)
 
         collage = (ROOT / "references" / "anlin-collage-source-model.md").read_text(encoding="utf-8")
-        self.assertIn("235-1932", collage)
-        self.assertIn("17-91", collage)
+        self.assertIn("226-1923", collage)
+        self.assertIn("13-87", collage)
         self.assertNotIn("950-1150", collage)
         self.assertNotIn("45-70", collage)
 

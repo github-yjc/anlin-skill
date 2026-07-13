@@ -4,7 +4,7 @@ This is the active standard-diary source model for clean-eval. It replaces the h
 
 ## Corpus Observation
 
-The 38 supplied originals span approximately 235-1932 Chinese characters and 17-91 non-empty body lines. These are observed ranges, not generation targets. Standard is a corpus/profile label, not a command to make every article the same size or page shape.
+After corpus title and metadata removal, the 38 supplied originals span approximately 226-1923 Chinese characters and 13-87 non-empty body lines. These are observed ranges, not generation targets. Standard is a corpus/profile label, not a command to make every article the same size or page shape.
 
 The originals vary: some stay with a conversation for a while, some move through a loose daily montage, and many jump between present objects, memories, jokes, platform facts, social comparison, and absurd explanations. The common signal is the narrator's mind and voice, not one universal plot.
 

@@ -20,7 +20,7 @@ from typing import Any
 
 
 EXPECTED_CORPUS_COUNT = 38
-PROFILE_VERSION = "1.6"
+PROFILE_VERSION = "1.7"
 MIN_STRATUM_DOCUMENTS = 4
 
 CONNECTORS = [
@@ -264,6 +264,17 @@ def split_title_body(text: str) -> tuple[str, str, list[str]]:
     title = re.sub(r"^#+\s*", "", lines[0]).strip()
     title = re.sub(r"^\*\*(.+)\*\*$", r"\1", title).strip()
     body_lines = lines[1:]
+
+    metadata_pattern = re.compile(r"^-\s*\*\*(?:作者|原链接|发布日期|标题)\*\*\s*[:：]")
+    separator_index = next((index for index, line in enumerate(body_lines) if line == "---"), None)
+    if separator_index is not None:
+        header_lines = body_lines[:separator_index]
+        if not header_lines or all(metadata_pattern.match(line) for line in header_lines):
+            body_lines = body_lines[separator_index + 1 :]
+    else:
+        while body_lines and metadata_pattern.match(body_lines[0]):
+            body_lines.pop(0)
+
     return title, "\n".join(body_lines), body_lines
 
 

@@ -108,6 +108,8 @@ Supported does not mean mandatory. Unsupported specifics should be lowered or re
 
 Build a profile from the original corpus using `scripts/build_style_profile.py`.
 
+Corpus title/header metadata such as author, source link, publication date, and the header separator must be removed before feature extraction. Those rows are packaging, not prose, and would otherwise create artificial short lines and repeated n-grams.
+
 The calibration unit is the complete article, not a merged corpus blob. Store each original's feature values so the audit can compare a new draft to the per-document distribution.
 
 ### Empirical Intervals

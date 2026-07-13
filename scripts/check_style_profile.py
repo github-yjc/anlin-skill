@@ -140,7 +140,7 @@ def primary_source_rewrite(families: list[str]) -> str:
 
 TOPIC_SENSITIVE_SOFT_ONLY_FAMILIES = {"structure", "texture", "cognitive_mechanism", "title"}
 YELLOW_REVIEW_FAMILY_THRESHOLD = 5
-SOFT_REVISE_FAMILY_THRESHOLD = 11
+SOFT_REVISE_FAMILY_THRESHOLD = 10
 COGNITIVE_CORE_KEYS = [
     "concrete_entry",
     "crooked_interpretation",
