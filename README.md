@@ -165,7 +165,7 @@ The old README-level technique summary is now mapped to maintained references:
 
 For clean-eval formal article generation:
 
-1. Check `.anlin-clean-eval-mode` as one tool action, then as the next tool action run standalone `Get-Location` / `pwd`; both checks must be visible before any reference read, glob/path probe, or draft write. Do not use controller `--dir`, a glob title, or an absolute path as cwd evidence.
+1. Check `.anlin-clean-eval-mode` as one direct tool action, such as `Test-Path -LiteralPath ".anlin-clean-eval-mode"` or `Get-ChildItem -Force .anlin-clean-eval-mode`; a directory listing that merely shows the filename is not a marker check. Then as the next tool action run standalone `Get-Location` / `pwd`; both checks must be visible before any reference read, glob/path probe, or draft write. Do not use controller `--dir`, a glob title, or an absolute path as cwd evidence.
 2. Load `references/clean-eval-first-draft-minimum.md` only after those two separate actions. For standard diary clean-eval, then load `references/anlin-collage-source-model.md`; the old `standard-diary-source-engine.md` is historical reference only. For short non-standard genres, stay with the clean brief.
 3. Start from a fragment slate, not from a checklist or plot outline.
 4. Select fragment relations from action, body, screen, money, route, social misfire, memory trigger, joke, object, or useless residue; let the voice jump when one relation has done its work.

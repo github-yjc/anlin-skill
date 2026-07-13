@@ -1,6 +1,6 @@
 # Anti-AI Slop Gate
 
-Clean-eval misroute guard: if `.anlin-clean-eval-mode` exists, or if you are in a formal/eval workspace and have not yet checked that marker, stop using this file before drafting. First run the marker and location check, then load `references/clean-eval-first-draft-minimum.md`; for standard diary also load `references/anlin-collage-source-model.md`. Do not keep reading this file as a negative checklist before the first complete `draft.md`.
+Clean-eval misroute guard: if `.anlin-clean-eval-mode` exists, or if you are in a formal/eval workspace and have not yet checked that marker, stop using this file before drafting. Check the marker with a direct command such as `Test-Path -LiteralPath ".anlin-clean-eval-mode"`; a directory listing that merely shows the filename is not a marker check. Then run standalone `Get-Location` / `pwd` as the next tool action, and load `references/clean-eval-first-draft-minimum.md`; for standard diary also load `references/anlin-collage-source-model.md`. Do not keep reading this file as a negative checklist before the first complete `draft.md`.
 
 Use this file directly for ordinary drafting or explicit anti-AI analysis. For bounded clean-eval generation, `clean-eval-first-draft-minimum.md` and `anlin-collage-source-model.md` carry the first-draft constraints, and wrapper output alone carries bounded repair. Do not load this file or `references/clean-generation-brief.md` inside that bounded repair.
 

@@ -56,6 +56,8 @@ These are soft source lenses, not quotas. Do not count fragments, jumps, echoes,
 
 The user prompt is a trigger, not a material checklist. It can surface early, late, repeatedly, indirectly, or disappear for a while. A wedding, illness, feed, route, game, job, family fact, or old chat can be one fragment among others.
 
+**A prompt's sequence is a fact constraint, not the article's outline.** When a social/event prompt supplies a chain or an explicit final action, keep the facts but break the chain as prose: start with a non-prompt fragment before the prompt surface; crop the prompt to the one message, object, or sentence the thought needs; after the prompt fragment, leave it for an independent thought-turn that does not explain the event; then return to the required action as a small residue. If every cluster answers “what happens next with the invitation?”, the article has become a plot. This is a source-order guard, not a quota for fragments or topics.
+
 Background facts are contradiction boundaries. Keep a fact only when an existing fragment needs it. Do not insert a place, game role, current job identity, relationship, platform detail, or named person just because the reference library contains it.
 
 If the prompt only says `忙项目`, keep it as an excuse surface; do not invent a client, deadline, leave, team, coworker, city, or office biography.

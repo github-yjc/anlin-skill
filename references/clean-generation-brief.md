@@ -39,6 +39,8 @@ Keep a relation when deleting it would break the next thought or action; otherwi
 
 The prompt is a trigger and fact boundary, not a list of things to include. Let a supplied noun surface early, late, indirectly, or disappear while another thought takes over. Omit background facts that do not prevent contradiction or make an existing fragment truthful.
 
+**A prompt's sequence is a fact constraint, not the article's outline.** For a linear social/event prompt, start with a non-prompt fragment before the prompt surface; let one cropped prompt detail enter; after the prompt fragment, leave it for an independent thought-turn that does not explain the event; and return to any required final reply only as a short residue. If every cluster answers “what happens next with the invitation?”, replace the next explanatory step with a thought that stands without the event. This is source routing, not a fragment-count quota.
+
 ## Prompt and Fact Discipline
 
 Do not turn a feed, old chat, holiday, illness page, order, invitation, game, work pressure, or family prompt into an inventory. Select one detail and put it inside a thought, action, joke, memory, wrong reply, or practical inconvenience; omit the rest.

@@ -4,7 +4,7 @@ Use this file for the first complete draft in formal clean-eval mode. It is inte
 
 ## Tool Order
 
-1. Check .anlin-clean-eval-mode.
+1. Check .anlin-clean-eval-mode with a direct command such as `Test-Path -LiteralPath ".anlin-clean-eval-mode"` or `Get-ChildItem -Force .anlin-clean-eval-mode`; a directory listing that merely shows the filename is not a marker check.
 2. As the next tool action, run standalone `Get-Location` / `pwd` and confirm the external case workspace.
 3. Only after those two separate tool actions are visible, read this file.
 4. If the selected genre is standard diary, read references/anlin-collage-source-model.md.
@@ -41,6 +41,15 @@ Build a fragment slate, not a preselected plot. A fragment can be:
 Connect fragments by association, contrast, language echo, time jump, self-correction, cognitive habit, or an abrupt but voice-consistent jump. A causal chain is allowed when it occurs naturally, but it is not required. Use whichever relationships the movement earns. Do not allocate one period to each line or cluster.
 
 The prompt is a trigger and a fact boundary, not a material inventory. It may appear early, late, repeatedly, indirectly, or be diluted by side thoughts. Do not turn supplied background into a quota. Keep only facts needed to avoid contradiction or to make an existing fragment truthful.
+
+**A prompt's sequence is a fact constraint, not the article's outline.** For a linear social/event prompt such as `A -> B -> C` or a prompt that says `最后...`, preserve the required facts but de-linearize their presentation:
+
+- Start with a non-prompt fragment before the prompt surface. It may be an object, body state, joke, remembered sentence, or ordinary friction; it must still have its own movement if the prompt is deleted.
+- Let the prompt enter as one cropped surface, not a narrated chain of every supplied step. Compress ticket, money, route, and explanation into the one detail the thought actually needs.
+- After the prompt fragment, leave it for an independent thought-turn: a different time, object, memory, joke, system fact, or body/action turn that does not explain the prompt.
+- Return to a required reply or fact only as a short action or residue. Do not make the return explain the whole article or settle it with a moral thesis.
+
+If every cluster answers “what happens next with the invitation?”, the draft is still a plot. Replace the next explanatory step with a thought that can stand without the event. This is source routing, not a fragment-count or topic quota.
 
 Consistency comes from the narrator: first-person voice, recurring questions, self-deprecation, crooked logic, word echoes, and a shared humor or irritation. Scattered does not mean arbitrary, and coherence does not mean one scene must explain every later line.
 

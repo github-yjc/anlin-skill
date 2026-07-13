@@ -9693,6 +9693,32 @@ class AnlinToolingTests(unittest.TestCase):
             readme.index("Load `references/clean-eval-first-draft-minimum.md`"),
         )
 
+    def test_clean_eval_contract_names_direct_marker_probe(self) -> None:
+        texts = [
+            (ROOT / "SKILL.md").read_text(encoding="utf-8"),
+            (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8"),
+            (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8"),
+            (ROOT / "README.md").read_text(encoding="utf-8"),
+        ]
+
+        for text in texts:
+            self.assertIn('Test-Path -LiteralPath ".anlin-clean-eval-mode"', text)
+            self.assertIn("a directory listing that merely shows the filename is not a marker check", text.lower())
+
+    def test_scattered_source_contract_de_linearizes_linear_prompts(self) -> None:
+        minimum = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
+        collage = (ROOT / "references" / "anlin-collage-source-model.md").read_text(encoding="utf-8")
+        runtime = (ROOT / "references" / "runtime-brief.md").read_text(encoding="utf-8")
+        clean = (ROOT / "references" / "clean-generation-brief.md").read_text(encoding="utf-8")
+        matrix = (ROOT / "references" / "route-coverage-matrix.md").read_text(encoding="utf-8")
+
+        for text in (minimum, collage, runtime, clean):
+            lowered = text.lower()
+            self.assertIn("a prompt's sequence is a fact constraint, not the article's outline", lowered)
+            self.assertIn("start with a non-prompt fragment before the prompt surface", lowered)
+            self.assertIn("after the prompt fragment, leave it for an independent thought-turn", lowered)
+        self.assertIn("prompt sequence is not the article's outline", matrix)
+
     def test_postcheck_preflight_contract_keeps_submission_read_only(self) -> None:
         skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
         first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
