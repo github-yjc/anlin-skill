@@ -125,6 +125,8 @@ class GateSummary:
     clean_calls: int | None = None
     clean_preflights: int | None = None
     clean_stop_reason: str | None = None
+    standard_body_chars: int | None = None
+    preferred_target_shortfall: bool | None = None
     notes: list[str] | None = None
 
 
@@ -607,6 +609,8 @@ def summarize_gate(
     clean_calls = int(clean_state.get("calls", 0)) if clean_state else None
     clean_preflights = int(clean_state.get("preflights", 0)) if clean_state else None
     clean_stop_reason = clean_state.get("stop_reason")
+    standard_body_chars = clean_state.get("standard_body_chars") if clean_state else None
+    preferred_target_shortfall = clean_state.get("preferred_target_shortfall") if clean_state else None
     summary = style_report.get("summary") if style_report else {}
     profile_status = summary.get("status") if isinstance(summary, dict) else None
     profile_decision = summary.get("checkpoint_decision") if isinstance(summary, dict) else None
@@ -662,6 +666,8 @@ def summarize_gate(
         clean_calls=clean_calls,
         clean_preflights=clean_preflights,
         clean_stop_reason=clean_stop_reason,
+        standard_body_chars=standard_body_chars,
+        preferred_target_shortfall=preferred_target_shortfall,
         notes=notes,
     )
 
@@ -1101,6 +1107,8 @@ def format_gate(checkpoint: CheckpointReport) -> str:
         f"- clean_calls: {gate.clean_calls}",
         f"- clean_preflights: {gate.clean_preflights}",
         f"- clean_stop_reason: `{gate.clean_stop_reason}`",
+        f"- standard_body_chars: {gate.standard_body_chars}",
+        f"- preferred_target_shortfall: {gate.preferred_target_shortfall}",
         f"- notes: {notes}",
     ]
     if checkpoint.stage_audits:

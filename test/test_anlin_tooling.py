@@ -53,7 +53,10 @@ from clean_run_checker import (  # noqa: E402
     soft_witness_matches,
 )
 from summarize_dev_checkpoints import (  # noqa: E402
+    CheckpointReport,
     classify_development_result,
+    format_gate,
+    GateSummary,
     implication_for,
     infer_genre_from_case_dir,
     summarize_gate,
@@ -6216,6 +6219,43 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertEqual(gate.status, "fail")
         self.assertNotEqual(gate.status, "invalid")
         self.assertTrue(any("stopped before a checker-ready article" in note for note in gate.notes or []))
+
+    def test_summarize_gate_reports_length_evidence_without_changing_status(self) -> None:
+        gate = summarize_gate(
+            hard_findings=[],
+            style_report={
+                "summary": {
+                    "status": "yellow",
+                    "checkpoint_decision": "pass",
+                    "red_families": [],
+                    "yellow_families": ["punctuation"],
+                }
+            },
+            trace_findings=[],
+            clean_state={
+                "calls": 1,
+                "preflights": 0,
+                "standard_body_chars": 894,
+                "preferred_target_shortfall": True,
+            },
+            bounded=True,
+        )
+        report = CheckpointReport(
+            name="bounded",
+            draft="draft.md",
+            audit_draft="audit.md",
+            gate=gate,
+            hard_findings=[],
+            style_report=None,
+            corpus_report=None,
+            trace_findings=[],
+            clean_state={},
+            stage_audits=[],
+        )
+        rendered = format_gate(report)
+        self.assertEqual(gate.status, "pass")
+        self.assertIn("standard_body_chars: 894", rendered)
+        self.assertIn("preferred_target_shortfall: True", rendered)
 
     def test_dev_checkpoint_summary_creates_controller_audit_copy(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -12722,12 +12762,12 @@ class AnlinToolingTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as temp:
             draft = Path(temp) / "draft.md"
-            draft.write_text("下次聚\n\n" + ("我" * 889), encoding="utf-8")
+            draft.write_text("下次聚\n\n" + ("我" * 849), encoding="utf-8")
             findings = [
                 {
                     "severity": "error",
                     "rule": "strict: 标准日寄完整文章篇幅缓冲不足",
-                    "excerpt": "body_chinese_chars=889",
+                    "excerpt": "body_chinese_chars=849",
                     "suggestion": "restore mass",
                 },
                 {
@@ -13332,7 +13372,7 @@ class AnlinToolingTests(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stderr)
             brief = (finalized_dir / "repair-brief.txt").read_text(encoding="utf-8")
-            self.assertIn("hard_gate_primary_action: preserve_boundary_mass_replace_weak_fragment", brief)
+            self.assertIn("hard_gate_primary_action: break_period_grid", brief)
             self.assertIn("shape_contract: preserve the incoming line-broken surface", brief)
             self.assertIn("do not apply a page-wide comma or period transformation", brief)
             self.assertNotIn("hard_gate_blockers:", brief)
@@ -13390,9 +13430,11 @@ class AnlinToolingTests(unittest.TestCase):
         from prepare_finalized_repair_brief import CommandResult, format_brief
 
         cases = [
-            (568, "标准日寄完整文章篇幅偏短", "rebuild_severely_underbuilt_fragment"),
-            (875, "标准日寄完整文章篇幅缓冲不足", "replace_underbuilt_fragment"),
-            (913, None, "preserve_boundary_mass_replace_weak_fragment"),
+            (649, "标准日寄完整文章篇幅偏短", "rebuild_severely_underbuilt_fragment"),
+            (650, "标准日寄完整文章篇幅缓冲不足", "replace_underbuilt_fragment"),
+            (849, "标准日寄完整文章篇幅缓冲不足", "replace_underbuilt_fragment"),
+            (850, None, "preserve_boundary_mass_replace_weak_fragment"),
+            (900, None, "preserve_boundary_mass_replace_weak_fragment"),
         ]
 
         for body_chars, length_rule, route in cases:
@@ -13400,12 +13442,13 @@ class AnlinToolingTests(unittest.TestCase):
                 with tempfile.TemporaryDirectory() as temp:
                     draft = Path(temp) / "draft.md"
                     draft.write_text("去不了\n\n" + ("我" * body_chars), encoding="utf-8")
+                    weak_rule = "高频词覆盖不足" if body_chars >= 850 else "社交拒绝纹理替代后果不足"
                     findings = [
                         {
                             "severity": "error",
-                            "rule": "strict: 社交拒绝纹理替代后果不足",
-                            "excerpt": "reply aftermath stayed private",
-                            "suggestion": "replace the room loop with a refusal-coupled next action",
+                            "rule": f"strict: {weak_rule}",
+                            "excerpt": "source movement stayed weak",
+                            "suggestion": "replace the earliest weak fragment relation",
                         }
                     ]
                     if length_rule is not None:
@@ -13435,6 +13478,10 @@ class AnlinToolingTests(unittest.TestCase):
                 self.assertNotIn("扩展具体动作", brief)
                 self.assertNotIn("增加行动链", brief)
                 self.assertNotIn("无用日常残留", brief)
+                if body_chars >= 850:
+                    self.assertNotIn("below 900", brief.lower())
+                    self.assertNotIn("restore mass", brief.lower())
+                    self.assertNotIn("independent packet", brief.lower())
 
         for weak_rule in ("标准日寄长行缓冲不足", "标准日寄句号网格"):
             with self.subTest(body_chars=913, weak_rule=weak_rule):
@@ -13456,7 +13503,10 @@ class AnlinToolingTests(unittest.TestCase):
                         profile_result=CommandResult(command=[], returncode=2, stdout="", stderr="unavailable"),
                     )
 
-                self.assertIn("hard_gate_primary_action: preserve_boundary_mass_replace_weak_fragment", brief)
+                expected_route = (
+                    "break_period_grid" if weak_rule == "标准日寄句号网格" else "preserve_boundary_mass_replace_weak_fragment"
+                )
+                self.assertIn(f"hard_gate_primary_action: {expected_route}", brief)
                 self.assertIn("mass_contract: keep the revised article close", brief)
 
     @unittest.skip("superseded by finalized fragment-brief and controller-boundary tests")

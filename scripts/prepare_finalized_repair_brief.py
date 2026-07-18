@@ -17,7 +17,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from check_anlin_violations import chinese_len, split_title_and_content_lines
+from check_anlin_violations import (
+    STANDARD_DIARY_FORMAL_MIN_CHARS,
+    STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS,
+    chinese_len,
+    split_title_and_content_lines,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -176,20 +181,15 @@ def compact_hard_blockers(findings: list[dict[str, Any]], limit: int = 5) -> lis
 
 def hard_gate_primary_action(findings: list[dict[str, Any]], *, body_chars: int | None = None) -> str:
     error_rules = {hard_rule_name(item) for item in findings if item.get("severity") == "error"}
-    if body_chars is not None and 0 < body_chars < 650:
+    if body_chars is not None and 0 < body_chars < STANDARD_DIARY_FORMAL_MIN_CHARS:
         return (
             "rebuild_severely_underbuilt_fragment: rebuild the incomplete article from its strongest existing fragment relation; "
             "preserve a complete article within the supplied fact boundary and do not append checker-shaped proof material."
         )
-    if body_chars is not None and 650 <= body_chars < 900:
+    if body_chars is not None and STANDARD_DIARY_FORMAL_MIN_CHARS <= body_chars < STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS:
         return (
             "replace_underbuilt_fragment: replace the earliest underdeveloped fragment or relation in place; "
             "preserve the article's existing mass and voice, and do not append an independent scene or proof packet."
-        )
-    if body_chars is not None and 900 <= body_chars < 950 and error_rules & WEAK_SOURCE_RULES:
-        return (
-            "preserve_boundary_mass_replace_weak_fragment: keep useful existing facts, replace the earliest weak fragment relation "
-            "in place, preserve article mass, and do not shrink or append diagnostic material."
         )
     if error_rules & OVERFULL_SHAPE_RULES:
         return (
@@ -209,6 +209,11 @@ def hard_gate_primary_action(findings: list[dict[str, Any]], *, body_chars: int 
             "break_period_grid: rebuild several rows as unfinished action, reply, payment, door/body, or app-surface "
             "movement. Keep some lines open with commas and some short hard stops; do not convert every line into a neat "
             "complete sentence."
+        )
+    if body_chars is not None and body_chars >= STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS and error_rules & WEAK_SOURCE_RULES:
+        return (
+            "preserve_boundary_mass_replace_weak_fragment: keep useful existing facts, replace the earliest weak fragment relation "
+            "in place, preserve article mass, and do not shrink or append diagnostic material."
         )
     if error_rules & POLISHED_CAPTION_RULES:
         return (
