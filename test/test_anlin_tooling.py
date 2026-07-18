@@ -10489,6 +10489,16 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn(r"C:\Users\34025", validation)
         self.assertNotIn(r"C:\Users\34025\.claude\skills\anlin-writing", validation)
 
+    def test_validation_protocol_documents_current_formal_matching_contract(self) -> None:
+        validation = (ROOT / "references" / "validation-protocol.md").read_text(encoding="utf-8")
+        self.assertIn("850", validation)
+        self.assertIn("900-1100", validation)
+        self.assertIn("650-849", validation)
+        self.assertIn("0.25", validation)
+        self.assertIn("fail closed", validation.lower())
+        self.assertNotIn("3 impostor + 1 placebo", validation)
+        self.assertNotIn("--rounds 3", validation)
+
     def test_distributable_files_do_not_embed_local_machine_paths(self) -> None:
         checked_roots = [ROOT / "README.md", ROOT / "SKILL.md", ROOT / "references", ROOT / "evals", ROOT / "scripts"]
         offenders: list[str] = []

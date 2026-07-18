@@ -144,6 +144,8 @@ The preferred developer move after a repeated blind-review failure is:
 3. Use Layer 1 or Layer 3 only when the fix needs a richer repair model.
 4. Leave Layer 4 to measure the effect; do not make a new detector the only change.
 
+Formal blind matching is controller-owned, not generator-facing. The controller resolves the hidden draft genre, applies the approved full-standard eligibility boundary and exact-genre complete-article length filter, and fails closed when the matched original pool is too small. The preferred development target remains advisory only; short standard drafts stay outside formal full-standard packages until the matched-short protocol is separately validated. The controller records `formal_length_match_eligible` and `length_match_policy` in its manifest, and uses the same hidden anchor for placebo rounds. Do not expose these fields or thresholds to the generation agent.
+
 During development evaluation, Layer 4 should record two checkpoints rather than one blended result:
 
 - bounded clean-eval checkpoint: the draft after the fresh generator's bounded clean-eval limit, measuring natural source guidance and limited checker repair. When `.anlin-clean-run-snapshots/` exists, read `first_submission` as the natural-guidance evidence, preflight state as readiness evidence, post-check preflight state as the "first checker ran but call 2/2 was protected" evidence, and checker-call snapshots as limited-repair evidence. A preflight stop before call 1/2 is not the same failure as a post-check preflight after call 1/2, and neither is the same as a draft that reaches call 2/2 and still fails.

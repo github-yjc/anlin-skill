@@ -76,7 +76,7 @@ python scripts/compare_anlin_corpus.py draft.md --corpus-dir <corpus-dir>
 python scripts/build_style_profile.py <corpus-dir> --output references/style-profile.json
 python scripts/check_style_profile.py draft.md --draft-gate --strict
 python scripts/calibrate_style_profile.py <corpus-dir> --profile references/style-profile.json
-python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment-chars 550 --placebo-rounds 2 --match-genre auto
+python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment-chars 550 --placebo-rounds 2 --match-genre auto --length-tolerance 0.25
 ```
 
 Formal blind-round count is fixed for current readiness claims:
@@ -84,6 +84,14 @@ Formal blind-round count is fixed for current readiness claims:
 - Use `8 impostor + 2 placebo` before any readiness claim.
 - Do not report smaller smoke packages as target evidence. Smaller diagnostic rounds may exist in archived development logs, but they are not current pass/fail evidence.
 - Report corpus availability, matching mode, judge isolation, confidence threshold, evidence-family threshold, invalid rounds, stable-identification rate, and placebo false-accusation rate.
+
+Formal complete-article matching contract:
+
+- `850` body Chinese characters is the ordinary full-standard eligibility boundary. `650-849` standard drafts are excluded from formal full-standard packages until the later matched-short protocol is explicitly validated.
+- `900-1100` body Chinese characters is a preferred development target, not a generator quota, checker blocker, or finalized-repair mass instruction.
+- Formal impostor and placebo preparation requires exact resolved genre plus a positive `0.25` hard length filter on complete-article Chinese characters. The controller must filter by length before genre selection and must fail closed when fewer than the requested number of exact-genre, in-range originals exist.
+- `match_genre=none` or `--length-tolerance 0` is diagnostic-only, even when it creates anonymous sample folders. It must not be reported as formal matching evidence. Controller manifests record `formal_length_match_eligible`, `length_match_policy`, and `full_standard_min_chars`.
+- Placebo rounds use the same hidden draft anchor, resolved genre, and length policy as impostor rounds; they contain no draft sample. No recognition rate is reportable before `8 impostor + 2 placebo` and placebo false-accusation calibration are complete.
 
 `--strict` is a corpus-calibrated blocking gate. It should fail generated drafts only for deterministic contamination or high-risk structural buttons that do not hard-fail original corpus files. Other blind-review risks remain warnings and must be interpreted with placebo/original calibration.
 
@@ -103,7 +111,7 @@ For short sincere, micro-hope, surreal, or otherwise non-standard drafts, add a 
 python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --placebo-rounds 2 --match-genre sincere
 ```
 
-`--match-genre auto|standard|sincere|micro-hope|surreal` uses the generated draft as a hidden anchor for both impostor and placebo rounds. It prefers same-genre, similar-length, similar-line-count originals, then backfills with nearest samples when the small corpus lacks enough exact matches. The mapping records `genre` and `match` diagnostics for controller audit. This is confound control, not a way to lower the bar: if the judge still identifies the generated sample against matched originals and placebo false accusations stay low, treat the evidence as stronger.
+`--match-genre auto|standard|sincere|micro-hope|surreal` uses the generated draft as a hidden anchor for both impostor and placebo rounds. With a positive tolerance it hard-filters complete-article length before exact-genre selection and fails closed instead of backfilling another genre or an out-of-range article. The mapping and controller manifest record `genre`, `match`, and formal-eligibility diagnostics. This is confound control, not a way to lower the bar: if the judge still identifies the generated sample against matched originals and placebo false accusations stay low, treat the evidence as stronger.
 
 ### Portable Mode
 
@@ -226,7 +234,7 @@ Terms:
 Formal command:
 
 ```powershell
-python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment-chars 550 --placebo-rounds 2 --match-genre auto
+python scripts/run_blind_test.py draft.md <corpus-dir> --rounds 8 --min-fragment-chars 550 --placebo-rounds 2 --match-genre auto --length-tolerance 0.25
 ```
 
 Each round creates a clean directory containing only:
@@ -249,8 +257,9 @@ Judge rules:
 - The judge must not invoke or rely on any style skill, author-specific skill, corpus memory, previous analysis, or source-name prior knowledge. For opencode judge automation, run `opencode run --pure --dir <neutral-judge-view-dir> <prompt>` from a directory containing only `prompt.txt` and `sample-*.txt`; in the same environment, verify that `opencode debug paths` exactly matches the controller-recorded isolated config root and that `opencode debug skill` reports zero non-built-in skills before judging. Use a temporary `XDG_CONFIG_HOME` when required by the resolved-path check, and disable external skill scans with `OPENCODE_DISABLE_EXTERNAL_SKILLS=1` / `OPENCODE_DISABLE_CLAUDE_CODE_SKILLS=1`.
 - Titles are retained and normalized for all samples; metadata is removed.
 - Generated drafts must include the title as article text on the first line. The preparation script normalizes `# 标题`, plain first-line titles, and simple emphasis wrappers to the same `# 标题` form so title formatting does not become a leakage cue.
-- Impostor rounds are length-matched by complete article length.
-- Generated standard-diary drafts should clear the safer 850+ body-character buffer and normally target 900-1100 body Chinese characters before complete-article impostor rounds. 650-849 can be used only with an explicit short/matched protocol and should not support formal full-article claims.
+- Impostor rounds are length-matched by complete article length with a hard relative tolerance of `0.25` before genre selection.
+- `850+` is the ordinary full-standard eligibility boundary. `900-1100` remains a preferred development target only. `650-849` standard drafts are diagnostic or future matched-short candidates, not formal full-article evidence.
+- If exact-genre, in-range originals are insufficient, the controller must fail closed and report an unavailable package rather than silently backfilling another genre or length.
 - Use `--match-genre` for short sincere, micro-hope, surreal, or other non-standard drafts. Placebo rounds must be matched to the same hidden draft anchor, otherwise a judge may learn to accuse short/polished originals and the false-accusation rate will be understated.
 - The judge may evaluate title fit as one evidence family, but must not use title, filename, ordering, or length as the sole basis for identification.
 - Treat blind review as open-set verification, not forced attribution. A stable accusation requires `IDENTIFIED` not `NONE`, confidence at least 75, and at least three independent evidence families, including one family that is not title, topic, length, filename, or order.
