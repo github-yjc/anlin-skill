@@ -24,6 +24,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+from check_anlin_violations import STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS
+
 
 # ---------------------------------------------------------------------------
 # Metadata stripping
@@ -37,6 +39,7 @@ class ArticleFeatures:
     title: str
     genre: str
     chars: int
+    body_chars: int
     body_lines: int
     line_mean: float
     line_stdev: float
@@ -124,11 +127,12 @@ def article_features(text: str) -> ArticleFeatures:
     total_chars = chinese_len(text)
     line_mean = statistics.mean(lengths) if lengths else 0.0
     line_stdev = statistics.pstdev(lengths) if len(lengths) > 1 else 0.0
-    short_form = body_chars < 900 or len(body_lines) < 40
+    short_form = body_chars < STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS or len(body_lines) < 40
     return ArticleFeatures(
         title=title,
         genre=infer_article_genre(title, body),
         chars=total_chars,
+        body_chars=body_chars,
         body_lines=len(body_lines),
         line_mean=round(line_mean, 2),
         line_stdev=round(line_stdev, 2),
@@ -380,18 +384,18 @@ def pick_corpus_records(
             f"but {num_samples} were requested."
         )
 
+    if target_features and length_tolerance > 0:
+        length_matched = [
+            record for record in records if record.match["within_length_tolerance"]
+        ]
+        if len(length_matched) < num_samples:
+            raise ValueError(
+                f"Corpus contains {len(length_matched)} length-matched file(s), "
+                f"but {num_samples} were requested."
+            )
+        records = length_matched
+
     if match_genre == "none":
-        if target_features and length_tolerance > 0:
-            lower = max(0, int(target_features.chars * (1 - length_tolerance)))
-            upper = int(target_features.chars * (1 + length_tolerance))
-            length_matched = [record for record in records if lower <= record.features.chars <= upper]
-            if len(length_matched) >= num_samples:
-                records = length_matched
-            elif target_features.chars > 0:
-                raise ValueError(
-                    f"Corpus contains {len(length_matched)} length-matched file(s), "
-                    f"but {num_samples} were requested."
-                )
         return random.sample(records, num_samples)
 
     sorted_records = sorted(
@@ -407,16 +411,10 @@ def pick_corpus_records(
         if len(exact_records) >= num_samples:
             top_k = min(len(exact_records), max(num_samples, num_samples * 3))
             return random.sample(exact_records[:top_k], num_samples)
-        if exact_records:
-            backfill_needed = num_samples - len(exact_records)
-            backfill_pool = [record for record in sorted_records if record.features.genre != target_genre]
-            top_k = min(len(backfill_pool), max(backfill_needed, backfill_needed * 3))
-            if len(backfill_pool[:top_k]) < backfill_needed:
-                raise ValueError(
-                    f"Corpus contains {len(records)} eligible file(s), "
-                    f"but {num_samples} were requested."
-                )
-            return exact_records + random.sample(backfill_pool[:top_k], backfill_needed)
+        raise ValueError(
+            f"Corpus contains {len(exact_records)} exact-genre file(s), "
+            f"but {num_samples} were requested."
+        )
     top_k = min(len(sorted_records), max(num_samples, num_samples * 3))
     return random.sample(sorted_records[:top_k], num_samples)
 
@@ -530,7 +528,7 @@ def prepare_blind_test(
     num_samples: int = 5,
     fragment_chars: int = 0,
     min_fragment_chars: int = 0,
-    length_tolerance: float = 0.65,
+    length_tolerance: float = 0.25,
     include_draft: bool = True,
     include_skill_context: bool = False,
     include_titles: bool = True,
@@ -565,6 +563,8 @@ def prepare_blind_test(
     # --- Prepare draft first so corpus/placebo selection can be matched. ---
     draft_sample: Optional[Tuple[str, str, bool, ArticleFeatures, dict]] = None
     target_features: Optional[ArticleFeatures] = None
+    formal_length_match_eligible = False
+    resolved_match_genre = ""
     if include_draft or match_genre != "none":
         draft_raw = draft_path.read_text(encoding='utf-8')
         draft_stripped = strip_draft(
@@ -581,8 +581,19 @@ def prepare_blind_test(
                 "use a matched short-genre evaluation."
             )
         target_features = article_features(draft_stripped)
+        resolved_match_genre = resolve_target_genre(match_genre, target_features)
+        formal_length_match_eligible = bool(
+            target_features
+            and match_genre != "none"
+            and length_tolerance > 0
+            and target_features.chars > 0
+            and (
+                target_features.genre != "standard"
+                or target_features.body_chars >= STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS
+            )
+        )
         if include_draft:
-            target_genre = resolve_target_genre(match_genre, target_features)
+            target_genre = resolved_match_genre
             draft_match = {
                 "score": 0.0,
                 "target_genre": target_genre or "",
@@ -633,15 +644,42 @@ def prepare_blind_test(
             'is_draft': is_draft,
             'title': sample_title(text),
             'chars': chinese_len(text),
+            'body_chars': features.body_chars,
             'line_stats': line_stats(text),
             'genre': features.genre,
             'match': match,
         }
+        mapping[filename]['match'].update(
+            {
+                'formal_length_match_eligible': formal_length_match_eligible,
+                'length_match_policy': (
+                    'exact-genre-hard-filter' if formal_length_match_eligible else 'diagnostic-not-formal'
+                ),
+                'full_standard_min_chars': STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS,
+            }
+        )
 
     # --- Write mapping.json (for the controller only) ---
     mapping_path = output_dir / 'mapping.json'
     mapping_path.write_text(
         json.dumps(mapping, ensure_ascii=False, indent=2),
+        encoding='utf-8',
+    )
+    (output_dir / 'matching-policy.json').write_text(
+        json.dumps(
+            {
+                'formal_length_match_eligible': formal_length_match_eligible,
+                'length_match_policy': (
+                    'exact-genre-hard-filter' if formal_length_match_eligible else 'diagnostic-not-formal'
+                ),
+                'full_standard_min_chars': STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS,
+                'resolved_match_genre': resolved_match_genre,
+                'target_body_chars': target_features.body_chars if target_features else None,
+                'target_complete_chars': target_features.chars if target_features else None,
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
         encoding='utf-8',
     )
 
@@ -699,7 +737,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument(
         '--length-tolerance',
         type=float,
-        default=0.65,
+        default=0.25,
         help='Allowed relative length difference for complete-article impostor rounds.',
     )
     parser.add_argument(

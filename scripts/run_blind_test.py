@@ -18,7 +18,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from prepare_blind_test import prepare_blind_test, build_judge_prompt
+from check_anlin_violations import STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS
+from prepare_blind_test import (
+    article_features,
+    build_judge_prompt,
+    resolve_target_genre,
+    strip_draft,
+    prepare_blind_test,
+)
 
 
 JUDGE_PROFILES = [
@@ -112,7 +119,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     parser.add_argument("--num-samples", type=int, default=5, help="Original samples per impostor round")
     parser.add_argument("--fragment-chars", type=int, default=0, help="Legacy diagnostic mode; 0 keeps complete articles")
     parser.add_argument("--min-fragment-chars", type=int, default=0, help="Minimum Chinese characters required for generated samples")
-    parser.add_argument("--length-tolerance", type=float, default=0.65, help="Allowed relative length difference for complete-article impostor rounds")
+    parser.add_argument("--length-tolerance", type=float, default=0.25, help="Allowed relative length difference for complete-article impostor rounds")
     parser.add_argument("--match-genre", default="none", choices=("none", "auto", "standard", "sincere", "micro-hope", "surreal"), help="Optional genre/length matching anchor for impostor and placebo rounds")
     parser.add_argument("--include-placebo", action="store_true", help="Add one placebo round containing originals only")
     parser.add_argument("--placebo-rounds", type=int, default=2, help="Number of all-original placebo calibration rounds")
@@ -132,6 +139,32 @@ def main(argv: Optional[list[str]] = None) -> int:
     profiles = [item.strip() for item in args.profiles.split(",") if item.strip()]
     if not profiles:
         parser.error("--profiles must contain at least one profile")
+
+    draft_text = strip_draft(
+        args.draft_path.read_text(encoding="utf-8"),
+        include_title=True,
+        require_title=True,
+    )
+    target_features = article_features(draft_text)
+    resolved_match_genre = resolve_target_genre(args.match_genre, target_features)
+    if resolved_match_genre == "standard" and target_features.body_chars < STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS:
+        parser.error(
+            "standard formal blind matching requires a draft body at or above "
+            f"{STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS} Chinese characters; "
+            "do not silently infer a short protocol"
+        )
+    formal_length_match_eligible = bool(
+        args.match_genre != "none"
+        and args.length_tolerance > 0
+        and target_features.chars > 0
+        and (
+            target_features.genre != "standard"
+            or target_features.body_chars >= STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS
+        )
+    )
+    length_match_policy = (
+        "exact-genre-hard-filter" if formal_length_match_eligible else "diagnostic-not-formal"
+    )
     placebo_rounds = args.placebo_rounds
     if args.include_placebo and placebo_rounds == 0:
         placebo_rounds = 1
@@ -186,6 +219,12 @@ def main(argv: Optional[list[str]] = None) -> int:
         "min_fragment_chars": args.min_fragment_chars,
         "length_tolerance": args.length_tolerance,
         "match_genre": args.match_genre,
+        "resolved_match_genre": resolved_match_genre,
+        "formal_length_match_eligible": formal_length_match_eligible,
+        "length_match_policy": length_match_policy,
+        "full_standard_min_chars": STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS,
+        "target_body_chars": target_features.body_chars,
+        "target_complete_chars": target_features.chars,
         "placebo_rounds": placebo_rounds,
         "profiles": profiles,
         "opencode_isolation_preflight": {

@@ -42,6 +42,11 @@ from check_anlin_violations import check_high_frequency_coverage, chinese_len, d
 from build_style_profile import split_title_body as split_style_title_body  # noqa: E402
 from calibrate_style_profile import calibrate as calibrate_style_profile  # noqa: E402
 from check_style_profile import SOFT_REVISE_FAMILY_THRESHOLD, read_json as read_style_profile  # noqa: E402
+from prepare_blind_test import (  # noqa: E402
+    article_features,
+    pick_corpus_records,
+    strip_draft,
+)
 from clean_run_checker import (  # noqa: E402
     build_preflight_guidance,
     blocking_preflight_messages,
@@ -11919,6 +11924,14 @@ class AnlinToolingTests(unittest.TestCase):
                 "# 谢谢你\n\n" + "\n".join(["下雨的时候她递过来一把伞，我把伞骨弄弯了。"] * 16),
                 encoding="utf-8",
             )
+            (corpus / "sincere-3.md").write_text(
+                "# 母亲节又一天\n\n" + "\n".join(["她把鸡蛋放在门边，我出门时又拿回来。"] * 16),
+                encoding="utf-8",
+            )
+            (corpus / "sincere-4.md").write_text(
+                "# 谢谢你还在\n\n" + "\n".join(["她说路上慢点，我把伞收好放在车篮里。"] * 16),
+                encoding="utf-8",
+            )
             (corpus / "standard-1.md").write_text(
                 "# 春招破防日寄\n\n" + "\n".join(["群里说体检，我看了一眼手机又放下。"] * 40),
                 encoding="utf-8",
@@ -11955,9 +11968,9 @@ class AnlinToolingTests(unittest.TestCase):
             mapping = json.loads((output_dir / "mapping.json").read_text(encoding="utf-8"))
             originals = [item for item in mapping.values() if not item["is_draft"]]
             self.assertEqual(len(originals), 3)
-            self.assertEqual(sum(1 for item in originals if item["genre"] == "sincere"), 2)
+            self.assertEqual(sum(1 for item in originals if item["genre"] == "sincere"), 3)
             self.assertTrue(all(item["match"]["target_genre"] == "sincere" for item in originals))
-            self.assertEqual(sum(1 for item in originals if item["match"]["selection_reason"].startswith("genre")), 2)
+            self.assertEqual(sum(1 for item in originals if item["match"]["selection_reason"].startswith("genre")), 3)
 
             placebo_dir = root / "matched-placebo"
             result = subprocess.run(
@@ -11987,7 +12000,126 @@ class AnlinToolingTests(unittest.TestCase):
             placebo_mapping = json.loads((placebo_dir / "mapping.json").read_text(encoding="utf-8"))
             self.assertTrue(all(not item["is_draft"] for item in placebo_mapping.values()))
             self.assertTrue(all(item["match"]["target_genre"] == "sincere" for item in placebo_mapping.values()))
-            self.assertEqual(sum(1 for item in placebo_mapping.values() if item["genre"] == "sincere"), 2)
+            self.assertEqual(sum(1 for item in placebo_mapping.values() if item["genre"] == "sincere"), 4)
+
+    def test_blind_matching_filters_length_before_genre_selection(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            corpus = root / "corpus"
+            corpus.mkdir()
+            draft = root / "draft.md"
+            body = "\n".join(["楼下风很大，我把手机放回口袋又看了一眼。"] * 28)
+            draft.write_text("# 日寄\n\n" + body, encoding="utf-8")
+            target = article_features(strip_draft(draft.read_text(encoding="utf-8")))
+            (corpus / "standard-in-1.md").write_text("# 日寄一\n\n" + body, encoding="utf-8")
+            (corpus / "standard-in-2.md").write_text("# 日寄二\n\n" + body, encoding="utf-8")
+            (corpus / "standard-out.md").write_text("# 日寄三\n\n" + ("楼下风很大。" * 140), encoding="utf-8")
+            (corpus / "sincere-in.md").write_text("# 母亲节\n\n" + body, encoding="utf-8")
+            records = pick_corpus_records(
+                corpus,
+                num_samples=2,
+                draft_path=draft,
+                target_features=target,
+                length_tolerance=0.25,
+                match_genre="standard",
+            )
+            self.assertEqual(len(records), 2)
+            self.assertTrue(all(record.features.genre == "standard" for record in records))
+            self.assertTrue(all(record.match["within_length_tolerance"] for record in records))
+            self.assertNotIn("standard-out.md", {record.path.name for record in records})
+
+    def test_blind_matching_fails_closed_when_exact_pool_is_short(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            corpus = root / "corpus"
+            corpus.mkdir()
+            draft = root / "draft.md"
+            body = "\n".join(["楼下风很大，我把手机放回口袋又看了一眼。"] * 28)
+            draft.write_text("# 日寄\n\n" + body, encoding="utf-8")
+            target = article_features(strip_draft(draft.read_text(encoding="utf-8")))
+            (corpus / "standard-only.md").write_text("# 日寄一\n\n" + body, encoding="utf-8")
+            (corpus / "sincere-match.md").write_text("# 母亲节\n\n" + body, encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "length-matched|exact"):
+                pick_corpus_records(
+                    corpus,
+                    num_samples=2,
+                    draft_path=draft,
+                    target_features=target,
+                    length_tolerance=0.25,
+                    match_genre="standard",
+                )
+
+    def test_run_blind_manifest_records_formal_length_eligibility(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            corpus = root / "corpus"
+            corpus.mkdir()
+            draft = root / "draft.md"
+            body = "\n".join(["楼下风很大，我把手机放回口袋又看了一眼。"] * 60)
+            draft.write_text("# 日寄\n\n" + body, encoding="utf-8")
+            (corpus / "standard-1.md").write_text("# 日寄一\n\n" + body, encoding="utf-8")
+            formal_root = root / "formal"
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(RUN_BLIND),
+                    str(draft),
+                    str(corpus),
+                    "--rounds",
+                    "1",
+                    "--num-samples",
+                    "1",
+                    "--placebo-rounds",
+                    "0",
+                    "--match-genre",
+                    "auto",
+                    "--length-tolerance",
+                    "0.25",
+                    "--output-root",
+                    str(formal_root),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            formal = json.loads((formal_root / "controller-manifest.json").read_text(encoding="utf-8"))
+            self.assertTrue(formal["formal_length_match_eligible"])
+            self.assertEqual(formal["length_match_policy"], "exact-genre-hard-filter")
+            self.assertEqual(formal["full_standard_min_chars"], 850)
+            mapping = json.loads((formal_root / "round-01-impostor" / "mapping.json").read_text(encoding="utf-8"))
+            draft_item = next(item for item in mapping.values() if item["is_draft"])
+            self.assertIn("body_chars", draft_item)
+            self.assertNotEqual(draft_item["body_chars"], draft_item["chars"])
+
+            diagnostic_root = root / "diagnostic"
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(RUN_BLIND),
+                    str(draft),
+                    str(corpus),
+                    "--rounds",
+                    "1",
+                    "--num-samples",
+                    "1",
+                    "--placebo-rounds",
+                    "0",
+                    "--length-tolerance",
+                    "0.25",
+                    "--output-root",
+                    str(diagnostic_root),
+                ],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            diagnostic = json.loads((diagnostic_root / "controller-manifest.json").read_text(encoding="utf-8"))
+            self.assertFalse(diagnostic["formal_length_match_eligible"])
+            self.assertEqual(diagnostic["length_match_policy"], "diagnostic-not-formal")
 
     @unittest.skipUnless(HAS_CORPUS, "set ANLIN_CORPUS_DIR to run full-corpus regression")
     def test_blind_prep_keeps_titles_and_rejects_short_draft(self) -> None:
