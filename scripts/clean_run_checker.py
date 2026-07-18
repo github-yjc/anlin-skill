@@ -113,6 +113,19 @@ def file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def standard_length_evidence(draft: Path) -> dict[str, Any]:
+    text = draft.read_text(encoding="utf-8")
+    _, content_lines = split_title_and_content_lines(text.splitlines())
+    if detect_style(text) != "standard":
+        return {}
+    body = "\n".join(line for line in content_lines if line.strip() and not line.startswith("<!--"))
+    body_chars = chinese_len(body)
+    return {
+        "standard_body_chars": body_chars,
+        "preferred_target_shortfall": body_chars < STANDARD_DIARY_PREFERRED_TARGET_MIN_CHARS,
+    }
+
+
 def stop_lock_path(draft: Path) -> Path:
     digest = hashlib.sha256(str(draft.resolve()).encode("utf-8")).hexdigest()
     return Path(tempfile.gettempdir()) / "anlin-clean-run-locks" / f"{digest}.json"
@@ -151,7 +164,7 @@ def generator_facing_summary(messages: list[str]) -> tuple[list[str], str]:
             body_chars = int(match.group(1))
             break
     underbuilt = (
-        (body_chars is not None and body_chars < 950)
+        (body_chars is not None and body_chars < STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS)
         or any(message.startswith("body_lines=") and "<" in message for message in messages)
     )
     severely_underbuilt = body_chars is not None and body_chars < STANDARD_DIARY_FORMAL_MIN_CHARS
@@ -219,7 +232,7 @@ def generator_facing_summary(messages: list[str]) -> tuple[list[str], str]:
         message.startswith("body_lines=") and "< 45" in message
         for message in messages
     )
-    # A near-900 standard draft with too few visible rows needs lineation before
+    # A full-article standard draft with too few visible rows needs lineation before
     # comma softening.  Choosing soften_line_endings first leaves a dense source
     # block intact; rebalance_line_rhythm can preserve the existing fragments
     # while creating the breathing rows that the bounded interface is asking for.
@@ -425,7 +438,7 @@ def normalize_before_final_check(draft: Path) -> None:
     visible, lengths, body_chars, mean_line, long_count, line_stdev = current_lengths()
     prose_compressed = (
         len(visible) < 45
-        or (body_chars >= 900 and mean_line >= 42)
+        or (body_chars >= STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS and mean_line >= 42)
         or (len(visible) > 0 and long_count >= max(6, int(len(visible) * 0.65)))
     )
     if prose_compressed:
@@ -923,16 +936,6 @@ def preflight_messages(draft: Path) -> list[str]:
             )
         messages.extend(surface_preflight_messages(article_lines, "\n".join(article_lines)))
         return messages
-    source_shape_weak = (
-        body_line_count < 45
-        or body_line_count > 90
-        or (45 <= body_line_count <= 75 and long_line_count < 6)
-        or (len(first_twenty) >= 8 and comma_ratio < 0.15)
-        or (body_chars >= 900 and body_line_count >= 45 and period_per_1k >= 45 and short_breath_count < 4)
-        or len(connectors) < 3
-        or len(engine_hits) < 3
-        or (not rough_terms and not rough_patterns)
-    )
     standard_prop_loop_risk = standard_prompt_prop_title_loop_risk(text.splitlines(), text)
     normalized_title = re.sub(r"[\s#]+", "", title)
     opening_text = "\n".join(visible_lines[:5])
@@ -975,10 +978,8 @@ def preflight_messages(draft: Path) -> list[str]:
             "social_decline_decoupled_consequence="
             + json.dumps(decoupled_consequence_risk, ensure_ascii=False)
         )
-    if body_chars < 900:
-        messages.append(f"body_chinese_chars={body_chars} < 900")
-    elif body_chars < 950 and source_shape_weak:
-        messages.append(f"body_chinese_chars={body_chars} < 950 with source_shape_weak")
+    if body_chars < STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS:
+        messages.append(f"body_chinese_chars={body_chars} < {STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS}")
     if body_chars > STANDARD_DIARY_DRAFT_OVERFULL_CHARS:
         messages.append(f"body_chinese_chars={body_chars} > {STANDARD_DIARY_DRAFT_OVERFULL_CHARS}")
     if body_line_count < 45:
@@ -989,7 +990,11 @@ def preflight_messages(draft: Path) -> list[str]:
         )
     if body_line_count > 75 and long_line_count < 3:
         messages.append(f"long_lines={long_line_count} < 3 (keep several rough longer action/speech/thought lines)")
-    if 45 <= body_line_count <= 75 and body_chars < 950 and long_line_count < 6:
+    if (
+        STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS <= body_chars < STANDARD_DIARY_PREFERRED_TARGET_MIN_CHARS
+        and 45 <= body_line_count <= 75
+        and long_line_count < 6
+    ):
         messages.append(
             f"medium_short_line_grid=present (long_lines={long_line_count} < 6, line_stdev={line_stdev:.1f}; "
             "rewrite rough action/speech/thought lines before checking)"
@@ -998,7 +1003,7 @@ def preflight_messages(draft: Path) -> list[str]:
         messages.append(
             f"short_breath_lines={short_breath_count} < 4 (keep a few <=8-Chinese-character breath drops; do not make every line a finished caption)"
         )
-    if body_chars >= 900 and body_line_count >= 45 and (
+    if body_chars >= STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS and body_line_count >= 45 and (
         (period_per_1k >= 45 and period_count >= 35)
         or (line_period_ratio >= 0.65 and short_breath_count < 4)
     ):
@@ -1012,7 +1017,7 @@ def preflight_messages(draft: Path) -> list[str]:
         messages.append(
             f"bare_line_grid={bare_line_ratio:.2f} (keep punctuation on broken lines; do not turn the article into caption-like naked rows)"
         )
-    if body_chars >= 900 and (body_line_count <= 20 or mean_line >= 42 or long_line_count >= max(6, int(body_line_count * 0.65))):
+    if body_chars >= STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS and (body_line_count <= 20 or mean_line >= 42 or long_line_count >= max(6, int(body_line_count * 0.65))):
         messages.append(
             f"prose_block_shape=compressed (body_lines={body_line_count}, mean_line={mean_line:.1f}, long_lines={long_line_count})"
         )
@@ -1026,7 +1031,7 @@ def preflight_messages(draft: Path) -> list[str]:
                 "paragraph_engine=weak (source reset: rebuild the incomplete article from the strongest fragment; "
                 "preserve a complete article and do not append checker-shaped material; do not inspect checker source/tests)"
             )
-        elif body_chars < STANDARD_DIARY_PREFERRED_TARGET_MIN_CHARS:
+        elif body_chars < STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS:
             messages.append(
                 "paragraph_engine=weak (source reset: replace the earliest overloaded fragment or relation in place; preserve the complete article "
                 "across the replacement and neighboring existing movements; do not add material for a metric; "
@@ -1148,8 +1153,8 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
     severely_underbuilt = (
         reported_body_chars is not None and reported_body_chars < STANDARD_DIARY_FORMAL_MIN_CHARS
     )
-    short_of_safe_mass = (
-        reported_body_chars is not None and reported_body_chars < STANDARD_DIARY_PREFERRED_TARGET_MIN_CHARS
+    short_of_full_article = (
+        reported_body_chars is not None and reported_body_chars < STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS
     )
     surface_only_prefixes = (
         "process_leak_terms=",
@@ -1197,7 +1202,8 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
         message.startswith("standard_prompt_prop_title_loop=") for message in messages
     )
     standard_underbuilt_length = any(
-        message.startswith("body_chinese_chars=") and ("< 900" in message or "< 950" in message) for message in messages
+        message.startswith("body_chinese_chars=") and f"< {STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS}" in message
+        for message in messages
     )
     near_miss_short = (
         any("body_lines=" in message and "< 45" in message for message in messages)
@@ -1236,7 +1242,7 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
                 "after the last content write, run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place` as the final shape "
                 "step before the wrapper; if you edit draft.md after that script, rerun the script before checking"
             )
-        elif short_of_safe_mass:
+        elif short_of_full_article:
             repair_hints.append(
                 "NEXT_ACTION=repair source/content first; replace the earliest broken fragment or relation in place, preserve the complete article "
                 "across the replacement and neighboring existing movements, and do not add material for a metric; after "
@@ -1265,7 +1271,7 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
         elif mixed_rebalance_source:
             mass_action = (
                 "preserve the complete article across the replacement and neighboring existing movements"
-                if short_of_safe_mass
+                if short_of_full_article
                 else "preserve the complete article"
             )
             repair_hints.append(
@@ -1276,7 +1282,7 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
         else:
             mass_action = (
                 "preserve the complete article across the replacement and neighboring existing movements"
-                if short_of_safe_mass
+                if short_of_full_article
                 else "preserve the complete article"
             )
             repair_hints.append(
@@ -1292,7 +1298,7 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
     if near_miss_short:
         mass_action = (
             "preserve the complete article across the replacement and neighboring existing movements"
-            if short_of_safe_mass
+            if short_of_full_article
             else "preserve visible mass"
         )
         repair_hints.append(
@@ -1483,7 +1489,7 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
                     "and do not append diagnostic proof packets; then run the named rhythm "
                     "reset once as the final shape step before the next wrapper call."
                 )
-            elif short_of_safe_mass:
+            elif short_of_full_article:
                 revision_frame = (
                     "Replace the broken fragment or relation before rhythm tools: do not run the rhythm reset as the first move when the same "
                     "preflight also names connector, engine, roughness, dialogue, opening, or refusal/source blockers. Preserve the complete article "
@@ -1531,7 +1537,7 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
             else:
                 mass_action = (
                     "preserve the complete article across the replacement and neighboring existing movements"
-                    if short_of_safe_mass
+                    if short_of_full_article
                     else "preserve complete article"
                 )
                 revision_frame = (
@@ -1646,8 +1652,8 @@ def post_checker_preflight_before_second_check(
     severely_underbuilt = (
         reported_body_chars is not None and reported_body_chars < STANDARD_DIARY_FORMAL_MIN_CHARS
     )
-    short_of_safe_mass = (
-        reported_body_chars is not None and reported_body_chars < STANDARD_DIARY_PREFERRED_TARGET_MIN_CHARS
+    short_of_full_article = (
+        reported_body_chars is not None and reported_body_chars < STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS
     )
     if overfull:
         postcheck_source_note = (
@@ -1665,18 +1671,18 @@ def post_checker_preflight_before_second_check(
     elif source_blocked and severely_underbuilt:
         postcheck_source_note = (
             "Post-check source reset: do not spend checker call 2/2 on a severely incomplete source. "
-            "Rebuild from the strongest fragment, preserve a complete article, and do not append checker-shaped proof packets. After the content rewrite, run any needed rhythm script only as the "
+            "Rebuild from the strongest fragment, preserve a complete article, and do not add material for a metric or append checker-shaped proof packets. After the content rewrite, run any needed rhythm script only as the "
             "final shape step, then call this wrapper again."
         )
     elif source_blocked:
         mass_action = (
             "preserve the complete article across the replacement and neighboring existing movements"
-            if short_of_safe_mass
+            if short_of_full_article
             else "preserve the complete article"
         )
         postcheck_source_note = (
             "Post-check source reset: do not spend checker call 2/2 on a known underbuilt source. "
-            f"Rewrite by replacing one broken fragment relation in place, not by adding a packet: {mass_action}. "
+            f"Rewrite by replacing one broken fragment relation in place, not by adding a packet; do not add material for a metric: {mass_action}. "
             "For social-decline or invitation cases, keep the prompt as one fragment and do not append a consequence subplot. "
             "After the content rewrite, run any needed rhythm script only as the final shape step, then call this wrapper again."
         )
@@ -1731,7 +1737,7 @@ def post_checker_blocking_messages(draft: Path, messages: list[str]) -> list[str
     for message in messages:
         if message.startswith("body_chinese_chars="):
             blocking.append(message)
-        elif body_chars < 950 and message.startswith("medium_short_line_grid="):
+        elif message.startswith("medium_short_line_grid="):
             blocking.append(message)
         elif message.startswith(
             (
@@ -1798,6 +1804,7 @@ def main() -> int:
         state = locked_state
     if state.get("draft") != draft_key:
         state = {"draft": draft_key, "calls": 0, "preflights": 0}
+    state.update(standard_length_evidence(draft))
     state["generator_facing"] = generator_facing
     if not state.get("stopped"):
         record_snapshot(draft, state, "first_submission")

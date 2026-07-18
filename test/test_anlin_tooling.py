@@ -38,7 +38,7 @@ STYLE_PROFILE = ROOT / "references" / "style-profile.json"
 BACKGROUND_FACT_CLASSES = ROOT / "references" / "background-fact-classes.json"
 EVALS = ROOT / "evals" / "evals.json"
 sys.path.insert(0, str(ROOT / "scripts"))
-from check_anlin_violations import check_high_frequency_coverage, detect_style  # noqa: E402
+from check_anlin_violations import check_high_frequency_coverage, chinese_len, detect_style  # noqa: E402
 from build_style_profile import split_title_body as split_style_title_body  # noqa: E402
 from calibrate_style_profile import calibrate as calibrate_style_profile  # noqa: E402
 from check_style_profile import SOFT_REVISE_FAMILY_THRESHOLD, read_json as read_style_profile  # noqa: E402
@@ -2556,7 +2556,7 @@ class AnlinToolingTests(unittest.TestCase):
 
     def test_clean_run_checker_enforces_two_call_limit(self) -> None:
         ready_lines = [
-            "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",
+            "其实我觉得厕所灯坏了以后，我站在门口有点丢人，只好把手机塞回去，",
             "很丢人。",
             "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
             "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
@@ -2584,7 +2584,7 @@ class AnlinToolingTests(unittest.TestCase):
 
     def test_clean_run_checker_records_stage_snapshots(self) -> None:
         ready_lines = [
-            "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",
+            "其实我觉得厕所灯坏了以后，我站在门口有点丢人，只好把手机塞回去，",
             "很丢人。",
             "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
             "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
@@ -2655,7 +2655,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
             ready_lines = [
-                "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",
+                "其实我觉得厕所灯坏了以后，我站在门口有点丢人，只好把手机塞回去，",
                 "很丢人。",
                 "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
                 "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
@@ -2699,7 +2699,7 @@ class AnlinToolingTests(unittest.TestCase):
 
     def test_clean_run_checker_generator_interface_hides_numeric_checker_telemetry(self) -> None:
         ready_lines = [
-            "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",
+            "其实我觉得厕所灯坏了以后，我站在门口有点丢人，只好把手机塞回去，",
             "很丢人。",
             "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
             "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
@@ -2729,13 +2729,13 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertIn("body_chars=", state["last_checker_stdout"])
 
     def test_generator_facing_summary_preserves_mass_routing_boundaries(self) -> None:
-        labels, action = generator_facing_summary(["body_chinese_chars=875 < 900", "paragraph_engine=weak"])
+        labels, action = generator_facing_summary(["body_chinese_chars=849 < 850", "paragraph_engine=weak"])
         self.assertIn("source_shape=underbuilt", labels)
         self.assertIn("replace_one_broken_fragment_or_relation_in_place", action)
         self.assertNotIn("whole_source_rebuild", action)
 
-        labels, action = generator_facing_summary(["body_chinese_chars=913 < 950 with source_shape_weak", "paragraph_engine=weak"])
-        self.assertIn("source_shape=underbuilt", labels)
+        labels, action = generator_facing_summary(["paragraph_engine=weak"])
+        self.assertNotIn("source_shape=underbuilt", labels)
         self.assertIn("replace_one_broken_fragment_or_relation_in_place", action)
         self.assertNotIn("whole_source_rebuild", action)
 
@@ -2743,6 +2743,53 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertIn("source_shape=overfull", labels)
         self.assertNotIn("source_shape=underbuilt", labels)
         self.assertIn("overfull", action)
+
+    def test_generator_facing_summary_uses_850_boundary(self) -> None:
+        labels, action = generator_facing_summary(
+            ["body_chinese_chars=894 < 950 with source_shape_weak"]
+        )
+        self.assertNotIn("source_shape=underbuilt", labels)
+        self.assertNotIn("whole_source_rebuild", action)
+
+        labels, action = generator_facing_summary(
+            ["body_chinese_chars=849 < 850", "paragraph_engine=weak"]
+        )
+        self.assertIn("source_shape=underbuilt", labels)
+        self.assertIn("replace_one_broken_fragment_or_relation_in_place", action)
+
+    def test_clean_run_advisories_do_not_block(self) -> None:
+        messages = [
+            "connectors=[] < 3",
+            "paragraph_engine=weak (source reset required)",
+            "rough_self_damage=missing (source reset required)",
+        ]
+        self.assertEqual(blocking_preflight_messages(messages), [])
+
+    def test_clean_run_checker_preflight_allows_850s_when_shape_is_ready(self) -> None:
+        long_line = "于是我把车把往旁边挪了一点，手机还在口袋里发热，我没有马上看那条消息，"
+        medium_line = "我停了一下，饭味还在嘴里，"
+        lines = [long_line] * 10 + [medium_line] * 36 + ["我。"] * 4
+        while chinese_len("\n".join(lines)) < 894:
+            lines[-1] += "我"
+        while chinese_len("\n".join(lines)) > 894:
+            lines[-1] = lines[-1][:-1]
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("# 晚饭\n\n" + "\n".join(lines), encoding="utf-8")
+            messages = preflight_messages(draft)
+            result = subprocess.run(
+                [sys.executable, str(CLEAN_RUN_CHECKER), str(draft), "--strict", "--draft-gate", "--reset"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
+        self.assertEqual(chinese_len("\n".join(lines)), 894)
+        self.assertFalse(any(message.startswith("body_chinese_chars=") for message in messages), messages)
+        self.assertIn("CLEAN_RUN_NOTE: checker call 1/2", result.stdout)
+        self.assertEqual(state["standard_body_chars"], 894)
+        self.assertTrue(state["preferred_target_shortfall"])
 
     def test_generator_facing_summary_keeps_severe_source_rebuild_before_shape_tools(self) -> None:
         labels, action = generator_facing_summary(
@@ -2872,7 +2919,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
             ready_lines = [
-                "其实我觉得厕所灯坏了以后，我站在门口有点丢人，",
+                "其实我觉得厕所灯坏了以后，我站在门口有点丢人，只好把手机塞回去，",
                 "很丢人。",
                 "突然发现杯子边上有黑泥，好像还蹭到指甲缝里，",
                 "于是洗手洗到一半想吐出来，因为水龙头又喷到裤子上。",
@@ -2923,18 +2970,20 @@ class AnlinToolingTests(unittest.TestCase):
 
     def test_clean_run_checker_preflight_blocks_medium_short_line_grid_without_consuming_call(self) -> None:
         fragments = [
-            "车把烫手",
-            "手机也烫",
-            "其实我想坐下",
-            "突然看见人倒了",
-            "于是我停了一下",
-            "因为腿在抖",
-            "好像没人说话",
-            "我也没说话",
+            "车把烫手我没敢碰一下",
+            "手机也烫得一直发麻",
+            "其实我想坐下再走",
+            "突然看见路口灯亮了",
+            "于是我停在白线旁边",
+            "因为腿还在轻轻发抖",
+            "好像没人真的在等我",
+            "我也没说出那句话",
         ]
         with tempfile.TemporaryDirectory() as temp:
             draft = Path(temp) / "draft.md"
-            draft.write_text("\n".join(["# 下午三点半", "", *(fragments * 8)]), encoding="utf-8")
+            expanded = [line + "还没走回头看" for line in fragments]
+            body_lines = expanded * 7 + expanded[:2]
+            draft.write_text("\n".join(["# 下午三点半", "", *body_lines]), encoding="utf-8")
             command = [
                 sys.executable,
                 str(CLEAN_RUN_CHECKER),
@@ -2944,16 +2993,15 @@ class AnlinToolingTests(unittest.TestCase):
             ]
             preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertEqual(preflight.returncode, 3)
-            self.assertIn("body_chinese_chars=", preflight.stdout)
-            self.assertIn("< 900", preflight.stdout)
+            self.assertNotIn("body_chinese_chars=", preflight.stdout)
+            self.assertNotIn("< 850", preflight.stdout)
             self.assertIn("medium_short_line_grid=present", preflight.stdout)
             self.assertIn("long_lines=0 < 6", preflight.stdout)
             self.assertIn("NEXT_ACTION=repair source/content first", preflight.stdout)
             self.assertIn("after the last content write, run `python <skill-dir>/scripts/rebalance_line_rhythm.py draft.md --in-place`", preflight.stdout)
-            self.assertIn("underbuilt source shape", preflight.stdout)
-            self.assertIn("whole-source rebuild before rhythm tooling", preflight.stdout)
-            self.assertIn("rebuild the incomplete article from the strongest workable movement", preflight.stdout)
-            self.assertIn("preserve a complete article", preflight.stdout)
+            self.assertNotIn("body_chinese_chars=", preflight.stdout.split(";", 1)[0])
+            self.assertNotIn("whole-source rebuild before rhythm tooling", preflight.stdout)
+            self.assertNotIn("rebuild the incomplete article from the strongest workable movement", preflight.stdout)
             self.assertNotIn("release each carrier after one consequence transfer", preflight.stdout)
             self.assertNotIn("one-for-one source replacement before rhythm tooling", preflight.stdout)
             self.assertNotIn("2-3 load-bearing action clusters", preflight.stdout)
@@ -2961,7 +3009,7 @@ class AnlinToolingTests(unittest.TestCase):
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
 
-    def test_clean_run_checker_preflight_blocks_under_900_as_incomplete(self) -> None:
+    def test_clean_run_checker_preflight_blocks_under_850_as_incomplete(self) -> None:
         fragments = [
             "其实我把车停在楼下，",
             "觉得手心还在冒汗，",
@@ -2983,7 +3031,7 @@ class AnlinToolingTests(unittest.TestCase):
             preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertEqual(preflight.returncode, 3)
             self.assertIn("body_chinese_chars=", preflight.stdout)
-            self.assertIn("< 900", preflight.stdout)
+            self.assertIn("< 850", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["calls"], 0)
             self.assertEqual(state["preflights"], 1)
@@ -3023,7 +3071,7 @@ class AnlinToolingTests(unittest.TestCase):
             )
             self.assertNotIn("soften_line_endings.py", result.stdout)
 
-    def test_clean_run_checker_preflight_blocks_900s_only_with_weak_source_shape(self) -> None:
+    def test_clean_run_checker_preflight_blocks_900s_for_explicit_shape_findings(self) -> None:
         from check_anlin_violations import chinese_len
 
         fragments = [
@@ -3060,13 +3108,13 @@ class AnlinToolingTests(unittest.TestCase):
             ]
             preflight = subprocess.run(command, capture_output=True, text=True, encoding="utf-8", check=False)
             self.assertEqual(preflight.returncode, 3, preflight.stdout + preflight.stderr)
-            self.assertIn("body_chinese_chars=", preflight.stdout)
-            self.assertIn("< 950 with source_shape_weak", preflight.stdout)
-            self.assertIn("underbuilt source shape", preflight.stdout)
-            self.assertIn("one local source replacement before rhythm tooling", preflight.stdout)
+            self.assertNotRegex(preflight.stdout, r"body_chinese_chars=\d+ <")
+            self.assertNotIn("< 950 with source_shape_weak", preflight.stdout)
+            self.assertIn("long_lines=0 < 3", preflight.stdout)
+            self.assertIn("short_breath_lines=", preflight.stdout)
+            self.assertIn("paragraph_engine=weak", preflight.stdout)
             self.assertIn("NEXT_ACTION=repair source/content first", preflight.stdout)
-            self.assertIn("replace one repeated or overloaded fragment or relation in place", preflight.stdout)
-            self.assertIn("Preserve the complete article", preflight.stdout)
+            self.assertIn("Replace the earliest inert fragment or relation in place", preflight.stdout)
             self.assertNotIn("change medium after its first consequence transfer", preflight.stdout)
             self.assertNotIn("2-3 load-bearing action clusters", preflight.stdout)
             state = json.loads((draft.parent / ".anlin-clean-run-state.json").read_text(encoding="utf-8"))
@@ -10602,27 +10650,27 @@ class AnlinToolingTests(unittest.TestCase):
         cases = [
             (
                 649,
-                "body_chinese_chars=649 < 900",
+                "body_chinese_chars=649 < 850",
                 "do a whole-source rebuild",
                 "preserve a complete article",
             ),
             (
                 650,
-                "body_chinese_chars=650 < 900",
+                "body_chinese_chars=650 < 850",
                 "replace one repeated or overloaded relation in place",
                 "preserve the complete article across the replacement and neighboring existing movements",
             ),
             (
-                899,
-                "body_chinese_chars=899 < 900",
+                849,
+                "body_chinese_chars=849 < 850",
                 "replace one repeated or overloaded relation in place",
                 "preserve the complete article across the replacement and neighboring existing movements",
             ),
             (
                 900,
-                "body_chinese_chars=900 < 950 with source_shape_weak",
-                "replace one repeated or overloaded relation in place",
-                "preserve complete article",
+                "paragraph_engine=weak (source reset required)",
+                "replace the earliest inert fragment or relation in place",
+                "preserving the existing article",
             ),
         ]
 
@@ -10648,29 +10696,29 @@ class AnlinToolingTests(unittest.TestCase):
     def test_standard_underbuilt_length_routes_without_extra_source_labels(self) -> None:
         cases = [
             (
-                ["body_chinese_chars=649 < 900"],
+                ["body_chinese_chars=649 < 850"],
                 "do a whole-source rebuild",
                 "preserve a complete article",
             ),
             (
-                ["body_chinese_chars=649 < 900", "connectors=[] < 3"],
+                ["body_chinese_chars=649 < 850", "connectors=[] < 3"],
                 "do a whole-source rebuild",
                 "preserve a complete article",
             ),
             (
-                ["body_chinese_chars=650 < 900"],
+                ["body_chinese_chars=650 < 850"],
                 "replace one repeated or overloaded relation in place",
                 "preserve the complete article across the replacement and neighboring existing movements",
             ),
             (
-                ["body_chinese_chars=899 < 900", "connectors=[] < 3"],
+                ["body_chinese_chars=849 < 850", "connectors=[] < 3"],
                 "replace one repeated or overloaded relation in place",
                 "preserve the complete article across the replacement and neighboring existing movements",
             ),
             (
-                ["body_chinese_chars=913 < 950 with source_shape_weak"],
-                "replace one repeated or overloaded relation in place",
-                "preserve complete article",
+                ["paragraph_engine=weak (source reset required)"],
+                "replace the earliest inert fragment or relation in place",
+                "preserving the existing article",
             ),
         ]
 
