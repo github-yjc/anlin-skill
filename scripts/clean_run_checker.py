@@ -57,7 +57,8 @@ from check_anlin_violations import (  # noqa: E402
     LEARNED_ENDING_LINES,
     ROUGH_SELF_DAMAGE_PATTERNS,
     ROUGH_SELF_DAMAGE_TERMS,
-    STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS,
+    STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS,
+    STANDARD_DIARY_PREFERRED_TARGET_MIN_CHARS,
     STANDARD_DIARY_DRAFT_OVERFULL_CHARS,
     STANDARD_DIARY_FORMAL_MIN_CHARS,
     STANDARD_PROMPT_PROP_TITLE_TERMS,
@@ -1025,7 +1026,7 @@ def preflight_messages(draft: Path) -> list[str]:
                 "paragraph_engine=weak (source reset: rebuild the incomplete article from the strongest fragment; "
                 "preserve a complete article and do not append checker-shaped material; do not inspect checker source/tests)"
             )
-        elif body_chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
+        elif body_chars < STANDARD_DIARY_PREFERRED_TARGET_MIN_CHARS:
             messages.append(
                 "paragraph_engine=weak (source reset: replace the earliest overloaded fragment or relation in place; preserve the complete article "
                 "across the replacement and neighboring existing movements; do not add material for a metric; "
@@ -1148,7 +1149,7 @@ def build_preflight_guidance(messages: list[str]) -> tuple[list[str], str]:
         reported_body_chars is not None and reported_body_chars < STANDARD_DIARY_FORMAL_MIN_CHARS
     )
     short_of_safe_mass = (
-        reported_body_chars is not None and reported_body_chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS
+        reported_body_chars is not None and reported_body_chars < STANDARD_DIARY_PREFERRED_TARGET_MIN_CHARS
     )
     surface_only_prefixes = (
         "process_leak_terms=",
@@ -1646,7 +1647,7 @@ def post_checker_preflight_before_second_check(
         reported_body_chars is not None and reported_body_chars < STANDARD_DIARY_FORMAL_MIN_CHARS
     )
     short_of_safe_mass = (
-        reported_body_chars is not None and reported_body_chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS
+        reported_body_chars is not None and reported_body_chars < STANDARD_DIARY_PREFERRED_TARGET_MIN_CHARS
     )
     if overfull:
         postcheck_source_note = (

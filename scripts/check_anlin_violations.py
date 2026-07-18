@@ -1614,7 +1614,8 @@ DRAFT_GATE_RULE_NAMES: set[str] = {"呼吸点缺失"}
 STANDARD_DIARY_FORMAL_MIN_CHARS = 650
 STANDARD_DIARY_ATTEMPT_MIN_CHARS = 300
 STANDARD_DIARY_ATTEMPT_MIN_LINES = 12
-STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS = 900
+STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS = 850
+STANDARD_DIARY_PREFERRED_TARGET_MIN_CHARS = 900
 STANDARD_DIARY_DRAFT_OVERFULL_CHARS = 1350
 VALID_GENRES = {"standard", "sincere", "micro-hope", "surreal"}
 FORCED_GENRE: str | None = None
@@ -3667,7 +3668,7 @@ def check_standard_diary_length(findings: list[Finding], lines: list[str], text:
                 "文章明显偏短时，从最强可用 fragment 整体重建，恢复完整文章和必要的多个 thought-turn；不要把残稿保留为一换一 packet repair，也不要追加检查器形状的证明场景；若本来就是短体裁则改用匹配评估。",
             )
         )
-    elif chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
+    elif chars < STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS:
         findings.append(
             Finding(
                 "warning",
@@ -3696,7 +3697,7 @@ def check_generated_texture_overfill(findings: list[Finding], lines: list[str], 
     visible_lines = [line.strip() for line in content_lines if line.strip() and not line.startswith("<!--")]
     body = "\n".join(visible_lines)
     body_chars = chinese_len(body)
-    if body_chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS or len(visible_lines) < 35:
+    if body_chars < STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS or len(visible_lines) < 35:
         return
     group_hits: dict[str, int] = {}
     for group, terms in TEXTURE_OVERFILL_GROUPS.items():
@@ -3720,7 +3721,7 @@ def check_generated_texture_overfill(findings: list[Finding], lines: list[str], 
         )
     social_lines = sum(1 for line in visible_lines if any(term in line for term in TEXTURE_SOCIAL_TERMS))
     body_route_lines = group_hits.get("body", 0) + group_hits.get("route_object", 0)
-    if body_chars >= 900 and group_hits.get("body", 0) >= 10 and group_hits.get("route_object", 0) >= 8 and social_lines <= 3:
+    if body_chars >= STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS and group_hits.get("body", 0) >= 10 and group_hits.get("route_object", 0) >= 8 and social_lines <= 3:
         findings.append(
             Finding(
                 "warning",
@@ -3741,7 +3742,7 @@ def check_illness_case_report_loop(findings: list[Finding], lines: list[str], te
         return
     body = "\n".join(visible_lines)
     body_chars = chinese_len(body)
-    if body_chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
+    if body_chars < STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS:
         return
     lower_body = body.lower()
     illness_hits = sum(lower_body.count(term.lower()) for term in ILLNESS_CASE_REPORT_TERMS)
@@ -3782,7 +3783,7 @@ def check_illness_body_proof_overdensity(findings: list[Finding], lines: list[st
         return
     body = "\n".join(visible_lines)
     body_chars = chinese_len(body)
-    if body_chars < 900:
+    if body_chars < STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS:
         return
     lower_body = body.lower()
     illness_hits = sum(lower_body.count(term.lower()) for term in ILLNESS_CASE_REPORT_TERMS)
@@ -4377,7 +4378,7 @@ def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str],
     short_10_ratio = sum(1 for length in lengths if length <= 10) / line_count
     long_28_ratio = long_28 / line_count
 
-    if body_chars >= STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS and (line_count < 40 or line_count > 75):
+    if body_chars >= STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS and (line_count < 40 or line_count > 75):
         findings.append(
             Finding(
                 "warning",
@@ -4388,7 +4389,7 @@ def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str],
             )
         )
 
-    if body_chars >= STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS and long_24 < 6:
+    if body_chars >= STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS and long_24 < 6:
         findings.append(
             Finding(
                 "warning",
@@ -4399,7 +4400,7 @@ def check_standard_diary_formal_shape(findings: list[Finding], lines: list[str],
             )
         )
 
-    if body_chars >= STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS and (avg_len >= 29 or long_28_ratio >= 0.48):
+    if body_chars >= STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS and (avg_len >= 29 or long_28_ratio >= 0.48):
         findings.append(
             Finding(
                 "warning",
@@ -4791,7 +4792,7 @@ def check_global_comma_density(findings: list[Finding], lines: list[str], text: 
         return
     body = "\n".join(line for line in content_lines if line.strip() and not line.startswith("<!--"))
     chars = chinese_len(body)
-    if chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
+    if chars < STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS:
         return
     comma_count = body.count("，") + body.count(",")
     comma_per_1k = comma_count / chars * 1000 if chars else 0.0
@@ -4816,7 +4817,7 @@ def check_standard_period_row_grid(findings: list[Finding], lines: list[str], te
         return
     body = "\n".join(visible_lines)
     chars = chinese_len(body)
-    if chars < STANDARD_DIARY_DRAFT_SAFE_MIN_CHARS:
+    if chars < STANDARD_DIARY_FULL_ARTICLE_MIN_CHARS:
         return
     period_count = body.count("。")
     period_per_1k = period_count / chars * 1000 if chars else 0.0

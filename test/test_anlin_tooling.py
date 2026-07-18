@@ -9686,6 +9686,48 @@ class AnlinToolingTests(unittest.TestCase):
                 any(item["rule"] == "strict: 标准日寄完整文章篇幅缓冲不足" for item in findings)
             )
 
+    def test_checker_draft_gate_uses_full_article_850_boundary(self) -> None:
+        expected_length_error = {
+            649: True,
+            650: True,
+            849: True,
+            850: False,
+            899: False,
+            900: False,
+        }
+        for body_chars, should_error in expected_length_error.items():
+            with self.subTest(body_chars=body_chars):
+                with tempfile.TemporaryDirectory() as temp:
+                    draft = Path(temp) / "draft.md"
+                    draft.write_text("# 日寄\n\n" + ("我" * body_chars), encoding="utf-8")
+                    result = subprocess.run(
+                        [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                        capture_output=True,
+                        text=True,
+                        encoding="utf-8",
+                        check=False,
+                    )
+                    findings = json.loads(result.stdout)
+                errors = [item["rule"] for item in findings if item["severity"] == "error"]
+                has_length_error = any("标准日寄完整文章篇幅" in rule for rule in errors)
+                self.assertEqual(has_length_error, should_error, errors)
+
+    def test_checker_850_shape_errors_remain_independent_of_length(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            draft = Path(temp) / "draft.md"
+            draft.write_text("# 日寄\n\n" + ("我" * 850), encoding="utf-8")
+            result = subprocess.run(
+                [sys.executable, str(CHECKER), str(draft), "--json", "--strict", "--draft-gate"],
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                check=False,
+            )
+            findings = json.loads(result.stdout)
+        errors = [item["rule"] for item in findings if item["severity"] == "error"]
+        self.assertTrue(any("标准日寄行数缓冲异常" in rule for rule in errors), errors)
+        self.assertFalse(any("标准日寄完整文章篇幅" in rule for rule in errors), errors)
+
     def test_checker_draft_gate_rejects_pseudo_colloquial_and_ordered_skeleton(self) -> None:
         body = "\n".join(
             [
