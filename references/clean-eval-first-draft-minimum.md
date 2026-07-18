@@ -78,6 +78,8 @@ Punctuation-bearing movement units are the source shape. Naked caption rows are 
 
 For invitation prompts, reject a single carrier chain such as `present desk/room -> message -> ticket/money -> old-friend inventory -> work excuse -> refusal -> friendship thesis`. If the slate follows that carrier chain, replace one middle fragment with a lateral thought that does not explain the invitation. A dense body of a few prose paragraphs is prose-block compression, not a fragment slate; preserve punctuation-bearing movement units before the first wrapper.
 
+Before the first write, run one silent independence check: remove the invitation/message lines in your head. If the remaining opening, ticket calculation, old-friend memory, work excuse, and ending would all disappear because they only explain whether the narrator attends, the article is still one carrier chain. Do not count a room opening, the event message, transport arithmetic, and a memory of the same person as separate thought-turns. Replace one explanatory middle with a lateral fragment whose object, time, joke, body, or social position changes and whose next action does not answer the invitation.
+
 The ending may be a joke, question, absurd explanation, word echo, offhand fact, small practical landing, or a thought that fades without explanation. No ending type is mandatory.
 
 ## Minimum Artifact Rules

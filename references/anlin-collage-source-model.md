@@ -36,6 +36,8 @@ For a standard diary, normally let the slate move through several independent th
 
 For invitation prompts, reject a single carrier chain such as `present desk/room -> message -> ticket/money -> old-friend inventory -> work excuse -> refusal -> friendship thesis`. If the slate follows that carrier chain, replace one middle fragment with a lateral thought that does not explain the invitation. A dense body of a few prose paragraphs is prose-block compression, not a fragment slate; preserve punctuation-bearing movement units before the first wrapper.
 
+Use an independence check before saving: mentally remove the invitation/message surface. If the room opening, ticket arithmetic, old-friend memory, work excuse, and ending all exist only to explain attendance, they are one carrier chain, not several independent turns. A different paragraph is not a different turn when it keeps answering the same event. Replace one explanatory middle with an earned lateral fragment that changes object, time, joke, body, or social position and lets the next action move elsewhere.
+
 ## Fragment Relations
 
 Use the relation the text earns:

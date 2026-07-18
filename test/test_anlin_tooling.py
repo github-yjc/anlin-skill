@@ -15801,6 +15801,14 @@ class AnlinToolingTests(unittest.TestCase):
         self.assertNotIn("keep one pressure surface and one consequence", lowered)
         self.assertNotIn("pick one visible pressure surface and one consequence", lowered)
 
+    def test_invitation_fragment_contract_distinguishes_paragraphs_from_independent_turns(self) -> None:
+        first_draft = (ROOT / "references" / "clean-eval-first-draft-minimum.md").read_text(encoding="utf-8")
+        collage = (ROOT / "references" / "anlin-collage-source-model.md").read_text(encoding="utf-8")
+        self.assertIn("remove the invitation/message lines", first_draft.lower())
+        self.assertIn("ticket calculation", first_draft.lower())
+        self.assertIn("not several independent turns", collage.lower())
+        self.assertIn("lateral fragment", collage.lower())
+
     def test_healthy_fragment_preflight_does_not_block_on_engine_or_connector_heuristics(self) -> None:
         body = "\n".join(
             [
